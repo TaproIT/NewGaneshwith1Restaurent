@@ -1,8 +1,9 @@
 import User from "../models/user-model.js";
-import { hashPassword, hashRefreshToken } from "../utils/auth-util.js";
+import { comparePasswords, hashPassword, hashRefreshToken } from "../utils/auth-util.js";
+import { userRoles } from "../utils/enums/user-role.js";
 import { sendErrorResponse, sendSuccessResponse } from "../utils/response-util.js";
 import { generateAccessToken, generateRefreshToken } from "../utils/token-util.js";
-import { validateUserRegistration } from "../validations/auth-validations.js";
+import { validateUserLogin, validateUserRegistration } from "../validations/auth-validations.js";
 
 
 export const registerNewUser = async (req, res) => {
@@ -60,6 +61,63 @@ export const registerNewUser = async (req, res) => {
       user: userData
     });
 
+  } catch (error) {
+    // Handle server errors
+    sendErrorResponse(res, 500, "Internal Server Error", error);
+  }
+};
+
+export const loginUser = async (req, res) => {
+  try {
+    const { email, password, userRole = userRoles.USER.value } = req.body;
+
+    // Validate incoming login data
+    const validationErrors = validateUserLogin({ email, password, userRole });
+    if (validationErrors.length > 0) {
+      return sendErrorResponse(res, 400, "User validation errors", validationErrors);
+    }
+
+    // Find the user with the provided email and role
+    const user = await User.findOne({ email, userRole });
+    if (!user) {
+      return sendErrorResponse(res, 404, "User not found");
+    }
+
+    // Verify password match
+    const isPasswordMatch = await comparePasswords(password, user.password);
+    if (!isPasswordMatch) {
+      return sendErrorResponse(res, 400, "Invalid username or password");
+    }
+
+    // Generate access & refresh tokens
+    const accessToken = generateAccessToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
+
+    // Hash refresh token before storing in DB
+    const encryptedRefreshToken = await hashRefreshToken(refreshToken);
+    user.refreshToken = encryptedRefreshToken;
+    await user.save();
+
+    // Set refresh token as HTTP-only cookie
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    // Prepare safe user data for response
+    const userData = {
+      userRole: user.userRole,
+      email: user.email,
+      userId: user._id,
+    };
+
+    // Send successful login response (refreshToken excluded for security)
+    return sendSuccessResponse(res, 200, "User logged in successfully", {
+      accessToken,
+      user: userData,
+    });
   } catch (error) {
     // Handle server errors
     sendErrorResponse(res, 500, "Internal Server Error", error);
