@@ -4,6 +4,7 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import { connectDB } from "./src/config/db-config.js";
 import { authRoutes } from "./src/routes/auth-routes.js";
+import { corsOptions } from "./src/config/cors-config.js";
 
 
 // Load env variables
@@ -15,7 +16,7 @@ connectDB();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(express.json());
 
