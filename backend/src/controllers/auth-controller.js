@@ -2,7 +2,7 @@ import User from "../models/user-model.js";
 import { comparePasswords, hashPassword, hashRefreshToken } from "../utils/auth-util.js";
 import { userRoles } from "../utils/enums/user-role.js";
 import { sendErrorResponse, sendSuccessResponse } from "../utils/response-util.js";
-import { generateAccessToken, generateRefreshToken } from "../utils/token-util.js";
+import { blacklistToken, generateAccessToken, generateRefreshToken, verifyEncodedToken } from "../utils/token-util.js";
 import { validateUserLogin, validateUserRegistration } from "../validations/auth-validations.js";
 
 
@@ -121,5 +121,39 @@ export const loginUser = async (req, res) => {
   } catch (error) {
     // Handle server errors
     sendErrorResponse(res, 500, "Internal Server Error", error);
+  }
+};
+
+export const logoutUser = async (req, res) => {
+  try {
+    const { userId } = req.user;
+
+    // Check if the user exists
+    const existingUser = await User.findById(userId);
+    if (!existingUser) {
+      return sendErrorResponse(res, 404, "User not found");
+    }
+
+    // Extract access token from Authorization header (Bearer token)
+    const accessToken = req.headers.authorization?.split(" ")[1];
+    if (accessToken) {
+      await blacklistToken(accessToken); // Ensure token is revoked
+    }
+
+    // Clear stored refresh token in DB
+    existingUser.refreshToken = null;
+    await existingUser.save();
+
+    // Remove refresh token from cookies
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict",
+    });
+
+    return sendSuccessResponse(res, 200, "Logout successful");
+
+  } catch (error) {
+    return sendErrorResponse(res, 500, "Internal Server Error", error);
   }
 };
