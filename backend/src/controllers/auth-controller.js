@@ -1,5 +1,5 @@
 import User from "../models/user-model.js";
-import { comparePasswords, hashPassword, hashRefreshToken } from "../utils/auth-util.js";
+import { comparePasswords, compareRefreshTokens, hashPassword, hashRefreshToken } from "../utils/auth-util.js";
 import { userRoles } from "../utils/enums/user-role.js";
 import { sendErrorResponse, sendSuccessResponse } from "../utils/response-util.js";
 import { blacklistToken, generateAccessToken, generateRefreshToken, verifyEncodedToken } from "../utils/token-util.js";
@@ -152,6 +152,58 @@ export const logoutUser = async (req, res) => {
     });
 
     return sendSuccessResponse(res, 200, "Logout successful");
+
+  } catch (error) {
+    return sendErrorResponse(res, 500, "Internal Server Error", error);
+  }
+};
+
+export const refreshUserTokens = async (req, res) => {
+  try {
+    const { refreshToken: clientRefreshToken } = req.cookies;
+    
+    //Check if refresh token is provided
+    if (!clientRefreshToken) {
+      return sendErrorResponse(res, 400, "Refresh token is required.");
+    }
+    
+    // Verify and decode the provided refresh token
+    const decodedRefreshToken = verifyEncodedToken(clientRefreshToken, process.env.REFRESH_TOKEN_SECRET);
+
+    // Find the user linked to the token
+    const existingUser = await User.findById(decodedRefreshToken.userId);
+    if (!existingUser) {
+      return sendErrorResponse(res, 404, "User not found.");
+    }
+
+    // Validate that the provided refresh token matches the stored one
+    const isRefreshTokenValid = await compareRefreshTokens(
+      clientRefreshToken,
+      existingUser.refreshToken
+    );
+    if (!isRefreshTokenValid) {
+      return sendErrorResponse(res, 401, "Invalid refresh token.");
+    }
+
+    // Generate new tokens
+    const newAccessToken = generateAccessToken(existingUser._id);
+    const newRefreshToken = generateRefreshToken(existingUser._id);
+
+    // Store hashed version of the new refresh token
+    existingUser.refreshToken = await hashRefreshToken(newRefreshToken);
+    await existingUser.save();
+
+    // Set the new refresh token in a secure cookie
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    return sendSuccessResponse(res, 200, "Tokens refreshed successfully", {
+      accessToken: newAccessToken,
+    });
 
   } catch (error) {
     return sendErrorResponse(res, 500, "Internal Server Error", error);
