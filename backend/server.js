@@ -5,6 +5,7 @@ import cors from "cors";
 import { connectDB } from "./src/config/db-config.js";
 import { authRoutes } from "./src/routes/auth-routes.js";
 import { corsOptions } from "./src/config/cors-config.js";
+import { userRoutes } from "./src/routes/user-routes.js";
 
 
 // Load env variables
@@ -22,6 +23,9 @@ app.use(express.json());
 
 // Auth Routes
 app.use("/api/v1/auth", authRoutes);
+
+// User Routes
+app.use("/api/v1/user", userRoutes);
 
 const PORT = process.env.PORT || 4000;
 
