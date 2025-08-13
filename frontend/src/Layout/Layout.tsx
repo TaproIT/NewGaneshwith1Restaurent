@@ -36,7 +36,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        <header className="bg-white shadow-md p-4">
+        <header className="shadow-md p-4">
           <h1 className="text-2xl font-semibold">Ganesh Garden Hotel</h1>
         </header>
         <main className="p-6">
