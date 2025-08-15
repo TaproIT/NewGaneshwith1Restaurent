@@ -1,5 +1,5 @@
 import User from "../models/user-model.js";
-import { comparePasswords, compareRefreshTokens, hashPassword, hashRefreshToken } from "../utils/auth-util.js";
+import { comparePasswords, compareRefreshTokens, generateTempPassword, hashPassword, hashRefreshToken, sendTempPasswordEmail } from "../utils/auth-util.js";
 import { userRoles } from "../utils/enums/user-role.js";
 import { sendErrorResponse, sendSuccessResponse } from "../utils/response-util.js";
 import { blacklistToken, generateAccessToken, generateRefreshToken, verifyEncodedToken } from "../utils/token-util.js";
@@ -207,5 +207,81 @@ export const refreshUserTokens = async (req, res) => {
 
   } catch (error) {
     return sendErrorResponse(res, 500, "Internal Server Error", error);
+  }
+};
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Check if user exists
+    const existingUser = await User.findOne({ email });
+    if (!existingUser) {
+      return sendErrorResponse(res, 404, "User not found");
+    }
+
+    // Generate a 4-digit temporary password
+    const tempPassword = generateTempPassword();
+
+    const encryptedTempPassword = await hashPassword(tempPassword);
+
+    // Save temp password & set 24-hour expiration
+    existingUser.tempPassword = encryptedTempPassword;
+    existingUser.tempPasswordExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await existingUser.save();
+
+    // Send temporary password to user's email
+    await sendTempPasswordEmail(email, tempPassword);
+
+    return sendSuccessResponse(
+      res,
+      200,
+      "Temporary password has been sent to your email"
+    );
+
+  } catch (error) {
+    return sendErrorResponse(res, 500, "Internal Server Error", error);
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, tempPassword, newPassword } = req.body;
+
+    // Validate input
+    if (!email || !tempPassword || !newPassword) {
+      return sendErrorResponse(res, 400, "Email, temporary password, and new password are required.");
+    }
+
+    // Find user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return sendErrorResponse(res, 404, "User not found.");
+    }
+
+    // Check if temporary password matches
+    const isTempPasswordValid = await comparePasswords(tempPassword, user.tempPassword);
+    if (!isTempPasswordValid) {
+      return sendErrorResponse(res, 401, "Invalid temporary password.");
+    }
+
+    // Check if temp password is expired (optional if you store expiration)
+    if (user.tempPasswordExpires && user.tempPasswordExpires < Date.now()) {
+      return sendErrorResponse(res, 400, "Temporary password has expired.");
+    }
+
+    // Hash new password
+    const hashedPassword = await hashPassword(newPassword);
+
+    // Update user password and clear temporary password fields
+    user.password = hashedPassword;
+    user.tempPassword = undefined;
+    user.tempPasswordExpires = undefined;
+    await user.save();
+
+    return sendSuccessResponse(res, 200, "Password reset successfully.");
+  } catch (error) {
+    console.error("Reset Password Error:", error);
+    return sendErrorResponse(res, 500, "Server error during password reset.");
   }
 };
