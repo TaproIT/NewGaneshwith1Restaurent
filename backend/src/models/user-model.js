@@ -24,6 +24,12 @@ const userSchema = new mongoose.Schema(
     refreshToken: {
       type: String,
     },
+    tempPassword: {
+      type: String
+    },
+    tempPasswordExpires: {
+      type: Date
+    }
   },
   {
     timestamps: true,
