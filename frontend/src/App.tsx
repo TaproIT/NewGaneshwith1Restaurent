@@ -1,13 +1,13 @@
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import HomePage from './pages/HomePage';
+import { BrowserRouter as Router, Routes, Route} from 'react-router-dom';
 import Layout from './Layout/Layout';
+import Onboarding from './pages/reception/onboarding/Onboarding';
 
 function App() {
   return (
     <Router>
       <Layout>
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/onboarding" element={<Onboarding />} />
         </Routes>
       </Layout>
     </Router>
