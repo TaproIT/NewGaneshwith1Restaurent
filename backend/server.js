@@ -7,6 +7,7 @@ import { connectDB } from "./src/config/db-config.js";
 import { authRoutes } from "./src/routes/auth-routes.js";
 import { corsOptions } from "./src/config/cors-config.js";
 import { userRoutes } from "./src/routes/user-routes.js";
+import { guestRoutes } from "./src/routes/guest-routes.js";
 
 
 // Load env variables
@@ -28,6 +29,9 @@ app.use("/api/v1/auth", authRoutes);
 
 // User Routes
 app.use("/api/v1/user", userRoutes);
+
+// Guest Routes
+app.use("/api/v1/guest", guestRoutes);
 
 const PORT = process.env.PORT || 4000;
 
