@@ -21,3 +21,29 @@ export const getAllUsers = async (req, res) => {
     return sendErrorResponse(res, 500, "Internal Server Error", error);
   }
 };
+
+
+// Get the role of the currently authenticated user
+export const getUserRole = async (req, res) => {
+  try {
+    // Extract userId from decoded token (set by authentication middleware)
+    const { userId } = req.user;
+
+    // Find the user in the database
+    const existingUser = await User.findById(userId);
+    if (!existingUser) {
+      return sendErrorResponse(res, 404, "User not found");
+    }
+
+    // Retrieve the user's role
+    const userRole = existingUser.userRole;
+
+    // Send success response with the user role
+    return sendSuccessResponse(res, 200, "User role retrieved successfully", {
+      userRole,
+    });
+  } catch (error) {
+    // Send generic server error response
+    return sendErrorResponse(res, 500, "Internal Server Error");
+  }
+};
