@@ -133,7 +133,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
           </div>
         </header>
-        <main className="p-6 bg-mainWhite rounded-2xl mt-4 h-[calc(100vh-140px)] overflow-y-auto">
+        <main className="rounded-2xl mt-4 overflow-y-auto">
           {children}
         </main>
       </div>
