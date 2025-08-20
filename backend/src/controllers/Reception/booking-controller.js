@@ -4,6 +4,7 @@ import Room from "../models/Room.js";
 import {generateAndUploadQr} from "../utils/qr.js";
 import {sendWhatsAppMessage} from "../utils/sendWhatsAppMessage.js";
 
+// Validation function for required fields
 function validateCreateBookingBody(body) {
     const required = [
         "guestName",
@@ -13,8 +14,6 @@ function validateCreateBookingBody(body) {
         "lengthOfStay",
         "checkIn",
         "checkOut",
-        "totalUnits",
-        "perDayPrice",
         "hotel",
         "rooms",
         "frontendTotal",
@@ -33,7 +32,6 @@ function validateCreateBookingBody(body) {
         err.status = 400;
         throw err;
     }
-
 }
 
 export const createBooking = async (req, res) => {
@@ -48,62 +46,61 @@ export const createBooking = async (req, res) => {
             lengthOfStay,
             checkIn,
             checkOut,
-            totalUnits,
-            perDayPrice,
-            whatsapp,
             hotel,
-            email,
             rooms: roomIds,
             frontendTotal,
             payload,
             bookingDate,
+            userId, // Assuming user ID is passed from frontend
         } = req.body;
 
+        // Find available rooms
         const rooms = await Room.find({
             _id: { $in: roomIds },
             isBooked: false,
         }).lean();
 
+        // Ensure that all selected rooms are available
         if (rooms.length !== roomIds.length) {
             return res.status(400).json({
                 error: "Some rooms are already booked or not found.",
             });
         }
 
-        const serverTotal = rooms.reduce((sum, r) => sum + (Number(r.price) || 0), 0);
-
-        if (Number(serverTotal) !== Number(frontendTotal)) {
-            return res.status(400).json({
-                error: "Total price mismatch.",
-                details: { serverTotal, frontendTotal },
-            });
-        }
-
+        // Generate and upload the QR code with booking details
         let qr;
         try {
-            qr = await generateAndUploadQr(payload, { folder: "bookings/qr" });
+            qr = await generateAndUploadQr({
+                name: guestName,
+                roomNumbers: roomIds,  // Include the room IDs in the QR code
+                checkIn,
+                checkOut,
+                hotel,
+            });
         } catch (qrErr) {
             console.error("[QR] generation/upload failed:", qrErr);
             return res.status(500).json({ error: "Failed to generate booking QR." });
         }
 
+        // Start a session to handle the booking atomically (for transactional integrity)
         const session = await mongoose.startSession();
         let newBooking;
 
         try {
             await session.withTransaction(async () => {
-                // Double-check & atomically lock rooms (idempotent under race)
+                // Lock rooms and mark them as booked atomically
                 const { modifiedCount } = await Room.updateMany(
                     { _id: { $in: roomIds }, isBooked: false },
                     { $set: { isBooked: true } },
                     { session }
                 );
 
+                // If the count of modified rooms doesn't match the requested room IDs, it means some rooms were already booked
                 if (modifiedCount !== roomIds.length) {
-                    throw Object.assign(new Error("Room(s) just booked by someone else."), { status: 409 });
+                    throw Object.assign(new Error("One or more rooms are unavailable."), { status: 409 });
                 }
 
-                // Create booking document
+                // Create booking document and link it to the user
                 newBooking = await Booking.create(
                     [
                         {
@@ -114,17 +111,18 @@ export const createBooking = async (req, res) => {
                             lengthOfStay,
                             checkIn,
                             checkOut,
-                            totalUnits,
-                            perDayPrice,
-                            whatsapp,
                             hotel,
-                            email,
-                            rooms: roomIds,
-                            totalPrice: serverTotal,
-                            payload, // save the object used in QR for audit/debug
+                            email: req.body.email,  // Assuming email is passed
+                            rooms: roomIds.map(room => ({
+                                roomDetails: room,  // Add room directly from roomIds
+                                perDayPrice: rooms.find(r => r._id.toString() === room.toString()).perDayPrice,  // Add perDayPrice directly from the room object
+                            })),
+                            userId,  // Link the booking to the user
+                            payload, // Save the object used in QR for audit/debug
                             qrPublicId: qr.publicId,
                             qrUrl: qr.url,
                             bookingDate: bookingDate ? new Date(bookingDate) : new Date(),
+                            IsCheckOut: false, // Initial status for booking
                         },
                     ],
                     { session }
@@ -143,6 +141,7 @@ export const createBooking = async (req, res) => {
             session.endSession();
         }
 
+        // Respond with the created booking details
         return res.status(201).json({ booking: newBooking?.[0] });
     } catch (err) {
         console.error("[createBooking] error:", err);
