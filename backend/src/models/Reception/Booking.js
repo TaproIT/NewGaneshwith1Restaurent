@@ -3,64 +3,58 @@ import mongoose from "mongoose";
 const bookingSchema = new mongoose.Schema(
     {
         hotel: { type: String, required: true },
-
         guestName: { type: String, required: true },
         country: { type: String, required: true },
         email: { type: String },
         whatsapp: { type: String },
-        passportId: { type: String, required: true },
-
+        passportId: { type: String },
         totalGuests: { type: Number, required: true },
         kids: { type: Number, required: true },
-        Adults: { type: Number, required: true },
-
+        adults: { type: Number, required: true },
         lengthOfStay: { type: Number, required: true },
         checkIn: { type: Date, required: true },
         checkOut: { type: Date, required: true },
 
-        rooms: [
+        // Current Room(s) for the booking.
+        currentRooms: [{
+            roomId: { type: mongoose.Schema.Types.ObjectId, ref: "Room", required: true },
+            roomNo: { type: String, required: true },
+            isActive: { type: Boolean, default: true },
+        }],
+
+        // History of rooms switched.
+        roomsHistory: [
             {
-                roomDetails: [
-                    {
-                        type: mongoose.Schema.Types.ObjectId,
-                        ref: "Room",
-                        required: true,
-                    },
-                ],
+                roomId: { type: mongoose.Schema.Types.ObjectId, ref: "Room", required: true },
+                roomNo: { type: String, required: true },
                 perDayPrice: { type: Number, required: true },
 
-                // Separate order references for beverages and pool/restaurant
-                ordersBeverage: { type: mongoose.Schema.Types.ObjectId, ref: "BeverageOrder" },
-                ordersPoolAndRestaurant: { type: mongoose.Schema.Types.ObjectId, ref: "PoolAndRestaurantOrder" },
+                finalRoomTotalPrice: { type: Number },
 
-                // Room totals
-                roomTotalPrice: { type: Number },
-                beverageOrderTotalPrice: { type: Number },
-                poolAndRestaurantOrderTotalPrice: { type: Number },
-
-                // Combined total price
-                finalTotalPrice: { type: Number },
+                switchOutDate: { type: Date, required: true, default: null },
+                switchInDate: { type: Date, required: true},
+                isSwitched: { type: Boolean, default: false },
+                switchFrom: { type: String },
             },
         ],
 
-        // Total bill for the booking (can sum all room totals and extras)
-        finalAllRoomsTotalPrice: { type: Number, required: true },
-        totalBill: { type: Number, required: true },
+        // Total bill for the booking.
+        finalAllRoomsTotalPrice: { type: Number },
+        totalBill: { type: Number },
 
-        // Payload for additional data (can be used for custom logic)
-        payload: { type: Object, required: true },
-
-        // QR code related information
+        //QR Code
+        payload: { type: Object },
         qrPublicId: { type: String, required: true },
         qrUrl: { type: String, required: true },
 
-        // Booking timestamps
+        // Additional verification
         bookingDate: { type: Date, required: true },
-        IsCheckOut: { type: Boolean, required: true },
-        RealCheckOutDate: { type: Date, required: true },
+        isCheckOut: { type: Boolean, required: true },
+        realCheckOutDate: { type: Date },
     },
     { timestamps: true }
 );
+
 
 const Booking = mongoose.model("Booking", bookingSchema);
 export default Booking;

@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 
 const roomSchema = new mongoose.Schema({
-    number: { type: String, unique: true, required: true }, // unique room number
+    no: { type: String, unique: true, required: [true, 'Room number is required.'] },
     type: { type: String, required: true },
-    price: { type: Number, required: true },
+    perDayPrice: { type: Number, required: true },
     facilities: [{ type: String }],
     isBooked: { type: Boolean, default: false }
 }, { timestamps: true });

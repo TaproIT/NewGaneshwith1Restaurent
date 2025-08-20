@@ -6,7 +6,7 @@ import cookieParser from "cookie-parser";
 import { connectDB } from "./src/config/db-config.js";
 import { authRoutes } from "./src/routes/auth-routes.js";
 import { userRoutes } from "./src/routes/user-routes.js";
-import { bookingRoutes } from "./src/routes/booking-routes.js";
+import { bookingRoutes } from "./src/routes/Reception/booking-routes.js";
 import { roomRoutes } from "./src/routes/room-routes.js";
 import * as http from "node:http";
 import { Server } from "socket.io";
@@ -37,7 +37,7 @@ app.use(cookieParser());
 //       --- Main Routes ---
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/user", userRoutes);
-// --- booking ---
+// --- Reception/booking ---
 app.use("/api/v1/booking", bookingRoutes);
 // -- room handling ---
 app.use("/api/v1/room", roomRoutes);
