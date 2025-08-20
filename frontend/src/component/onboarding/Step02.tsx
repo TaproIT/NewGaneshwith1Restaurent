@@ -50,7 +50,7 @@ const Step02 = () => {
   return (
     <div className="grid grid-cols-4 gap-5">
       <div className=" col-span-3">
-      <RoomGrid rooms={rooms} selectedRooms={selectedRooms} onRoomClick={handleRoomClick} />
+      <RoomGrid rooms={rooms} selectedRooms={selectedRooms} onRoomClick={handleRoomClick} readOnly={false}/>
       </div>
 
       <div className="col-span-1">
@@ -63,6 +63,7 @@ const Step02 = () => {
         onRemoveRoom={handleRemoveRoom}
         onBookRoom={handleBook}
         onCloseModal={() => setIsModalOpen(false)}
+        readOnly={false}
       />
       </div>
     </div>
