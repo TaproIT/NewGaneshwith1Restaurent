@@ -48,6 +48,9 @@ app.use("/api/v1/booking", bookingRoutes);
 // -- room handling ---
 app.use("/api/v1/room", roomRoutes);
 
+// Guest Routes
+app.use("/api/v1/guest", guestRoutes);
+
 // --- Socket.io ---
 const io = new Server(server, {
     cors: {
@@ -71,9 +74,6 @@ io.on("connection", (socket) => {
 });
 
 // --- Start server ---
-// Guest Routes
-app.use("/api/v1/guest", guestRoutes);
-
 const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
