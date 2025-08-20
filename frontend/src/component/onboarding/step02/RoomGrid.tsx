@@ -1,13 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import type { Room, RoomStatus } from "@/types/roomTypes";
 
 interface RoomGridProps {
   rooms: Room[];
   selectedRooms: Room[];
   onRoomClick: (room: Room) => void;
+  readOnly: boolean;
 }
 
-const RoomGrid: React.FC<RoomGridProps> = ({ rooms, selectedRooms, onRoomClick }) => {
+const RoomGrid: React.FC<RoomGridProps> = ({ rooms, selectedRooms, onRoomClick, readOnly }) => {
   const getStatusColor = (status: RoomStatus) => {
     switch (status) {
       case "reserved":
@@ -27,6 +28,13 @@ const RoomGrid: React.FC<RoomGridProps> = ({ rooms, selectedRooms, onRoomClick }
   const emptyCount = rooms.filter((room) => room.status === "empty").length;
   const maintainCount = rooms.filter((room) => room.status === "maintain").length;
   const selectedCount = rooms.filter((room) => room.status === "selected").length;
+
+  const [activeRoomId, setActiveRoomId] = useState<number | null>(null);
+
+  const handleRoomClick = (room: Room) => {
+      onRoomClick(room);
+    setActiveRoomId(room.id);
+  };
 
   return (
     <div className="p-6 rounded-2xl bg-mainWhite h-[calc(100vh-140px)] overflow-auto">
@@ -53,7 +61,7 @@ const RoomGrid: React.FC<RoomGridProps> = ({ rooms, selectedRooms, onRoomClick }
       {/* Rooms */}
       <div className="grid grid-cols-4 gap-4">
         {rooms.map((room) => (
-          <div
+          (!readOnly ? <div
             key={room.id}
             className={`p-4 rounded-xl text-center h-22 
               ${getStatusColor(room.status)} 
@@ -62,7 +70,17 @@ const RoomGrid: React.FC<RoomGridProps> = ({ rooms, selectedRooms, onRoomClick }
           >
             <p className="font-bold">{room.number}</p>
             {room.status === "reserved" && <p className="text-sm">{room.guest}</p>}
-          </div>
+          </div> 
+          : 
+          <div
+            key={room.id}
+            className={`p-4 rounded-xl text-center h-22 cursor-pointer
+              ${getStatusColor(room.status)} ${activeRoomId === room.id ? "border-2 border-black" : ""}`}
+            onClick={() => handleRoomClick(room)}
+          >
+            <p className="font-bold">{room.number}</p>
+            {room.status === "reserved" && <p className="text-sm">{room.guest}</p>}
+          </div>)
         ))}
       </div>
     </div>

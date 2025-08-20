@@ -1,31 +1,6 @@
 // src/features/onboarding/onboardingSlice.ts
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-
-export type BookedRoom = {
-  id: number;
-  price: number;
-};
-
-export type Step01FormData = {
-  hotel: string;
-  guestName: string;
-  email: string;
-  whatsapp: string;
-  passportID: string;
-  country: string;
-  adults: number;
-  kids: number;
-  checkIn: string;
-  checkOut: string;
-  lengthOfStay: number;
-  totalGuests: number;
-};
-
-interface OnboardingState {
-  step: number;
-  step01Data: Step01FormData;
-  bookedRooms: BookedRoom[];
-}
+import type { BookedRoom, Step01FormData, OnboardingState } from "@/types/guestDataTypes";
 
 const initialState: OnboardingState = {
   step: 1,
