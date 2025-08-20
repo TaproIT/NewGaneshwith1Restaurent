@@ -69,7 +69,10 @@ export default function Step01() {
     dispatch(saveStep01Data(data));
   };
 
+  // TODO: add error messages
+
   return (
+    <div className="p-6 rounded-2xl bg-mainWhite h-[calc(100vh-140px)]">
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
         {/* Hotel Selection */}
@@ -325,5 +328,6 @@ export default function Step01() {
         </div>
       </form>
     </Form>
+    </div>
   );
 }
