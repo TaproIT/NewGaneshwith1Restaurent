@@ -5,7 +5,9 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { connectDB } from "./src/config/db-config.js";
 import { authRoutes } from "./src/routes/auth-routes.js";
+import { corsOptions } from "./src/config/cors-config.js";
 import { userRoutes } from "./src/routes/user-routes.js";
+import { guestRoutes } from "./src/routes/guest-routes.js";
 import { bookingRoutes } from "./src/routes/Reception/booking-routes.js";
 import { roomRoutes } from "./src/routes/room-routes.js";
 import * as http from "node:http";
@@ -14,6 +16,8 @@ import { setupRoomSocket} from "./src/utils/realtime/room-socket.js";
 
 // Load env variables
 dotenv.config();
+
+// Connect to MongoDB
 connectDB();
 
 const app = express();
@@ -36,6 +40,8 @@ app.use(cookieParser());
 
 //       --- Main Routes ---
 app.use("/api/v1/auth", authRoutes);
+
+// User Routes
 app.use("/api/v1/user", userRoutes);
 // --- Reception/booking ---
 app.use("/api/v1/booking", bookingRoutes);
@@ -65,6 +71,9 @@ io.on("connection", (socket) => {
 });
 
 // --- Start server ---
+// Guest Routes
+app.use("/api/v1/guest", guestRoutes);
+
 const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
