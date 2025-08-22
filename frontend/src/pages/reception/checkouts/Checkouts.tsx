@@ -1,9 +1,8 @@
 import type { RootState } from "@/app/store";
-import { mockRooms } from "@/component/onboarding/step02/mockRooms";
 import RoomDetails from "@/component/onboarding/step02/RoomDetails";
 import RoomGrid from "@/component/onboarding/step02/RoomGrid";
 import type { Room } from "@/types/roomTypes";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useSelector } from "react-redux";
 
 const Checkouts = () => {
@@ -25,7 +24,6 @@ const Checkouts = () => {
           selectedRooms={[]} // no selected rooms needed
           onRoomClick={handleRoomClick} // only for viewing
           readOnly={true}
-          checkout={true}
         />
       </div>
 

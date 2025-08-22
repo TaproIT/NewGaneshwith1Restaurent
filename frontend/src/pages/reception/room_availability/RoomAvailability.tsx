@@ -1,8 +1,7 @@
 import RoomDetails from "@/component/onboarding/step02/RoomDetails";
 import RoomGrid from "@/component/onboarding/step02/RoomGrid";
-import React, { useState } from "react";
+import { useState } from "react";
 import type { Room } from "@/types/roomTypes";
-import { mockRooms } from "@/component/onboarding/step02/mockRooms";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 
@@ -25,7 +24,6 @@ const RoomAvailability = () => {
           selectedRooms={[]} // no selected rooms needed
           onRoomClick={handleRoomClick} // only for viewing
           readOnly={true}
-          checkout={false}
         />
       </div>
 

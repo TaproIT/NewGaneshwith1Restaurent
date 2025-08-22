@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { saveBookedRoom } from "@/features/onboarding/onboardingSlice";
@@ -52,7 +52,7 @@ const Step02 = () => {
   return (
     <div className="grid grid-cols-4 gap-5">
       <div className=" col-span-3">
-      <RoomGrid rooms={rooms} selectedRooms={selectedRooms} onRoomClick={handleRoomClick} readOnly={false} checkout={false}/>
+      <RoomGrid rooms={rooms} selectedRooms={selectedRooms} onRoomClick={handleRoomClick} readOnly={false}/>
       </div>
 
       <div className="col-span-1">

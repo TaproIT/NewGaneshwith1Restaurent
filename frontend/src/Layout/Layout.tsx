@@ -4,7 +4,7 @@ import Logo from '../assets/Images/Logos/main_logo.png';
 import { 
   Bell, CircleArrowRight, LogOut, Repeat, Settings, 
   ShieldCheck, User, UserRoundPlus, Users, Calendar,
-  ChefHat, Coffee, ClipboardList,
+  ChefHat, Coffee,
   RepeatIcon,
   BookText
 } from 'lucide-react';

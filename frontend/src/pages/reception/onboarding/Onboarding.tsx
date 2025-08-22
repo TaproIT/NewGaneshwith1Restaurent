@@ -1,7 +1,6 @@
 import type { RootState } from "@/app/store";
 import Step01 from "@/component/onboarding/Step01";
 import Step02 from "@/component/onboarding/Step02";
-import React from "react";
 import { useSelector } from "react-redux";
 
 const Onboarding = () => {

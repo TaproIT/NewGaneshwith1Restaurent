@@ -6,10 +6,9 @@ interface RoomGridProps {
   selectedRooms: Room[];
   onRoomClick: (room: Room) => void;
   readOnly: boolean;
-  checkout: boolean
 }
 
-const RoomGrid: React.FC<RoomGridProps> = ({ rooms, selectedRooms, onRoomClick, readOnly, checkout }) => {
+const RoomGrid: React.FC<RoomGridProps> = ({ rooms, onRoomClick, readOnly}) => {
   const getStatusColor = (status: RoomStatus) => {
     switch (status) {
       case "reserved":
