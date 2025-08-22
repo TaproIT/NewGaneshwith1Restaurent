@@ -17,8 +17,8 @@ const initialState: OnboardingState = {
     checkOut: "",
     lengthOfStay: 0,
     totalGuests: 0,
+    bookedRooms: [], // now inside step01Data
   },
-  bookedRooms: [],
 };
 
 const onboardingSlice = createSlice({
@@ -36,7 +36,7 @@ const onboardingSlice = createSlice({
       state.step01Data = action.payload;
     },
     saveBookedRoom: (state, action: PayloadAction<BookedRoom>) => {
-      state.bookedRooms.push(action.payload); // append booked room
+      state.step01Data.bookedRooms.push(action.payload); // ✅ correct place
     },
   },
 });
@@ -46,7 +46,7 @@ export const {
   prevStep, 
   resetSteps, 
   saveStep01Data,
-  saveBookedRoom, // <-- export it
+  saveBookedRoom,
 } = onboardingSlice.actions;
 
 export default onboardingSlice.reducer;
