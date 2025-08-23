@@ -281,7 +281,7 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
               <div className="mt-2 grid grid-cols-3 text-gray whitespace-nowrap text-sm">
                 <div>Subtotal</div>
                 <div>:</div>
-                <div>LKR {checkout ? totalBill : invoiceSubTotal}</div>
+                <div>LKR {checkout ? totalPrice : invoiceSubTotal}</div>
               </div>
               <div className="mt-2 grid grid-cols-3 text-gray whitespace-nowrap text-sm">
                 <div>Tax</div>
