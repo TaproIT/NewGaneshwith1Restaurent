@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import Booking from "../../models/Reception/Booking.js";
 import Room from "../../models/Room.js";
 import {generateAndUploadQr} from "../../utils/qr.js";
+import {sendWhatsAppMessage} from "../../utils/sendWhatsAppMessage.js";
+import {findActiveBookingByRoomNo} from "../../utils/findActiveBookingByRoomNo.js";
 
 // Function to validate incoming body data
 function validateCreateBookingBody(body) {
@@ -132,6 +134,7 @@ export const createBooking = async (req, res) => {
                         switchInDate: checkIn,
                         switchOutDate: checkOut, // planned checkout
                         isSwitched: false,
+                        status: 'active',
                     });
                 };
 
@@ -196,91 +199,337 @@ export const sendBookingQrViaWhatsApp = async (req, res) => {
     }
 };
 
-export const switchRoom = async (req, res) => {
-    const { bookingId } = req.params;
-    const { oldRoomNo, newRoomNo } = req.body;
-
-    const session = await mongoose.startSession();
+// Get All room details for particular booking
+export const getBookingWithActiveRoomsAndPrices = async (req, res) => {
     try {
-        let booking;
-        await session.withTransaction(async () => {
-            booking = await Booking.findById(bookingId).session(session);
-            if (!booking) {
-                throw Object.assign(new Error("Booking not found"), { status: 404 });
+        const { roomNo } = req.params;
+
+        const bookingId = await findActiveBookingByRoomNo(roomNo);
+
+        if (!bookingId) {
+            return res.status(404).json({ message: "No active booking found for this room." });
+        }
+
+        // Fetch booking details
+        const booking = await Booking.findById(bookingId)
+            .populate("currentRooms.roomId")
+            .populate("roomsHistory.roomId");
+
+        if (!booking) {
+            return res.status(404).json({ message: "Booking not found." });
+        }
+
+        //  Extract ALL active rooms
+        const activeRooms = booking.currentRooms.filter(room => room.isActive);
+
+        // Build details for each active room
+        const activeRoomDetails = activeRooms.map(activeRoom => {
+            // Find history entry where isSwitched = false for this room
+            const historyEntry = booking.roomsHistory.find(
+                h => h.roomNo === activeRoom.roomNo && h.isSwitched === false
+            );
+
+            let perDayPrice = historyEntry ? historyEntry.perDayPrice : activeRoom.roomId.perDayPrice;
+            let switchInDate = historyEntry ? historyEntry.switchInDate : booking.checkIn;
+            let switchOutDate = historyEntry && historyEntry.switchOutDate ? historyEntry.switchOutDate : booking.checkOut;
+
+            // Calculate total days (inclusive of switchInDate, exclusive of switchOutDate)
+            const diffTime = new Date(switchOutDate) - new Date(switchInDate);
+            const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // convert ms -> days
+
+            const roomTotalPrice = perDayPrice * days;
+
+            return {
+                roomNo: activeRoom.roomNo,
+                type: activeRoom.roomId.type,
+                facilities: activeRoom.roomId.facilities,
+                perDayPrice,
+                switchInDate,
+                switchOutDate,
+                roomTotalPrice
+            };
+        });
+
+        const responseData = {
+            bookingId: booking._id,
+            guestName: booking.guestName,
+            checkIn: booking.checkIn,
+            checkOut: booking.checkOut,
+            activeRooms: activeRoomDetails
+        };
+
+        return res.status(200).json(responseData);
+
+    } catch (error) {
+        console.error("Error fetching booking with active rooms and prices:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
+// Switch rooms with proper isSwitched status
+export const switchRoomsBulk = async (req, res) => {
+    const { bookingId } = req.params;
+    const { oldRooms, newRooms } = req.body;
+
+    if (!Array.isArray(oldRooms) || !Array.isArray(newRooms)) {
+        return res.status(400).json({ error: "oldRooms and newRooms must be arrays" });
+    }
+
+    const today = new Date();
+
+    try {
+        // Fetch booking
+        const booking = await Booking.findById(bookingId);
+        if (!booking) throw Object.assign(new Error("Booking not found"), { status: 404 });
+
+        // Fetch all old and new rooms in one query
+        const allRoomNumbers = [...oldRooms.map(r => r.roomNo), ...newRooms];
+        const rooms = await Room.find({ no: { $in: allRoomNumbers } });
+        const roomMap = Object.fromEntries(rooms.map(r => [r.no, r]));
+
+        // Validate rooms
+        oldRooms.forEach(o => {
+            if (!booking.currentRooms.some(r => r.roomNo === o.roomNo && r.isActive)) {
+                throw Object.assign(new Error(`Old room ${o.roomNo} not found or inactive`), { status: 400 });
             }
+            if (!roomMap[o.roomNo]) throw Object.assign(new Error(`Old room ${o.roomNo} not found`), { status: 400 });
+        });
 
-            // 1. Find old room in currentRooms
-            const oldRoom = booking.currentRooms.find(r => r.roomNo === oldRoomNo && r.isActive);
-            if (!oldRoom) {
-                throw Object.assign(new Error("Old room not found in current booking"), { status: 400 });
+        newRooms.forEach(no => {
+            if (!roomMap[no]) throw Object.assign(new Error(`New room ${no} not found`), { status: 400 });
+            if (roomMap[no].isBooked) throw Object.assign(new Error(`New room ${no} is already booked`), { status: 400 });
+        });
+
+        // Process old rooms in memory and mark as inactive
+        const oldRoomNumbers = oldRooms.map(r => r.roomNo);
+        booking.currentRooms.forEach(r => {
+            const oldData = oldRooms.find(o => o.roomNo === r.roomNo);
+            if (oldData && r.isActive) {
+                r.isActive = false;
+                const hist = booking.roomsHistory.find(h => h.roomNo === r.roomNo && !h.isSwitched);
+                if (hist) {
+                    hist.switchOutDate = today;
+                    hist.isSwitched = true;
+                    hist.status = "switched_out";
+                    hist.switchFrom = newRooms.join(", ");
+                    hist.discountPrice = oldData.discountPrice;
+                    hist.finalRoomTotalPrice = oldData.finalRoomTotalPrice;
+                }
             }
+        });
 
-            // 2. Check new room availability
-            const newRoom = await Room.findOne({ no: newRoomNo, isBooked: false }).session(session);
-            if (!newRoom) {
-                throw Object.assign(new Error("New room is not available"), { status: 400 });
-            }
+        //  Update old rooms in Room model in bulk
+        await Room.updateMany(
+            { no: { $in: oldRoomNumbers } },
+            { $set: { isBooked: false } }
+        );
 
-            // 3. Free old room
-            await Room.updateOne({ _id: oldRoom.roomId }, { $set: { isBooked: false } }, { session });
-
-            // 4. Book new room
-            await Room.updateOne({ _id: newRoom._id }, { $set: { isBooked: true } }, { session });
-
-            // 5. Mark old room as inactive
-            oldRoom.isActive = false;
-
-            // 6. Add new room as active
-            booking.currentRooms.push({
-                roomId: newRoom._id,
-                roomNo: newRoom.no,
-                isActive: true,
-            });
-
-            // 7. Update history for old room
-            const historyEntry = booking.roomsHistory.find(h => h.roomNo === oldRoomNo && !h.isSwitched);
-            if (historyEntry) {
-                historyEntry.switchOutDate = new Date();
-                historyEntry.isSwitched = true;
-            }
-
-            // 8. Add history for new room
-            booking.roomsHistory.push({
-                roomId: newRoom._id,
-                roomNo: newRoom.no,
-                perDayPrice: newRoom.perDayPrice,
-                roomTotalPrice: null,
-                switchInDate: new Date(),
+        //  Process new rooms: add to booking and history
+        const newHistories = [];
+        const newCurrentRooms = newRooms.map(no => {
+            const r = roomMap[no];
+            r.isBooked = true; // mark booked in memory
+            newHistories.push({
+                roomId: r._id,
+                roomNo: r.no,
+                perDayPrice: r.perDayPrice,
+                finalRoomTotalPrice: null,
+                discountPrice: null,
+                switchInDate: today,
                 switchOutDate: booking.checkOut,
                 isSwitched: false,
-                switchFrom: oldRoomNo,
+                status: "switched_in",
+                switchFrom: oldRooms.map(o => o.roomNo).join(", "),
             });
-
-            // 9. Regenerate QR with updated current rooms
-            const activeRooms = booking.currentRooms.filter(r => r.isActive).map(r => r.roomNo);
-            const qr = await generateAndUploadQr({
-                name: booking.guestName,
-                roomNumbers: activeRooms,
-                checkIn: booking.checkIn,
-                checkOut: booking.checkOut,
-                hotel: booking.hotel,
-            });
-
-            booking.qrPublicId = qr.publicId;
-            booking.qrUrl = qr.url;
-
-            await booking.save({ session });
+            return { roomId: r._id, roomNo: r.no, isActive: true };
         });
+
+        booking.currentRooms.push(...newCurrentRooms);
+        booking.roomsHistory.push(...newHistories);
+
+        // Update new rooms in Room model in bulk
+        await Room.updateMany(
+            { no: newRooms },
+            { $set: { isBooked: true } }
+        );
+
+        // Regenerate QR
+        const activeRooms = booking.currentRooms.filter(r => r.isActive).map(r => r.roomNo);
+        const qr = await generateAndUploadQr({
+            name: booking.guestName,
+            roomNumbers: activeRooms,
+            checkIn: booking.checkIn,
+            checkOut: booking.checkOut,
+            hotel: booking.hotel,
+        });
+        booking.qrPublicId = qr.publicId;
+        booking.qrUrl = qr.url;
+
+        // 9. Save booking
+        await booking.save();
 
         return res.status(200).json({
-            message: "Room switched successfully",
+            message: "Rooms switched successfully",
             bookingId: booking._id,
-            currentRooms: booking.currentRooms.filter(r => r.isActive).map(r => r.roomNo),
+            currentRooms: activeRooms,
             qrUrl: booking.qrUrl
         });
+
     } catch (err) {
-        return res.status(err.status || 500).json({ error: err.message || "Failed to switch room" });
-    } finally {
-        session.endSession();
+        console.error("Switch rooms error:", err);
+        return res.status(err.status || 500).json({ error: err.message || "Failed to switch rooms" });
+    }
+};
+
+// export const switchRoomsBulk = async (req, res) => {
+//     const { bookingId } = req.params;
+//     const { oldRooms, newRooms } = req.body;
+//
+//     if (!Array.isArray(oldRooms) || !Array.isArray(newRooms)) {
+//         return res.status(400).json({ error: "oldRooms and newRooms must be arrays" });
+//     }
+//
+//     const session = await mongoose.startSession();
+//     const today = new Date();
+//
+//     try {
+//         let booking;
+//         await session.withTransaction(async () => {
+//             // 1. Fetch booking
+//             booking = await Booking.findById(bookingId).session(session);
+//             if (!booking) throw Object.assign(new Error("Booking not found"), { status: 404 });
+//
+//             // 2. Fetch all old rooms and new rooms in one query
+//             const roomNumbers = [...oldRooms, ...newRooms];
+//             const rooms = await Room.find({ no: { $in: roomNumbers } }).session(session);
+//             const roomMap = Object.fromEntries(rooms.map(r => [r.no, r]));
+//
+//             // 3. Validate all rooms exist and availability
+//             for (const oldRoomNo of oldRooms) {
+//                 if (!booking.currentRooms.find(r => r.roomNo === oldRoomNo && r.isActive)) {
+//                     throw Object.assign(new Error(`Old room ${oldRoomNo} not found or inactive`), { status: 400 });
+//                 }
+//                 if (!roomMap[oldRoomNo]) throw Object.assign(new Error(`Room ${oldRoomNo} not found`), { status: 400 });
+//             }
+//             for (const newRoomNo of newRooms) {
+//                 const newRoom = roomMap[newRoomNo];
+//                 if (!newRoom) throw Object.assign(new Error(`New room ${newRoomNo} not found`), { status: 400 });
+//                 if (newRoom.isBooked) throw Object.assign(new Error(`New room ${newRoomNo} is already booked`), { status: 400 });
+//             }
+//
+//             // 4. Update old rooms in memory
+//             const oldRoomHistories = [];
+//             booking.currentRooms = booking.currentRooms.map(r => {
+//                 if (oldRooms.includes(r.roomNo) && r.isActive) {
+//                     // Update room as inactive
+//                     r.isActive = false;
+//
+//                     // Find history and update
+//                     const hist = booking.roomsHistory.find(h => h.roomNo === r.roomNo && !h.isSwitched);
+//                     if (hist) {
+//                         hist.switchOutDate = today;
+//                         hist.isSwitched = true;
+//                         hist.status = "switched_out";
+//                         hist.switchFrom = newRooms.join(", ");
+//                         oldRoomHistories.push(hist);
+//                     }
+//                 }
+//                 return r;
+//             });
+//
+//             // 5. Update Room models in bulk (old rooms set isBooked=false)
+//             await Room.updateMany({ no: { $in: oldRooms } }, { $set: { isBooked: false } }, { session });
+//
+//             // 6. Add new rooms to booking and history
+//             const newHistories = [];
+//             const newCurrentRooms = newRooms.map(no => {
+//                 const r = roomMap[no];
+//                 // Update Room model as booked
+//                 r.isBooked = true;
+//                 newHistories.push({
+//                     roomId: r._id,
+//                     roomNo: r.no,
+//                     perDayPrice: r.perDayPrice,
+//                     finalRoomTotalPrice: null,
+//                     discountPrice: null,
+//                     switchInDate: today,
+//                     switchOutDate: booking.checkOut,
+//                     isSwitched: false,
+//                     status: "switched_in",
+//                     switchFrom: oldRooms.join(", "),
+//                 });
+//                 return {
+//                     roomId: r._id,
+//                     roomNo: r.no,
+//                     isActive: true,
+//                 };
+//             });
+//
+//             booking.currentRooms.push(...newCurrentRooms);
+//             booking.roomsHistory.push(...newHistories);
+//
+//             // 7. Update new rooms in Room model in bulk
+//             await Room.updateMany({ no: { $in: newRooms } }, { $set: { isBooked: true } }, { session });
+//
+//             // 8. Regenerate QR
+//             const activeRooms = booking.currentRooms.filter(r => r.isActive).map(r => r.roomNo);
+//             const qr = await generateAndUploadQr({
+//                 name: booking.guestName,
+//                 roomNumbers: activeRooms,
+//                 checkIn: booking.checkIn,
+//                 checkOut: booking.checkOut,
+//                 hotel: booking.hotel,
+//             });
+//             booking.qrPublicId = qr.publicId;
+//             booking.qrUrl = qr.url;
+//
+//             await booking.save({ session });
+//         });
+//
+//         return res.status(200).json({
+//             message: "Rooms switched successfully",
+//             bookingId: booking._id,
+//             currentRooms: booking.currentRooms.filter(r => r.isActive).map(r => r.roomNo),
+//             qrUrl: booking.qrUrl
+//         });
+//
+//     } catch (err) {
+//         console.error("Switch rooms error:", err);
+//         return res.status(err.status || 500).json({ error: err.message || "Failed to switch rooms" });
+//     } finally {
+//         session.endSession();
+//     }
+// };
+
+// Get all rooms for register guest
+export const getAllRoomsWithBookingDetails = async (req, res) => {
+    try {
+        const rooms = await Room.find().lean();
+
+        const enrichedRooms = await Promise.all(
+            rooms.map(async (room) => {
+                if (room.isBooked) {
+                    const booking = await findActiveBookingByRoomNo(room._id);
+                    if (booking) {
+                        room.bookingId = booking._id;
+                        room.guestName = booking.guestName;
+                    } else {
+                        room.bookingId = null;
+                        room.guestName = null;
+                    }
+                }
+                return room;
+            })
+        );
+
+        return res.status(200).json({
+            success: true,
+            total: enrichedRooms.length,
+            rooms: enrichedRooms
+        });
+
+    } catch (err) {
+        console.error("Error fetching rooms:", err);
+        return res.status(500).json({ error: "Failed to fetch rooms" });
     }
 };

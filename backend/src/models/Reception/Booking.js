@@ -30,11 +30,17 @@ const bookingSchema = new mongoose.Schema(
                 perDayPrice: { type: Number, required: true },
 
                 finalRoomTotalPrice: { type: Number },
+                discountPrice: { type: Number },
 
                 switchOutDate: { type: Date, required: true, default: null },
                 switchInDate: { type: Date, required: true},
                 isSwitched: { type: Boolean, default: false },
                 switchFrom: { type: String },
+                status: {
+                    type: String,
+                    enum: ["active", "switched_out", "switched_in", "completed", "no status"],
+                    default: "no status"
+                }
             },
         ],
 
