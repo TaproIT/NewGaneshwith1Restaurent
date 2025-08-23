@@ -16,10 +16,10 @@ export type Step01FormData = {
   checkOut: string;
   lengthOfStay: number;
   totalGuests: number;
+  bookedRooms: BookedRoom[];
 };
 
 export interface OnboardingState {
   step: number;
   step01Data: Step01FormData;
-  bookedRooms: BookedRoom[];
 }

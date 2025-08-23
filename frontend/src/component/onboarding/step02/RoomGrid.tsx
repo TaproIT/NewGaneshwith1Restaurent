@@ -8,7 +8,7 @@ interface RoomGridProps {
   readOnly: boolean;
 }
 
-const RoomGrid: React.FC<RoomGridProps> = ({ rooms, selectedRooms, onRoomClick, readOnly }) => {
+const RoomGrid: React.FC<RoomGridProps> = ({ rooms, onRoomClick, readOnly}) => {
   const getStatusColor = (status: RoomStatus) => {
     switch (status) {
       case "reserved":

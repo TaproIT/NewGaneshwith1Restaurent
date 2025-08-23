@@ -4,8 +4,9 @@ import Logo from '../assets/Images/Logos/main_logo.png';
 import { 
   Bell, CircleArrowRight, LogOut, Repeat, Settings, 
   ShieldCheck, User, UserRoundPlus, Users, Calendar,
-  ChefHat, Coffee, ClipboardList,
-  RepeatIcon
+  ChefHat, Coffee,
+  RepeatIcon,
+  BookText
 } from 'lucide-react';
 import CurrencyDropdown from '@/component/currencyDropdown';
 import { useSelector } from 'react-redux';
@@ -39,6 +40,7 @@ const navigationConfig: Record<UserRole, NavItem[]> = {
     { path: '/room-availability', title: 'Room Availability', icon: <ShieldCheck size={22} /> },
     { path: '/alterations', title: 'Alterations', icon: <RepeatIcon size={22} /> },
     { path: '/checkouts', title: 'Checkouts', icon: <CircleArrowRight size={22} /> },
+    { path: '/invoice', title: 'Invoice', icon: <BookText size={22} /> },
   ],
   'Beach-Restaurant-Staff': [
     { path: '/kitchen', title: 'Beach Orders', icon: <ChefHat size={22} /> },

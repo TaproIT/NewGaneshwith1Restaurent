@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { saveBookedRoom } from "@/features/onboarding/onboardingSlice";
@@ -6,6 +6,7 @@ import RoomGrid from "./step02/RoomGrid";
 import RoomDetails from "./step02/RoomDetails";
 import type { Room } from "@/types/roomTypes";
 import { mockRooms } from "./step02/mockRooms";
+import { updateRoomStatus } from "@/features/rooms/roomsSlice";
 
 const Step02 = () => {
   const [rooms, setRooms] = useState<Room[]>(mockRooms);
@@ -40,6 +41,7 @@ const Step02 = () => {
   const handleBook = (roomId: number, price: number) => {
     setIsModalOpen(true);
     setRooms(prev => prev.map(r => r.id === roomId ? { ...r, status: "reserved" } : r));
+    dispatch(updateRoomStatus({ id: roomId, status: "reserved" }));
     dispatch(saveBookedRoom({ id: roomId, price }));
     setSelectedRooms([]);
     setViewedRoom(null);
@@ -64,6 +66,7 @@ const Step02 = () => {
         onBookRoom={handleBook}
         onCloseModal={() => setIsModalOpen(false)}
         readOnly={false}
+        checkout={false}
       />
       </div>
     </div>

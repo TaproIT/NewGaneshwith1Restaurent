@@ -19,6 +19,7 @@ import {
   saveStep01Data,
 } from "@/features/onboarding/onboardingSlice";
 import type { RootState } from "@/app/store";
+import type { BookedRoom } from "@/types/guestDataTypes";
 
 type Step01FormData = {
   hotel: string;
@@ -33,6 +34,7 @@ type Step01FormData = {
   checkOut: string;
   lengthOfStay: number;
   totalGuests: number;
+  bookedRooms: BookedRoom[];
 };
 
 export default function Step01() {
