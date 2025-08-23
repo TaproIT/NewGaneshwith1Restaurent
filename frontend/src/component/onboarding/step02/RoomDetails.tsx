@@ -6,6 +6,8 @@ import QR from "@/assets/Images/qr.webp";
 import { Badge } from "@/components/ui/badge";
 import type { Step01FormData } from "@/types/guestDataTypes";
 import { mockRooms } from "./mockRooms";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/app/store";
 
 interface RoomDetailsProps {
   viewedRoom: Room | null;
@@ -18,6 +20,7 @@ interface RoomDetailsProps {
   onCloseModal: () => void;
   readOnly: boolean;
   checkout: boolean;
+  invoice: boolean;
 }
 
 const RoomDetails: React.FC<RoomDetailsProps> = ({
@@ -31,7 +34,10 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
   onCloseModal,
   readOnly,
   checkout,
+  invoice,
+  
 }) => {
+  const invoiceData = useSelector((state: RootState) => state.invoice.invoiceFormData)
   const [totalPrice, setTotalPrice] = useState(0);
   const [mockRoomData] = useState<Room[]>(mockRooms);
   const [discountPercent, setDiscountPercent] = useState(0);
@@ -58,7 +64,7 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
   }, [checkout, viewedRoom, guestDetails.bookedRooms, selectedRooms]);
 
   useEffect(() => {
-    if (!checkout || !viewedRoom) {
+    if (!checkout || !viewedRoom ) {
       setTotalPrice(0);
       setDiscountAmount(0);
       setTotalBill(0);
@@ -92,9 +98,13 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
     setTotalBill(finalBill);
   }, [viewedRoom?.id, checkout, guestDetails, discountPercent]);
 
+  const invoiceSubTotal = selectedRooms.reduce((sum, room) => sum + invoiceData.lengthOfStay * room.price, 0);
+  const invoiceDiscount = (invoiceSubTotal * discountPercent) / 100;
+    const invoiceFinalBill = invoiceSubTotal - invoiceDiscount;
+
   return (
     <div className="col-span-1 rounded-2xl bg-mainWhite h-[calc(100vh-140px)] overflow-hidden relative">
-      <div className={`flex-1 p-6 h-[calc(100vh-140px)] overflow-auto ${checkout ? 'pb-70' : 'pb-40'}`}>
+      <div className={`flex-1 p-6 h-[calc(100vh-140px)] overflow-auto ${checkout || invoice ? 'pb-70' : 'pb-40'}`}>
         {viewedRoom && readOnly ? (
           <>
             {!checkout && (
@@ -241,11 +251,11 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
                       <span className="col-span-1">Total</span>
                       <span className="col-span-1">:</span>
                       <span className="col-span-1">
-                        {guestDetails.lengthOfStay * room.price}
+                        {guestDetails.lengthOfStay || invoiceData.lengthOfStay * room.price}
                       </span>
                     </div>
                     {!checkout && (
-                      <div className="flex justify-end">
+                      <div className="flex justify-end"> 
                         <Button
                           variant="ghost"
                           size="icon"
@@ -266,12 +276,12 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
       {/* Fixed Footer */}
       {(!readOnly || checkout) && (
         <div className="border-t px-6 py-3 text-gray sticky bottom-0 bg-mainWhite flex flex-col gap-4">
-          {checkout && (
+          {(checkout || invoice) && (
             <div>
               <div className="mt-2 grid grid-cols-3 text-gray whitespace-nowrap text-sm">
                 <div>Subtotal</div>
                 <div>:</div>
-                <div>LKR {totalPrice}</div>
+                <div>LKR {checkout ? totalBill : invoiceSubTotal}</div>
               </div>
               <div className="mt-2 grid grid-cols-3 text-gray whitespace-nowrap text-sm">
                 <div>Tax</div>
@@ -292,14 +302,14 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
               <div className="mt-2 grid grid-cols-3 text-gray whitespace-nowrap text-sm">
                 <div>Discounts</div>
                 <div>:</div>
-                <div>LKR {discountAmount.toLocaleString()}</div>
+                <div>LKR {checkout ? discountAmount.toLocaleString() : invoiceDiscount}</div>
               </div>
             </div>
           )}
           <div className="mt-2 grid grid-cols-3 text-gray whitespace-nowrap">
             <div>Total Bill</div>
             <div>:</div>
-            <div>LKR {checkout ? totalBill : grandTotal.toLocaleString()}</div>
+            <div>LKR {checkout ? totalBill : invoice ? invoiceFinalBill : grandTotal.toLocaleString()}</div>
           </div>
 
           {isModalOpen && (
