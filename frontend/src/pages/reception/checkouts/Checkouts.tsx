@@ -40,6 +40,7 @@ const Checkouts = () => {
           onCloseModal={() => {}} // do nothing
           readOnly={true}
           checkout={true}
+          invoice={false}
         />
       </div>
     </div>

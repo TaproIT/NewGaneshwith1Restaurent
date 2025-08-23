@@ -40,6 +40,7 @@ const RoomAvailability = () => {
           onCloseModal={() => {}} // do nothing
           readOnly={true}
           checkout={false}
+          invoice={false}
         />
       </div>
     </div>

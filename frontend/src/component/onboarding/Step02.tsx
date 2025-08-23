@@ -67,6 +67,7 @@ const Step02 = () => {
         onCloseModal={() => setIsModalOpen(false)}
         readOnly={false}
         checkout={false}
+        invoice={false}
       />
       </div>
     </div>
