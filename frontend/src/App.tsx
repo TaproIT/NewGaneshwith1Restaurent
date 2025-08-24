@@ -4,6 +4,7 @@ import Onboarding from './pages/reception/onboarding/Onboarding';
 import RoomAvailability from './pages/reception/room_availability/RoomAvailability';
 import Checkouts from './pages/reception/checkouts/Checkouts';
 import Invoice from './pages/reception/invoice/Invoice';
+import SwitchRooms from './pages/reception/switch_rooms/SwitchRooms';
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Routes>
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/room-availability" element={<RoomAvailability />} />
+          <Route path="/switch-rooms" element={<SwitchRooms />} />
           <Route path="/checkouts" element={<Checkouts />} />
           <Route path="/invoice" element={<Invoice />} />
         </Routes>

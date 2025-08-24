@@ -41,6 +41,7 @@ const Checkouts = () => {
           readOnly={true}
           checkout={true}
           invoice={false}
+          switchRoom={false}
         />
       </div>
     </div>

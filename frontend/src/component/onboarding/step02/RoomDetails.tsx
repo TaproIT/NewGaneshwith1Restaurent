@@ -8,6 +8,7 @@ import type { Step01FormData } from "@/types/guestDataTypes";
 import { mockRooms } from "./mockRooms";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
+import { useNavigate } from "react-router-dom";
 
 interface RoomDetailsProps {
   viewedRoom: Room | null;
@@ -21,6 +22,7 @@ interface RoomDetailsProps {
   readOnly: boolean;
   checkout: boolean;
   invoice: boolean;
+  switchRoom: boolean;
 }
 
 const RoomDetails: React.FC<RoomDetailsProps> = ({
@@ -35,7 +37,7 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
   readOnly,
   checkout,
   invoice,
-  
+  switchRoom,
 }) => {
   const invoiceData = useSelector((state: RootState) => state.invoice.invoiceFormData)
   const [totalPrice, setTotalPrice] = useState(0);
@@ -43,6 +45,7 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
   const [discountPercent, setDiscountPercent] = useState(0);
   const [discountAmount, setDiscountAmount] = useState(0);
   const [totalBill, setTotalBill] = useState(0);
+  const navigate = useNavigate();
   const roomsToRender = React.useMemo(() => {
     if (
       checkout &&
@@ -354,7 +357,7 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
             </Button>
           )}
 
-          {checkout && (
+          {checkout && !switchRoom && (
             <Button
               className="w-full"
               // onClick={() =>
@@ -362,6 +365,16 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
               // }
             >
               Checkout
+            </Button>
+          )}
+          {switchRoom && (
+            <Button
+              className="w-full"
+              onClick={() =>
+                navigate('/onboarding')
+              }
+            >
+              Switch Room
             </Button>
           )}
         </div>

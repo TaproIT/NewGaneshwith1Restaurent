@@ -68,6 +68,7 @@ const Step02 = () => {
         readOnly={false}
         checkout={false}
         invoice={false}
+        switchRoom={false}
       />
       </div>
     </div>

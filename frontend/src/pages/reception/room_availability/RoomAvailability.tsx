@@ -41,6 +41,7 @@ const RoomAvailability = () => {
           readOnly={true}
           checkout={false}
           invoice={false}
+          switchRoom={false}
         />
       </div>
     </div>

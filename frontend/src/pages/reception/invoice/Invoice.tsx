@@ -50,6 +50,7 @@ const Invoice = () => {
         readOnly={false}
         checkout={false}
         invoice={true}
+        switchRoom={false}
       />
       </div>
     </div>

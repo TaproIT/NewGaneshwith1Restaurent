@@ -38,7 +38,7 @@ const navigationConfig: Record<UserRole, NavItem[]> = {
   'Reception': [
     { path: '/onboarding', title: 'Onboarding', icon: <UserRoundPlus size={22} /> },
     { path: '/room-availability', title: 'Room Availability', icon: <ShieldCheck size={22} /> },
-    { path: '/alterations', title: 'Alterations', icon: <RepeatIcon size={22} /> },
+    { path: '/switch-rooms', title: 'Switch Rooms', icon: <RepeatIcon size={22} /> },
     { path: '/checkouts', title: 'Checkouts', icon: <CircleArrowRight size={22} /> },
     { path: '/invoice', title: 'Invoice', icon: <BookText size={22} /> },
   ],
@@ -55,14 +55,15 @@ const navigationConfig: Record<UserRole, NavItem[]> = {
 const pathTitles: Record<string, string> = {
   '/onboarding': 'Onboarding',
   '/room-availability': 'Room Availability',
-  '/alterations': 'Alterations',
+  '/switch-rooms': 'Switch Rooms',
   '/settings': 'Settings | System',
   '/menu': 'Room Availability | Status',
   '/staff': 'Staff Management | Overview',
   '/checkouts': 'Checkouts',
   '/kitchen': 'Kitchen | Orders',
   '/rooms': 'Rooms | Status',
-  '/tasks': 'Tasks | Today'
+  '/tasks': 'Tasks | Today',
+  '/invoice': 'Invoice',
 };
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
