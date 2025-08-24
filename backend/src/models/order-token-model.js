@@ -5,6 +5,10 @@ const orderTokenSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  tokenNumber: {
+    type: Number,
+    required: true
+  },
   beverageOrders: [
     {
       type: mongoose.Schema.Types.ObjectId,

@@ -1,7 +1,11 @@
 import mongoose from "mongoose";
-import { GuestTypes, OrderTypes, OrderStatuses, PaymentMethods, OrderProgressStatuses } from "../utils/enums/order.enums.js";
+import { GuestTypes, OrderTypes, OrderStatuses, PaymentMethods } from "../utils/enums/order-related-enums.js";
 
 const orderSchema = new mongoose.Schema({
+  orderNumber: {
+    type: String,
+    required: true
+  },
   guestType: {
     type: String,
     required: true,
@@ -18,15 +22,16 @@ const orderSchema = new mongoose.Schema({
   },
   guestId: {
     type: String,
-    required: true,
+    //required: true,
   },
   restaurantTable: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "RestaurantTable",
   },
   orderStatus: {
-    type: String,
-    enum: [OrderStatuses.PROCESSING.value, OrderStatuses.COMPLETED.value],
+    type: Number,
+    required: true,
+    enum: Object.values(OrderStatuses).map((s) => s.value),
   },
   orderTokens: [
     {
@@ -38,11 +43,11 @@ const orderSchema = new mongoose.Schema({
     type: String,
     enum: [PaymentMethods.CASH.value, PaymentMethods.CARD.value, PaymentMethods.CASH_AND_CARD.value],
   },
-  orderProgressStatus: {
-    type: Number,
-    required: true,
-    enum: Object.values(OrderProgressStatuses).map((s) => s.value),
-  },
+  // orderProgressStatus: {
+  //   type: Number,
+  //   required: true,
+  //   enum: Object.values(OrderProgressStatuses).map((s) => s.value),
+  // },
 });
 
 const Order = mongoose.model("Order", orderSchema);

@@ -9,10 +9,10 @@ export const OrderTypes = Object.freeze({
   TAKE_AWAY: { value: "Take-Away", label: "Take away" },
 });
 
-export const OrderStatuses = Object.freeze({
-  PROCESSING: { value: "Processing", label: "Processing" },
-  COMPLETED: { value: "Completed", label: "Completed" },
-});
+// export const OrderStatuses = Object.freeze({
+//   PROCESSING: { value: "Processing", label: "Processing" },
+//   COMPLETED: { value: "Completed", label: "Completed" },
+// });
 
 export const PaymentMethods = Object.freeze({
   CASH: { value: "Cash", label: "Cash" },
@@ -20,9 +20,9 @@ export const PaymentMethods = Object.freeze({
   CASH_AND_CARD: { value: "Cash-And-Card", label: "Cash And Card" },
 });
 
-export const OrderProgressStatuses = Object.freeze({
+export const OrderStatuses = Object.freeze({
   SET_INITIAL_ORDER_DATA: { value: 1, label: "Set Initial Order Data" },
-  PREPARING: { value: 2, label: "Preparing" },
+  PREPARING: { value: 2, label: "Processing" },
   READY: { value: 3, label: "Ready to Serve" },
   SERVED: { value: 4, label: "Served" },
   CLOSED: { value: 5, label: "Closed" },
