@@ -40,7 +40,7 @@ const bookingSchema = new mongoose.Schema(
                     type: String,
                     enum: ["active", "switched_out", "switched_in", "completed", "no status"],
                     default: "no status"
-                }
+                } 
             },
         ],
 
