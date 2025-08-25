@@ -84,6 +84,7 @@ body {
   --gray: #444444;
   --mainWhite: #FEFEFE;
   --bg: #F4F4F4;
+  --bg-highlight: #B24E0E; 
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
