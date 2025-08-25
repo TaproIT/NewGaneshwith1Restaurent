@@ -6,7 +6,7 @@ const roomSchema = new mongoose.Schema({
     perDayPrice: { type: Number, required: true },
     facilities: [{ type: String }],
     isBooked: { type: Boolean, default: false }
-}, { timestamps: true });
+}, { timestamps: true }); 
 
 const Room = mongoose.model("Room", roomSchema);
 export default Room;
