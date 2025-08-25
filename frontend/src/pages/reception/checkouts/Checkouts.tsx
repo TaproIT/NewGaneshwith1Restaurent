@@ -1,19 +1,21 @@
 import type { RootState } from "@/app/store";
-import RoomDetails from "@/component/onboarding/step02/RoomDetails";
-import RoomGrid from "@/component/onboarding/step02/RoomGrid";
+import RoomDetails from "@/component/room/RoomDetails";
+import RoomGrid from "@/component/room/RoomGrid";
 import type { Room } from "@/types/roomTypes";
 import { useState } from "react";
 import { useSelector } from "react-redux";
 
 const Checkouts = () => {
-  const rooms = useSelector((state: RootState) => state.rooms.rooms);  // just display, no state changes
+  const rooms = useSelector((state: RootState) => state.rooms.rooms); // just display, no state changes
   const [viewedRoom, setViewedRoom] = useState<Room | null>(null);
 
   const handleRoomClick = (room: Room) => {
     setViewedRoom(room); // only set viewed room, no selection or booking
   };
 
-  const guestDetails = useSelector((state: RootState) => state.onboarding.step01Data);
+  const guestDetails = useSelector(
+    (state: RootState) => state.onboarding.step01Data
+  );
 
   return (
     <div className="grid grid-cols-4 gap-5">
