@@ -10,6 +10,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ProtectedRoute from "./component/ProtectedRoute";
 import BeachRestaurantHomePage from './pages/beach-restaurant/BeachRestaurantHomePage';
+import BeachRestaurantTablesPage from './pages/beach-restaurant/BeachRestaurantTablesPage';
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
           <Route path="/invoice" element={<Invoice />} />
 
           <Route path="/beach-restaurant/home" element={<BeachRestaurantHomePage />} />
+          <Route path="/beach-restaurant/tables" element={<BeachRestaurantTablesPage />} />
         </Route>
       </Routes> 
     </Router>
