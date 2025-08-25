@@ -10,13 +10,13 @@ const GuestDetails: React.FC = () => {
   const { roomNumber, guestName } = useSelector((state: RootState) => state.order);
 
   return (
-    <div className="flex flex-col mt-6">
+    <div className="flex flex-col">
       <p className="text-[#444444] text-[1rem] mb-3">Guest Details</p>
 
-      <div className="w-11/12 grid grid-cols-3 gap-6">
+      <div className="w-full 2xl:w-11/12 grid grid-cols-3 gap-6">
         {/* Room Number */}
-        <div className="flex items-center gap-3">
-          <Label htmlFor="roomNumber" className="w-32 text-sm font-medium text-[#444444]">
+        <div className="flex items-center gap-2 2xl:gap-3">
+          <Label htmlFor="roomNumber" className="text-sm font-medium text-[#444444]">
             Room Number
           </Label>
           <Input
@@ -30,8 +30,8 @@ const GuestDetails: React.FC = () => {
         </div>
 
         {/* Guest Name */}
-        <div className="flex items-center gap-3">
-          <Label htmlFor="guestName" className="w-32 text-sm font-medium text-[#444444]">
+        <div className="flex items-center gap-2 2xl:gap-3">
+          <Label htmlFor="guestName" className="text-sm font-medium text-[#444444]">
             Guest Name
           </Label>
           <Input

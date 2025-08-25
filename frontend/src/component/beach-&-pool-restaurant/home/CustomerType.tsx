@@ -39,7 +39,7 @@ const CustomerType: React.FC = () => {
             <div
               key={type.id}
               onClick={() => dispatch(setCustomerType(type.id))}
-              className={`py-12 col-span-1 flex flex-col items-center gap-3 rounded-lg cursor-pointer transition-all
+              className={`py-8 2xl:py-12 col-span-1 flex flex-col items-center gap-2 2xl:gap-3 rounded-lg cursor-pointer transition-all
                 ${
                   isSelected
                     ? "bg-[#B24E0E] text-[#FEFEFE]"
@@ -53,7 +53,7 @@ const CustomerType: React.FC = () => {
               >
                 {type.icon}
               </div>
-              <p className="text-[18px]">{type.label}</p>
+              <p className="text-[1.125rem]">{type.label}</p>
             </div>
           );
         })}

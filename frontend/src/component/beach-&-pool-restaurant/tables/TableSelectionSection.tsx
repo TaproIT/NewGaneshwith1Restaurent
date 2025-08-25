@@ -1,3 +1,5 @@
+
+import { ScrollArea } from "@/components/ui/scroll-area";
 import React, { useState } from "react";
 
 type TableStatus = "empty" | "reserved" | "selected";
@@ -50,7 +52,7 @@ const TableSelectionSection: React.FC = () => {
   return (
     <div className="flex flex-col h-full">
       {/* Legend */}
-      <div className="py-2 flex items-center justify-end gap-4 mb-4">
+      <div className="p-4 flex items-center justify-end gap-4 mb-4">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 bg-[#AEE6E6] rounded-full"></div>
           <p className="text-black text-[0.75rem]">Empty</p>
@@ -66,38 +68,48 @@ const TableSelectionSection: React.FC = () => {
       </div>
 
       {/* Tables */}
-      <div className="grid grid-cols-4 gap-3">
-        {tables.map((table) => {
-          const tableClass = getTableClasses(table.status);
+      <ScrollArea className="h-[calc(100vh-200px)] 2xl:h-[calc(100vh-150px)] w-full">
+        <div className="p-4 grid grid-cols-4 gap-3">
+          {tables.map((table) => {
+            const tableClass = getTableClasses(table.status);
 
-          return (
-            <div
-              key={table.id}
-              onClick={() => handleTableClick(table.id, table.status)}
-              className="col-span-1 flex flex-col gap-1 cursor-pointer"
-            >
-              {/* Top chairs */}
-              <div className="grid grid-cols-2 gap-1">
-                <div className={`col-span-1 h-3 ${tableClass} rounded-tl-sm`}></div>
-                <div className={`col-span-1 h-3 ${tableClass} rounded-tr-sm`}></div>
-              </div>
-
-              {/* Table body */}
+            return (
               <div
-                className={`py-6 flex items-center justify-center rounded-sm font-[500] text-[0.875rem] ${tableClass}`}
+                key={table.id}
+                onClick={() => handleTableClick(table.id, table.status)}
+                className="col-span-1 flex flex-col gap-1 cursor-pointer"
               >
-                {table.label}
-              </div>
+                {/* Top chairs */}
+                <div className="grid grid-cols-2 gap-1">
+                  <div
+                    className={`col-span-1 h-3 ${tableClass} rounded-tl-sm`}
+                  ></div>
+                  <div
+                    className={`col-span-1 h-3 ${tableClass} rounded-tr-sm`}
+                  ></div>
+                </div>
 
-              {/* Bottom chairs */}
-              <div className="grid grid-cols-2 gap-1">
-                <div className={`col-span-1 h-3 ${tableClass} rounded-bl-sm`}></div>
-                <div className={`col-span-1 h-3 ${tableClass} rounded-br-sm`}></div>
+                {/* Table body */}
+                <div
+                  className={`py-6 flex items-center justify-center rounded-sm font-[500] text-[0.875rem] ${tableClass}`}
+                >
+                  {table.label}
+                </div>
+
+                {/* Bottom chairs */}
+                <div className="grid grid-cols-2 gap-1">
+                  <div
+                    className={`col-span-1 h-3 ${tableClass} rounded-bl-sm`}
+                  ></div>
+                  <div
+                    className={`col-span-1 h-3 ${tableClass} rounded-br-sm`}
+                  ></div>
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      </ScrollArea>
     </div>
   );
 };

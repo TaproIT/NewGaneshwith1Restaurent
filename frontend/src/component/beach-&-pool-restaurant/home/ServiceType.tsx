@@ -42,7 +42,7 @@ const ServiceType: React.FC = () => {
             <div
               key={type.id}
               onClick={() => dispatch(setServiceType(type.id))}
-              className={`px-10 py-5 col-span-1 flex items-center justify-center gap-3 rounded-lg cursor-pointer transition-all
+              className={`px-10 py-4 2xl:py-5 col-span-1 flex items-center justify-center gap-3 rounded-lg cursor-pointer transition-all
                 ${
                   isSelected
                     ? "bg-[#B24E0E] text-[#FEFEFE]"
@@ -56,7 +56,7 @@ const ServiceType: React.FC = () => {
               >
                 {type.icon}
               </div>
-              <p className="text-[18px]">{type.label}</p>
+              <p className="text-[1.125rem]">{type.label}</p>
             </div>
           );
         })}
