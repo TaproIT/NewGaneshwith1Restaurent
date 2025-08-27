@@ -1,8 +1,13 @@
+import { type AppDispatch } from '@/app/store';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { openOrderTokenModal } from '@/features/beach-restaurant/orderSlice';
 import React from 'react'
+import { useDispatch } from 'react-redux';
 
 const OrderPaymentDetails:React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+
   return (
     <div className="w-full flex flex-col items-center shadow-[0px_-1px_4px_0px_#5C5C5C40]">
       <ScrollArea className="w-full h-[calc(100vh-510px)] 2xl:h-[calc(100vh-670px)]">
@@ -50,10 +55,14 @@ const OrderPaymentDetails:React.FC = () => {
           </div>
 
           <div className="px-3 2xl:px-5 w-full flex flex-col gap-1.5">
-            <Button variant="outline" className="!w-full !h-9 border-[#0A869D]">
+            <Button 
+               variant="outline" 
+               className="!w-full !h-8 border-[#0A869D]"
+               onClick={() => dispatch(openOrderTokenModal())}
+               >
               Token
             </Button>
-            <Button className="!w-full !h-9">Token</Button>
+            <Button className="!w-full !h-8">Hold</Button>
           </div>
         </div>
       </ScrollArea>

@@ -9,7 +9,8 @@ interface OrderState {
   serviceType: string;        
   roomNumber: string;         
   guestName: string;          
-  tableId: string | null;     
+  tableId: string | null; 
+  isOrderTokenOpen: boolean;    
 }
 
 /**
@@ -20,7 +21,8 @@ const initialState: OrderState = {
   serviceType: "dineIn",      
   roomNumber: "",            
   guestName: "",              
-  tableId: null,              
+  tableId: null,
+  isOrderTokenOpen: false
 };
 
 /**
@@ -49,6 +51,16 @@ const orderSlice = createSlice({
     setTableId: (state, action: PayloadAction<string | null>) => {
       state.tableId = action.payload;
     },
+
+    openOrderTokenModal: (state) => {
+      state.isOrderTokenOpen = true;
+    },
+    closeOrderTokenModal: (state) => {
+      state.isOrderTokenOpen = false;
+    },
+    setOrderTokenModal: (state, action: PayloadAction<boolean>) => {
+      state.isOrderTokenOpen = action.payload;
+    },
   },
 });
 
@@ -58,7 +70,10 @@ export const {
   setServiceType, 
   setRoomNumber, 
   setGuestName,
-  setTableId,  
+  setTableId,
+  openOrderTokenModal,
+  closeOrderTokenModal,
+  setOrderTokenModal
 } = orderSlice.actions;
 
 // Export the reducer to include in the Redux store

@@ -1,4 +1,5 @@
 import FoodMenuDetailsSection from '@/component/beach-&-pool-restaurant/menu/FoodMenuDetailsSection'
+import OrderTokenDialog from '@/component/beach-&-pool-restaurant/menu/order-detials/OrderTokenModal'
 import OrderDetailsSection from '@/component/beach-&-pool-restaurant/menu/OrderDetailsSection'
 import React from 'react'
 
@@ -11,6 +12,7 @@ const BeachRestaurantMenuPage:React.FC = () => {
        <div className="col-span-2">
          <OrderDetailsSection />
       </div>
+      <OrderTokenDialog />
     </div>
   )
 }
