@@ -4,6 +4,7 @@ import onboardingReducer from '../features/onboarding/onboardingSlice'
 import roomsReducer from '../features/rooms/roomsSlice'
 import invoiceReducer from '../features/invoice/invoiceSlice'
 import orderReducer from "../features/beach-restaurant/orderSlice";
+import foodReducer from "../features/beach-restaurant/foodSlice";
 
 export const store = configureStore({
     reducer: {
@@ -11,7 +12,8 @@ export const store = configureStore({
         onboarding: onboardingReducer,
         rooms: roomsReducer,
         invoice: invoiceReducer,
-        order: orderReducer
+        order: orderReducer,
+        food: foodReducer
     }
 })
 

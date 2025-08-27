@@ -11,6 +11,7 @@ import "react-toastify/dist/ReactToastify.css";
 import ProtectedRoute from "./component/ProtectedRoute";
 import BeachRestaurantHomePage from './pages/beach-restaurant/BeachRestaurantHomePage';
 import BeachRestaurantTablesPage from './pages/beach-restaurant/BeachRestaurantTablesPage';
+import BeachRestaurantMenuPage from './pages/beach-restaurant/BeachRestaurantMenuPage';
 
 function App() {
   return (
@@ -40,8 +41,10 @@ function App() {
 
           <Route path="/beach-restaurant/home" element={<BeachRestaurantHomePage />} />
           <Route path="/beach-restaurant/tables" element={<BeachRestaurantTablesPage />} />
+          <Route path="/beach-restaurant/menu" element={<BeachRestaurantMenuPage />} />
         </Route>
       </Routes> 
+       
     </Router>
   );
 }
