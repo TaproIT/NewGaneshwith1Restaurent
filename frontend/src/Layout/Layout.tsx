@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Logo from '../assets/Images/Logos/main_logo.png';
 import { 
   Bell, CircleArrowRight, LogOut, Repeat, Settings, 
@@ -12,10 +12,8 @@ import CurrencyDropdown from '@/component/currencyDropdown';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/app/store';
 import type { UserRole } from '@/types/roleTypes';
-
-interface LayoutProps {
-  children: React.ReactNode;
-}
+import { api } from '@/api/axios';
+import { toast } from 'react-toastify';
 
 interface NavItem {
   path: string;
@@ -66,16 +64,47 @@ const pathTitles: Record<string, string> = {
   '/invoice': 'Invoice',
 };
 
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+const Layout: React.FC = () => {
   const location = useLocation();
-  // TODO: Replace with actual auth logic
   const userRole =useSelector((state: RootState) => state.user.role)
+  const navigate = useNavigate()
 
   const getLinkClassName = (path: string) => {
     const baseClasses = "flex gap-2 p-3 rounded-lg";
     const isActive = location.pathname === path;
     return `${baseClasses} ${isActive ? 'bg-primary text-white' : 'hover:bg-primary hover:text-white'}`;
   };
+
+  const handleLogout = async () => {
+    try {
+    const token = localStorage.getItem("authToken");
+
+    if (!token) {
+      toast.error("No user logged in");
+      return;
+    }
+
+    const response = await api.post(
+      "/auth/logout",
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        withCredentials: true,
+      }
+    );
+
+    if (response.status === 200) {
+      localStorage.removeItem("authToken");
+      toast.success("Logout successful");
+      navigate('/')
+    }
+  } catch (error: any) {
+    console.error(error);
+    toast.error(error.response?.data?.message || "Logout failed");
+  }
+  }
 
   return (
     <div className="flex h-screen bg-bg p-5 gap-5">
@@ -106,7 +135,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <Settings size={22}/> <p>Settings</p>
             </Link>
             <button 
-              onClick={() => console.log('Logout clicked')} 
+              onClick={handleLogout} 
               className="flex gap-2 p-3 rounded-lg w-full hover:bg-danger hover:text-white"
             >
               <LogOut size={22}/> <span>Logout</span>
@@ -137,7 +166,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
         </header>
         <main className="rounded-2xl mt-4 overflow-y-auto">
-          {children}
+          <Outlet />
         </main>
       </div>
     </div>

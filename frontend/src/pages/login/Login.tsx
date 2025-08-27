@@ -20,16 +20,24 @@ import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { api } from "@/api/axios";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "react-toastify";
 
-type FormValues = {
-  userRole: string;
-  email: string;
-  password: string;
-};
+const loginSchema = z.object({
+  userRole: z.string().nonempty("User role is required"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().nonempty("Password is required"),
+});
+
+type FormValues = z.infer<typeof loginSchema>;
 
 const Login = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate()
   const form = useForm<FormValues>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       userRole: "",
       email: "",
@@ -38,17 +46,38 @@ const Login = () => {
   });
 
   const onSubmit = async (data: FormValues) => {
-    try {
-      const response = await api.post("/auth/login", data);
-      console.log(response)
-      if (response.data.data.accessToken) {
+  setIsLoading(true); // Show spinner immediately
+
+  try {
+    const response = await api.post("/auth/login", data);
+    const userRole = "Reception"; // Get role from API
+
+    if (response.data.data.accessToken) {
       localStorage.setItem("authToken", response.data.data.accessToken);
-      navigate({})
+
+      const roleRedirects: Record<string, string> = {
+        "Super-Admin": "/",
+        "Admin": "/menu",
+        "Reception": "/onboarding",
+        "Beach-Restaurant-Staff": "/kitchen",
+        "Pool-Restaurant-Staff": "/kitchen",
+      };
+
+      const redirectPath = roleRedirects[userRole] || "/";
+
+      // Delay navigation to show spinner
+      setTimeout(() => {
+        setIsLoading(false); // Stop spinner
+        navigate(redirectPath);
+        toast.success("Login Successful!");
+      }, 2000); // 2-second delay
     }
-    } catch (error: any) {
-      alert(error.response?.data?.message || "Login failed");
-    }
-  };
+
+  } catch (error: any) {
+    toast.error(error.response?.data?.message || "Something went wrong!");
+    setIsLoading(false); // Stop spinner if error occurs
+  }
+};
 
   return (
     <div className="grid grid-cols-3 overflow-hidden h-screen">
@@ -96,7 +125,7 @@ const Login = () => {
                       </SelectContent>
                     </Select>
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage>{form.formState.errors.userRole?.message}</FormMessage>
                 </FormItem>
               )}
             />
@@ -111,7 +140,7 @@ const Login = () => {
                   <FormControl>
                     <Input placeholder="Enter username" {...field} />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage>{form.formState.errors.email?.message}</FormMessage>
                 </FormItem>
               )}
             />
@@ -126,14 +155,14 @@ const Login = () => {
                   <FormControl>
                     <Input type="password" placeholder="Enter password" {...field} />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage>{form.formState.errors.password?.message}</FormMessage>
                 </FormItem>
               )}
             />
 
             {/* Login Button */}
             <Button type="submit" className="w-full mt-2 cursor-pointer">
-              Login
+              {isLoading ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> : "Login"}
             </Button>
 
             <Button variant="link" className="w-full mt-2 cursor-pointer">
