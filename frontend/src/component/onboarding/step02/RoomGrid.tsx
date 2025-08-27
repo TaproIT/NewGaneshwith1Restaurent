@@ -8,7 +8,7 @@ interface RoomGridProps {
   readOnly: boolean;
 }
 
-const RoomGrid: React.FC<RoomGridProps> = ({ rooms, selectedRooms, onRoomClick, readOnly }) => {
+const RoomGrid: React.FC<RoomGridProps> = ({ rooms, onRoomClick, readOnly}) => {
   const getStatusColor = (status: RoomStatus) => {
     switch (status) {
       case "reserved":
@@ -37,7 +37,7 @@ const RoomGrid: React.FC<RoomGridProps> = ({ rooms, selectedRooms, onRoomClick, 
   };
 
   return (
-    <div className="p-6 rounded-2xl bg-mainWhite h-[calc(100vh-140px)] overflow-auto">
+    <div className="p-6 rounded-2xl bg-mainWhite h-[calc(60vh-120px)] overflow-auto">
       {/* Legend */}
       <div className="flex justify-end gap-3 mb-3 text-sm">
         <div className="flex gap-1 items-center">

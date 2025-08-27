@@ -1,16 +1,19 @@
 import RoomDetails from "@/component/onboarding/step02/RoomDetails";
 import RoomGrid from "@/component/onboarding/step02/RoomGrid";
-import React, { useState } from "react";
+import { useState } from "react";
 import type { Room } from "@/types/roomTypes";
-import { mockRooms } from "@/component/onboarding/step02/mockRooms";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/app/store";
 
 const RoomAvailability = () => {
-  const [rooms] = useState<Room[]>(mockRooms); // just display, no state changes
+  const rooms = useSelector((state: RootState) => state.rooms.rooms); // just display, no state changes
   const [viewedRoom, setViewedRoom] = useState<Room | null>(null);
 
   const handleRoomClick = (room: Room) => {
     setViewedRoom(room); // only set viewed room, no selection or booking
   };
+
+  const guestDetails = useSelector((state: RootState) => state.onboarding.step01Data);
 
   return (
     <div className="grid grid-cols-4 gap-5">
@@ -29,13 +32,15 @@ const RoomAvailability = () => {
         <RoomDetails
           viewedRoom={viewedRoom}
           selectedRooms={[]} // empty, no booking
-          guestDetails={{ lengthOfStay: 0 }} // just a dummy or optional
+          guestDetails={guestDetails} // just a dummy or optional
           grandTotal={0} // not used
           isModalOpen={false} // no modal
           onRemoveRoom={() => {}} // do nothing
           onBookRoom={() => {}} // do nothing
           onCloseModal={() => {}} // do nothing
           readOnly={true}
+          checkout={false}
+          invoice={false}
         />
       </div>
     </div>
