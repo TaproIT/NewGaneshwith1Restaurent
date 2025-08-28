@@ -24,6 +24,8 @@ import { useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/app/store";
 
 const loginSchema = z.object({
   userRole: z.string().nonempty("User role is required"),
@@ -34,6 +36,7 @@ const loginSchema = z.object({
 type FormValues = z.infer<typeof loginSchema>;
 
 const Login = () => {
+  const userRole = useSelector((state: RootState) => state.user.role)
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate()
   const form = useForm<FormValues>({
@@ -50,7 +53,6 @@ const Login = () => {
 
   try {
     const response = await api.post("/auth/login", data);
-    const userRole = "Reception"; // Get role from API
 
     if (response.data.data.accessToken) {
       localStorage.setItem("authToken", response.data.data.accessToken);
