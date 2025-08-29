@@ -13,6 +13,7 @@ import { roomRoutes } from "./src/routes/room-routes.js";
 import * as http from "node:http";
 import { Server } from "socket.io";
 import { setupRoomSocket} from "./src/utils/realtime/room-socket.js";
+import {orderRoutes} from "./src/routes/order-routes.js";
 
 // Load env variables
 dotenv.config();
