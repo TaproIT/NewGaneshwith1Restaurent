@@ -7,22 +7,30 @@ interface HeaderBadgeProps {
 }
 
 const HeaderBadge: React.FC<HeaderBadgeProps> = ({ viewedRoom }) => {
+  // Derive status
+  let status = "Empty";
+  if (viewedRoom.isMaintenance) {
+    status = "Maintenance";
+  } else if (viewedRoom.isBooked) {
+    status = "Reserved";
+  }
+
   return (
     <div className="flex items-center justify-between text-gray">
-      <h2 className="text-lg font-medium">{viewedRoom.number}</h2>
+      <h2 className="text-lg font-medium">{viewedRoom.no}</h2>
       <Badge
         variant="secondary"
         className={`text-sm text-gray ${
-          viewedRoom.status === "reserved"
+          status === "Reserved"
             ? "bg-quaternary"
-            : viewedRoom.status === "empty"
+            : status === "Empty"
             ? "bg-tertiary"
-            : viewedRoom.status === "maintain"
+            : status === "Maintenance"
             ? "bg-quinary"
             : "border-2 border-black bg-tertiary"
         }`}
       >
-        {viewedRoom.status.charAt(0).toUpperCase() + viewedRoom.status.slice(1)}
+        {status}
       </Badge>
     </div>
   );

@@ -1,12 +1,13 @@
 import RoomDetails from "@/component/room/RoomDetails";
 import RoomGrid from "@/component/room/RoomGrid";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Room } from "@/types/roomTypes";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
+import { api } from "@/api/axios";
 
 const RoomAvailability = () => {
-  const rooms = useSelector((state: RootState) => state.rooms.rooms); // just display, no state changes
+  const [rooms, setRooms] = useState<Room[]>([]);
   const [viewedRoom, setViewedRoom] = useState<Room | null>(null);
 
   const handleRoomClick = (room: Room) => {
@@ -16,6 +17,21 @@ const RoomAvailability = () => {
   const guestDetails = useSelector(
     (state: RootState) => state.onboarding.step01Data
   );
+
+  useEffect(() => {
+      const fetchRooms = async () => {
+        try {
+          const res = await api.get("/room")
+          console.log(res)
+          setRooms(res.data)
+        } catch (err) {
+          console.error("Failed to fetch rooms:", err);
+        }
+      }
+  
+      fetchRooms();
+    }, [])
+  
 
   return (
     <div className="grid grid-cols-4 gap-5">
