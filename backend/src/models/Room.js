@@ -5,7 +5,8 @@ const roomSchema = new mongoose.Schema({
     type: { type: String, required: true },
     perDayPrice: { type: Number, required: true },
     facilities: [{ type: String }],
-    isBooked: { type: Boolean, default: false }
+    isBooked: { type: Boolean, default: false },
+    isMaintenance: {type: Boolean, default: false }
 }, { timestamps: true }); 
 
 const Room = mongoose.model("Room", roomSchema);
