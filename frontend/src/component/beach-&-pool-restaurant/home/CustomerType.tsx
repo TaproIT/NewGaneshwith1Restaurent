@@ -12,7 +12,7 @@ interface CustomerTypeItem {
 
 const customerTypes: CustomerTypeItem[] = [
   {
-    id: "checkedIn",
+    id: "checked-in",
     label: "Checked-In Customer",
     icon: <School className="w-8 h-8" />,
   },

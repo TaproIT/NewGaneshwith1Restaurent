@@ -1,23 +1,33 @@
-import type { AppDispatch, RootState } from '@/app/store'
+import type { RootState } from '@/app/store'
 import { Button } from '@/components/ui/button'
 import React from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 
 const GetStartedButton: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
+  //const dispatch = useDispatch<AppDispatch>();
+
   const initialOrderDetails = useSelector(
     (state:RootState) => state.order
   );
 
-  const handleInitialOrderDetails = () => {
-    console.log(initialOrderDetails);
-  }
+  const navigate = useNavigate();
 
+  const handleInitialOrderDetails = () => {
+     if (initialOrderDetails.serviceType === "dine-in") {
+        navigate("/beach-restaurant/tables");
+        return;
+     }
+     navigate("/beach-restaurant/menu");
+  }
+  
+  const disabled = initialOrderDetails.guestName === "" || initialOrderDetails.roomNumber === "";
   return (
     <div className="mt-5 flex items-center justify-end">
       <Button 
         onClick={handleInitialOrderDetails}
-        className="px-20 py-6 text-[1rem]"
+        className="px-20 py-6 text-[1rem] cursor-pointer"
+        disabled={disabled}
       >
         Get Started
       </Button>

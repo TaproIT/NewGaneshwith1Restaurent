@@ -2,13 +2,21 @@ import { Button } from "@/components/ui/button";
 import React from "react";
 import { tables } from "./tables";
 import { useSelector } from "react-redux";
-import type { RootState } from "@/app/store";
+import { type RootState } from "@/app/store";
+import { useNavigate } from "react-router-dom";
 
 const TableDetails: React.FC = () => {
+
   const selectedId = useSelector((state: RootState) => state.order.tableId);
 
   //Directly compute table from id
   const selectedTable = tables.find((table) => table.id === selectedId);
+
+  const navigate = useNavigate();
+
+  const handleBook = () => {
+     navigate("/beach-restaurant/menu")
+  }
 
   return (
     <div className="h-full flex flex-col justify-between gap-5 bg-mainWhite rounded-2xl border-b-[1px] border-b-[#5C5C5C40]">
@@ -31,9 +39,10 @@ const TableDetails: React.FC = () => {
 
       <div className="p-4 flex border-[1px] shadow-[0px_-1px_4px_0px_#5C5C5C40]">
         <Button
-          className="mt-12 w-full text-[0.75rem] text-[#FEFEFE]"
+          className="mt-12 w-full text-[0.75rem] text-[#FEFEFE] cursor-pointer"
           value="primary"
           disabled={!selectedTable} // prevent booking when nothing selected
+          onClick={handleBook}
         >
           Book
         </Button>

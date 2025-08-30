@@ -1,5 +1,5 @@
 import FoodMenuDetailsSection from '@/component/beach-&-pool-restaurant/menu/FoodMenuDetailsSection'
-import OrderTokenDialog from '@/component/beach-&-pool-restaurant/menu/order-detials/OrderTokenModal'
+import OrderTokenDialog from '@/component/beach-&-pool-restaurant/menu/order-details/OrderTokenModal'
 import OrderDetailsSection from '@/component/beach-&-pool-restaurant/menu/OrderDetailsSection'
 import React from 'react'
 

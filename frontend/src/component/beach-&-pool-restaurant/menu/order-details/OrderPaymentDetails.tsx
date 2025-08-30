@@ -1,12 +1,31 @@
-import { type AppDispatch } from '@/app/store';
+import { type AppDispatch, type RootState } from '@/app/store';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { openOrderTokenModal } from '@/features/beach-restaurant/orderSlice';
-import React from 'react'
-import { useDispatch } from 'react-redux';
+import { openOrderTokenModal, setSubTotal, setTotalBill } from '@/features/beach-restaurant/orderSlice';
+import { getAllTokenSubTotal, getTokenSubTotal } from '@/lib/order-util';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
 const OrderPaymentDetails:React.FC = () => {
+  const order = useSelector((state:RootState) => state.order );
   const dispatch = useDispatch<AppDispatch>();
+
+  const subTotal =
+    order.orderTokens.length > 0
+      ? parseFloat(getAllTokenSubTotal(order.orderTokens).toFixed(2))
+      : order.newOrderToken.foodItems.length > 0 ||
+        order.newOrderToken.beverageItems.length > 0
+        ? parseFloat(getTokenSubTotal(order.newOrderToken).toFixed(2))
+        : 0;
+
+  dispatch(setSubTotal(subTotal));
+  
+  const totalBill = (order.subTotal + order.tax + order.discount + order.serviceCharge);
+
+  dispatch(setTotalBill(totalBill))
+
+  useEffect(() => {
+  }, [order.subTotal]);
 
   return (
     <div className="w-full flex flex-col items-center shadow-[0px_-1px_4px_0px_#5C5C5C40]">
@@ -17,7 +36,7 @@ const OrderPaymentDetails:React.FC = () => {
               <p className="col-span-2">Subtotal</p>
               <div className="col-span-3 flex items-center justify-between">
                 <p>:</p>
-                <p>LKR 1200.00</p>
+                <p>LKR {order.subTotal.toFixed(2)}</p>
               </div>
             </div>
 
@@ -25,7 +44,7 @@ const OrderPaymentDetails:React.FC = () => {
               <p className="col-span-2">Tax</p>
               <div className="col-span-3 flex items-center justify-between">
                 <p>:</p>
-                <p>LKR 1200.00</p>
+                <p>LKR {order.tax.toFixed(2)}</p>
               </div>
             </div>
 
@@ -33,7 +52,7 @@ const OrderPaymentDetails:React.FC = () => {
               <p className="col-span-2">Discount</p>
               <div className="col-span-3 flex items-center justify-between">
                 <p>:</p>
-                <p>LKR 1200.00</p>
+                <p>LKR {order.discount.toFixed(2)}</p>
               </div>
             </div>
 
@@ -41,7 +60,7 @@ const OrderPaymentDetails:React.FC = () => {
               <p className="col-span-2">Service Charge</p>
               <div className="col-span-3 flex items-center justify-between">
                 <p>:</p>
-                <p>LKR 1200.00</p>
+                <p>LKR {order.serviceCharge.toFixed(2)}</p>
               </div>
             </div>
 
@@ -49,7 +68,7 @@ const OrderPaymentDetails:React.FC = () => {
               <p className="col-span-2">Total Bill</p>
               <div className="col-span-3 flex items-center justify-between">
                 <p>:</p>
-                <p>LKR 1200.00</p>
+                <p>LKR {order.totalBill.toFixed(2)}</p>
               </div>
             </div>
           </div>
@@ -70,4 +89,4 @@ const OrderPaymentDetails:React.FC = () => {
   );
 }
 
-export default OrderPaymentDetails
+export default OrderPaymentDetails;

@@ -12,17 +12,17 @@ interface ServiceTypeItem {
 
 const serviceTypes: ServiceTypeItem[] = [
   {
-    id: "dineIn",
+    id: "dine-in",
     label: "Dine In",
     icon: <UtensilsCrossed className="w-8 h-8" />,
   },
   {
-    id: "takeAway",
+    id: "take-away",
     label: "Take Away",
     icon: <ShoppingBag className="w-8 h-8" />,
   },
   {
-    id: "saveToRoom",
+    id: "save-to-room",
     label: "Save to Room",
     icon: <Bed className="w-8 h-8" />,
   },

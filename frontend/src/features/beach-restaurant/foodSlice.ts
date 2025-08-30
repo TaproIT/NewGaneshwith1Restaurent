@@ -1,17 +1,6 @@
 // store/foodSlice.ts
+import type { Category, FoodItem } from "@/component/beach-&-pool-restaurant/food-model";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-
-export interface Category {
-  id: string;
-  label: string;
-}
-
-export interface FoodItem {
-  id: string;
-  categoryId: string;
-  title: string;
-  price: number;
-}
 
 interface FoodState {
   categories: Category[];

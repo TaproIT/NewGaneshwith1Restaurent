@@ -9,19 +9,7 @@ import { closeOrderTokenModal } from "@/features/beach-restaurant/orderSlice"
 
 export default function OrderTokenDialog() {
   const dispatch = useDispatch<AppDispatch>();
-  const orderDetails = useSelector((state:RootState) => state.order);
-
-  const order = {
-    orderNumber: "ORD-12345",
-    tokenNumber: "TKN-567",
-    items: [
-      { id: 1, name: "Chicken Fried Rice", quantity: 2, price: 1200 },
-      { id: 2, name: "Orange Juice", quantity: 1, price: 600 },
-      { id: 3, name: "Ice Cream", quantity: 3, price: 900 },
-    ],
-  }
-
-  const total = order.items.reduce((sum, item) => sum + item.quantity * item.price, 0)
+  const order = useSelector((state:RootState) => state.order);
 
   const handlePrint = () => {
     window.print()
@@ -29,24 +17,28 @@ export default function OrderTokenDialog() {
 
   return (
     <Dialog
-      open={orderDetails.isOrderTokenOpen}
+      open={order.isOrderTokenOpen}
       onOpenChange={(open) => !open && dispatch(closeOrderTokenModal())}
     >
       <DialogTrigger asChild></DialogTrigger>
 
       <DialogContent className="!p-4 w-[325px] text-[#444444]">
         <DialogHeader>
-          <DialogTitle className="!px-2">Order {"123456"}</DialogTitle>
+          <DialogTitle className="!px-2">Order {order.orderNumber}</DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col">
           <div className="px-3 flex justify-between text-[0.875rem] text-[#444444] font-[500]">
-            <span className="font-medium">Token {"01"}</span>
-            <span>{"Dine-In"}</span>
+            <span className="font-medium">Token {order.orderTokens.length + 1}</span>
+            <span>{order.serviceType}</span>
           </div>
-          <div className="my-5 px-3 flex justify-between text-[0.75rem]">
-            <span className="font-medium">Table :</span>
-          </div>
+          {
+            order.tableId && (
+              <div className="my-5 px-3 flex justify-between text-[0.75rem]">
+                <span className="font-medium">Table :</span>
+              </div>
+            )
+          }
 
           {/* Items Table */}
           <Table className="border border-gray-300">
@@ -60,10 +52,10 @@ export default function OrderTokenDialog() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {order.items.map((item) => (
-                <TableRow key={item.id} className="border-b border-gray-300">
+              {order.newOrderToken.foodItems.map((item) => (
+                <TableRow key={item.foodId} className="border-b border-gray-300">
                   <TableCell className="text-[0.75rem] text-[#444444] font-normal border-r border-gray-300">
-                    {item.name}
+                    {item.title}
                   </TableCell>
                   <TableCell className="text-[0.75rem] text-[#444444] font-normal text-center border-r border-gray-300">
                     {item.quantity}
@@ -79,7 +71,7 @@ export default function OrderTokenDialog() {
           {/* Total */}
           <div className="my-5 flex items-center justify-center gap-2 text-[0.875rem] font-[500] pt-2">
             <span>Total Bill</span>
-            <span>: {total.toLocaleString()} LKR</span>
+            <span>: {order.totalBill.toFixed(2)} LKR</span>
           </div>
 
           {/* Print Button */}
