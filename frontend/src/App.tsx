@@ -41,10 +41,9 @@ function App() {
 
           <Route path="/beach-restaurant/home" element={<BeachRestaurantHomePage />} />
           <Route path="/beach-restaurant/tables" element={<BeachRestaurantTablesPage />} />
-          <Route path="/beach-restaurant/menu" element={<BeachRestaurantMenuPage />} />
         </Route>
+        <Route path="/beach-restaurant/menu" element={<BeachRestaurantMenuPage />} />
       </Routes> 
-       
     </Router>
   );
 }

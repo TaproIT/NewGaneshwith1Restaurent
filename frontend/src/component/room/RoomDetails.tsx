@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { CircleX, Trash2 } from "lucide-react";
 import type { Room } from "@/types/roomTypes";
 import QR from "@/assets/Images/qr.webp";
-import { Badge } from "@/components/ui/badge";
+//import { Badge } from "@/components/ui/badge";
 import type { Step01FormData } from "@/types/guestDataTypes";
 import { mockRooms } from "../onboarding/step02/mockRooms";
 import { useSelector } from "react-redux";
