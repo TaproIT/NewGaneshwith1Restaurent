@@ -1,7 +1,7 @@
-import BeverageOrderItem from "../models/beverage-order-item-model.js";
-import FoodOrderItem from "../models/food-order-item-model.js";
-import Order from "../models/order-model.js";
-import OrderToken from "../models/order-token-model.js";
+import BeverageOrderItem from "../models/order/beverage-order-item-model.js";
+import FoodOrderItem from "../models/order/food-order-item-model.js";
+import Order from "../models/order/order-model.js";
+import OrderToken from "../models/order/order-token-model.js";
 import { OrderStatuses, OrderTypes } from "../utils/enums/order-related-enums.js";
 import { generateOrderNumber, generateTokenId } from "../utils/order-util.js";
 import { sendErrorResponse, sendSuccessResponse } from "../utils/response-util.js";

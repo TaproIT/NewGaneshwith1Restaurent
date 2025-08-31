@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { GuestTypes, OrderTypes, OrderStatuses, PaymentMethods } from "../utils/enums/order-related-enums.js";
+import { GuestTypes, OrderTypes, OrderStatuses, PaymentMethods } from "../../utils/enums/order-related-enums.js";
 
 const orderSchema = new mongoose.Schema({
   orderNumber: {

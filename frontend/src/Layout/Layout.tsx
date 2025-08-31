@@ -6,7 +6,12 @@ import {
   ShieldCheck, User, UserRoundPlus, Users, Calendar,
   ChefHat, Coffee,
   RepeatIcon,
-  BookText
+  BookText,
+  House,
+  Table2,
+  NotepadText,
+  PauseCircle,
+  Newspaper
 } from 'lucide-react';
 import CurrencyDropdown from '@/component/currencyDropdown';
 import { useSelector } from 'react-redux';
@@ -41,8 +46,11 @@ const navigationConfig: Record<UserRole, NavItem[]> = {
     { path: '/invoice', title: 'Invoice', icon: <BookText size={22} /> },
   ],
   'Beach-Restaurant-Staff': [
-    { path: '/kitchen', title: 'Beach Orders', icon: <ChefHat size={22} /> },
-    { path: '/menu', title: 'Beach Menu', icon: <Coffee size={22} /> }
+    { path: '/beach-restaurant/home', title: 'Home', icon: <House size={22} /> },
+    { path: '/beach-restaurant/tables', title: 'Tables', icon: <Table2 size={22} /> },
+    { path: '/beach-restaurant/menu', title: 'Menu', icon: <NotepadText size={22} /> },
+    { path: '/beach-restaurant/hold', title: 'Hold', icon: <PauseCircle size={22} /> },
+    { path: '/beach-restaurant/daily-summary', title: 'Daily Summary', icon: <Newspaper size={22} /> }
   ],
   'Pool-Restaurant-Staff': [
     { path: '/kitchen', title: 'Pool Orders', icon: <ChefHat size={22} /> },

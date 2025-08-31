@@ -1,4 +1,4 @@
-import BlackListToken from "../models/black-list-token-model.js";
+import BlackListToken from "../models/user/black-list-token-model.js";
 import { sendErrorResponse } from "../utils/response-util.js";
 
 /**

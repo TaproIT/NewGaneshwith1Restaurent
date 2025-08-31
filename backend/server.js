@@ -7,7 +7,6 @@ import { connectDB } from "./src/config/db-config.js";
 import { authRoutes } from "./src/routes/auth-routes.js";
 import { corsOptions } from "./src/config/cors-config.js";
 import { userRoutes } from "./src/routes/user-routes.js";
-import { guestRoutes } from "./src/routes/guest-routes.js";
 import { bookingRoutes } from "./src/routes/Reception/booking-routes.js";
 import { roomRoutes } from "./src/routes/room-routes.js";
 import * as http from "node:http";
@@ -48,9 +47,6 @@ app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/booking", bookingRoutes);
 // -- room handling ---
 app.use("/api/v1/room", roomRoutes);
-
-// Guest Routes
-app.use("/api/v1/guest", guestRoutes);
 
 // Order Routes
 app.use("/api/v1/order", orderRoutes);
