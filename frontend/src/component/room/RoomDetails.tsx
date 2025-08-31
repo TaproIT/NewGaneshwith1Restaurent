@@ -4,12 +4,13 @@ import { CircleX, Trash2 } from "lucide-react";
 import type { Room } from "@/types/roomTypes";
 import QR from "@/assets/Images/qr.webp";
 import type { Step01FormData } from "@/types/guestDataTypes";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { useNavigate } from "react-router-dom";
 import HeaderBadge from "./room_detaila/HeaderBadge";
 import GuestDetailsCard from "./room_detaila/GuestDetailsCard";
 import RoomsDetailsCard from "./room_detaila/RoomsDetailsCard";
+import { clearBooking, fetchRoomBooking } from "@/features/booking/bookingSlice";
 
 interface RoomDetailsProps {
   viewedRoom: Room | null;
@@ -48,6 +49,17 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
   const [totalPrice, setTotalPrice] = useState(0);
   const [totalBill, setTotalBill] = useState(0);
   const navigate = useNavigate();
+  const dispatch = useDispatch<any>();
+  const bookingDetails = useSelector(
+    (state: RootState) => state.booking
+  );
+
+  useEffect(() => {
+    if (viewedRoom?.no) {
+      dispatch(clearBooking());
+      dispatch(fetchRoomBooking(viewedRoom.no));
+    }
+  }, [viewedRoom?.no, dispatch]);
 
   // checkout calculations
   useEffect(() => {
@@ -98,9 +110,9 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
           <>
             {!checkout && <HeaderBadge viewedRoom={viewedRoom} />}
 
-            {/* {guestDetails.bookedRooms.some(
-              (room) => room.id === viewedRoom._id
-            ) && <GuestDetailsCard guestDetails={guestDetails} />} */}
+            {bookingDetails && (
+      <GuestDetailsCard guestDetails={bookingDetails.roomData} />
+    )}
 
             {!checkout && <RoomsDetailsCard viewedRoom={viewedRoom} />}
 
