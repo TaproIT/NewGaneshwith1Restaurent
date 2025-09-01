@@ -1,42 +1,13 @@
-import { createOrderWithInitialData } from "@/api/order/order-initial-data-api";
-import type { OrderFoodItem, OrderTokenType } from "@/component/beach-&-pool-restaurant/order-model";
+import { createOrderWithInitialData, fetchOrderById } from "@/api/order/order-initial-data-api";
+import type { Order, OrderFoodItem} from "@/component/beach-&-pool-restaurant/order-model";
 import { CustomerTypes, ServiceTypes } from "@/lib/enums/order-related-enums";
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 
-interface OrderInitialDataStatus {
-   error: string | null;
-   loading: boolean;
-}
-
-/**
- * Interface defining the structure of the Order state in Redux.
- */
-interface OrderState {
-  orderId: string;
-  orderNumber: number;
-  orderStatus: number;
-  customerType: string;       
-  serviceType: string;        
-  roomNumber: string;         
-  guestName: string;          
-  tableId: string | null; 
-  isOrderTokenOpen: boolean;
-  orderTokens: OrderTokenType [];
-  newOrderToken: OrderTokenType; 
-  subTotal: number;
-  tax: number;
-  discount: number;
-  serviceCharge: number;
-  totalBill: number; 
-  orderInitialDataStatus: OrderInitialDataStatus; 
-}
-
-
 /**
  * Initial state for the Order slice.
  */
-const initialState: OrderState = {
+const initialState: Order = {
   orderId: "",
   orderNumber: 0,
   orderStatus: 0,
@@ -63,7 +34,11 @@ const initialState: OrderState = {
   orderInitialDataStatus: {
      error:null,
      loading: false,
-  }  
+  },
+  fetchOrderDataStatus: {
+     error:null,
+     loading: false,
+  },  
 };
 
 /**
@@ -222,7 +197,19 @@ const orderSlice = createSlice({
       .addCase(createOrderWithInitialData.rejected, (state, action) => {
         state.orderInitialDataStatus.loading = false;
         state.orderInitialDataStatus.error = action.payload as string;
-      });
+      })
+
+      // ✅ Get order by ID
+    .addCase(fetchOrderById.pending, (state) => {
+      state.fetchOrderDataStatus = { loading: true, error: null };
+    })
+    .addCase(fetchOrderById.fulfilled, (state, action) => {
+      state.fetchOrderDataStatus = { loading: false, error: null };
+      Object.assign(state, action.payload);
+    })
+    .addCase(fetchOrderById.rejected, (state, action) => {
+      state.fetchOrderDataStatus = { loading: false, error: action.payload as string };
+    });
   },
 
 });

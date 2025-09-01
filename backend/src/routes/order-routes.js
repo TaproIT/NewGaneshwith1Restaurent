@@ -33,6 +33,13 @@ router.post(
   addOrderToken
 );
 
+router.get(
+  "/:id",
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value, userRoles.ADMIN.value]),
+  getOrderDetails
+)
 
 
 export { router as orderRoutes }

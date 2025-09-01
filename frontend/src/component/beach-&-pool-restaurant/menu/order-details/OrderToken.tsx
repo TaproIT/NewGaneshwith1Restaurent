@@ -23,7 +23,7 @@ const OrderToken: React.FC<{ token: OrderTokenType }> = ({ token }) => {
         <p className="text-[0.625rem] text-[#0A869D] font-normal">Clear All</p>
       </div>
 
-      <ScrollArea className="h-[calc(100vh-570px)] 2xl:h-[calc(100vh-700px)]">
+      <ScrollArea className="h-[calc(100vh-530px)] 2xl:h-[calc(100vh-700px)]">
         {token && (
           <div className="flex flex-col gap-3">
             {token.foodItems

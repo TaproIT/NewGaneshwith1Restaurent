@@ -154,6 +154,28 @@ export const addOrderToken = async (req, res) => {
   }
 };
 
+export const getOrderDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validate ID format (avoids unnecessary DB queries if invalid)
+    if (!id || id.length !== 24) {
+      return sendErrorResponse(res, 400, "Invalid order ID format");
+    }
+
+    const order = await Order.findById(id);
+
+    if (!order) {
+      return sendErrorResponse(res, 404, "Order not found");
+    }
+
+    return sendSuccessResponse(res, 200, "Order details retrieved successfully", { order });
+  } catch (error) {
+    return sendErrorResponse(res, 500, "Internal Server Error", error.message);
+  }
+};
+
+
 
 
 
