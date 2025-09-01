@@ -1,24 +1,28 @@
 import mongoose from "mongoose";
-import { GuestTypes, OrderTypes, OrderStatuses, PaymentMethods } from "../../utils/enums/order-related-enums.js";
+import { CustomerTypes, ServiceTypes, OrderStatuses, PaymentMethods } from "../../utils/enums/order-related-enums.js";
 
 const orderSchema = new mongoose.Schema({
   orderNumber: {
     type: String,
     required: true
   },
-  guestType: {
+  customerType: {
     type: String,
     required: true,
-    enum: [GuestTypes.CHECKED_IN.value, GuestTypes.WALK_IN.value],
+    enum: [CustomerTypes.CHECKED_IN.value, CustomerTypes.WALK_IN.value],
   },
-  orderType: {
+  serviceType: {
     type: String,
     required: true,
-    enum: [OrderTypes.DINE_IN.value, OrderTypes.SAVE_TO_ROOM.value, OrderTypes.TAKE_AWAY.value],
+    enum: [ServiceTypes.DINE_IN.value, ServiceTypes.SAVE_TO_ROOM.value, ServiceTypes.TAKE_AWAY.value],
   },
   roomNumber: {
     type: String,
     required: true,
+  },
+  guestName: {
+    type: String,
+    required: true
   },
   guestId: {
     type: String,

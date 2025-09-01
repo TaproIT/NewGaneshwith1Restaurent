@@ -1,6 +1,13 @@
+import { createOrderWithInitialData } from "@/api/order/order-initial-data-api";
 import type { OrderFoodItem, OrderTokenType } from "@/component/beach-&-pool-restaurant/order-model";
+import { CustomerTypes, ServiceTypes } from "@/lib/enums/order-related-enums";
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
+
+interface OrderInitialDataStatus {
+   error: string | null;
+   loading: boolean;
+}
 
 /**
  * Interface defining the structure of the Order state in Redux.
@@ -8,7 +15,7 @@ import type { PayloadAction } from "@reduxjs/toolkit";
 interface OrderState {
   orderId: string;
   orderNumber: number;
-  orderStatus: string;
+  orderStatus: number;
   customerType: string;       
   serviceType: string;        
   roomNumber: string;         
@@ -21,18 +28,20 @@ interface OrderState {
   tax: number;
   discount: number;
   serviceCharge: number;
-  totalBill: number;  
+  totalBill: number; 
+  orderInitialDataStatus: OrderInitialDataStatus; 
 }
+
 
 /**
  * Initial state for the Order slice.
  */
 const initialState: OrderState = {
-  orderId: "1234sfsefsfsdkkxkfkdk",
-  orderNumber: 1234567,
-  orderStatus: "Processing",
-  customerType: "checked-in",  
-  serviceType: "dine-in",      
+  orderId: "",
+  orderNumber: 0,
+  orderStatus: 0,
+  customerType: CustomerTypes.CHECKED_IN.value,  
+  serviceType: ServiceTypes.DINE_IN.value,      
   roomNumber: "",            
   guestName: "",              
   tableId: null,
@@ -50,7 +59,11 @@ const initialState: OrderState = {
   tax: 0,
   discount: 0,
   serviceCharge: 0,
-  totalBill: 0  
+  totalBill: 0,
+  orderInitialDataStatus: {
+     error:null,
+     loading: false,
+  }  
 };
 
 /**
@@ -193,6 +206,25 @@ const orderSlice = createSlice({
       state.isOrderTokenOpen = action.payload;
     },
   },
+
+  extraReducers: (builder) => {
+    builder
+      .addCase(createOrderWithInitialData.pending, (state) => {
+        state.orderInitialDataStatus.loading = true;
+        state.orderInitialDataStatus.error = null;
+      })
+      .addCase(createOrderWithInitialData.fulfilled, (state, action) => {
+        state.orderInitialDataStatus.loading = false;
+        state.orderId = action.payload._id;
+        state.orderNumber = action.payload.orderNumber;
+        state.orderStatus = action.payload.orderStatus;
+      })
+      .addCase(createOrderWithInitialData.rejected, (state, action) => {
+        state.orderInitialDataStatus.loading = false;
+        state.orderInitialDataStatus.error = action.payload as string;
+      });
+  },
+
 });
 
 // Export actions to dispatch them in components

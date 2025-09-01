@@ -47,8 +47,8 @@ const navigationConfig: Record<UserRole, NavItem[]> = {
   ],
   'Beach-Restaurant-Staff': [
     { path: '/beach-restaurant/home', title: 'Home', icon: <House size={22} /> },
-    { path: '/beach-restaurant/tables', title: 'Tables', icon: <Table2 size={22} /> },
-    { path: '/beach-restaurant/menu', title: 'Menu', icon: <NotepadText size={22} /> },
+    { path: '/beach-restaurant/tables/:id', title: 'Tables', icon: <Table2 size={22} /> },
+    { path: '/beach-restaurant/menu/:id', title: 'Menu', icon: <NotepadText size={22} /> },
     { path: '/beach-restaurant/hold', title: 'Hold', icon: <PauseCircle size={22} /> },
     { path: '/beach-restaurant/daily-summary', title: 'Daily Summary', icon: <Newspaper size={22} /> }
   ],
@@ -79,7 +79,17 @@ const Layout: React.FC = () => {
 
   const getLinkClassName = (path: string) => {
     const baseClasses = "flex gap-2 p-3 rounded-lg";
-    const isActive = location.pathname === path;
+    const currentPath = location.pathname;
+
+    let isActive = false;
+
+    // Handle dynamic paths like /beach-restaurant/tables/:id
+    if (path.includes(":id")) {
+      const basePath = path.split("/:id")[0];
+      isActive = currentPath.startsWith(basePath);
+    } else {
+      isActive = currentPath === path;
+    }
     return `${baseClasses} ${isActive ? 'bg-primary text-white' : 'hover:bg-primary hover:text-white'}`;
   };
 

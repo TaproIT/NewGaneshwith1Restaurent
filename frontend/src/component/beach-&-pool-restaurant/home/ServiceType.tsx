@@ -1,28 +1,29 @@
 import type { AppDispatch, RootState } from "@/app/store";
 import { setServiceType } from "@/features/beach-restaurant/orderSlice";
+import { ServiceTypes } from "@/lib/enums/order-related-enums";
 import { UtensilsCrossed, ShoppingBag, Bed } from "lucide-react";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 interface ServiceTypeItem {
-  id: string;
+  value: string;
   label: string;
   icon: React.ReactNode;
 }
 
 const serviceTypes: ServiceTypeItem[] = [
   {
-    id: "dine-in",
+    value: ServiceTypes.DINE_IN.value,
     label: "Dine In",
     icon: <UtensilsCrossed className="w-8 h-8" />,
   },
   {
-    id: "take-away",
+    value: ServiceTypes.TAKE_AWAY.value,
     label: "Take Away",
     icon: <ShoppingBag className="w-8 h-8" />,
   },
   {
-    id: "save-to-room",
+    value: ServiceTypes.SAVE_TO_ROOM.value,
     label: "Save to Room",
     icon: <Bed className="w-8 h-8" />,
   },
@@ -37,11 +38,11 @@ const ServiceType: React.FC = () => {
       <p className="text-[#444444] text-[1rem]">Service Type</p>
       <div className="mt-5 grid grid-cols-3 gap-7">
         {serviceTypes.map((type) => {
-          const isSelected = type.id === selected;
+          const isSelected = type.value === selected;
           return (
             <div
-              key={type.id}
-              onClick={() => dispatch(setServiceType(type.id))}
+              key={type.value}
+              onClick={() => dispatch(setServiceType(type.value))}
               className={`px-10 py-4 2xl:py-5 col-span-1 flex items-center justify-center gap-3 rounded-lg cursor-pointer transition-all
                 ${
                   isSelected

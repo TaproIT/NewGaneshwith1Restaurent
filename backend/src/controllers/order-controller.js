@@ -2,13 +2,13 @@ import BeverageOrderItem from "../models/order/beverage-order-item-model.js";
 import FoodOrderItem from "../models/order/food-order-item-model.js";
 import Order from "../models/order/order-model.js";
 import OrderToken from "../models/order/order-token-model.js";
-import { OrderStatuses, OrderTypes } from "../utils/enums/order-related-enums.js";
+import { OrderStatuses, ServiceTypes } from "../utils/enums/order-related-enums.js";
 import { generateOrderNumber, generateTokenId } from "../utils/order-util.js";
 import { sendErrorResponse, sendSuccessResponse } from "../utils/response-util.js";
 
 export const setInitialOrderDetails = async (req, res) => {
     try{
-        const {guestType, orderType, roomNumber } = req.body;
+        const {customerType, serviceType, roomNumber, guestName } = req.body;
 
         const orderStatus = OrderStatuses.SET_INITIAL_ORDER_DATA.value;
 
@@ -16,9 +16,10 @@ export const setInitialOrderDetails = async (req, res) => {
 
         const newOrder = await Order.create({
             orderNumber,
-            guestType,
-            orderType,
+            customerType,
+            serviceType,
             roomNumber,
+            guestName,
             orderStatus
         });
 
@@ -41,7 +42,7 @@ export const selectTableForOrder = async (req, res) => {
     }
 
     // Check order type before assigning table
-    if (order.orderType !== OrderTypes.DINE_IN.value) {
+    if (order.orderType !== ServiceTypes.DINE_IN.value) {
       return sendErrorResponse(
         res,
         400,

@@ -1,9 +1,9 @@
-export const GuestTypes = Object.freeze({
-  CHECKED_IN: { value: "Checked-In", label: "Checked-in" },
-  WALK_IN: { value: "Walk-In", label: "Walk-in" },
+export const CustomerTypes = Object.freeze({
+  CHECKED_IN: { value: "Checked-In",label: "Checked-in"},
+  WALK_IN: { value: "Walk-In",label: "Walk-in"},
 });
 
-export const OrderTypes = Object.freeze({
+export const ServiceTypes = Object.freeze({
   DINE_IN: { value: "Dine-In", label: "Dine-in" },
   SAVE_TO_ROOM: { value: "Save-To-Room", label: "Save to room" },
   TAKE_AWAY: { value: "Take-Away", label: "Take away" },

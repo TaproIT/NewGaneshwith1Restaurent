@@ -40,8 +40,8 @@ function App() {
           <Route path="/invoice" element={<Invoice />} />
 
           <Route path="/beach-restaurant/home" element={<BeachRestaurantHomePage />} />
-          <Route path="/beach-restaurant/tables" element={<BeachRestaurantTablesPage />} />
-          <Route path="/beach-restaurant/menu" element={<BeachRestaurantMenuPage />} />
+          <Route path="/beach-restaurant/tables/:id" element={<BeachRestaurantTablesPage />} />
+          <Route path="/beach-restaurant/menu/:id" element={<BeachRestaurantMenuPage />} />
         </Route>
       </Routes>    
     </Router>

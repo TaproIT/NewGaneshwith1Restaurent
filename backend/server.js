@@ -29,7 +29,7 @@ const allowedApiOrigins = process.env.API_ORIGINS.split(',');
 
 // --- Middleware ---
 app.use(cors({
-    origin: allowedApiOrigins,
+    origin: [allowedApiOrigins, process.env.BASE_LOCAL_URL, process.env.BASE_DEV_URL, process.env.BASE_DEV_ADMIN_URL],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"]

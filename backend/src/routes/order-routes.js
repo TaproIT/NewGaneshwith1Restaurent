@@ -1,7 +1,7 @@
 import express from "express";
 import { verifyTokenNotBlacklisted } from "../middleware/check-black-list-token.js";
 import { authenticateToken } from "../middleware/verify-token.js";
-import { addOrderToken, selectTableForOrder, setInitialOrderDetails } from "../controllers/order-controller.js";
+import { addOrderToken, getOrderDetails, selectTableForOrder, setInitialOrderDetails } from "../controllers/order-controller.js";
 import { authorizeRoles } from "../middleware/role-authorize.js";
 import { userRoles } from "../utils/enums/user-role.js";
 
@@ -13,7 +13,7 @@ router.post(
   "/",
   verifyTokenNotBlacklisted,
   authenticateToken,
-  authorizeRoles([userRoles.ADMIN.value]),
+  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value, userRoles.ADMIN.value]),
   setInitialOrderDetails
 );
 
