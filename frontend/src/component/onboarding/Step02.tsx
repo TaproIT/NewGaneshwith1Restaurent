@@ -10,20 +10,22 @@ import type { Room } from "@/types/roomTypes";
 import { addRoom } from "@/features/onboarding/onboardingSlice";
 import { api } from "@/api/axios";
 
-const SOCKET_URL = "http://localhost:4000"; // adjust your backend socket URL
+const SOCKET_URL = "http://localhost:4000";
 
 const Step02 = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [selectedRooms, setSelectedRooms] = useState<Room[]>([]);
   const [viewedRoom, setViewedRoom] = useState<Room | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [bookingId, setBookingId] = useState<string>("");
 
   const guestDetails = useSelector((state: RootState) => state.onboarding.step01Data);
+  const removedRooms = useSelector((state: RootState) => state.removedRooms.oldRooms);
   const dispatch = useDispatch();
 
   const socketRef = useRef<Socket | null>(null);
 
-  // Fetch rooms and setup socket
+  // Fetch all rooms on mount
   useEffect(() => {
     const fetchRooms = async () => {
       try {
@@ -33,13 +35,11 @@ const Step02 = () => {
         console.error("Failed to fetch rooms:", err);
       }
     };
-
     fetchRooms();
 
     // Initialize socket
     socketRef.current = io(SOCKET_URL, { transports: ["websocket"] });
 
-    // Listen for room locks/unlocks from other clients
     socketRef.current.on("roomLocked", (roomNo: string) => {
       setRooms((prev) =>
         prev.map((r) => (r.no === roomNo ? { ...r, isBooked: true } : r))
@@ -57,6 +57,25 @@ const Step02 = () => {
     };
   }, []);
 
+  // Fetch bookingId when removedRooms changes
+  useEffect(() => {
+    if (removedRooms.length === 0) return;
+
+    const firstRoomNo = removedRooms[0].roomNo;
+
+    const fetchBooking = async () => {
+      try {
+        const res = await api.get(`/booking/active-rooms-with-prices/${firstRoomNo}`);
+        setBookingId(res.data.bookingId);
+      } catch (err) {
+        console.error("Failed to fetch booking:", err);
+      }
+    };
+
+    fetchBooking();
+  }, [removedRooms]);
+
+  // Handle selecting/unselecting rooms
   const handleRoomClick = (room: Room) => {
     if (room.isBooked || room.isMaintenance) return;
 
@@ -79,15 +98,15 @@ const Step02 = () => {
   const handleRemoveRoom = (roomNo: string) => {
     setSelectedRooms((prev) => prev.filter((r) => r.no !== roomNo));
     if (viewedRoom?.no === roomNo) setViewedRoom(null);
-
     socketRef.current?.emit("unlockRoom", roomNo);
   };
 
+  // Booking / switch rooms
   const handleBook = async () => {
     if (selectedRooms.length === 0) return;
 
     try {
-      // Update local rooms state
+      // Update local room state
       setRooms((prev) =>
         prev.map((r) =>
           selectedRooms.some((s) => s.no === r.no) ? { ...r, isBooked: true } : r
@@ -104,10 +123,20 @@ const Step02 = () => {
         bookingDate: new Date().toISOString(),
       };
 
-      // Post to backend
-      await api.post("/booking", bookingData);
+      // Decide whether to create new booking or switch rooms
+      if (!bookingId) {
+        // New booking
+        await api.post("/booking", bookingData);
+      } else {
+        // Switch rooms
+        const payload = {
+          oldRooms: removedRooms,
+          newRooms: selectedRooms.map((room) => room.no),
+        };
+        await api.put(`/booking/${bookingId}/switch-rooms`, payload);
+      }
 
-      // Emit unlock after booking to inform other clients
+      // Emit unlock after booking
       selectedRooms.forEach((r) => socketRef.current?.emit("unlockRoom", r.no));
 
       setSelectedRooms([]);

@@ -5,10 +5,17 @@ import type { Room } from "@/types/roomTypes";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { api } from "@/api/axios";
+import { useLocation } from "react-router-dom";
 
 const RoomAvailability = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [viewedRoom, setViewedRoom] = useState<Room | null>(null);
+
+   const location = useLocation(); // detect route change
+
+  useEffect(() => {
+    setViewedRoom(null); // reset whenever route changes
+  }, [location.pathname]);
 
   const handleRoomClick = (room: Room) => {
     setViewedRoom(room); // only set viewed room, no selection or booking
