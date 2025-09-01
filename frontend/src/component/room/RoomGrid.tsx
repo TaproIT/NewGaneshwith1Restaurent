@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import type { Room, RoomStatus } from "@/types/roomTypes";
+import type { Room } from "@/types/roomTypes";
 
 interface RoomGridProps {
   rooms: Room[];
@@ -8,8 +8,21 @@ interface RoomGridProps {
   readOnly: boolean;
 }
 
-const RoomGrid: React.FC<RoomGridProps> = ({ rooms, onRoomClick, readOnly}) => {
-  const getStatusColor = (status: RoomStatus) => {
+const RoomGrid: React.FC<RoomGridProps> = ({
+  rooms,
+  selectedRooms,
+  onRoomClick,
+  readOnly,
+}) => {
+  // Determine visual status from room data
+  const getStatus = (room: Room): "reserved" | "empty" | "maintain" | "selected" => {
+    if (selectedRooms.find((r) => r.no === room.no)) return "selected";
+    if (room.isMaintenance) return "maintain";
+    if (room.isBooked) return "reserved";
+    return "empty";
+  };
+
+  const getStatusColor = (status: string) => {
     switch (status) {
       case "reserved":
         return "bg-quaternary text-gray";
@@ -24,16 +37,17 @@ const RoomGrid: React.FC<RoomGridProps> = ({ rooms, onRoomClick, readOnly}) => {
     }
   };
 
-  const reservedCount = rooms.filter((room) => room.status === "reserved").length;
-  const emptyCount = rooms.filter((room) => room.status === "empty").length;
-  const maintainCount = rooms.filter((room) => room.status === "maintain").length;
-  const selectedCount = rooms.filter((room) => room.status === "selected").length;
+  // Legend counts
+  const reservedCount = rooms.filter((r) => r.isBooked).length;
+  const emptyCount = rooms.filter((r) => !r.isBooked && !r.isMaintenance).length;
+  const maintainCount = rooms.filter((r) => r.isMaintenance).length;
+  const selectedCount = selectedRooms.length;
 
-  const [activeRoomId, setActiveRoomId] = useState<number | null>(null);
+  const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
 
   const handleRoomClick = (room: Room) => {
-      onRoomClick(room);
-    setActiveRoomId(room.id);
+    onRoomClick(room);
+    setActiveRoomId(room._id || null);
   };
 
   return (
@@ -42,46 +56,60 @@ const RoomGrid: React.FC<RoomGridProps> = ({ rooms, onRoomClick, readOnly}) => {
       <div className="flex justify-end gap-3 mb-3 text-sm">
         <div className="flex gap-1 items-center">
           <div className="w-3 h-3 rounded-full bg-quaternary"></div>
-          <span>Reserved <span>{reservedCount}</span></span>
+          <span>
+            Reserved <span>{reservedCount}</span>
+          </span>
         </div>
         <div className="flex gap-1 items-center">
           <div className="w-3 h-3 rounded-full bg-tertiary"></div>
-          <span>Empty <span>{emptyCount}</span></span>
+          <span>
+            Empty <span>{emptyCount}</span>
+          </span>
         </div>
         <div className="flex gap-1 items-center">
           <div className="w-3 h-3 rounded-full bg-quinary"></div>
-          <span>Maintenance <span>{maintainCount}</span></span>
+          <span>
+            Maintenance <span>{maintainCount}</span>
+          </span>
         </div>
         <div className="flex gap-1 items-center">
           <div className="w-3 h-3 rounded-full border-2 border-black"></div>
-          <span>Selected <span>{selectedCount}</span></span>
+          <span>
+            Selected <span>{selectedCount}</span>
+          </span>
         </div>
       </div>
 
       {/* Rooms */}
       <div className="grid grid-cols-4 gap-4">
-        {rooms.map((room) => (
-          (!readOnly ? <div
-            key={room.id}
-            className={`p-4 rounded-xl text-center h-22 
-              ${getStatusColor(room.status)} 
-              ${room.status !== "empty" ? "cursor-not-allowed" : "cursor-pointer"}`}
-            onClick={() => room.status === "empty" && onRoomClick(room)}
-          >
-            <p className="font-bold">{room.number}</p>
-            {room.status === "reserved" && <p className="text-sm">{room.guest}</p>}
-          </div> 
-          : 
-          <div
-            key={room.id}
-            className={`p-4 rounded-xl text-center h-22 cursor-pointer
-              ${getStatusColor(room.status)} ${activeRoomId === room.id ? "border-2 border-black" : ""}`}
-            onClick={() => handleRoomClick(room)}
-          >
-            <p className="font-bold">{room.number}</p>
-            {room.status === "reserved" && <p className="text-sm">{room.guest}</p>}
-          </div>)
-        ))}
+        {rooms.map((room) => {
+          const status = getStatus(room);
+
+          return !readOnly ? (
+            <div
+              key={room._id}
+              className={`p-4 rounded-xl text-center h-22 
+                ${getStatusColor(status)} 
+                ${status !== "empty" ? "cursor-not-allowed" : "cursor-pointer"}`}
+              onClick={() => status === "empty" && onRoomClick(room)}
+            >
+              <p className="font-bold">{room.no}</p>
+              {status === "reserved" && <p className="text-sm">Booked</p>}
+            </div>
+          ) : (
+            <div
+              key={room._id}
+              className={`p-4 rounded-xl text-center h-22 cursor-pointer
+                ${getStatusColor(status)} ${
+                activeRoomId === room._id ? "border-2 border-black" : ""
+              }`}
+              onClick={() => handleRoomClick(room)}
+            >
+              <p className="font-bold">{room.no}</p>
+              {status === "reserved" && <p className="text-sm">Booked</p>}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

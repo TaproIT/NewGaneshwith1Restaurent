@@ -26,7 +26,7 @@ const server = http.createServer(app);
 
 // Allowed origins
 const allowedSocketOrigins = process.env.SOCKET_IO_ORIGINS.split(',');
-const allowedApiOrigins = process.env.API_ORIGINS.split(',');
+const allowedApiOrigins = process.env.API_ORIGINS
 
 // --- Middleware ---
 app.use(cors({
@@ -53,7 +53,7 @@ app.use("/api/v1/room", roomRoutes);
 app.use("/api/v1/guest", guestRoutes);
 
 // Order Routes
-app.use("/api/v1/order", orderRoutes);
+// app.use("/api/v1/order", orderRoutes);
 
 // --- Socket.io ---
 const io = new Server(server, {
