@@ -1,4 +1,5 @@
-import { createOrderWithInitialData, fetchOrderById } from "@/api/order/order-initial-data-api";
+import { fetchOrderById } from "@/api/order/get-order-data-api";
+import { createOrderWithInitialData } from "@/api/order/create-order-initial-data-api";
 import type { Order, OrderFoodItem} from "@/component/beach-&-pool-restaurant/order-model";
 import { CustomerTypes, ServiceTypes } from "@/lib/enums/order-related-enums";
 import { createSlice } from "@reduxjs/toolkit";
@@ -199,7 +200,7 @@ const orderSlice = createSlice({
         state.orderInitialDataStatus.error = action.payload as string;
       })
 
-      // ✅ Get order by ID
+      // Get order by ID
     .addCase(fetchOrderById.pending, (state) => {
       state.fetchOrderDataStatus = { loading: true, error: null };
     })

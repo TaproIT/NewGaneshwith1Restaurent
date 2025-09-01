@@ -1,16 +1,14 @@
-import { fetchOrderById } from '@/api/order/order-initial-data-api'
-import { type AppDispatch, type RootState } from '@/app/store'
-import FoodMenuDetailsSection from '@/component/beach-&-pool-restaurant/menu/FoodMenuDetailsSection'
-import OrderTokenDialog from '@/component/beach-&-pool-restaurant/menu/order-details/OrderTokenModal'
-import OrderDetailsSection from '@/component/beach-&-pool-restaurant/menu/OrderDetailsSection'
-import React, { useEffect } from 'react'
-import { useSelector } from 'react-redux'
-import { useDispatch } from 'react-redux'
-import { useParams } from 'react-router-dom'
+import { fetchOrderById } from '@/api/order/get-order-data-api';
+import { type AppDispatch } from '@/app/store';
+import FoodMenuDetailsSection from '@/component/beach-&-pool-restaurant/menu/FoodMenuDetailsSection';
+import OrderTokenDialog from '@/component/beach-&-pool-restaurant/menu/order-details/OrderTokenModal';
+import OrderDetailsSection from '@/component/beach-&-pool-restaurant/menu/OrderDetailsSection';
+import React, { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { useParams } from 'react-router-dom';
 
 const BeachRestaurantMenuPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const order = useSelector((state:RootState) => state.order);
   const param = useParams();
   const id = param?.id as string;
 

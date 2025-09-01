@@ -1,4 +1,4 @@
-import { createOrderWithInitialData } from '@/api/order/order-initial-data-api'
+import { createOrderWithInitialData } from '@/api/order/create-order-initial-data-api'
 import type { AppDispatch, RootState } from '@/app/store'
 import { Button } from '@/components/ui/button'
 import { ServiceTypes } from '@/lib/enums/order-related-enums'
