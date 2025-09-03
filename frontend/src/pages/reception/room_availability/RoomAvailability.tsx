@@ -7,11 +7,24 @@ import type { RootState } from "@/app/store";
 import { api } from "@/api/axios";
 import { useLocation } from "react-router-dom";
 
+// --- Skeleton for RoomGrid ---
+const RoomGridSkeleton = () => (
+  <div className="grid grid-cols-4 gap-5">
+    {Array.from({ length: 8 }).map((_, i) => (
+      <div
+        key={i}
+        className="h-32 bg-gray-200 rounded-lg animate-pulse"
+      />
+    ))}
+  </div>
+);
+
 const RoomAvailability = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [loadingRooms, setLoadingRooms] = useState(true);
   const [viewedRoom, setViewedRoom] = useState<Room | null>(null);
 
-   const location = useLocation(); // detect route change
+  const location = useLocation(); // detect route change
 
   useEffect(() => {
     setViewedRoom(null); // reset whenever route changes
@@ -26,30 +39,34 @@ const RoomAvailability = () => {
   );
 
   useEffect(() => {
-      const fetchRooms = async () => {
-        try {
-          const res = await api.get("/room")
-          console.log(res)
-          setRooms(res.data)
-        } catch (err) {
-          console.error("Failed to fetch rooms:", err);
-        }
+    const fetchRooms = async () => {
+      try {
+        const res = await api.get("/room");
+        setRooms(res.data);
+      } catch (err) {
+        console.error("Failed to fetch rooms:", err);
+      } finally {
+        setLoadingRooms(false);
       }
-  
-      fetchRooms();
-    }, [])
-  
+    };
+
+    fetchRooms();
+  }, []);
 
   return (
     <div className="grid grid-cols-4 gap-5">
       {/* Left side: room grid */}
       <div className="col-span-3 h-screen overflow-x-auto">
-        <RoomGrid
-          rooms={rooms}
-          selectedRooms={[]} // no selected rooms needed
-          onRoomClick={handleRoomClick} // only for viewing
-          readOnly={true}
-        />
+        {loadingRooms ? (
+          <RoomGridSkeleton />
+        ) : (
+          <RoomGrid
+            rooms={rooms}
+            selectedRooms={[]} // no selected rooms needed
+            onRoomClick={handleRoomClick} // only for viewing
+            readOnly={true}
+          />
+        )}
       </div>
 
       {/* Right side: room details */}

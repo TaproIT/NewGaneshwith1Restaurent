@@ -11,18 +11,35 @@ import { addRoom } from "@/features/onboarding/onboardingSlice";
 import { api } from "@/api/axios";
 import { useLocation } from "react-router-dom";
 
-const SOCKET_URL = import.meta.env.SOCKET_URL
+// --- Skeletons ---
+const RoomGridSkeleton = () => (
+  <div className="grid grid-cols-4 gap-5">
+    {Array.from({ length: 8 }).map((_, i) => (
+      <div
+        key={i}
+        className="h-32 bg-gray-200 rounded-lg animate-pulse"
+      />
+    ))}
+  </div>
+);
+
+const SOCKET_URL = import.meta.env.SOCKET_URL;
 
 const Step02 = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [loadingRooms, setLoadingRooms] = useState(true);
   const [selectedRooms, setSelectedRooms] = useState<Room[]>([]);
   const [viewedRoom, setViewedRoom] = useState<Room | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bookingId, setBookingId] = useState<string>("");
   const [whatsAppBookingId, setWhatsAppBookingId] = useState<string>("");
 
-  const guestDetails = useSelector((state: RootState) => state.onboarding.step01Data);
-  const removedRooms = useSelector((state: RootState) => state.removedRooms.oldRooms);
+  const guestDetails = useSelector(
+    (state: RootState) => state.onboarding.step01Data
+  );
+  const removedRooms = useSelector(
+    (state: RootState) => state.removedRooms.oldRooms
+  );
   const dispatch = useDispatch();
   const location = useLocation();
   const daysStayed = location.state?.daysStayed;
@@ -37,6 +54,8 @@ const Step02 = () => {
         setRooms(res.data);
       } catch (err) {
         console.error("Failed to fetch rooms:", err);
+      } finally {
+        setLoadingRooms(false);
       }
     };
     fetchRooms();
@@ -70,7 +89,9 @@ const Step02 = () => {
 
     const fetchBooking = async () => {
       try {
-        const res = await api.get(`/booking/active-rooms-with-prices/${firstRoomNo}`);
+        const res = await api.get(
+          `/booking/active-rooms-with-prices/${firstRoomNo}`
+        );
         setBookingId(res.data.bookingId);
       } catch (err) {
         console.error("Failed to fetch booking:", err);
@@ -114,7 +135,9 @@ const Step02 = () => {
       // Update local room state
       setRooms((prev) =>
         prev.map((r) =>
-          selectedRooms.some((s) => s.no === r.no) ? { ...r, isBooked: true } : r
+          selectedRooms.some((s) => s.no === r.no)
+            ? { ...r, isBooked: true }
+            : r
         )
       );
 
@@ -132,7 +155,7 @@ const Step02 = () => {
       if (!bookingId) {
         // New booking
         const booking = await api.post("/booking", bookingData);
-        setWhatsAppBookingId(booking.data.bookingId)
+        setWhatsAppBookingId(booking.data.bookingId);
       } else {
         // Switch rooms
         const payload = {
@@ -157,18 +180,24 @@ const Step02 = () => {
   };
 
   const grandTotal = selectedRooms.reduce(
-    (sum, room) => sum + (guestDetails.lengthOfStay || daysStayed) * room.perDayPrice, 0
+    (sum, room) =>
+      sum + (guestDetails.lengthOfStay || daysStayed) * room.perDayPrice,
+    0
   );
 
   return (
     <div className="grid grid-cols-4 gap-5">
       <div className="col-span-3 h-screen overflow-x-hidden">
-        <RoomGrid
-          rooms={rooms}
-          selectedRooms={selectedRooms}
-          onRoomClick={handleRoomClick}
-          readOnly={false}
-        />
+        {loadingRooms ? (
+          <RoomGridSkeleton />
+        ) : (
+          <RoomGrid
+            rooms={rooms}
+            selectedRooms={selectedRooms}
+            onRoomClick={handleRoomClick}
+            readOnly={false}
+          />
+        )}
       </div>
 
       <div className="col-span-1 overflow-hidden">

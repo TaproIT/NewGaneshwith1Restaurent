@@ -10,10 +10,22 @@ import { io, type Socket } from "socket.io-client";
 
 const SOCKET_URL = "http://localhost:4000";
 
+const RoomGridSkeleton = () => (
+  <div className="grid grid-cols-4 gap-5">
+    {Array.from({ length: 8 }).map((_, i) => (
+      <div
+        key={i}
+        className="h-32 bg-gray-200 rounded-lg animate-pulse"
+      />
+    ))}
+  </div>
+);
+
 const Invoice = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [selectedRooms, setSelectedRooms] = useState<Room[]>([]);
   const [viewedRoom, setViewedRoom] = useState<Room | null>(null);
+  const [loadingRooms, setLoadingRooms] = useState(true);
 
   const guestDetails = useSelector((state: RootState) => state.onboarding.step01Data);
 
@@ -27,6 +39,8 @@ const Invoice = () => {
         setRooms(res.data);
       } catch (err) {
         console.error("Failed to fetch rooms:", err);
+      } finally {
+        setLoadingRooms(false);
       }
     };
     fetchRooms();
@@ -76,7 +90,7 @@ const Invoice = () => {
     <div className="grid grid-cols-4 gap-5">
       <div className=" col-span-3 h-screen overflow-auto">
         <InvoiceForm />
-        { (
+        {loadingRooms ? <RoomGridSkeleton /> : (
           <RoomGrid
             rooms={rooms}
             selectedRooms={selectedRooms}
