@@ -14,6 +14,9 @@ import * as http from "node:http";
 import { Server } from "socket.io";
 import { setupRoomSocket} from "./src/utils/realtime/room-socket.js";
 import {orderRoutes} from "./src/routes/order-routes.js";
+import { pbfoodnetCategoryRoutes } from  "./src/routes/PoolAndBeachResturant/pbfoodnetCategoryRoutes.js";
+import { beverageRoutes } from "./src/routes/Beverage/beverageRoutes.js";
+import {pbfoodnetRoutes} from "./src/routes/PoolAndBeachResturant/pbfoodnetRoutes.js";
 
 // Load env variables
 dotenv.config();
@@ -54,6 +57,10 @@ app.use("/api/v1/guest", guestRoutes);
 
 // Order Routes
 // app.use("/api/v1/order", orderRoutes);
+
+app.use("/api/v1/pbfoodcategories", pbfoodnetCategoryRoutes);
+app.use("/api/v1/beverages", beverageRoutes);
+app.use("/api/v1/pbfoodnets", pbfoodnetRoutes);
 
 // --- Socket.io ---
 const io = new Server(server, {
