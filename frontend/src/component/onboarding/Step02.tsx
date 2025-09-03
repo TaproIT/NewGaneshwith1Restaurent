@@ -9,6 +9,7 @@ import RoomDetails from "../room/RoomDetails";
 import type { Room } from "@/types/roomTypes";
 import { addRoom } from "@/features/onboarding/onboardingSlice";
 import { api } from "@/api/axios";
+import { useLocation } from "react-router-dom";
 
 const SOCKET_URL = "http://localhost:4000";
 
@@ -22,6 +23,8 @@ const Step02 = () => {
   const guestDetails = useSelector((state: RootState) => state.onboarding.step01Data);
   const removedRooms = useSelector((state: RootState) => state.removedRooms.oldRooms);
   const dispatch = useDispatch();
+  const location = useLocation();
+  const daysStayed = location.state?.daysStayed;
 
   const socketRef = useRef<Socket | null>(null);
 
@@ -151,7 +154,7 @@ const Step02 = () => {
   };
 
   const grandTotal = selectedRooms.reduce(
-    (sum, room) => sum + guestDetails.lengthOfStay * room.perDayPrice,
+    (sum, room) => sum + guestDetails.lengthOfStay || daysStayed * room.perDayPrice,
     0
   );
 
@@ -180,6 +183,7 @@ const Step02 = () => {
           checkout={false}
           invoice={false}
           switchRoom={false}
+          totalDays={daysStayed}
         />
       </div>
     </div>
