@@ -36,7 +36,7 @@ const Checkouts = () => {
   return (
     <div className="grid grid-cols-4 gap-5">
       {/* Left side: room grid */}
-      <div className="col-span-3">
+      <div className="col-span-3 h-screen overflow-x-auto">
         <RoomGrid
           rooms={rooms}
           selectedRooms={[]} // no selected rooms needed
@@ -46,7 +46,7 @@ const Checkouts = () => {
       </div>
 
       {/* Right side: room details */}
-      <div className="col-span-1">
+      <div className="col-span-1 overflow-hidden">
         <RoomDetails
           viewedRoom={viewedRoom}
           selectedRooms={[]} // empty, no booking
@@ -61,6 +61,7 @@ const Checkouts = () => {
           invoice={false}
           switchRoom={false}
           totalDays={0}
+          whatsAppId=""
         />
       </div>
     </div>

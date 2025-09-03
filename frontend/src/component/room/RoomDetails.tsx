@@ -17,6 +17,7 @@ import {
 import SwitchRoomCollection from "./room_detaila/SwitchRoomCollection";
 import { addOldRoom } from "@/features/switch-rooms/removedRooms";
 import { nextStep } from "@/features/onboarding/onboardingSlice";
+import { api } from "@/api/axios";
 
 interface RoomDetailsProps {
   viewedRoom: Room | null;
@@ -32,6 +33,7 @@ interface RoomDetailsProps {
   invoice: boolean;
   switchRoom: boolean;
   totalDays: number;
+  whatsAppId: string;
 }
 
 const RoomDetails: React.FC<RoomDetailsProps> = ({
@@ -47,7 +49,8 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
   checkout,
   invoice,
   switchRoom,
-  totalDays
+  totalDays,
+  whatsAppId
 }) => {
   const invoiceData = useSelector(
     (state: RootState) => state.invoice.invoiceFormData
@@ -149,7 +152,30 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
     });
   };
 
-  
+  const handleWhatsApp = async () => {
+
+  // Assuming each room has a `no` field (like in your Room schema)
+  const roomNumbers = selectedRooms.map((room) => room.no).join(", ");
+
+  const message = `This is your room number(s): ${roomNumbers}`;
+
+  try {
+    const res = await api.post(`/booking/${whatsAppId}/send-whatsapp`, {
+      message,
+    });
+
+    if (res.data?.whatsappLink) {
+      // Redirect to WhatsApp link
+      window.location.href = res.data.whatsappLink;
+    }
+  } catch (error) {
+    console.error("Error sending WhatsApp:", error);
+  }
+
+  console.log(whatsAppId);
+};
+
+
 
   return (
     <div className="col-span-1 rounded-2xl bg-mainWhite h-[calc(100vh-140px)] overflow-hidden relative">
@@ -324,7 +350,7 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
                   <Button variant="outline" className="w-25">
                     Email
                   </Button>
-                  <Button className="w-25">WhatsApp</Button>
+                  <Button className="w-25" onClick={() => handleWhatsApp()}>WhatsApp</Button>
                 </div>
               </div>
             </div>

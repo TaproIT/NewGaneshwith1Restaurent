@@ -11,7 +11,7 @@ import { addRoom } from "@/features/onboarding/onboardingSlice";
 import { api } from "@/api/axios";
 import { useLocation } from "react-router-dom";
 
-const SOCKET_URL = "http://localhost:4000";
+const SOCKET_URL = import.meta.env.SOCKET_URL
 
 const Step02 = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -19,6 +19,7 @@ const Step02 = () => {
   const [viewedRoom, setViewedRoom] = useState<Room | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bookingId, setBookingId] = useState<string>("");
+  const [whatsAppBookingId, setWhatsAppBookingId] = useState<string>("");
 
   const guestDetails = useSelector((state: RootState) => state.onboarding.step01Data);
   const removedRooms = useSelector((state: RootState) => state.removedRooms.oldRooms);
@@ -63,6 +64,7 @@ const Step02 = () => {
   // Fetch bookingId when removedRooms changes
   useEffect(() => {
     if (removedRooms.length === 0) return;
+    if (!bookingId) return; // already have bookingId
 
     const firstRoomNo = removedRooms[0].roomNo;
 
@@ -129,7 +131,8 @@ const Step02 = () => {
       // Decide whether to create new booking or switch rooms
       if (!bookingId) {
         // New booking
-        await api.post("/booking", bookingData);
+        const booking = await api.post("/booking", bookingData);
+        setWhatsAppBookingId(booking.data.bookingId)
       } else {
         // Switch rooms
         const payload = {
@@ -154,13 +157,12 @@ const Step02 = () => {
   };
 
   const grandTotal = selectedRooms.reduce(
-    (sum, room) => sum + guestDetails.lengthOfStay || daysStayed * room.perDayPrice,
-    0
+    (sum, room) => sum + (guestDetails.lengthOfStay || daysStayed) * room.perDayPrice, 0
   );
 
   return (
     <div className="grid grid-cols-4 gap-5">
-      <div className="col-span-3">
+      <div className="col-span-3 h-screen overflow-x-hidden">
         <RoomGrid
           rooms={rooms}
           selectedRooms={selectedRooms}
@@ -169,7 +171,7 @@ const Step02 = () => {
         />
       </div>
 
-      <div className="col-span-1">
+      <div className="col-span-1 overflow-hidden">
         <RoomDetails
           viewedRoom={viewedRoom}
           selectedRooms={selectedRooms}
@@ -184,6 +186,7 @@ const Step02 = () => {
           invoice={false}
           switchRoom={false}
           totalDays={daysStayed}
+          whatsAppId={whatsAppBookingId}
         />
       </div>
     </div>
