@@ -60,6 +60,7 @@ const Checkouts = () => {
           checkout={true}
           invoice={false}
           switchRoom={false}
+          totalDays={0}
         />
       </div>
     </div>
