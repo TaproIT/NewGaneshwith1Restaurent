@@ -13,8 +13,7 @@ import { useSelector } from 'react-redux';
 const OrderInitialDetails: React.FC = () => {
   const order = useSelector((state: RootState) => state.order);
   const orderStatus = Object.values(OrderStatuses).find((status) => status.value === order.orderStatus);
-  
-  console.log("table",order.restaurantTable);
+
   return (
     <div className="py-3 flex flex-col gap-3">
       <div className="flex items-center justify-between">

@@ -52,7 +52,7 @@ app.use("/api/v1/booking", bookingRoutes);
 app.use("/api/v1/room", roomRoutes);
 
 // Order Routes
-// app.use("/api/v1/order", orderRoutes);
+app.use("/api/v1/order", orderRoutes);
 
 app.use("/api/v1/pbfoodcategories", pbfoodnetCategoryRoutes);
 app.use("/api/v1/beverages", beverageRoutes);

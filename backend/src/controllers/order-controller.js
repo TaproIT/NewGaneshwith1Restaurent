@@ -3,7 +3,7 @@ import FoodOrderItem from "../models/order/food-order-item-model.js";
 import Order from "../models/order/order-model.js";
 import OrderToken from "../models/order/order-token-model.js";
 import RestaurantTable from "../models/order/restaurant-table-model.js";
-import { OrderStatuses, ServiceTypes } from "../utils/enums/order-related-enums.js";
+import { OrderStatuses, ServiceTypes, TableStatuses } from "../utils/enums/order-related-enums.js";
 import { generateOrderNumber, generateTokenId } from "../utils/order-util.js";
 import { sendErrorResponse, sendSuccessResponse } from "../utils/response-util.js";
 import mongoose from "mongoose";
@@ -171,7 +171,9 @@ export const selectTableForOrder = async (req, res) => {
       );
     }
 
-    // ✅ Assign the table
+    await RestaurantTable.findByIdAndUpdate(tableId, { status: TableStatuses.RESERVED.value});
+
+    // Assign the table
     order.restaurantTable = tableId;
     await order.save();
 

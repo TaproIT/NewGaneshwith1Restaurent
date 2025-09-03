@@ -11,7 +11,7 @@ export const fetchOrderById = createAsyncThunk<
 >("order/fetchOrderById", async (orderId, { rejectWithValue }) => {
   try {
     const response = await api.get(`/order/${orderId}`);
-    console.log(response);
+    //console.log(response);
     return response.data.data.order as Order;
   } catch (error: any) {
     return rejectWithValue(error?.response?.data || "Failed to fetch order");

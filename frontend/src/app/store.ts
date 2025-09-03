@@ -4,8 +4,10 @@ import onboardingReducer from '../features/onboarding/onboardingSlice'
 import invoiceReducer from '../features/invoice/invoiceSlice'
 import orderReducer from "../features/beach-restaurant/orderSlice";
 import foodReducer from "../features/beach-restaurant/foodSlice";
-import bookingReducer from '../features/booking/bookingSlice'
-import removedRoomsReducer from '../features/switch-rooms/removedRooms'
+import bookingReducer from '../features/booking/bookingSlice';
+import removedRoomsReducer from '../features/switch-rooms/removedRooms';
+import foodCategoryReducer from "../features/beach-restaurant/foodCategorySlice";
+
 
 export const store = configureStore({
     reducer: {
@@ -15,7 +17,8 @@ export const store = configureStore({
         order: orderReducer,
         food: foodReducer,
         booking: bookingReducer,
-        removedRooms: removedRoomsReducer
+        removedRooms: removedRoomsReducer,
+        foodCategory: foodCategoryReducer
     }
 })
 

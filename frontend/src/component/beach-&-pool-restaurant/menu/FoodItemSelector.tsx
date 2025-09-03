@@ -14,12 +14,12 @@ const FoodItemSelector:React.FC<{foodItem:FoodItem}> = (
   const orderFoodItems = useSelector((state:RootState) => state.order.newOrderToken?.foodItems);
   const dispatch = useDispatch<AppDispatch>();
 
-  const existFoodItem = orderFoodItems?.find((item) => item.foodId === foodItem.id);
+  const existFoodItem = orderFoodItems?.find((item) => item.foodId === foodItem._id);
 
   const handleAddClick = (foodItem: FoodItem) => {
     const orderFoodItem:OrderFoodItem = {
-       foodId: foodItem.id,
-       title: foodItem.title,
+       foodId: foodItem._id,
+       title: foodItem.itemName,
        price: foodItem.price,
        quantity:1
     }
@@ -35,7 +35,7 @@ const FoodItemSelector:React.FC<{foodItem:FoodItem}> = (
   return (
     <div className="p-1 flex flex-col gap-1 border rounded-sm">
       <div className="py-6 flex items-center justify-center text-[#444444] text-[0.625rem] bg-[#F4F4F4] rounded-sm">
-         {foodItem?.title}
+         {foodItem?.itemName}
       </div>
       <div className="grid grid-cols-7 gap-1">
          <div className="py-1.5 col-span-5 bg-[#F4F4F4] flex items-center justify-center rounded-sm">

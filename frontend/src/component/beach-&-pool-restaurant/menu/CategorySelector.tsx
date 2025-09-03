@@ -1,7 +1,8 @@
+import { fetchAllFoodCategories } from "@/api/order/get-food-categories-api";
 import type { RootState } from "@/app/store";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { setCategoryId } from "@/features/beach-restaurant/foodSlice";
+import { setCategoryId } from "@/features/beach-restaurant/foodCategorySlice";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import React, { useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -9,24 +10,28 @@ import { useDispatch, useSelector } from "react-redux";
 const CategorySelector: React.FC = () => {
   const dispatch = useDispatch();
 
-  const food = useSelector(
-    (state: RootState) => state.food
+  const foodCategory = useSelector(
+    (state: RootState) => state.foodCategory
   );
 
-  const categories = food.categories;
-
-  const selectedCategoryId = food.selectedCategoryId;
+  const categories = foodCategory.categories;
+  //console.log(categories);
+  const selectedCategoryId = foodCategory.selectedCategoryId;
 
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const selectedIndex = categories.findIndex(
-    (cat) => cat.id === selectedCategoryId
+    (cat) => cat._id === selectedCategoryId
   );
+  
+  useEffect( () => {
+    dispatch(fetchAllFoodCategories() as any);
+  },[dispatch]);
 
   // Auto select first category if none selected
   useEffect(() => {
     if (!selectedCategoryId && categories.length > 0) {
-      dispatch(setCategoryId(categories[0].id));
+      dispatch(setCategoryId(categories[0]._id));
     }
   }, [categories, selectedCategoryId, dispatch]);
 
@@ -42,20 +47,22 @@ const CategorySelector: React.FC = () => {
   }, [selectedIndex]);
 
   const handleClick = (index: number) => {
-    dispatch(setCategoryId(categories[index].id));
+    dispatch(setCategoryId(categories[index]._id));
   };
 
   const handlePrev = () => {
     if (selectedIndex > 0) {
-      dispatch(setCategoryId(categories[selectedIndex - 1].id));
+      dispatch(setCategoryId(categories[selectedIndex - 1]._id));
     }
   };
 
   const handleNext = () => {
     if (selectedIndex < categories.length - 1) {
-      dispatch(setCategoryId(categories[selectedIndex + 1].id));
+      dispatch(setCategoryId(categories[selectedIndex + 1]._id));
     }
   };
+
+  console.log("Selected Category", selectedCategoryId);
 
   return (
     <div className="flex items-center w-full">
@@ -74,10 +81,10 @@ const CategorySelector: React.FC = () => {
       <ScrollArea className="w-[90%] whitespace-nowrap">
         <div className="flex gap-1">
           {categories.map((cat, index) => {
-            const isSelected = cat.id === selectedCategoryId;
+            const isSelected = cat._id === selectedCategoryId;
             return (
               <div
-                key={cat.id}
+                key={cat._id}
                 ref={(el) => {
                   itemRefs.current[index] = el;
                 }}
@@ -89,7 +96,7 @@ const CategorySelector: React.FC = () => {
                       : "bg-transparent text-[#5B5B5B] border border-[#CECECE]"
                   }`}
               >
-                {cat.label}
+                {cat.categoryName}
               </div>
             );
           })}
