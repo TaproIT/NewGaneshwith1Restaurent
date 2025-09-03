@@ -1,13 +1,32 @@
-import type { Step01FormData } from "@/types/guestDataTypes";
+import type { Booking } from "@/types/guestDetails";
 import React from "react";
 
 interface GuestDetailsCardProps {
-  guestDetails: Step01FormData;
+  guestDetails: Booking | null;
 }
 
 const GuestDetailsCard: React.FC<GuestDetailsCardProps> = ({
   guestDetails,
 }) => {
+  if (!guestDetails) return null;
+
+  const checkInDate = new Date(guestDetails.checkIn);
+  const checkOutDate = new Date(guestDetails.checkOut);
+
+  // Format as YYYY-MM-DD
+  const formatDate = (date: Date) =>
+    date.toLocaleDateString("en-GB", {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+    });
+
+  // Calculate days stayed
+  const daysStayed =
+    Math.ceil(
+      (checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)
+    ) || 0;
+
   return (
     <div className="flex flex-col mt-4 gap-1 text-sm">
       <div className="flex justify-between text-gray whitespace-nowrap">
@@ -16,15 +35,15 @@ const GuestDetailsCard: React.FC<GuestDetailsCardProps> = ({
       </div>
       <div className="flex justify-between text-gray whitespace-nowrap">
         <div>Days of Staying : </div>
-        <div>{guestDetails.lengthOfStay}</div>
+        <div>{daysStayed} days</div>
       </div>
       <div className="flex justify-between text-gray whitespace-nowrap">
         <div className="">Checked-In Date : </div>
-        <div className="">{guestDetails.checkIn}</div>
+        <div className="">{formatDate(checkInDate)}</div>
       </div>
       <div className="flex justify-between text-gray whitespace-nowrap">
         <div className="">Check Out Date : </div>
-        <div className="">{guestDetails.checkOut}</div>
+        <div className="">{formatDate(checkOutDate)}</div>
       </div>
     </div>
   );

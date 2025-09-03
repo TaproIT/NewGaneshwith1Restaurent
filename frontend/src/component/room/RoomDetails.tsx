@@ -5,13 +5,19 @@ import type { Room } from "@/types/roomTypes";
 import QR from "@/assets/Images/qr.webp";
 //import { Badge } from "@/components/ui/badge";
 import type { Step01FormData } from "@/types/guestDataTypes";
-import { mockRooms } from "../onboarding/step02/mockRooms";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import HeaderBadge from "./room_detaila/HeaderBadge";
 import GuestDetailsCard from "./room_detaila/GuestDetailsCard";
 import RoomsDetailsCard from "./room_detaila/RoomsDetailsCard";
+import {
+  clearBooking,
+  fetchRoomBooking,
+} from "@/features/booking/bookingSlice";
+import SwitchRoomCollection from "./room_detaila/SwitchRoomCollection";
+import { addOldRoom } from "@/features/switch-rooms/removedRooms";
+import { nextStep } from "@/features/onboarding/onboardingSlice";
 
 interface RoomDetailsProps {
   viewedRoom: Room | null;
@@ -19,8 +25,8 @@ interface RoomDetailsProps {
   guestDetails: Step01FormData;
   grandTotal: number;
   isModalOpen: boolean;
-  onRemoveRoom: (roomId: number) => void;
-  onBookRoom: (roomId: number, price: number) => void;
+  onRemoveRoom: (roomId: string) => void;
+  onBookRoom: (roomId: string, price: number) => void;
   onCloseModal: () => void;
   readOnly: boolean;
   checkout: boolean;
@@ -45,32 +51,27 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
   const invoiceData = useSelector(
     (state: RootState) => state.invoice.invoiceFormData
   );
-  const [totalPrice, setTotalPrice] = useState(0);
-  const [mockRoomData] = useState<Room[]>(mockRooms);
   const [discountPercent, setDiscountPercent] = useState(0);
   const [discountAmount, setDiscountAmount] = useState(0);
+  const [totalPrice, setTotalPrice] = useState(0);
   const [totalBill, setTotalBill] = useState(0);
   const navigate = useNavigate();
-  const roomsToRender = React.useMemo(() => {
-    if (
-      checkout &&
-      viewedRoom &&
-      guestDetails.bookedRooms.some((r) => r.id === viewedRoom.id)
-    ) {
-      return guestDetails.bookedRooms
-        .map((booked) => {
-          const fullRoom = mockRoomData.find((room) => room.id === booked.id);
-          if (!fullRoom) return null;
-          return {
-            ...fullRoom,
-            price: booked.price,
-          };
-        })
-        .filter(Boolean);
-    }
-    return selectedRooms;
-  }, [checkout, viewedRoom, guestDetails.bookedRooms, selectedRooms]);
+  const dispatch = useDispatch<any>();
+  const bookingDetails = useSelector((state: RootState) => state.booking); 
+  const location = useLocation(); // detect route change
+  const [removedRooms, setRemovedRooms] = useState<
+    { roomNo: string; discountPrice: number; finalRoomTotalPrice: number }[]
+  >([]);
+  
 
+  useEffect(() => {
+    if (viewedRoom?.no) {
+      dispatch(clearBooking());
+      dispatch(fetchRoomBooking(viewedRoom.no));
+    }
+  }, [viewedRoom?.no, dispatch, checkout, location.pathname]);
+
+  // checkout calculations
   useEffect(() => {
     if (!checkout || !viewedRoom) {
       setTotalPrice(0);
@@ -79,69 +80,86 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
       return;
     }
 
-    // check if viewedRoom is in guestDetails.bookedRooms
-    const roomExists = guestDetails.bookedRooms.some(
-      (r) => r.id === viewedRoom.id
-    );
+    // const bookedRoom = guestDetails.bookedRooms.find(
+    //   (r) => r._id === viewedRoom._id
+    // );
 
-    if (!roomExists) {
-      setTotalPrice(0);
-      setDiscountAmount(0);
-      setTotalBill(0);
-      return;
-    }
+    // if (!bookedRoom) {
+    //   setTotalPrice(0);
+    //   setDiscountAmount(0);
+    //   setTotalBill(0);
+    //   return;
+    // }
 
-    // calculate new total
-    const total =
-      guestDetails.bookedRooms.reduce((sum, room) => sum + room.price, 0) *
-      guestDetails.lengthOfStay;
 
-    // use the new total directly (not old state!)
+    const total = 
+    totalPrice
+
     const discount = (total * discountPercent) / 100;
-    const finalBill = total - discount;
-
-    // update states
     setTotalPrice(total);
     setDiscountAmount(discount);
-    setTotalBill(finalBill);
-  }, [viewedRoom?.id, checkout, guestDetails, discountPercent]);
+    setTotalBill(total - discount);
+  }, [viewedRoom?._id, checkout, guestDetails, discountPercent]);
 
   const invoiceSubTotal = selectedRooms.reduce(
-    (sum, room) => sum + invoiceData.lengthOfStay * room.price,
+    (sum, room) => sum + invoiceData.lengthOfStay * room.perDayPrice,
     0
   );
   const invoiceDiscount = (invoiceSubTotal * discountPercent) / 100;
   const invoiceFinalBill = invoiceSubTotal - invoiceDiscount;
 
+  useEffect(() => {
+  setRemovedRooms([]);
+}, [viewedRoom?.no]);
+  
+  const handleRemoveRoom = (removedRoom: {
+    roomNo: string;
+    discountPrice: number;
+    finalRoomTotalPrice: number;
+  }) => {
+    setRemovedRooms((prev) => [...prev, removedRoom]);
+  };
+  
+  const handleSwitchRoom = () => {
+    removedRooms.forEach((room) => {
+      dispatch(addOldRoom(room));
+    });
+    dispatch(nextStep())
+    navigate("/onboarding");
+  };
+
+  const handleBookRooms = () => {
+  if (selectedRooms.length === 0) return;
+
+  selectedRooms.forEach((room) => {
+    if (room._id) {
+      onBookRoom(room._id, room.perDayPrice);
+    }
+  });
+};
+
   return (
     <div className="col-span-1 rounded-2xl bg-mainWhite h-[calc(100vh-140px)] overflow-hidden relative">
       <div
         className={`flex-1 p-6 h-[calc(100vh-140px)] overflow-auto ${
-          checkout || invoice ? "pb-70" : "pb-40"
+          checkout || invoice ? "pb-40" : "pb-40"
         }`}
       >
+        {/* Read-only room details */}
         {viewedRoom && readOnly ? (
           <>
-            {!checkout && (
-              <HeaderBadge viewedRoom = {viewedRoom}/>
-            )}
-            {/* Guest details */}
-            {guestDetails.bookedRooms.some(
-              (room) => room.id === viewedRoom.id
-            ) && (
-              <GuestDetailsCard guestDetails={guestDetails} />
+            {!checkout && <HeaderBadge viewedRoom={viewedRoom} />}
+
+            {bookingDetails && (
+              <GuestDetailsCard guestDetails={bookingDetails.roomData} />
             )}
 
-            {/* Room details */}
-            {!checkout && (
-              <RoomsDetailsCard viewedRoom={viewedRoom} />
-            )}
+            {!checkout && <RoomsDetailsCard viewedRoom={viewedRoom} />}
 
             <div className="absolute bottom-5 left-[25%] text-gray font-medium text-lg">
               <div className="flex justify-center items-center">
-                {" "}
-                LKR {viewedRoom.price}{" "}
-                <span className="px-2 font-normal text-sm"> Per Day</span>
+                LKR {viewedRoom.perDayPrice}
+                <span className="px-2 font-normal text-sm">Per Day</span>
               </div>
             </div>
           </>
@@ -151,84 +169,71 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
           )
         )}
 
-        {/* Selected rooms list */}
-        {roomsToRender.length > 0 && (
-          <div>
-            <ul className="flex flex-col gap-5 mt">
-              {roomsToRender.map((room) => {
-                if (!room) return null; // safety check
-                return (
-                  <li
-                    key={room.id}
-                    className={`border rounded-lg p-3 bg-gray-50 shadow-sm ${
-                      checkout && "mt-5"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between text-gray">
-                      <h2 className="text-lg font-medium">{room.number}</h2>
-                      <div className="text-lg font-medium">
-                        LKR {room.price}
-                      </div>
-                    </div>
-                    <div className="text-sm text-right text-gray">Per Day</div>
+        {/* Selected / Booked Rooms */}
+        {selectedRooms.length > 0 && (
+          <ul className="flex flex-col gap-5 mt">
+            {selectedRooms.map((room) => (
+              <li
+                key={room._id}
+                className={`border rounded-lg p-3 bg-gray-50 shadow-sm ${
+                  checkout && "mt-5"
+                }`}
+              >
+                <div className="flex items-center justify-between text-gray">
+                  <h2 className="text-lg font-medium">Room {room.no}</h2>
+                  <div className="text-lg font-medium">
+                    LKR {room.perDayPrice}
+                  </div>
+                </div>
+                <div className="text-sm text-right text-gray">Per Day</div>
 
-                    <div className="mt-4 grid grid-cols-3 text-gray text-sm">
-                      <div className="col-span-1">Beds</div>
-                      <div className="col-span-1">:</div>
-                      <div className="col-span-1">{room.beds}</div>
-                    </div>
-                    <div className="mt-2 grid grid-cols-3 text-gray text-sm">
-                      <div className="col-span-1">Lockers</div>
-                      <div className="col-span-1">:</div>
-                      <div className="col-span-1">{room.lockers}</div>
-                    </div>
-                    <div className="mt-2 grid grid-cols-3 text-gray text-sm">
-                      <div className="col-span-1">Tables</div>
-                      <div className="col-span-1">:</div>
-                      <div className="col-span-1">{room.tables}</div>
-                    </div>
-                    <div className="mt-2 grid grid-cols-3 text-gray text-sm">
-                      <div className="col-span-1">AC</div>
-                      <div className="col-span-1">:</div>
-                      <div className="col-span-1">{room.ac ? "Yes" : "No"}</div>
-                    </div>
-                    <div className="mt-2 grid grid-cols-3 text-gray text-sm">
-                      <div className="col-span-1">TV</div>
-                      <div className="col-span-1">:</div>
-                      <div className="col-span-1">{room.tv ? "Yes" : "No"}</div>
-                    </div>
+                {/* Facilities */}
+                <div className="mt-4 text-sm text-gray">
+                  <span className="font-medium">Facilities:</span>
+                  {room.facilities?.length > 0 ? (
+                    <ul className="list-disc list-inside ml-4 mt-1">
+                      {room.facilities.map((facility, index) => (
+                        <li key={index}>{facility}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <span className="ml-2">None</span>
+                  )}
+                </div>
 
-                    <div className="mt-5 grid grid-cols-3 text-gray">
-                      <span className="col-span-1">Total</span>
-                      <span className="col-span-1">:</span>
-                      <span className="col-span-1">
-                        {(guestDetails.lengthOfStay ||
-                          invoiceData.lengthOfStay) * room.price}
-                      </span>
-                    </div>
-                    {!checkout && (
-                      <div className="flex justify-end">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onRemoveRoom(room.id)}
-                        >
-                          <Trash2 color="red" />
-                        </Button>
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
+                <div className="mt-5 grid grid-cols-3 text-gray">
+                  <span className="col-span-1">Total</span>
+                  <span className="col-span-1">:</span>
+                  <span className="col-span-1">
+                    {(guestDetails.lengthOfStay || invoiceData.lengthOfStay) *
+                      room.perDayPrice}
+                  </span>
+                </div>
+
+                {!checkout && (
+                  <div className="flex justify-end">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onRemoveRoom(room.no)}
+                    >
+                      <Trash2 color="red" />
+                    </Button>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
         )}
+
+        {checkout && viewedRoom?.no  && <SwitchRoomCollection guestDetails={bookingDetails.roomData} onTotalChange={setTotalPrice} onRemoveRoom={handleRemoveRoom}/>}
+
       </div>
 
-      {/* Fixed Footer */}
+      {/* Footer */}
       {(!readOnly || checkout) && (
         <div className="border-t px-6 py-3 text-gray sticky bottom-0 bg-mainWhite flex flex-col gap-4">
-          {(checkout || invoice) && (
+          {(invoice) && (
             <div>
               <div className="mt-2 grid grid-cols-3 text-gray whitespace-nowrap text-sm">
                 <div>Subtotal</div>
@@ -266,14 +271,16 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
             <div>:</div>
             <div>
               LKR{" "}
-              {checkout
-                ? totalBill
+              {checkout ? totalBill
                 : invoice
                 ? invoiceFinalBill
+                : switchRoom 
+                ? totalPrice
                 : grandTotal.toLocaleString()}
             </div>
           </div>
 
+          {/* Modal */}
           {isModalOpen && (
             <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
               <div className="bg-white p-6 rounded-lg w-96 relative flex flex-col justify-center">
@@ -294,7 +301,6 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
                 <div className="flex justify-center my-4">
                   <img src={QR} alt="qr" width={100} height={100} />
                 </div>
-
                 <div className="flex gap-5 justify-center mb-6">
                   <Button variant="outline" className="w-25">
                     Email
@@ -308,26 +314,17 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
           {!checkout && (
             <Button
               className="w-full"
-              onClick={() =>
-                selectedRooms.forEach((r) => onBookRoom(r.id, r.price))
-              }
+              onClick={handleBookRooms}
             >
               Book
             </Button>
           )}
 
           {checkout && !switchRoom && (
-            <Button
-              className="w-full"
-              // onClick={() =>
-              //   selectedRooms.forEach((r) => onBookRoom(r.id, r.price))
-              // }
-            >
-              Checkout
-            </Button>
+            <Button className="w-full">Checkout</Button>
           )}
           {switchRoom && (
-            <Button className="w-full" onClick={() => navigate("/onboarding")}>
+            <Button className="w-full" onClick={handleSwitchRoom}>
               Switch Room
             </Button>
           )}

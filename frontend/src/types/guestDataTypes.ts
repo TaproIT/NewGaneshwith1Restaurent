@@ -8,15 +8,20 @@ export type Step01FormData = {
   guestName: string;
   email: string;
   whatsapp: string;
-  passportID: string;
+  passportId: string;   // ✅ match backend field name (camelCase "Id")
   country: string;
   adults: number;
   kids: number;
-  checkIn: string;
-  checkOut: string;
+  checkIn: string;      // ISO string date from backend
+  checkOut: string;     // ISO string date from backend
   lengthOfStay: number;
   totalGuests: number;
-  bookedRooms: BookedRoom[];
+  currentRooms: string[]; // ✅ matches ["103"] from backend
+  payload?: {
+    extraService?: string;
+    specialRequests?: string;
+  };
+  bookingDate: string;  // ✅ ISO string from backend
 };
 
 export interface OnboardingState {
