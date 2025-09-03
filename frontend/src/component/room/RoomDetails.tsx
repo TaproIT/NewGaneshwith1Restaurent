@@ -31,7 +31,6 @@ interface RoomDetailsProps {
   checkout: boolean;
   invoice: boolean;
   switchRoom: boolean;
-  totalDays: number;
 }
 
 const RoomDetails: React.FC<RoomDetailsProps> = ({
@@ -47,7 +46,6 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
   checkout,
   invoice,
   switchRoom,
-  totalDays
 }) => {
   const invoiceData = useSelector(
     (state: RootState) => state.invoice.invoiceFormData
@@ -58,12 +56,12 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
   const [totalBill, setTotalBill] = useState(0);
   const navigate = useNavigate();
   const dispatch = useDispatch<any>();
-  const bookingDetails = useSelector((state: RootState) => state.booking);
+  const bookingDetails = useSelector((state: RootState) => state.booking); 
   const location = useLocation(); // detect route change
   const [removedRooms, setRemovedRooms] = useState<
     { roomNo: string; discountPrice: number; finalRoomTotalPrice: number }[]
   >([]);
-  const [daysStayed, setDaysStayed] = useState(0);
+  
 
   useEffect(() => {
     if (viewedRoom?.no) {
@@ -74,7 +72,6 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
 
   // checkout calculations
   useEffect(() => {
-
     if (!checkout || !viewedRoom) {
       setTotalPrice(0);
       setDiscountAmount(0);
@@ -93,22 +90,15 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
     //   return;
     // }
 
-    const total = totalPrice;
+
+    const total = 
+    totalPrice
 
     const discount = (total * discountPercent) / 100;
     setTotalPrice(total);
     setDiscountAmount(discount);
     setTotalBill(total - discount);
-  }, [
-    viewedRoom?._id,
-    checkout,
-    guestDetails,
-    discountPercent,
-    setTotalPrice,
-    totalPrice,
-    setDaysStayed,
-    daysStayed
-  ]);
+  }, [viewedRoom?._id, checkout, guestDetails, discountPercent]);
 
   const invoiceSubTotal = selectedRooms.reduce(
     (sum, room) => sum + invoiceData.lengthOfStay * room.perDayPrice,
@@ -118,9 +108,9 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
   const invoiceFinalBill = invoiceSubTotal - invoiceDiscount;
 
   useEffect(() => {
-    setRemovedRooms([]);
-  }, [viewedRoom?.no]);
-
+  setRemovedRooms([]);
+}, [viewedRoom?.no]);
+  
   const handleRemoveRoom = (removedRoom: {
     roomNo: string;
     discountPrice: number;
@@ -128,28 +118,24 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
   }) => {
     setRemovedRooms((prev) => [...prev, removedRoom]);
   };
-
+  
   const handleSwitchRoom = () => {
     removedRooms.forEach((room) => {
       dispatch(addOldRoom(room));
     });
-    dispatch(nextStep());
-    navigate("/onboarding", {
-      state: { daysStayed },
-  })
+    dispatch(nextStep())
+    navigate("/onboarding");
   };
 
   const handleBookRooms = () => {
-    if (selectedRooms.length === 0) return;
+  if (selectedRooms.length === 0) return;
 
-    selectedRooms.forEach((room) => {
-      if (room._id) {
-        onBookRoom(room._id, room.perDayPrice);
-      }
-    });
-  };
-
-  
+  selectedRooms.forEach((room) => {
+    if (room._id) {
+      onBookRoom(room._id, room.perDayPrice);
+    }
+  });
+};
 
   return (
     <div className="col-span-1 rounded-2xl bg-mainWhite h-[calc(100vh-140px)] overflow-hidden relative">
@@ -164,7 +150,7 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
             {!checkout && <HeaderBadge viewedRoom={viewedRoom} />}
 
             {bookingDetails && (
-              <GuestDetailsCard guestDetails={bookingDetails.roomData} onDaysCalculated={(days) => setDaysStayed(days)}/>
+              <GuestDetailsCard guestDetails={bookingDetails.roomData} />
             )}
 
             {!checkout && <RoomsDetailsCard viewedRoom={viewedRoom} />}
@@ -218,8 +204,8 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
                   <span className="col-span-1">Total</span>
                   <span className="col-span-1">:</span>
                   <span className="col-span-1">
-                    { (guestDetails.lengthOfStay || invoiceData.lengthOfStay || totalDays ) *
-                      room.perDayPrice }
+                    {(guestDetails.lengthOfStay || invoiceData.lengthOfStay) *
+                      room.perDayPrice}
                   </span>
                 </div>
 
@@ -239,19 +225,14 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
           </ul>
         )}
 
-        {checkout && viewedRoom?.no && (
-          <SwitchRoomCollection
-            guestDetails={bookingDetails.roomData}
-            onTotalChange={setTotalPrice}
-            onRemoveRoom={handleRemoveRoom}
-          />
-        )}
+        {checkout && viewedRoom?.no  && <SwitchRoomCollection guestDetails={bookingDetails.roomData} onTotalChange={setTotalPrice} onRemoveRoom={handleRemoveRoom}/>}
+
       </div>
 
       {/* Footer */}
       {(!readOnly || checkout) && (
         <div className="border-t px-6 py-3 text-gray sticky bottom-0 bg-mainWhite flex flex-col gap-4">
-          {invoice && (
+          {(invoice) && (
             <div>
               <div className="mt-2 grid grid-cols-3 text-gray whitespace-nowrap text-sm">
                 <div>Subtotal</div>
@@ -289,11 +270,10 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
             <div>:</div>
             <div>
               LKR{" "}
-              {checkout
-                ? totalBill
+              {checkout ? totalBill
                 : invoice
                 ? invoiceFinalBill
-                : switchRoom
+                : switchRoom 
                 ? totalPrice
                 : grandTotal.toLocaleString()}
             </div>
@@ -331,7 +311,10 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
           )}
 
           {!checkout && (
-            <Button className="w-full" onClick={handleBookRooms}>
+            <Button
+              className="w-full"
+              onClick={handleBookRooms}
+            >
               Book
             </Button>
           )}

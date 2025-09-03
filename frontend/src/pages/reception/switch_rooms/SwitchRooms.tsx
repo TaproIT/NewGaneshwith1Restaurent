@@ -63,7 +63,6 @@ const SwitchRooms = () => {
           checkout={true}
           invoice={false}
           switchRoom={true}
-          totalDays={0}
         />
       </div>
     </div>

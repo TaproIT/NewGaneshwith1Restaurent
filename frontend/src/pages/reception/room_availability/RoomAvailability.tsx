@@ -67,7 +67,6 @@ const RoomAvailability = () => {
           checkout={false}
           invoice={false}
           switchRoom={false}
-          totalDays={0}
         />
       </div>
     </div>
