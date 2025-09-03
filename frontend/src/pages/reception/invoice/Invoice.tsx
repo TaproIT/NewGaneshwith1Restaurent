@@ -100,6 +100,7 @@ const Invoice = () => {
           checkout={false}
           invoice={true}
           switchRoom={false}
+          totalDays={0}
         />
       </div>
     </div>

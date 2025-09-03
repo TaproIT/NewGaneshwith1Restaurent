@@ -1,12 +1,14 @@
 import type { Booking } from "@/types/guestDetails";
-import React from "react";
+import React, { useEffect } from "react";
 
 interface GuestDetailsCardProps {
   guestDetails: Booking | null;
+  onDaysCalculated?: (days: number) => void; // callback to parent
 }
 
 const GuestDetailsCard: React.FC<GuestDetailsCardProps> = ({
   guestDetails,
+  onDaysCalculated,
 }) => {
   if (!guestDetails) return null;
 
@@ -26,6 +28,13 @@ const GuestDetailsCard: React.FC<GuestDetailsCardProps> = ({
     Math.ceil(
       (checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)
     ) || 0;
+
+  // 🔹 Send value to parent whenever it changes
+  useEffect(() => {
+    if (onDaysCalculated) {
+      onDaysCalculated(daysStayed);
+    }
+  }, [daysStayed, onDaysCalculated]);
 
   return (
     <div className="flex flex-col mt-4 gap-1 text-sm">
