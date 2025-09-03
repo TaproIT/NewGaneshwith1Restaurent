@@ -33,7 +33,7 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
   useEffect(() => {
     setRooms([]);
 
-    !guestDetails?.activeRooms && setRooms([])
+    !guestDetails?.activeRooms && setRooms([]);
 
     if (guestDetails?.activeRooms) {
       const updatedRooms = guestDetails.activeRooms.map((r) => ({
@@ -45,7 +45,10 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
 
       // notify parent immediately
       if (onTotalChange) {
-        const total = updatedRooms.reduce((sum, r) => sum + r.finalRoomTotalPrice, 0);
+        const total = updatedRooms.reduce(
+          (sum, r) => sum + r.finalRoomTotalPrice,
+          0
+        );
         onTotalChange(total);
       }
     }
@@ -68,7 +71,10 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
 
       // notify parent immediately
       if (onTotalChange) {
-        const total = updatedRooms.reduce((sum, r) => sum + r.finalRoomTotalPrice, 0);
+        const total = updatedRooms.reduce(
+          (sum, r) => sum + r.finalRoomTotalPrice,
+          0
+        );
         onTotalChange(total);
       }
 
@@ -83,8 +89,12 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
 
       // notify parent immediately
       if (onTotalChange) {
-        const total = updatedRooms.reduce((sum, r) => sum + r.finalRoomTotalPrice, 0);
-        onTotalChange(total);
+        const total = updatedRooms.reduce(
+          (sum, r) => sum + r.finalRoomTotalPrice,
+          0
+        );
+        if (total > 0) onTotalChange(total);
+        else onTotalChange(0);
       }
 
       return updatedRooms;
