@@ -1,8 +1,13 @@
 import axios from "axios";
 
-// Create Axios instance
+// Use URLs from .env file
+const LOCAL_API_URL = import.meta.env.VITE_API_URL_LOCAL;
+const DEV_API_URL = import.meta.env.VITE_API_URL_DEV;
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1" || "https://ganesh-garden-hotel-git-dev-taproits-projects.vercel.app/api/v1",
+  baseURL:
+    import.meta.env.VITE_API_URL ||
+    (window.location.hostname === "localhost" ? LOCAL_API_URL : DEV_API_URL),
   withCredentials: true, // send cookies
 });
 
