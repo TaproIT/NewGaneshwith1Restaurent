@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Create Axios instance
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1" || "https://ganesh-garden-hotel-git-dev-taproits-projects.vercel.app/api/v1",
   withCredentials: true, // send cookies
 });
 
