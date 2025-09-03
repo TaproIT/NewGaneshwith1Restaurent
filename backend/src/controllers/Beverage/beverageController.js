@@ -1,28 +1,17 @@
-import Beverage from "../../models/Beverage/beverage.js";
+import Beverage from "../../models/Beverage/Beverage.js";
 
 export const createBeverage = async (req, res) => {
     try {
-        const { beverageName, category } = req.body;
-
-        const bev = await Beverage.findOne({
-            beverageName: new RegExp(`^${beverageName}$`, "i")
-        });
-
-        if (bev) {
-            if (bev.category === category) {
-                return res.status(400).json({ error: 'Beverage with this name and category already exists' });
-            }
+        const bev = await  Beverage.find( {beverageName: new RegExp(`^${req.body.beverageName}$`, "i") })
+        if(bev){
+            res.status(400).json({error: 'Already exist beverage'});
         }
-
         const beverage = await Beverage.create(req.body);
-        return res.status(201).json(beverage);
-
+        res.status(201).json(beverage);
     } catch (err) {
-        return res.status(400).json({ error: err.message });
+        res.status(400).json({ error: err.message });
     }
 };
-
-
 
 export const updateBeverage = async (req, res) => {
     try {
