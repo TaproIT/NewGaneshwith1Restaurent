@@ -1,7 +1,7 @@
 import express from "express";
 import { verifyTokenNotBlacklisted } from "../middleware/check-black-list-token.js";
 import { authenticateToken } from "../middleware/verify-token.js";
-import { addOrderToken, getOrderDetails, selectTableForOrder, setInitialOrderDetails } from "../controllers/order-controller.js";
+import { addOrderToken, addTable, getAllTables, getOrderDetails, getTableById, selectTableForOrder, setInitialOrderDetails, updateTable } from "../controllers/order-controller.js";
 import { authorizeRoles } from "../middleware/role-authorize.js";
 import { userRoles } from "../utils/enums/user-role.js";
 
@@ -18,10 +18,42 @@ router.post(
 );
 
 router.post(
-  "/:id/table",
+  "/table",
   verifyTokenNotBlacklisted,
   authenticateToken,
-  authorizeRoles([userRoles.ADMIN.value]),
+  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value,userRoles.ADMIN.value]),
+  addTable
+);
+
+router.get(
+  "/table",
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value,userRoles.ADMIN.value]),
+  getAllTables
+);
+
+router.get(
+  "/table/:id",
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value,userRoles.ADMIN.value]),
+  getTableById
+);
+
+router.patch(
+  "/table/:id",
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value, userRoles.ADMIN.value]),
+  updateTable
+);
+
+router.patch(
+  "/:id",
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value,userRoles.ADMIN.value]),
   selectTableForOrder
 );
 

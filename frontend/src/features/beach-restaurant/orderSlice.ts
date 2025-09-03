@@ -4,6 +4,8 @@ import type { Order, OrderFoodItem} from "@/component/beach-&-pool-restaurant/or
 import { CustomerTypes, ServiceTypes } from "@/lib/enums/order-related-enums";
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
+import { fetchAllTables } from "@/api/order/get-tables-api";
+import { addTableToOrder } from "@/api/order/add-table-to-order-api";
 
 /**
  * Initial state for the Order slice.
@@ -17,6 +19,8 @@ const initialState: Order = {
   roomNumber: "",            
   guestName: "",              
   tableId: null,
+  tables: [],
+  restaurantTable: null,
   isOrderTokenOpen: false,
   orderTokens: [],
   newOrderToken: {
@@ -39,7 +43,15 @@ const initialState: Order = {
   fetchOrderDataStatus: {
      error:null,
      loading: false,
-  },  
+  }, 
+    fetchTablesStatus: {
+     error:null,
+     loading: false,
+  },
+  addTableToOrderStatus: {
+    error: null,
+    loading: false,
+  },
 };
 
 /**
@@ -210,6 +222,33 @@ const orderSlice = createSlice({
     })
     .addCase(fetchOrderById.rejected, (state, action) => {
       state.fetchOrderDataStatus = { loading: false, error: action.payload as string };
+    })
+
+     // Get All Tables
+    .addCase(fetchAllTables.pending, (state) => {
+      state.fetchTablesStatus = { loading: true, error: null };
+    })
+    .addCase(fetchAllTables.fulfilled, (state, action) => {
+      state.fetchTablesStatus = { loading: false, error: null };
+      if (state.tables){
+        state.tables = [];
+      }
+      state.tables = [...state.tables, ...action.payload]
+    })
+    .addCase(fetchAllTables.rejected, (state, action) => {
+      state.fetchTablesStatus = { loading: false, error: action.payload as string };
+    })
+
+     // Add Table to Order
+    .addCase(addTableToOrder.pending, (state) => {
+      state.addTableToOrderStatus = { loading: true, error: null };
+    })
+    .addCase(addTableToOrder.fulfilled, (state, action) => {
+      state.addTableToOrderStatus = { loading: false, error: null };
+      Object.assign(state, action.payload);
+    })
+    .addCase(addTableToOrder.rejected, (state, action) => {
+      state.addTableToOrderStatus = { loading: false, error: action.payload as string };
     });
   },
 

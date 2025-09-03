@@ -13,7 +13,8 @@ import { useSelector } from 'react-redux';
 const OrderInitialDetails: React.FC = () => {
   const order = useSelector((state: RootState) => state.order);
   const orderStatus = Object.values(OrderStatuses).find((status) => status.value === order.orderStatus);
-
+  
+  console.log("table",order.restaurantTable);
   return (
     <div className="py-3 flex flex-col gap-3">
       <div className="flex items-center justify-between">
@@ -47,10 +48,10 @@ const OrderInitialDetails: React.FC = () => {
          </div>
 
          {
-          order.tableId && (
+          order.restaurantTable && (
             <div className="grid grid-cols-2">
               <p className="col-span-1">Table</p>
-              <p className="col-span-1">: <span className="px-2">{order.tableId}</span></p>
+              <p className="col-span-1">: <span className="px-2">{order.restaurantTable?.name}</span></p>
             </div>
           )
          }

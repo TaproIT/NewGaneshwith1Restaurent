@@ -1,21 +1,27 @@
 import { Button } from "@/components/ui/button";
 import React from "react";
-import { tables } from "./tables";
 import { useSelector } from "react-redux";
-import { type RootState } from "@/app/store";
+import { type AppDispatch, type RootState } from "@/app/store";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { addTableToOrder } from "@/api/order/add-table-to-order-api";
 
-const TableDetails: React.FC = () => {
+type TableDetailsProps = {
+  orderId: string;
+};
 
-  const selectedId = useSelector((state: RootState) => state.order.tableId);
-
+const TableDetails: React.FC<TableDetailsProps> = ({orderId}) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const order = useSelector((state: RootState) => state.order);
+ 
   //Directly compute table from id
-  const selectedTable = tables.find((table) => table.id === selectedId);
+  const selectedTable = order.tables.find((table) => table._id === order.tableId);
 
   const navigate = useNavigate();
 
-  const handleBook = () => {
-     navigate("/beach-restaurant/menu")
+  const handleBook = async () => {
+    await dispatch(addTableToOrder({ orderId: orderId, tableId: selectedTable?._id as string }));
+    navigate(`/beach-restaurant/menu/${orderId}`)
   }
 
   return (
@@ -23,7 +29,7 @@ const TableDetails: React.FC = () => {
       <div className="p-4 flex flex-col gap-5">
         <div className="flex items-center justify-between">
           <p className="text-[1rem] text-[#444444]">
-            {selectedTable?.label ?? "No Table Selected"}
+            {selectedTable?.name ?? "No Table Selected"}
           </p>
           <div className="px-3 py-1 text-[0.75rem] text-[#444444] flex items-center justify-center bg-[#AEE6E6] rounded-sm">
             {selectedTable?.status ?? "N/A"}

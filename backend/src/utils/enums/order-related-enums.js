@@ -27,3 +27,9 @@ export const OrderStatuses = Object.freeze({
   SERVED: { value: 4, label: "Served" },
   CLOSED: { value: 5, label: "Closed" },
 });
+
+export const TableStatuses = Object.freeze({
+   EMPTY: { value: "Empty", label: "Empty" },
+   SELECTED: { value: "Selected", label: "Selected" },
+   RESERVED: { value: "Reserved", label: "Reserved" }
+});
