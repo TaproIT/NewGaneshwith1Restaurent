@@ -45,7 +45,7 @@ export const getAllRooms = async (req, res) => {
 export const getAvailableAllRooms = async (req, res) => {
     try {
         const rooms = await Room.find({
-            isBooked: true,
+            isBooked: false,
         }).lean();
         res.status(200).json(rooms);
     } catch (err) {

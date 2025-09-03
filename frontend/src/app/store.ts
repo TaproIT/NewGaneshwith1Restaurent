@@ -1,15 +1,17 @@
 import { configureStore } from "@reduxjs/toolkit";
 import userReducer from '../features/user/userSlice'
 import onboardingReducer from '../features/onboarding/onboardingSlice'
-import roomsReducer from '../features/rooms/roomsSlice'
 import invoiceReducer from '../features/invoice/invoiceSlice'
+import bookingReducer from '../features/booking/bookingSlice'
+import removedRoomsReducer from '../features/switch-rooms/removedRooms'
 
 export const store = configureStore({
     reducer: {
         user: userReducer,
         onboarding: onboardingReducer,
-        rooms: roomsReducer,
-        invoice: invoiceReducer
+        invoice: invoiceReducer,
+        booking: bookingReducer,
+        removedRooms: removedRoomsReducer
     }
 })
 

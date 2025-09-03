@@ -13,6 +13,10 @@ import { roomRoutes } from "./src/routes/room-routes.js";
 import * as http from "node:http";
 import { Server } from "socket.io";
 import { setupRoomSocket} from "./src/utils/realtime/room-socket.js";
+import {orderRoutes} from "./src/routes/order-routes.js";
+import { pbfoodnetCategoryRoutes } from  "./src/routes/PoolAndBeachResturant/pbfoodnetCategoryRoutes.js";
+import { beverageRoutes } from "./src/routes/Beverage/beverageRoutes.js";
+import {pbfoodnetRoutes} from "./src/routes/PoolAndBeachResturant/pbfoodnetRoutes.js";
 
 // Load env variables
 dotenv.config();
@@ -25,7 +29,7 @@ const server = http.createServer(app);
 
 // Allowed origins
 const allowedSocketOrigins = process.env.SOCKET_IO_ORIGINS.split(',');
-const allowedApiOrigins = process.env.API_ORIGINS.split(',');
+const allowedApiOrigins = process.env.API_ORIGINS
 
 // --- Middleware ---
 app.use(cors({
@@ -60,7 +64,11 @@ app.use("/api/v1/room", roomRoutes);
 app.use("/api/v1/guest", guestRoutes);
 
 // Order Routes
-app.use("/api/v1/order", orderRoutes);
+// app.use("/api/v1/order", orderRoutes);
+
+app.use("/api/v1/pbfoodcategories", pbfoodnetCategoryRoutes);
+app.use("/api/v1/beverages", beverageRoutes);
+app.use("/api/v1/pbfoodnets", pbfoodnetRoutes);
 
 // --- Socket.io ---
 const io = new Server(server, {
