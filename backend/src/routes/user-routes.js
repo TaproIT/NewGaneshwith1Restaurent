@@ -1,5 +1,5 @@
 import express from "express";
-import { getAllUsers } from "../controllers/user-controller.js";
+import { getAllUsers, getUserRole } from "../controllers/user-controller.js";
 import { authenticateToken } from "../middleware/verify-token.js";
 import { authorizeRoles } from "../middleware/role-authorize.js";
 import { userRoles } from "../utils/enums/user-role.js";
@@ -14,6 +14,13 @@ router.get(
   authenticateToken,
   authorizeRoles([userRoles.SUPER_ADMIN.value]),
   getAllUsers
+);
+
+router.get(
+  "/user-role",
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  getUserRole
 );
 
 export { router as userRoutes }

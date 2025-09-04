@@ -17,8 +17,9 @@ const userSchema = new mongoose.Schema(
       enum: [
         userRoles.SUPER_ADMIN.value,
         userRoles.ADMIN.value,
-        userRoles.STAFF.value,
-        userRoles.USER.value,
+        userRoles.RECEPTION.value,
+        userRoles.BEACH_RESTAURANT_STAFF.value,
+        userRoles.POOL_RESTAURANT_STAFF.value,
       ],
     },
     refreshToken: {

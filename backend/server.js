@@ -7,7 +7,16 @@ import { connectDB } from "./src/config/db-config.js";
 import { authRoutes } from "./src/routes/auth-routes.js";
 import { corsOptions } from "./src/config/cors-config.js";
 import { userRoutes } from "./src/routes/user-routes.js";
-
+import { guestRoutes } from "./src/routes/guest-routes.js";
+import { bookingRoutes } from "./src/routes/Reception/booking-routes.js";
+import { roomRoutes } from "./src/routes/room-routes.js";
+import * as http from "node:http";
+import { Server } from "socket.io";
+import { setupRoomSocket} from "./src/utils/realtime/room-socket.js";
+import {orderRoutes} from "./src/routes/order-routes.js";
+import { pbfoodnetCategoryRoutes } from  "./src/routes/PoolAndBeachResturant/pbfoodnetCategoryRoutes.js";
+import { beverageRoutes } from "./src/routes/Beverage/beverageRoutes.js";
+import {pbfoodnetRoutes} from "./src/routes/PoolAndBeachResturant/pbfoodnetRoutes.js";
 
 // Load env variables
 dotenv.config();
@@ -16,23 +25,75 @@ dotenv.config();
 connectDB();
 
 const app = express();
+const server = http.createServer(app);
 
-// Middleware
-app.use(cors(corsOptions));
+// Allowed origins
+const allowedSocketOrigins = process.env.SOCKET_IO_ORIGINS.split(',');
+const allowedApiOrigins = process.env.API_ORIGINS
+
+// --- Middleware ---
+app.use(cors({
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin) return callback(null, true);
+        if (allowedApiOrigins.includes(origin)) {
+            return callback(null, true);
+        } else {
+            return callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+}));
 app.use(bodyParser.json());
 app.use(express.json());
 app.use(cookieParser());
 
-// Auth Routes
+//       --- Main Routes ---
 app.use("/api/v1/auth", authRoutes);
 
 // User Routes
 app.use("/api/v1/user", userRoutes);
+// --- Reception/booking ---
+app.use("/api/v1/booking", bookingRoutes);
+// -- room handling ---
+app.use("/api/v1/room", roomRoutes);
 
-const PORT = process.env.PORT || 4000;
+// Guest Routes
+app.use("/api/v1/guest", guestRoutes);
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
+// Order Routes
+// app.use("/api/v1/order", orderRoutes);
+
+app.use("/api/v1/pbfoodcategories", pbfoodnetCategoryRoutes);
+app.use("/api/v1/beverages", beverageRoutes);
+app.use("/api/v1/pbfoodnets", pbfoodnetRoutes);
+
+// --- Socket.io ---
+const io = new Server(server, {
+    cors: {
+        origin: allowedSocketOrigins,
+        methods: ["GET", "POST"],
+        credentials: true
+    }
 });
 
+// each Sockets
+setupRoomSocket(io);
 
+app.set("io", io);
+
+io.on("connection", (socket) => {
+    console.log("A user connected:", socket.id);
+
+    socket.on("disconnect", () => {
+        console.log("User disconnected:", socket.id);
+    });
+});
+
+// --- Start server ---
+const PORT = process.env.PORT || 4000;
+server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
