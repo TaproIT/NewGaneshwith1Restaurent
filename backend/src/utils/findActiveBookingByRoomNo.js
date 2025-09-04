@@ -1,4 +1,4 @@
-import Booking from "../models/Reception/Booking.js";
+import Booking from "../models/Reception/booking.js";
 
 
 export const findActiveBookingByRoomNo = async (roomNo) => {

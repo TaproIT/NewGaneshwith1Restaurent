@@ -1,10 +1,9 @@
 import PBFoodNet from "../../models/PoolAndBeachResturant/PBFoodNet.js";
 import PBFoodNetCategory from "../../models/PoolAndBeachResturant/PBFoodNetCategory.js";
-import Beverage from "../../models/Beverage/Beverage.js";
+import Beverage from "../../models/Beverage/beverage.js";
 
 export const createPBFoodNet = async (req, res) => {
     try {
-        // 1. check if category exists and visible
         const category = await PBFoodNetCategory.findOne({
             _id: req.body.category,
             isVisible: true
@@ -14,31 +13,36 @@ export const createPBFoodNet = async (req, res) => {
             return res.status(400).json({ error: "Category not found or not visible." });
         }
 
-        // 2. check beverages if provided
-        if (req.body.beverages && req.body.beverages.length > 0) {
+        if (req.body.liquor && req.body.liquor.length > 0) {
+            const liquorIds = req.body.liquor;
+
+            const uniqueIds = new Set(liquorIds.map(id => id.toString()));
+            if (uniqueIds.size !== liquorIds.length) {
+                return res.status(400).json({ error: "Duplicate liquor IDs are not allowed." });
+            }
+
             const beverages = await Beverage.find({
-                _id: { $in: req.body.beverages },
-                isVisible: true
+                _id: { $in: liquorIds },
+                isVisible: true,
+                category: "Hard Liquor"
             });
 
-            if (beverages.length !== req.body.beverages.length) {
-                return res.status(400).json({ error: "One or more beverages not found or not visible." });
+            if (beverages.length !== liquorIds.length) {
+                return res.status(400).json({ error: "One or more liquors not found, not visible, or not Hard Liquor." });
             }
         }
 
-        // 3. create PBFoodNet item
         const item = await PBFoodNet.create(req.body);
-        res.status(201).json(item);
+        return res.status(201).json(item);
+
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        return res.status(400).json({ error: err.message });
     }
 };
-
 export const updatePBFoodNet = async (req, res) => {
     try {
         const updateData = {};
 
-        // Only add keys that exist in the body (skip null/undefined/"")
         if (req.body.itemName && req.body.itemName.trim() !== "") {
             updateData.itemName = req.body.itemName;
         }
@@ -52,32 +56,56 @@ export const updatePBFoodNet = async (req, res) => {
             updateData.isVisible = req.body.isVisible;
         }
         if (req.body.category !== null && req.body.category !== undefined) {
+            const category = await PBFoodNetCategory.findOne({
+                _id: req.body.category,
+                isVisible: true
+            });
+            if (!category) {
+                return res.status(400).json({ error: "Category not found or not visible." });
+            }
             updateData.category = req.body.category;
         }
         if (req.body.isEnableBeverage !== null && req.body.isEnableBeverage !== undefined) {
             updateData.isEnableBeverage = req.body.isEnableBeverage;
         }
-        if (req.body.beverages !== null && req.body.beverages !== undefined) {
-            updateData.beverages = req.body.beverages;
+
+        if (req.body.liquor !== null && req.body.liquor !== undefined) {
+            const liquorIds = req.body.liquor.map(id => id.toString());
+
+            const uniqueIds = new Set(liquorIds);
+            if (uniqueIds.size !== liquorIds.length) {
+                return res.status(400).json({ error: "Duplicate liquor IDs are not allowed." });
+            }
+
+            const beverages = await Beverage.find({
+                _id: { $in: liquorIds },
+                isVisible: true,
+                category: "Hard Liquor"
+            });
+
+            if (beverages.length !== liquorIds.length) {
+                return res.status(400).json({ error: "One or more liquors not found, not visible, or not Hard Liquor." });
+            }
+
+            updateData.liquor = liquorIds;
         }
 
-        // ✅ Partial update without triggering required field validation
         const updatedItem = await PBFoodNet.findByIdAndUpdate(
             req.params.id,
             { $set: updateData },
-            { new: true, runValidators: false } // skip full schema validation
-        ).populate("category beverages");
+            { new: true, runValidators: false }
+        ).populate("category liquor");
 
         if (!updatedItem) {
             return res.status(404).json({ error: "Item not found" });
         }
 
-        res.json(updatedItem);
+        return res.json(updatedItem);
+
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        return res.status(400).json({ error: err.message });
     }
 };
-
 
 export const deletePBFoodNet = async (req, res) => {
     try {
@@ -118,8 +146,6 @@ export const getAvailablePBFoodNets = async (req, res) => {
     }catch(err){
         res.statusCode(400).json({ error: err.message });
     }
-
-
 };
 
 export const getAvailablePBFoodNet = async (req, res) => {

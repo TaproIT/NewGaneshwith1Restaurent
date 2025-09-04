@@ -1,13 +1,8 @@
 import axios from "axios";
 
-// Use URLs from .env file
-const LOCAL_API_URL = import.meta.env.VITE_API_URL_LOCAL;
-const DEV_API_URL = import.meta.env.VITE_API_URL_DEV;
-
+// Create Axios instance
 export const api = axios.create({
-  baseURL:
-    import.meta.env.VITE_API_URL ||
-    (window.location.hostname === "localhost" ? LOCAL_API_URL : DEV_API_URL),
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1",
   withCredentials: true, // send cookies
 });
 
