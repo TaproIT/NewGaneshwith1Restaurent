@@ -3,6 +3,7 @@ import React from "react";
 
 interface GuestDetailsCardProps {
   guestDetails: Booking | null;
+  onDaysCalculated?: (days: any) => void; // added this line #TODO
 }
 
 const GuestDetailsCard: React.FC<GuestDetailsCardProps> = ({
