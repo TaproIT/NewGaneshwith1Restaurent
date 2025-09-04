@@ -1,6 +1,6 @@
 import PBFoodNet from "../../models/PoolAndBeachResturant/PBFoodNet.js";
 import PBFoodNetCategory from "../../models/PoolAndBeachResturant/PBFoodNetCategory.js";
-import Beverage from "../../models/Beverage/Beverage.js";
+import Beverage from "../../models/Beverage/beverage.js";
 
 export const createPBFoodNet = async (req, res) => {
     try {
