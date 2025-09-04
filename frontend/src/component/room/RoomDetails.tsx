@@ -17,6 +17,7 @@ import {
 import SwitchRoomCollection from "./room_detaila/SwitchRoomCollection";
 import { addOldRoom } from "@/features/switch-rooms/removedRooms";
 import { nextStep } from "@/features/onboarding/onboardingSlice";
+import { api } from "@/api/axios";
 
 interface RoomDetailsProps {
   viewedRoom: Room | null;
@@ -32,6 +33,7 @@ interface RoomDetailsProps {
   invoice: boolean;
   switchRoom: boolean;
   totalDays: number;
+  whatsAppId: string;
 }
 
 const RoomDetails: React.FC<RoomDetailsProps> = ({
@@ -47,7 +49,8 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
   checkout,
   invoice,
   switchRoom,
-  totalDays
+  totalDays,
+  whatsAppId,
 }) => {
   const invoiceData = useSelector(
     (state: RootState) => state.invoice.invoiceFormData
@@ -74,7 +77,6 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
 
   // checkout calculations
   useEffect(() => {
-
     if (!checkout || !viewedRoom) {
       setTotalPrice(0);
       setDiscountAmount(0);
@@ -107,7 +109,7 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
     setTotalPrice,
     totalPrice,
     setDaysStayed,
-    daysStayed
+    daysStayed,
   ]);
 
   const invoiceSubTotal = selectedRooms.reduce(
@@ -136,7 +138,7 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
     dispatch(nextStep());
     navigate("/onboarding", {
       state: { daysStayed },
-  })
+    });
   };
 
   const handleBookRooms = () => {
@@ -149,7 +151,27 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
     });
   };
 
-  
+  const handleWhatsApp = async () => {
+    // Assuming each room has a `no` field (like in your Room schema)
+    const roomNumbers = selectedRooms.map((room) => room.no).join(", ");
+
+    const message = `This is your room number(s): ${roomNumbers}`;
+
+    try {
+      const res = await api.post(`/booking/${whatsAppId}/send-whatsapp`, {
+        message,
+      });
+
+      if (res.data?.whatsappLink) {
+        // Redirect to WhatsApp link
+        window.location.href = res.data.whatsappLink;
+      }
+    } catch (error) {
+      console.error("Error sending WhatsApp:", error);
+    }
+
+    console.log(whatsAppId);
+  };
 
   return (
     <div className="col-span-1 rounded-2xl bg-mainWhite h-[calc(100vh-140px)] overflow-hidden relative">
@@ -163,8 +185,32 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
           <>
             {!checkout && <HeaderBadge viewedRoom={viewedRoom} />}
 
-            {bookingDetails && (
-              <GuestDetailsCard guestDetails={bookingDetails.roomData} onDaysCalculated={(days) => setDaysStayed(days)}/>
+            {bookingDetails?.loading ? (
+              <div className="flex flex-col mt-4 gap-2 animate-pulse">
+                <div className="flex justify-between">
+                  <div className="h-4 w-24 bg-gray-300 rounded"></div>
+                  <div className="h-4 w-32 bg-gray-300 rounded"></div>
+                </div>
+                <div className="flex justify-between">
+                  <div className="h-4 w-24 bg-gray-300 rounded"></div>
+                  <div className="h-4 w-32 bg-gray-300 rounded"></div>
+                </div>
+                <div className="flex justify-between">
+                  <div className="h-4 w-24 bg-gray-300 rounded"></div>
+                  <div className="h-4 w-32 bg-gray-300 rounded"></div>
+                </div>
+                <div className="flex justify-between">
+                  <div className="h-4 w-24 bg-gray-300 rounded"></div>
+                  <div className="h-4 w-32 bg-gray-300 rounded"></div>
+                </div>
+              </div>
+            ) : (
+              bookingDetails && (
+                <GuestDetailsCard
+                  guestDetails={bookingDetails.roomData}
+                  onDaysCalculated={(days) => setDaysStayed(days)}
+                />
+              )
             )}
 
             {!checkout && <RoomsDetailsCard viewedRoom={viewedRoom} />}
@@ -218,8 +264,9 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
                   <span className="col-span-1">Total</span>
                   <span className="col-span-1">:</span>
                   <span className="col-span-1">
-                    { (guestDetails.lengthOfStay || invoiceData.lengthOfStay || totalDays ) *
-                      room.perDayPrice }
+                    {(guestDetails.lengthOfStay ||
+                      invoiceData.lengthOfStay ||
+                      totalDays) * room.perDayPrice}
                   </span>
                 </div>
 
@@ -324,7 +371,9 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
                   <Button variant="outline" className="w-25">
                     Email
                   </Button>
-                  <Button className="w-25">WhatsApp</Button>
+                  <Button className="w-25" onClick={() => handleWhatsApp()}>
+                    WhatsApp
+                  </Button>
                 </div>
               </div>
             </div>

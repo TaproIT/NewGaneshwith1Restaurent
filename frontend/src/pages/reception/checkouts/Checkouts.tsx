@@ -6,9 +6,21 @@ import type { Room } from "@/types/roomTypes";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 
+const RoomGridSkeleton = () => (
+  <div className="grid grid-cols-4 gap-5">
+    {Array.from({ length: 8 }).map((_, i) => (
+      <div
+        key={i}
+        className="h-32 bg-gray-200 rounded-lg animate-pulse"
+      />
+    ))}
+  </div>
+);
+
 const Checkouts = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
     const [viewedRoom, setViewedRoom] = useState<Room | null>(null);
+    const [loadingRooms, setLoadingRooms] = useState(true);
   
     const handleRoomClick = (room: Room) => {
       setViewedRoom(room); // only set viewed room, no selection or booking
@@ -22,7 +34,9 @@ const Checkouts = () => {
               setRooms(res.data)
             } catch (err) {
               console.error("Failed to fetch rooms:", err);
-            }
+            } finally {
+              setLoadingRooms(false);
+      }
           }
       
           fetchRooms();
@@ -36,17 +50,21 @@ const Checkouts = () => {
   return (
     <div className="grid grid-cols-4 gap-5">
       {/* Left side: room grid */}
-      <div className="col-span-3">
-        <RoomGrid
-          rooms={rooms}
-          selectedRooms={[]} // no selected rooms needed
-          onRoomClick={handleRoomClick} // only for viewing
-          readOnly={true}
-        />
+      <div className="col-span-3 h-screen overflow-x-auto">
+        {loadingRooms ? (
+          <RoomGridSkeleton />
+        ) : (
+          <RoomGrid
+            rooms={rooms}
+            selectedRooms={[]} // no selected rooms needed
+            onRoomClick={handleRoomClick} // only for viewing
+            readOnly={true}
+          />
+        )}
       </div>
 
       {/* Right side: room details */}
-      <div className="col-span-1">
+      <div className="col-span-1 overflow-hidden">
         <RoomDetails
           viewedRoom={viewedRoom}
           selectedRooms={[]} // empty, no booking
@@ -61,6 +79,7 @@ const Checkouts = () => {
           invoice={false}
           switchRoom={false}
           totalDays={0}
+          whatsAppId=""
         />
       </div>
     </div>

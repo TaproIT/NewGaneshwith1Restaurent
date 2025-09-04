@@ -11,17 +11,35 @@ import { addRoom } from "@/features/onboarding/onboardingSlice";
 import { api } from "@/api/axios";
 import { useLocation } from "react-router-dom";
 
-const SOCKET_URL = "http://localhost:4000";
+// --- Skeletons ---
+const RoomGridSkeleton = () => (
+  <div className="grid grid-cols-4 gap-5">
+    {Array.from({ length: 8 }).map((_, i) => (
+      <div
+        key={i}
+        className="h-32 bg-gray-200 rounded-lg animate-pulse"
+      />
+    ))}
+  </div>
+);
+
+const SOCKET_URL = import.meta.env.SOCKET_URL;
 
 const Step02 = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [loadingRooms, setLoadingRooms] = useState(true);
   const [selectedRooms, setSelectedRooms] = useState<Room[]>([]);
   const [viewedRoom, setViewedRoom] = useState<Room | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bookingId, setBookingId] = useState<string>("");
+  const [whatsAppBookingId, setWhatsAppBookingId] = useState<string>("");
 
-  const guestDetails = useSelector((state: RootState) => state.onboarding.step01Data);
-  const removedRooms = useSelector((state: RootState) => state.removedRooms.oldRooms);
+  const guestDetails = useSelector(
+    (state: RootState) => state.onboarding.step01Data
+  );
+  const removedRooms = useSelector(
+    (state: RootState) => state.removedRooms.oldRooms
+  );
   const dispatch = useDispatch();
   const location = useLocation();
   const daysStayed = location.state?.daysStayed;
@@ -36,6 +54,8 @@ const Step02 = () => {
         setRooms(res.data);
       } catch (err) {
         console.error("Failed to fetch rooms:", err);
+      } finally {
+        setLoadingRooms(false);
       }
     };
     fetchRooms();
@@ -63,12 +83,15 @@ const Step02 = () => {
   // Fetch bookingId when removedRooms changes
   useEffect(() => {
     if (removedRooms.length === 0) return;
+    if (!bookingId) return; // already have bookingId
 
     const firstRoomNo = removedRooms[0].roomNo;
 
     const fetchBooking = async () => {
       try {
-        const res = await api.get(`/booking/active-rooms-with-prices/${firstRoomNo}`);
+        const res = await api.get(
+          `/booking/active-rooms-with-prices/${firstRoomNo}`
+        );
         setBookingId(res.data.bookingId);
       } catch (err) {
         console.error("Failed to fetch booking:", err);
@@ -112,7 +135,9 @@ const Step02 = () => {
       // Update local room state
       setRooms((prev) =>
         prev.map((r) =>
-          selectedRooms.some((s) => s.no === r.no) ? { ...r, isBooked: true } : r
+          selectedRooms.some((s) => s.no === r.no)
+            ? { ...r, isBooked: true }
+            : r
         )
       );
 
@@ -129,7 +154,8 @@ const Step02 = () => {
       // Decide whether to create new booking or switch rooms
       if (!bookingId) {
         // New booking
-        await api.post("/booking", bookingData);
+        const booking = await api.post("/booking", bookingData);
+        setWhatsAppBookingId(booking.data.bookingId);
       } else {
         // Switch rooms
         const payload = {
@@ -154,22 +180,27 @@ const Step02 = () => {
   };
 
   const grandTotal = selectedRooms.reduce(
-    (sum, room) => sum + guestDetails.lengthOfStay || daysStayed * room.perDayPrice,
+    (sum, room) =>
+      sum + (guestDetails.lengthOfStay || daysStayed) * room.perDayPrice,
     0
   );
 
   return (
     <div className="grid grid-cols-4 gap-5">
-      <div className="col-span-3">
-        <RoomGrid
-          rooms={rooms}
-          selectedRooms={selectedRooms}
-          onRoomClick={handleRoomClick}
-          readOnly={false}
-        />
+      <div className="col-span-3 h-screen overflow-x-hidden">
+        {loadingRooms ? (
+          <RoomGridSkeleton />
+        ) : (
+          <RoomGrid
+            rooms={rooms}
+            selectedRooms={selectedRooms}
+            onRoomClick={handleRoomClick}
+            readOnly={false}
+          />
+        )}
       </div>
 
-      <div className="col-span-1">
+      <div className="col-span-1 overflow-hidden">
         <RoomDetails
           viewedRoom={viewedRoom}
           selectedRooms={selectedRooms}
@@ -184,6 +215,7 @@ const Step02 = () => {
           invoice={false}
           switchRoom={false}
           totalDays={daysStayed}
+          whatsAppId={whatsAppBookingId}
         />
       </div>
     </div>
