@@ -51,7 +51,7 @@ const RoomGrid: React.FC<RoomGridProps> = ({
   };
 
   return (
-    <div className="p-6 rounded-2xl bg-mainWhite h-[calc(100vh-100px)] overflow-x-auto">
+    <div className="p-6 rounded-2xl bg-mainWhite overflow-x-auto">
       {/* Legend */}
       <div className="flex justify-end gap-3 mb-3 text-sm">
         <div className="flex gap-1 items-center">
