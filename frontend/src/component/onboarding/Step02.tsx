@@ -10,18 +10,7 @@ import type { Room } from "@/types/roomTypes";
 import { addRoom } from "@/features/onboarding/onboardingSlice";
 import { api } from "@/api/axios";
 import { useLocation } from "react-router-dom";
-
-// --- Skeletons ---
-const RoomGridSkeleton = () => (
-  <div className="grid grid-cols-4 gap-5">
-    {Array.from({ length: 8 }).map((_, i) => (
-      <div
-        key={i}
-        className="h-32 bg-gray-200 rounded-lg animate-pulse"
-      />
-    ))}
-  </div>
-);
+import RoomGridSkeleton from "../skeleton/RoomGridSkeleton";
 
 const SOCKET_URL = import.meta.env.SOCKET_URL;
 

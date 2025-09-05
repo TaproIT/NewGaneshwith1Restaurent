@@ -3,23 +3,13 @@ import type { RootState } from "@/app/store";
 import InvoiceForm from "@/component/invoice/InvoiceForm";
 import RoomDetails from "@/component/room/RoomDetails";
 import RoomGrid from "@/component/room/RoomGrid";
+import RoomGridSkeleton from "@/component/skeleton/RoomGridSkeleton";
 import type { Room } from "@/types/roomTypes";
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { io, type Socket } from "socket.io-client";
 
-const SOCKET_URL = "http://localhost:4000";
-
-const RoomGridSkeleton = () => (
-  <div className="grid grid-cols-4 gap-5">
-    {Array.from({ length: 8 }).map((_, i) => (
-      <div
-        key={i}
-        className="h-32 bg-gray-200 rounded-lg animate-pulse"
-      />
-    ))}
-  </div>
-);
+const SOCKET_URL = import.meta.env.SOCKET_URL;
 
 const Invoice = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -88,7 +78,7 @@ const Invoice = () => {
 
   return (
     <div className="grid grid-cols-4 gap-5">
-      <div className=" col-span-3 h-screen overflow-auto">
+      <div className=" col-span-3 h-[calc(100vh-140px)] overflow-auto">
         <InvoiceForm />
         {loadingRooms ? <RoomGridSkeleton /> : (
           <RoomGrid
