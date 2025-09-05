@@ -1,5 +1,5 @@
 // import mongoose from "mongoose";
-// import Booking from "../../models/Reception/Booking.js";
+// import Booking from "../../models/Reception/booking.js";
 // import Room from "../../models/Room.js";
 // import {generateAndUploadQr} from "../../utils/qr.js";
 // import {sendWhatsAppMessage} from "../../utils/sendWhatsAppMessage.js";
