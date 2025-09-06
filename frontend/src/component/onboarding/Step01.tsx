@@ -189,7 +189,7 @@ export default function Step01() {
                   <FormItem className="flex items-center">
                     <FormLabel className="w-50">WhatsApp</FormLabel>
                     <FormControl>
-                      <Input placeholder="07X XXX XXXX" {...field} maxLength={10} />
+                      <Input placeholder="+947X XXX XXXX" {...field} maxLength={12} minLength={12}/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

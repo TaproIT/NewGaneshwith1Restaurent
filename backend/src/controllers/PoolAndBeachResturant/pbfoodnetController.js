@@ -1,6 +1,6 @@
 import PBFoodNet from "../../models/PoolAndBeachResturant/PBFoodNet.js";
 import PBFoodNetCategory from "../../models/PoolAndBeachResturant/PBFoodNetCategory.js";
-import Beverage from "../../models/Beverage/Beverage.js";
+import Beverage from "../../models/Beverage/./beverage.js";
 
 export const createPBFoodNet = async (req, res) => {
     try {
@@ -14,15 +14,35 @@ export const createPBFoodNet = async (req, res) => {
             return res.status(400).json({ error: "Category not found or not visible." });
         }
 
-        // 2. check beverages if provided
-        if (req.body.beverages && req.body.beverages.length > 0) {
-            const beverages = await Beverage.find({
-                _id: { $in: req.body.beverages },
-                isVisible: true
-            });
+        const food = PBFoodNet.findOne({
+            itemName: req.body.itemName,
+            category: req.body.category,
+        })
 
-            if (beverages.length !== req.body.beverages.length) {
-                return res.status(400).json({ error: "One or more beverages not found or not visible." });
+        if (food) {
+            return res.status(400).json({ error: "Food already exists in this category" });
+        }
+
+
+        if (req.body.liquor && req.body.liquor.length > 0) {
+            const liquorIds = req.body.liquor;
+
+            const uniqueIds = new Set(liquorIds.map(id => id.toString()));
+            if (uniqueIds.size !== liquorIds.length) {
+                return res.status(400).json({error: "Duplicate liquor IDs are not allowed."});
+            }
+
+            // 2. check beverages if provided
+            if (req.body.liquor && req.body.liquor.length > 0) {
+                const beverages = await Beverage.find({
+                    _id: {$in: req.body.liquor},
+                    isVisible: true,
+                    category: "hard liquor"
+                });
+
+                if (beverages.length !== liquorIds.length) {
+                    return res.status(400).json({error: "One or more liquors not found, not visible, or not hard liquor."});
+                }
             }
         }
 
@@ -30,7 +50,7 @@ export const createPBFoodNet = async (req, res) => {
         const item = await PBFoodNet.create(req.body);
         res.status(201).json(item);
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        return res.status(400).json({ error: err.message });
     }
 };
 
@@ -52,29 +72,54 @@ export const updatePBFoodNet = async (req, res) => {
             updateData.isVisible = req.body.isVisible;
         }
         if (req.body.category !== null && req.body.category !== undefined) {
+           const category = await PBFoodNetCategory.findOne({
+                _id: req.body.category,
+                isVisible: true
+            });
+            if (!category) {
+                return res.status(400).json({ error: "Category not found or not visible." });
+            }
+
             updateData.category = req.body.category;
         }
         if (req.body.isEnableBeverage !== null && req.body.isEnableBeverage !== undefined) {
             updateData.isEnableBeverage = req.body.isEnableBeverage;
         }
-        if (req.body.beverages !== null && req.body.beverages !== undefined) {
-            updateData.beverages = req.body.beverages;
+if (req.body.liquor !== null && req.body.liquor !== undefined) {
+            const liquorIds = req.body.liquor.map(id => id.toString());
+
+            const uniqueIds = new Set(liquorIds);
+            if (uniqueIds.size !== liquorIds.length) {
+                return res.status(400).json({ error: "Duplicate liquor IDs are not allowed." });
+            }
+
+            const beverages = await Beverage.find({
+                _id: { $in: liquorIds },
+                isVisible: true,
+                category: "hard liquor"
+            });
+
+            if (beverages.length !== liquorIds.length) {
+                return res.status(400).json({ error: "One or more liquors not found, not visible, or not Hard Liquor." });
+            }
+
+            updateData.liquor = liquorIds;
         }
 
-        // ✅ Partial update without triggering required field validation
+        //  Partial update without triggering required field validation
         const updatedItem = await PBFoodNet.findByIdAndUpdate(
             req.params.id,
             { $set: updateData },
-            { new: true, runValidators: false } // skip full schema validation
-        ).populate("category beverages");
+            { new: true, runValidators: false } 
+        ).populate("category liquor");
 
         if (!updatedItem) {
             return res.status(404).json({ error: "Item not found" });
         }
 
-        res.json(updatedItem);
+         return res.json(updatedItem);
     } catch (err) {
-        res.status(400).json({ error: err.message });
+         return res.status(400).json({ error: err.message });
     }
 };
 
@@ -86,37 +131,37 @@ export const deletePBFoodNet = async (req, res) => {
             { isVisible: false },
             { new: true }
         );
-        res.json({ message: "PBFoodNet item soft deleted", item });
+        return res.json({ message: "PBFoodNet item soft deleted", item });
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        return res.status(400).json({ error: err.message });
     }
 };
 export const getPBFoodNets = async (req, res) => {
     const items = await PBFoodNet.find()
         .populate("category")
-        .populate("beverages");
-    res.json(items);
+        .populate("liquor");
+    return res.json(items);
 };
 
 export const getPBFoodNet = async (req, res) => {
     const item = await PBFoodNet.findById(req.params.id)
         .populate("category")   
-        .populate("beverages");
-    res.json(item);
+        .populate("liquor");
+    return res.json(item);
 };
 
 export const getAvailablePBFoodNets = async (req, res) => {
     try{
         const items = await PBFoodNet.find({ isVisible: true })
             .populate("category")
-            .populate("beverages");
+            .populate("liquor");
 
         if (!items || items.length === 0) {
             return res.status(404).json({ error: "No available items found" });
         }
-        res.json(items);
+        return res.json(items);
     }catch(err){
-        res.statusCode(400).json({ error: err.message });
+        return res.statusCode(400).json({ error: err.message });
     }
 
 
@@ -126,15 +171,15 @@ export const getAvailablePBFoodNet = async (req, res) => {
     try {
         const items = await PBFoodNet.findOne({_id: req.params.id, isVisible: true })
             .populate("category")
-            .populate("beverages");
+            .populate("liquor");
 
         if (!items || items.length === 0) {
             return res.status(404).json({ error: "No available items found" });
         }
 
-        res.json(items);
+        return res.json(items);
     } catch (err) {
-        res.status(500).json({ error: "Server error", details: err.message });
+        return res.status(500).json({ error: "Server error", details: err.message });
     }
 };
 

@@ -3,17 +3,19 @@ import type { RootState } from "@/app/store";
 import InvoiceForm from "@/component/invoice/InvoiceForm";
 import RoomDetails from "@/component/room/RoomDetails";
 import RoomGrid from "@/component/room/RoomGrid";
+import RoomGridSkeleton from "@/component/skeleton/RoomGridSkeleton";
 import type { Room } from "@/types/roomTypes";
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { io, type Socket } from "socket.io-client";
 
-const SOCKET_URL = "http://localhost:4000";
+const SOCKET_URL = import.meta.env.SOCKET_URL;
 
 const Invoice = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [selectedRooms, setSelectedRooms] = useState<Room[]>([]);
   const [viewedRoom, setViewedRoom] = useState<Room | null>(null);
+  const [loadingRooms, setLoadingRooms] = useState(true);
 
   const guestDetails = useSelector((state: RootState) => state.onboarding.step01Data);
 
@@ -27,6 +29,8 @@ const Invoice = () => {
         setRooms(res.data);
       } catch (err) {
         console.error("Failed to fetch rooms:", err);
+      } finally {
+        setLoadingRooms(false);
       }
     };
     fetchRooms();
@@ -74,9 +78,9 @@ const Invoice = () => {
 
   return (
     <div className="grid grid-cols-4 gap-5">
-      <div className=" col-span-3">
+      <div className=" col-span-3 h-[calc(100vh-140px)] overflow-auto">
         <InvoiceForm />
-        { (
+        {loadingRooms ? <RoomGridSkeleton /> : (
           <RoomGrid
             rooms={rooms}
             selectedRooms={selectedRooms}
@@ -86,7 +90,7 @@ const Invoice = () => {
         )}
       </div>
 
-      <div className="col-span-1">
+      <div className="col-span-1 h-screen overflow-hidden">
         <RoomDetails
           viewedRoom={viewedRoom}
           selectedRooms={selectedRooms}
@@ -100,6 +104,8 @@ const Invoice = () => {
           checkout={false}
           invoice={true}
           switchRoom={false}
+          totalDays={0}
+          whatsAppId=""
         />
       </div>
     </div>

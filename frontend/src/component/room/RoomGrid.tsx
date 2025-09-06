@@ -51,7 +51,7 @@ const RoomGrid: React.FC<RoomGridProps> = ({
   };
 
   return (
-    <div className="p-6 rounded-2xl bg-mainWhite h-[calc(60vh-120px)] overflow-auto">
+    <div className="p-6 rounded-2xl bg-mainWhite h-[calc(100vh-140px)] overflow-y-auto">
       {/* Legend */}
       <div className="flex justify-end gap-3 mb-3 text-sm">
         <div className="flex gap-1 items-center">
@@ -81,7 +81,7 @@ const RoomGrid: React.FC<RoomGridProps> = ({
       </div>
 
       {/* Rooms */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-4 gap-4 h-screen overflow-auto">
         {rooms.map((room) => {
           const status = getStatus(room);
 

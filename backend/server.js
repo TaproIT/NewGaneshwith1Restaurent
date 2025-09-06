@@ -32,9 +32,17 @@ const allowedApiOrigins = process.env.API_ORIGINS
 
 // --- Middleware ---
 app.use(cors({
-    origin: [allowedApiOrigins, process.env.BASE_LOCAL_URL, process.env.BASE_DEV_URL, process.env.BASE_DEV_ADMIN_URL],
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin) return callback(null, true);
+        if (allowedApiOrigins.includes(origin)) {
+            return callback(null, true);
+        } else {
+            return callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
 app.use(bodyParser.json());

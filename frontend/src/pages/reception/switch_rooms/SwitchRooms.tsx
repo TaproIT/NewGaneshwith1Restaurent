@@ -2,6 +2,7 @@ import { api } from "@/api/axios";
 import type { RootState } from "@/app/store";
 import RoomDetails from "@/component/room/RoomDetails";
 import RoomGrid from "@/component/room/RoomGrid";
+import RoomGridSkeleton from "@/component/skeleton/RoomGridSkeleton";
 import type { Room } from "@/types/roomTypes";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
@@ -9,6 +10,7 @@ import { useSelector } from "react-redux";
 const SwitchRooms = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [viewedRoom, setViewedRoom] = useState<Room | null>(null);
+  const [loadingRooms, setLoadingRooms] = useState(true);
 
   const handleRoomClick = (room: Room) => {
   setViewedRoom({ ...room }); // create a new object reference
@@ -22,7 +24,9 @@ const SwitchRooms = () => {
             setRooms(res.data)
           } catch (err) {
             console.error("Failed to fetch rooms:", err);
-          }
+          } finally {
+        setLoadingRooms(false);
+      }
         }
     
         fetchRooms();
@@ -39,17 +43,21 @@ const SwitchRooms = () => {
   return (
     <div className="grid grid-cols-4 gap-5">
       {/* Left side: room grid */}
-      <div className="col-span-3">
+      <div className="col-span-3 h-screen overflow-x-auto">
+        {loadingRooms ? (
+          <RoomGridSkeleton />
+        ) : (
         <RoomGrid
           rooms={rooms}
           selectedRooms={[]} // no selected rooms needed
           onRoomClick={handleRoomClick} // only for viewing
           readOnly={true}
         />
+        )}
       </div>
 
       {/* Right side: room details */}
-      <div className="col-span-1">
+      <div className="col-span-1 overflow-hidden">
         <RoomDetails
           viewedRoom={viewedRoom}
           selectedRooms={[]} // empty, no booking
@@ -63,6 +71,8 @@ const SwitchRooms = () => {
           checkout={true}
           invoice={false}
           switchRoom={true}
+          totalDays={0}
+          whatsAppId=""
         />
       </div>
     </div>

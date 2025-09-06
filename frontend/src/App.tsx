@@ -32,7 +32,13 @@ function App() {
         <Route path="/" element={<Login />} />
 
         {/* All other pages wrapped inside Layout */}
-        <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+        <Route
+          element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }
+        >
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/room-availability" element={<RoomAvailability />} />
           <Route path="/switch-rooms" element={<SwitchRooms />} />
