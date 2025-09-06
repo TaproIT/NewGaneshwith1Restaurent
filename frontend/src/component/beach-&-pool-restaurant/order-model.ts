@@ -13,12 +13,18 @@ export interface OrderBeverageItem {
 }
 
 export interface OrderTokenType {
+   _id: string;
   tokenId: string;
   tokenNumber: number;
   isPrinted: boolean;
   isHold: boolean;
-  foodItems: OrderFoodItem [],
-  beverageItems: OrderBeverageItem [];
+  foodOrders: OrderFoodItem [],
+  beverageOrders: OrderBeverageItem [];
+  tokenSubTotal: number;
+  tokenTax: number;
+  tokenDiscount: number;
+  tokenServiceCharge: number;
+  tokenTotalBill: number;
 }
 
 export interface Table{
@@ -52,7 +58,7 @@ export interface AddTableToOrderStatus {
 }
 
 export interface Order{
-  orderId: string;
+  _id: string;
   orderNumber: number;
   orderStatus: number;
   customerType: string;       
@@ -64,7 +70,9 @@ export interface Order{
   tables: Table[];
   isOrderTokenOpen: boolean;
   orderTokens: OrderTokenType [];
-  newOrderToken: OrderTokenType; 
+  newOrderToken: OrderTokenType;
+  holdOrderToken: OrderTokenType | null;
+  isAddNewOrderToken: boolean; 
   subTotal: number;
   tax: number;
   discount: number;

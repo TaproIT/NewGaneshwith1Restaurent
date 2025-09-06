@@ -1,53 +1,103 @@
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Minus, Plus, SquarePen, Trash2 } from 'lucide-react';
-import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { Minus, Plus, Trash2 } from 'lucide-react';
+import React, { useCallback } from 'react';
+import { useDispatch } from 'react-redux';
 import type { OrderFoodItem, OrderTokenType } from '../../order-model';
-import { decreaseQuantity, increaseQuantity } from '@/features/beach-restaurant/orderSlice';
-import type { RootState } from '@/app/store';
+import {
+  decreaseQuantity,
+  increaseQuantity,
+  removeFoodItemFromOrderToken,
+  removeAllOrderItemsFromToken,
+} from '@/features/beach-restaurant/orderSlice';
 
-const OrderToken: React.FC<{ token: OrderTokenType }> = ({ token }) => {
+interface OrderTokenProps {
+  token: OrderTokenType;
+}
+
+const OrderToken: React.FC<OrderTokenProps> = ({ token }) => {
+  //console.log("t", token);
   const dispatch = useDispatch();
-  const orderTokens = useSelector((state:RootState) => state.order.orderTokens);
+
+  // Handlers
+  const handleRemoveItem = useCallback(
+    (index: number) => {
+      dispatch(removeFoodItemFromOrderToken(index));
+    },
+    [dispatch]
+  );
+
+  const handleDecreaseQuantity = useCallback(
+    (foodId: string) => {
+      dispatch(decreaseQuantity(foodId));
+    },
+    [dispatch]
+  );
+
+  const handleIncreaseQuantity = useCallback(
+    (foodId: string) => {
+      dispatch(increaseQuantity(foodId));
+    },
+    [dispatch]
+  );
+
+  const handleClearAll = useCallback(() => {
+    dispatch(removeAllOrderItemsFromToken());
+  }, [dispatch]);
 
   return (
-    <div className="mb-2 px-1.5 py-2 flex flex-col gap-3 bg-bg rounded-lg">
+    <div className="mb-3 px-1.5 py-2 flex flex-col gap-3 bg-bg rounded-lg">
+      {/* Token Header */}
       <div className="px-2 flex items-center justify-between">
         <p className="text-[0.875rem] text-[#444444] font-[500]">
-          Token{" "}
-          {String(
-            orderTokens.length === 0 ? 1 : orderTokens.length + 1
-          ).padStart(2, "0")}
+          Token{' '}
+          {String(token.tokenNumber).padStart(2, '0')}
         </p>
-        <p className="text-[0.625rem] text-[#0A869D] font-normal">Clear All</p>
+        {!token.isPrinted && (
+          <p
+            className="text-[0.625rem] text-[#0A869D] font-normal cursor-pointer"
+            onClick={handleClearAll}
+          >
+            Clear All
+          </p>
+        )}
       </div>
 
-      <ScrollArea className="h-[calc(100vh-530px)] 2xl:h-[calc(100vh-700px)]">
-        {token && (
-          <div className="flex flex-col gap-3">
-            {token.foodItems
-              .slice()  // Create a shallow copy of the array to avoid mutating the original array
-              .reverse()  // Reverse the order of items
-              .map((item: OrderFoodItem) => (
+      {/* Food Orders */}
+      {token.foodOrders.length > 0 && (
+        <div className="flex flex-col gap-3">
+          {token.foodOrders
+            .slice()
+            .reverse()
+            .map((item: OrderFoodItem, index: number) => (
               <div
                 key={item.foodId}
                 className="p-2 flex flex-col gap-3 bg-mainWhite rounded-xs"
               >
+                {/* Item Title and Remove Button */}
                 <div className="flex items-center justify-between text-[#444444]">
                   <p className="text-[0.75rem]">{item.title}</p>
                   <div className="flex items-center justify-center gap-2">
-                    <SquarePen size={14} />
-                    <Trash2 size={14} />
+                    {!token.isPrinted && (
+                      <Button
+                        variant="outline"
+                        className="!p-1 !h-7 !rounded-none hover:!bg-transparent !border-none cursor-pointer"
+                        disabled={token.isPrinted}
+                        onClick={() => handleRemoveItem(index)}
+                      >
+                        <Trash2 size={14} />
+                      </Button>
+                    )}
                   </div>
                 </div>
 
+                {/* Quantity Controls and Price */}
                 <div className="px-2 flex items-center justify-between gap-2">
                   <div className="flex items-center">
                     <Button
                       variant="outline"
                       className="!p-1 !h-7 !rounded-none cursor-pointer"
-                      onClick={() => dispatch(decreaseQuantity(item.foodId))}
+                      disabled={token.isPrinted}
+                      onClick={() => handleDecreaseQuantity(item.foodId)}
                     >
                       <Minus size={10} strokeWidth={1.5} />
                     </Button>
@@ -59,7 +109,8 @@ const OrderToken: React.FC<{ token: OrderTokenType }> = ({ token }) => {
                     <Button
                       variant="outline"
                       className="!p-1 !h-7 !rounded-none cursor-pointer"
-                      onClick={() => dispatch(increaseQuantity(item.foodId))}
+                      disabled={token.isPrinted}
+                      onClick={() => handleIncreaseQuantity(item.foodId)}
                     >
                       <Plus size={10} strokeWidth={1.5} />
                     </Button>
@@ -71,9 +122,8 @@ const OrderToken: React.FC<{ token: OrderTokenType }> = ({ token }) => {
                 </div>
               </div>
             ))}
-          </div>
-        )}
-      </ScrollArea>
+        </div>
+      )}
     </div>
   );
 };

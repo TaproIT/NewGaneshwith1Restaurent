@@ -127,7 +127,6 @@ export const getTableById = async (req, res) => {
   }
 };
 
-
 export const selectTableForOrder = async (req, res) => {
   try {
     const { id } = req.params; // order ID
@@ -191,65 +190,114 @@ export const addOrderToken = async (req, res) => {
 
   try {
     const { id } = req.params; // order id
-    const { tokenNumber, foodOrders, beverageOrders, tokenSubTotal, tokenTax, tokenDiscounts, tokenTotalBill } = req.body;
+    const { newOrderToken, subTotal, tax, discount, serviceCharge, totalBill } =
+      req.body.data;
 
     const order = await Order.findById(id);
     if (!order) {
       await session.abortTransaction();
-      session.endSession();
       return sendErrorResponse(res, 404, "Order not found");
     }
 
-    const foodOrderIds = [];
-    const beverageOrderIds = [];
+    let orderToken;
 
-    // create food items
-    if (foodOrders?.length) {
-      for (const food of foodOrders) {
-        const foodItem = new FoodOrderItem(food);
-        await foodItem.save({ session });
-        foodOrderIds.push(foodItem._id);
+    // Updating an existing token
+    if (newOrderToken._id) {
+      orderToken = await OrderToken.findById(newOrderToken._id);
+      if (!orderToken) {
+        await session.abortTransaction();
+        return sendErrorResponse(res, 404, "Order token not found");
+      }
+
+      const foodOrderIds = [];
+      if (newOrderToken.foodOrders?.length) {
+        for (const food of newOrderToken.foodOrders) {
+          const { _id, ...foodData } = food; // strip old _id
+          const foodItem = new FoodOrderItem(foodData);
+          await foodItem.save({ session });
+          foodOrderIds.push(foodItem._id);
+        }
+      }
+
+      // TODO: add beverage items here if required (same pattern as food)
+
+      orderToken.foodOrders = foodOrderIds;
+      orderToken.isPrinted = newOrderToken.isPrinted;
+      orderToken.tokenSubTotal = newOrderToken.tokenSubTotal;
+      orderToken.tokenTax = newOrderToken.tokenTax;
+      orderToken.tokenDiscount = newOrderToken.tokenDiscount;
+      orderToken.tokenServiceCharge = newOrderToken.tokenServiceCharge;
+      orderToken.tokenTotalBill = newOrderToken.tokenTotalBill;
+
+      await orderToken.save({ session });
+
+      if (newOrderToken.isPrinted) {
+        if (!order.orderTokens.includes(orderToken._id)) {
+          order.orderTokens.push(orderToken._id);
+        }
+        order.holdOrderToken = null;
+      } else {
+        order.holdOrderToken = orderToken._id;
       }
     }
 
-    // create beverage items
-    if (beverageOrders?.length) {
-      for (const bev of beverageOrders) {
-        const bevItem = new BeverageOrderItem(bev);
-        await bevItem.save({ session });
-        beverageOrderIds.push(bevItem._id);
+    // Creating a brand new token
+    else {
+      const foodOrderIds = [];
+      const beverageOrderIds = [];
+
+      if (newOrderToken.foodOrders?.length) {
+        for (const food of newOrderToken.foodOrders) {
+          const { _id, ...foodData } = food;
+          const foodItem = new FoodOrderItem(foodData);
+          await foodItem.save({ session });
+          foodOrderIds.push(foodItem._id);
+        }
+      }
+
+      const tokenId = generateTokenId(order.orderNumber);
+      orderToken = new OrderToken({
+        tokenId,
+        tokenNumber: newOrderToken.tokenNumber,
+        foodOrders: foodOrderIds,
+        beverageOrders: beverageOrderIds,
+        isPrinted: newOrderToken.isPrinted,
+        tokenSubTotal: newOrderToken.tokenSubTotal,
+        tokenTax: newOrderToken.tokenTax,
+        tokenDiscount: newOrderToken.tokenDiscount,
+        tokenServiceCharge: newOrderToken.tokenServiceCharge,
+        tokenTotalBill: newOrderToken.tokenTotalBill,
+      });
+
+      await orderToken.save({ session });
+
+      if (orderToken.isPrinted) {
+        order.orderTokens.push(orderToken._id);
+        order.holdOrderToken = null;
+      } else {
+        order.holdOrderToken = orderToken._id;
       }
     }
 
-    // generate tokenId using orderNumber
-    const tokenId = generateTokenId(order.orderNumber);
+    // Update order totals
+    order.subTotal = subTotal;
+    order.tax = tax;
+    order.discount = discount;
+    order.serviceCharge = serviceCharge;
+    order.totalBill = totalBill;
 
-    // create token
-    const orderToken = new OrderToken({
-      tokenId,
-      tokenNumber,
-      foodOrders: foodOrderIds,
-      beverageOrders: beverageOrderIds,
-      tokenSubTotal,
-      tokenTax,
-      tokenDiscounts,
-      tokenTotalBill,
-    });
-
-    await orderToken.save({ session });
-
-    // attach token to order
-    order.orderTokens.push(orderToken._id);
     await order.save({ session });
 
     await session.commitTransaction();
-    session.endSession();
 
-    sendSuccessResponse(res, 201, "Order token added successfully", { orderToken });
+    return sendSuccessResponse(res, 201, "Order token added successfully", {
+      order,
+    });
   } catch (error) {
     await session.abortTransaction();
+    return sendErrorResponse(res, 500, "Internal Server Error", error.message);
+  } finally {
     session.endSession();
-    sendErrorResponse(res, 500, "Internal Server Error", error.message);
   }
 };
 
@@ -263,7 +311,21 @@ export const getOrderDetails = async (req, res) => {
     }
 
     const order = await Order.findById(id)
-      .populate("restaurantTable"); // populate table details
+      .populate("restaurantTable") // populate table details
+      .populate({
+        path: "orderTokens", // populate orderTokens
+        populate: {
+          path: "foodOrders", // populate foodOrders inside each orderToken
+          model: "FoodOrderItem", 
+        },
+      })
+      .populate({
+        path: "holdOrderToken", // populate orderTokens
+        populate: {
+          path: "foodOrders", // populate foodOrders inside hold orderToken
+          model: "FoodOrderItem", 
+        },
+      });
 
     if (!order) {
       return sendErrorResponse(res, 404, "Order not found");
@@ -280,6 +342,8 @@ export const getOrderDetails = async (req, res) => {
     return sendErrorResponse(res, 500, "Internal Server Error", error.message);
   }
 };
+
+
 
 
 

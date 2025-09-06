@@ -7,7 +7,7 @@ const orderTokenSchema = new mongoose.Schema({
   },
   tokenNumber: {
     type: Number,
-    required: true
+    required: true,
   },
   beverageOrders: [
     {
@@ -21,9 +21,12 @@ const orderTokenSchema = new mongoose.Schema({
       ref: "FoodOrderItem",
     },
   ],
+  isPrinted: { type: Boolean, required: true },
+  //isHold: { type: Boolean, required: true },
   tokenSubTotal: { type: Number, required: true },
-  tokenTax: { type: Number, required: true },
-  tokenDiscounts: { type: Number, required: true },
+  tokenTax: { type: Number, required: false, default: 0 },
+  tokenDiscount: { type: Number, required: false, default: 0 },
+  tokenServiceCharge: { type: Number, required: false, default: 0 },
   tokenTotalBill: { type: Number, required: true },
 });
 

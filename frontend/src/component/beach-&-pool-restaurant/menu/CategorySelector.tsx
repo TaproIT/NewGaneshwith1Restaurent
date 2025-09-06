@@ -62,8 +62,6 @@ const CategorySelector: React.FC = () => {
     }
   };
 
-  console.log("Selected Category", selectedCategoryId);
-
   return (
     <div className="flex items-center w-full">
       {/* Left arrow */}

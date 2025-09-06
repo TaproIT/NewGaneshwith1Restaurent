@@ -57,11 +57,11 @@ router.patch(
   selectTableForOrder
 );
 
-router.post(
+router.patch(
   "/:id/token",
   verifyTokenNotBlacklisted,
   authenticateToken,
-  authorizeRoles([userRoles.ADMIN.value]),
+  authorizeRoles([userRoles.ADMIN.value, userRoles.BEACH_RESTAURANT_STAFF.value]),
   addOrderToken
 );
 

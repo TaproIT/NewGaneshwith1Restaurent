@@ -1,36 +1,97 @@
+import { addNewOrderTokenToOrder } from '@/api/order/add-new-order-token-to-order-api';
+import { fetchOrderById } from '@/api/order/get-order-data-api';
 import { type AppDispatch, type RootState } from '@/app/store';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { openOrderTokenModal, setSubTotal, setTotalBill } from '@/features/beach-restaurant/orderSlice';
+import {
+  openOrderTokenModal,
+  setIsPrintedForNewOrderToken,
+  setSubTotal,
+  setTokenSubTotal,
+  setTokenTotalBill,
+  setTotalBill,
+} from '@/features/beach-restaurant/orderSlice';
 import { getAllTokenSubTotal, getTokenSubTotal } from '@/lib/order-util';
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-const OrderPaymentDetails:React.FC = () => {
-  const order = useSelector((state:RootState) => state.order );
+const OrderPaymentDetails: React.FC = () => {
+  const order = useSelector((state: RootState) => state.order);
   const dispatch = useDispatch<AppDispatch>();
+  const newOrderToken = order.newOrderToken;
 
-  const subTotal =
-    order.orderTokens.length > 0
-      ? parseFloat(getAllTokenSubTotal(order.orderTokens).toFixed(2))
-      : order.newOrderToken.foodItems.length > 0 ||
-        order.newOrderToken.beverageItems.length > 0
-        ? parseFloat(getTokenSubTotal(order.newOrderToken).toFixed(2))
+  // Disable Token button only if BOTH foodOrders and beverageOrders are empty
+  const isDisabled =
+    newOrderToken.foodOrders.length === 0 &&
+    newOrderToken.beverageOrders.length === 0;
+
+  // Handler functions
+  const handleTokenClick = useCallback(() => {
+    dispatch(openOrderTokenModal());
+  }, [dispatch]);
+
+  const handleHoldClick = async () => {
+      try {
+        // Mark the current token as printed
+        dispatch(setIsPrintedForNewOrderToken(false));
+  
+        // Add the new order token to the backend order
+        await dispatch(addNewOrderTokenToOrder({ orderId: order._id }));
+  
+        // Refresh the order data
+        await dispatch(fetchOrderById(order._id));
+      } catch (error) {
+        console.error("Error printing order token:", error);
+      }
+    };
+
+  // Recalculate token subtotal and total bill when order tokens or charges change
+  useEffect(() => {
+    const tokenSubTotal =
+      newOrderToken.foodOrders.length > 0 ||
+      newOrderToken.beverageOrders.length > 0
+        ? parseFloat(getTokenSubTotal(newOrderToken).toFixed(2))
         : 0;
 
-  dispatch(setSubTotal(subTotal));
-  
-  const totalBill = (order.subTotal + order.tax + order.discount + order.serviceCharge);
+    dispatch(setTokenSubTotal(tokenSubTotal));
 
-  dispatch(setTotalBill(totalBill))
+    const tokenTotalBill =
+      tokenSubTotal +
+      newOrderToken.tokenTax +
+      newOrderToken.tokenDiscount +
+      newOrderToken.tokenServiceCharge;
 
-  useEffect(() => {
-  }, [order.subTotal]);
+    dispatch(setTokenTotalBill(tokenTotalBill));
+
+    const subTotal =
+      order.orderTokens.length > 0
+        ? parseFloat(
+            (getAllTokenSubTotal(order.orderTokens) + tokenSubTotal).toFixed(2)
+          )
+        : tokenSubTotal;
+
+    dispatch(setSubTotal(subTotal));
+
+    const totalBill =
+      order.subTotal + order.tax + order.discount + order.serviceCharge;
+
+    dispatch(setTotalBill(totalBill));
+  }, [
+    dispatch,
+    newOrderToken,
+    order.holdOrderToken,
+    order.orderTokens,
+    order.subTotal,
+    order.tax,
+    order.discount,
+    order.serviceCharge,
+  ]);
 
   return (
     <div className="w-full flex flex-col items-center shadow-[0px_-1px_4px_0px_#5C5C5C40]">
       <ScrollArea className="w-full h-[calc(100vh-510px)] 2xl:h-[calc(100vh-670px)]">
         <div className="py-3 flex flex-col gap-3">
+          {/* Payment Details */}
           <div className="px-6 2xl:px-8 w-full flex flex-col gap-1 text-[0.75rem] text-[#444444] font-normal">
             <div className="grid grid-cols-5 gap-2">
               <p className="col-span-2">Subtotal</p>
@@ -73,20 +134,27 @@ const OrderPaymentDetails:React.FC = () => {
             </div>
           </div>
 
+          {/* Action Buttons */}
           <div className="px-3 2xl:px-5 w-full flex flex-col gap-1.5">
-            <Button 
-               variant="outline" 
-               className="!w-full !h-8 border-[#0A869D]"
-               onClick={() => dispatch(openOrderTokenModal())}
-               >
+            <Button
+              variant="outline"
+              className="!w-full !h-8 border-[#0A869D] cursor-pointer"
+              disabled={isDisabled}
+              onClick={handleTokenClick}
+            >
               Token
             </Button>
-            <Button className="!w-full !h-8">Hold</Button>
+            <Button 
+              className="!w-full !h-8 cursor-pointer" 
+              disabled={isDisabled}
+              onClick={handleHoldClick}>
+              Hold
+            </Button>
           </div>
         </div>
       </ScrollArea>
     </div>
   );
-}
+};
 
 export default OrderPaymentDetails;

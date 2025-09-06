@@ -6,12 +6,13 @@ import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import { fetchAllTables } from "@/api/order/get-tables-api";
 import { addTableToOrder } from "@/api/order/add-table-to-order-api";
+import { addNewOrderTokenToOrder } from "@/api/order/add-new-order-token-to-order-api";
 
 /**
  * Initial state for the Order slice.
  */
 const initialState: Order = {
-  orderId: "",
+  _id: "",
   orderNumber: 0,
   orderStatus: 0,
   customerType: CustomerTypes.CHECKED_IN.value,  
@@ -24,13 +25,21 @@ const initialState: Order = {
   isOrderTokenOpen: false,
   orderTokens: [],
   newOrderToken: {
+      _id: "",
       tokenId: "",
       tokenNumber: 1,
       isPrinted: false,
       isHold: false,
-      foodItems: [],
-      beverageItems: []
+      foodOrders: [],
+      beverageOrders: [],
+      tokenSubTotal: 0,
+      tokenTax: 0,
+      tokenDiscount: 0,
+      tokenServiceCharge: 0,
+      tokenTotalBill: 0
    },
+  holdOrderToken: null,
+  isAddNewOrderToken: false,
   subTotal: 0,
   tax: 0,
   discount: 0,
@@ -94,7 +103,22 @@ const orderSlice = createSlice({
       //   // push the new item
       //   lastToken.foodItems.push(action.payload);
       // }
-      state.newOrderToken?.foodItems.push(action.payload);
+      state.newOrderToken?.foodOrders.push(action.payload);
+    },
+
+    removeFoodItemFromOrderToken: (state, action: PayloadAction<number>) => {
+      if (state.newOrderToken?.foodOrders) {
+        state.newOrderToken.foodOrders.splice(action.payload, 1);
+      }
+    },
+
+    removeAllOrderItemsFromToken: (state) => {
+       if (state.newOrderToken?.foodOrders) {
+        state.newOrderToken.foodOrders = [];
+      }
+      if (state.newOrderToken?.beverageOrders) {
+        state.newOrderToken.beverageOrders = [];
+      }
     },
 
     increaseQuantity: (state, action: PayloadAction<string>) => {
@@ -120,7 +144,7 @@ const orderSlice = createSlice({
         const token = state.newOrderToken;
 
         // find the food item by id
-        const foodItem = token?.foodItems.find(
+        const foodItem = token?.foodOrders.find(
           (item) => item.foodId === action.payload
         );
 
@@ -154,7 +178,7 @@ const orderSlice = createSlice({
         const token = state.newOrderToken;
 
         // find the food item by id
-        const foodItem = token?.foodItems.find(
+        const foodItem = token?.foodOrders.find(
           (item) => item.foodId === action.payload
         );
 
@@ -163,9 +187,43 @@ const orderSlice = createSlice({
           foodItem.quantity -= 1;
         }
     },
+
+    setIsPrintedForNewOrderToken: (state, action: PayloadAction<boolean>) => {
+       state.newOrderToken.isPrinted = action.payload;
+    },
+
+    setIsHoldForNewOrderToken: (state, action: PayloadAction<boolean>) => {
+       state.newOrderToken.isHold = action.payload;
+    },
     
+    setIsAddNewOrderToken: (state, action: PayloadAction<boolean>) => {
+       state.isAddNewOrderToken = action.payload;
+       state.newOrderToken.tokenNumber = state.orderTokens.length + 1;
+    },
+
+    setTokenSubTotal: (state, action: PayloadAction<number>) => {
+       state.newOrderToken.tokenSubTotal = action.payload;
+    },
+
+    setTokenTax: (state, action: PayloadAction<number>) => {
+      state.newOrderToken.tokenTax = action.payload;
+    },
+
+    setTokenDiscount: (state, action: PayloadAction<number>) => {
+      state.newOrderToken.tokenDiscount = action.payload;
+    },
+
+    setTokenServiceCharge: (state, action: PayloadAction<number>) => {
+      state.newOrderToken.tokenServiceCharge = action.payload;
+    },
+
+    setTokenTotalBill: (state, action: PayloadAction<number>) => {
+      state.newOrderToken.tokenTotalBill = action.payload;
+    },
+
+
     setSubTotal: (state, action: PayloadAction<number>) => {
-      state.subTotal = action.payload;
+       state.subTotal = action.payload;
     },
 
     setTax: (state, action: PayloadAction<number>) => {
@@ -203,7 +261,7 @@ const orderSlice = createSlice({
       })
       .addCase(createOrderWithInitialData.fulfilled, (state, action) => {
         state.orderInitialDataStatus.loading = false;
-        state.orderId = action.payload._id;
+        state._id = action.payload._id;
         state.orderNumber = action.payload.orderNumber;
         state.orderStatus = action.payload.orderStatus;
       })
@@ -213,16 +271,45 @@ const orderSlice = createSlice({
       })
 
       // Get order by ID
-    .addCase(fetchOrderById.pending, (state) => {
-      state.fetchOrderDataStatus = { loading: true, error: null };
-    })
-    .addCase(fetchOrderById.fulfilled, (state, action) => {
-      state.fetchOrderDataStatus = { loading: false, error: null };
-      Object.assign(state, action.payload);
-    })
-    .addCase(fetchOrderById.rejected, (state, action) => {
-      state.fetchOrderDataStatus = { loading: false, error: action.payload as string };
-    })
+      .addCase(fetchOrderById.pending, (state) => {
+        state.fetchOrderDataStatus = { loading: true, error: null };
+      })
+      .addCase(fetchOrderById.fulfilled, (state, action) => {
+        state.fetchOrderDataStatus = { loading: false, error: null };
+
+        // // Find the token that is not printed (hold token)
+        // const holdOrderToken = action.payload.orderTokens.find(
+        //   (token) => token.isPrinted === false
+        // );
+
+        // if (holdOrderToken) {
+        //   // Keep all tokens except the hold token
+        //   const filteredTokens = action.payload.orderTokens.filter(
+        //     (token) => token !== holdOrderToken
+        //   );
+
+        //   // Assign hold token as the new order token
+        //   action.payload.newOrderToken = holdOrderToken;
+
+        //   // Update tokens without duplicating the hold token
+        //   action.payload.orderTokens = filteredTokens;
+
+        //   action.payload.isAddNewOrderToken = true;
+
+        //   // Merge into state
+        //   Object.assign(state, action.payload);
+        //   return;
+        //}
+
+        // If no hold token, just replace with 
+        if( action.payload.holdOrderToken ) {
+            action.payload.newOrderToken = action.payload.holdOrderToken;
+        }
+        Object.assign(state, action.payload);
+      })
+      .addCase(fetchOrderById.rejected, (state, action) => {
+        state.fetchOrderDataStatus = { loading: false, error: action.payload as string };
+      })
 
      // Get All Tables
     .addCase(fetchAllTables.pending, (state) => {
@@ -249,6 +336,32 @@ const orderSlice = createSlice({
     })
     .addCase(addTableToOrder.rejected, (state, action) => {
       state.addTableToOrderStatus = { loading: false, error: action.payload as string };
+    })
+
+    // Add new order token to order
+    .addCase(addNewOrderTokenToOrder.pending, (state,action) => {
+      
+    })
+    .addCase(addNewOrderTokenToOrder.fulfilled, (state, action) => {
+      state.isOrderTokenOpen = false;
+      state.isAddNewOrderToken = false;
+      state.newOrderToken = {
+        _id: "",
+        tokenId: "",
+        tokenNumber: 1,
+        isPrinted: false,
+        isHold: false,
+        foodOrders: [],
+        beverageOrders: [],
+        tokenSubTotal: 0,
+        tokenTax: 0,
+        tokenDiscount: 0,
+        tokenServiceCharge: 0,
+        tokenTotalBill: 0
+      }
+    })
+    .addCase(addNewOrderTokenToOrder.rejected, (state, action) => {
+
     });
   },
 
@@ -262,11 +375,21 @@ export const {
   setGuestName,
   setTableId,
   addFoodItemToOrderToken,
+  removeFoodItemFromOrderToken,
+  removeAllOrderItemsFromToken,
   openOrderTokenModal,
   closeOrderTokenModal,
   setOrderTokenModal,
   increaseQuantity,
   decreaseQuantity,
+  setIsPrintedForNewOrderToken,
+  setIsHoldForNewOrderToken,
+  setIsAddNewOrderToken,
+  setTokenTax,
+  setTokenDiscount,
+  setTokenServiceCharge,
+  setTokenTotalBill,
+  setTokenSubTotal,
   setTax,
   setDiscount,
   setServiceCharge,

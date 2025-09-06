@@ -43,6 +43,30 @@ const orderSchema = new mongoose.Schema({
       ref: "OrderToken",
     },
   ],
+  holdOrderToken: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "OrderToken",
+  },
+  subTotal:{
+    type: Number,
+    default: 0,
+  },
+  tax: {
+    type: Number,
+    default: 0,
+  },
+  discount: {
+    type: Number,
+    default: 0,
+  },
+  serviceCharge: {
+    type: Number,
+    default: 0,
+  },
+  totalBill: {
+    type: Number,
+    default: 0
+  },
   paymentMethod: {
     type: String,
     enum: [PaymentMethods.CASH.value, PaymentMethods.CARD.value, PaymentMethods.CASH_AND_CARD.value],
