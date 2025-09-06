@@ -1,23 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { CircleX, Trash2 } from "lucide-react";
 import type { Room } from "@/types/roomTypes";
-import QR from "@/assets/Images/qr.webp";
 import type { Step01FormData } from "@/types/guestDataTypes";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { useLocation, useNavigate } from "react-router-dom";
-import HeaderBadge from "./room_detaila/HeaderBadge";
-import GuestDetailsCard from "./room_detaila/GuestDetailsCard";
-import RoomsDetailsCard from "./room_detaila/RoomsDetailsCard";
 import {
   clearBooking,
   fetchRoomBooking,
 } from "@/features/booking/bookingSlice";
-import SwitchRoomCollection from "./room_detaila/SwitchRoomCollection";
+import SwitchRoomCollection from "./room_details/SwitchRoomCollection";
 import { addOldRoom } from "@/features/switch-rooms/removedRooms";
 import { nextStep } from "@/features/onboarding/onboardingSlice";
 import { api } from "@/api/axios";
+import InvoiceFooter from "../footer/InvoiceFooter";
+import SelectedRoomsList from "./room_details/SelectedRoomsList";
+import RoomDetailsPanel from "./room_details/RoomDetailsPanel";
 
 interface RoomDetailsProps {
   viewedRoom: Room | null;
@@ -83,17 +80,6 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
       setTotalBill(0);
       return;
     }
-
-    // const bookedRoom = guestDetails.bookedRooms.find(
-    //   (r) => r._id === viewedRoom._id
-    // );
-
-    // if (!bookedRoom) {
-    //   setTotalPrice(0);
-    //   setDiscountAmount(0);
-    //   setTotalBill(0);
-    //   return;
-    // }
 
     const total = totalPrice;
 
@@ -181,110 +167,24 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
         }`}
       >
         {/* Read-only room details */}
-        {viewedRoom && readOnly ? (
-          <>
-            {!checkout && <HeaderBadge viewedRoom={viewedRoom} />}
-
-            {bookingDetails?.loading ? (
-              <div className="flex flex-col mt-4 gap-2 animate-pulse">
-                <div className="flex justify-between">
-                  <div className="h-4 w-24 bg-gray-300 rounded"></div>
-                  <div className="h-4 w-32 bg-gray-300 rounded"></div>
-                </div>
-                <div className="flex justify-between">
-                  <div className="h-4 w-24 bg-gray-300 rounded"></div>
-                  <div className="h-4 w-32 bg-gray-300 rounded"></div>
-                </div>
-                <div className="flex justify-between">
-                  <div className="h-4 w-24 bg-gray-300 rounded"></div>
-                  <div className="h-4 w-32 bg-gray-300 rounded"></div>
-                </div>
-                <div className="flex justify-between">
-                  <div className="h-4 w-24 bg-gray-300 rounded"></div>
-                  <div className="h-4 w-32 bg-gray-300 rounded"></div>
-                </div>
-              </div>
-            ) : (
-              bookingDetails && (
-                <GuestDetailsCard
-                  guestDetails={bookingDetails.roomData}
-                  onDaysCalculated={(days) => setDaysStayed(days)}
-                />
-              )
-            )}
-
-            {!checkout && <RoomsDetailsCard viewedRoom={viewedRoom} />}
-
-            <div className="absolute bottom-5 left-[25%] text-gray font-medium text-lg">
-              <div className="flex justify-center items-center">
-                LKR {viewedRoom.perDayPrice}
-                <span className="px-2 font-normal text-sm">Per Day</span>
-              </div>
-            </div>
-          </>
-        ) : (
-          selectedRooms.length <= 0 && (
-            <p className="text-gray-500 mb-4">Select a room to view details</p>
-          )
-        )}
+        <RoomDetailsPanel
+          viewedRoom={viewedRoom}
+          readOnly={readOnly}
+          checkout={checkout}
+          bookingDetails={bookingDetails}
+          selectedRooms={selectedRooms}
+          onDaysCalculated={(days) => setDaysStayed(days)}
+        />
 
         {/* Selected / Booked Rooms */}
-        {selectedRooms.length > 0 && (
-          <ul className="flex flex-col gap-5 mt">
-            {selectedRooms.map((room) => (
-              <li
-                key={room._id}
-                className={`border rounded-lg p-3 bg-gray-50 shadow-sm ${
-                  checkout && "mt-5"
-                }`}
-              >
-                <div className="flex items-center justify-between text-gray">
-                  <h2 className="text-lg font-medium">Room {room.no}</h2>
-                  <div className="text-lg font-medium">
-                    LKR {room.perDayPrice}
-                  </div>
-                </div>
-                <div className="text-sm text-right text-gray">Per Day</div>
-
-                {/* Facilities */}
-                <div className="mt-4 text-sm text-gray">
-                  <span className="font-medium">Facilities:</span>
-                  {room.facilities?.length > 0 ? (
-                    <ul className="list-disc list-inside ml-4 mt-1">
-                      {room.facilities.map((facility, index) => (
-                        <li key={index}>{facility}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <span className="ml-2">None</span>
-                  )}
-                </div>
-
-                <div className="mt-5 grid grid-cols-3 text-gray">
-                  <span className="col-span-1">Total</span>
-                  <span className="col-span-1">:</span>
-                  <span className="col-span-1">
-                    {(guestDetails.lengthOfStay ||
-                      invoiceData.lengthOfStay ||
-                      totalDays) * room.perDayPrice}
-                  </span>
-                </div>
-
-                {!checkout && (
-                  <div className="flex justify-end">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onRemoveRoom(room.no)}
-                    >
-                      <Trash2 color="red" />
-                    </Button>
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
+        <SelectedRoomsList
+          selectedRooms={selectedRooms}
+          checkout={checkout}
+          guestDetails={guestDetails}
+          invoiceData={invoiceData}
+          totalDays={totalDays}
+          onRemoveRoom={onRemoveRoom}
+        />
 
         {checkout && viewedRoom?.no && (
           <SwitchRoomCollection
@@ -296,105 +196,26 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
       </div>
 
       {/* Footer */}
-      {(!readOnly || checkout) && (
-        <div className="border-t px-6 py-3 text-gray sticky bottom-0 bg-mainWhite flex flex-col gap-4">
-          {invoice && (
-            <div>
-              <div className="mt-2 grid grid-cols-3 text-gray whitespace-nowrap text-sm">
-                <div>Subtotal</div>
-                <div>:</div>
-                <div>LKR {checkout ? totalPrice : invoiceSubTotal}</div>
-              </div>
-              <div className="mt-2 grid grid-cols-3 text-gray whitespace-nowrap text-sm">
-                <div>Tax</div>
-                <div>:</div>
-                <div>LKR 0</div>
-              </div>
-              <div className="mt-2 grid grid-cols-3 text-gray whitespace-nowrap text-sm">
-                <div>Discount %</div>
-                <div>:</div>
-                <input
-                  type="number"
-                  value={discountPercent}
-                  min={0}
-                  onChange={(e) => setDiscountPercent(Number(e.target.value))}
-                  className="border px-2 rounded w-20 text-right"
-                />
-              </div>
-              <div className="mt-2 grid grid-cols-3 text-gray whitespace-nowrap text-sm">
-                <div>Discounts</div>
-                <div>:</div>
-                <div>
-                  LKR{" "}
-                  {checkout ? discountAmount.toLocaleString() : invoiceDiscount}
-                </div>
-              </div>
-            </div>
-          )}
-          <div className="mt-2 grid grid-cols-3 text-gray whitespace-nowrap">
-            <div>Total Bill</div>
-            <div>:</div>
-            <div>
-              LKR{" "}
-              {checkout
-                ? totalBill
-                : invoice
-                ? invoiceFinalBill
-                : switchRoom
-                ? totalPrice
-                : grandTotal.toLocaleString()}
-            </div>
-          </div>
-
-          {/* Modal */}
-          {isModalOpen && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-              <div className="bg-white p-6 rounded-lg w-96 relative flex flex-col justify-center">
-                <h2 className="text-lg font-bold mb-4 text-center">
-                  Send QR Code
-                </h2>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={onCloseModal}
-                  className="absolute top-2 right-2"
-                >
-                  <CircleX />
-                </Button>
-                <p className="text-center">
-                  How would you like to receive the QR code?
-                </p>
-                <div className="flex justify-center my-4">
-                  <img src={QR} alt="qr" width={100} height={100} />
-                </div>
-                <div className="flex gap-5 justify-center mb-6">
-                  <Button variant="outline" className="w-25">
-                    Email
-                  </Button>
-                  <Button className="w-25" onClick={() => handleWhatsApp()}>
-                    WhatsApp
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {!checkout && (
-            <Button className="w-full" onClick={handleBookRooms}>
-              Book
-            </Button>
-          )}
-
-          {checkout && !switchRoom && (
-            <Button className="w-full">Checkout</Button>
-          )}
-          {switchRoom && (
-            <Button className="w-full" onClick={handleSwitchRoom}>
-              Switch Room
-            </Button>
-          )}
-        </div>
-      )}
+      <InvoiceFooter
+        readOnly={readOnly}
+        checkout={checkout}
+        switchRoom={switchRoom}
+        invoice={invoice}
+        totalPrice={totalPrice}
+        discountPercent={discountPercent}
+        discountAmount={discountAmount}
+        totalBill={totalBill}
+        invoiceSubTotal={invoiceSubTotal}
+        invoiceDiscount={invoiceDiscount}
+        invoiceFinalBill={invoiceFinalBill}
+        grandTotal={grandTotal}
+        isModalOpen={isModalOpen}
+        onCloseModal={onCloseModal}
+        handleWhatsApp={handleWhatsApp}
+        setDiscountPercent={setDiscountPercent}
+        handleBookRooms={handleBookRooms}
+        handleSwitchRoom={handleSwitchRoom}
+      />
     </div>
   );
 };
