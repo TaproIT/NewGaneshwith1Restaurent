@@ -19,9 +19,9 @@ const FoodList:React.FC = () => {
   },[])
 
   return (
-    <ScrollArea className="h-[calc(100vh-230px)]">
-      <div className="grid grid-cols-5 gap-1">
-        <div className="py-10 flex items-center justify-center border rounded-sm">
+    <ScrollArea className="w-full h-[calc(100vh-250px)]">
+      <div className="grid grid-cols-3 gap-1">
+        <div className="py-8 flex items-center justify-center border rounded-sm">
           <Plus size={24} className="text-[#0A869D]" />
         </div>
         {categoryFoods?.map((food:FoodItem) => (
