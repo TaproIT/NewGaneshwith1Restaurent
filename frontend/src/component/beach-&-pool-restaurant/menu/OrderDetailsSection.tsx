@@ -1,11 +1,11 @@
 import React from "react";
-import OrderInitialDetails from "./order-details/OrderInitialDetails";
+import OrderInitialDetails from "../order-details/OrderInitialDetails";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import OrderPaymentDetails from "./order-details/OrderPaymentDetails";
+import OrderPaymentDetails from "../order-details/OrderPaymentDetails";
 import { useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/app/store";
-import OrderToken from "./order-details/OrderToken";
+import OrderToken from "../order-details/OrderToken";
 import { useDispatch } from "react-redux";
 import { setIsAddNewOrderToken } from "@/features/beach-restaurant/orderSlice";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -63,7 +63,7 @@ const OrderDetailsSection: React.FC = () => {
       </div>
 
       <div className="w-full flex">
-        <OrderPaymentDetails />
+        <OrderPaymentDetails isHoldOrder={false} />
       </div>
     </div>
   );

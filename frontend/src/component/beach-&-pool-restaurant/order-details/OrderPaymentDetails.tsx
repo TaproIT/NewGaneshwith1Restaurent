@@ -14,11 +14,15 @@ import {
 import { getAllTokenSubTotal, getTokenSubTotal } from '@/lib/order-util';
 import React, { useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
-const OrderPaymentDetails: React.FC = () => {
+const OrderPaymentDetails: React.FC<{isHoldOrder:boolean}> = ({isHoldOrder}) => {
   const order = useSelector((state: RootState) => state.order);
+  const {selectedHoldOrderId:id} = useSelector((state: RootState) => state.holdOrder);
   const dispatch = useDispatch<AppDispatch>();
   const newOrderToken = order.newOrderToken;
+
+  const navigate = useNavigate();
 
   // Disable Token button only if BOTH foodOrders and beverageOrders are empty
   const isDisabled =
@@ -44,6 +48,10 @@ const OrderPaymentDetails: React.FC = () => {
         console.error("Error printing order token:", error);
       }
     };
+  
+  const handleProceedPaymentClick = () => {
+      navigate(`/beach-restaurant/menu/${id}`);
+  }
 
   // Recalculate token subtotal and total bill when order tokens or charges change
   useEffect(() => {
@@ -89,7 +97,7 @@ const OrderPaymentDetails: React.FC = () => {
 
   return (
     <div className="w-full flex flex-col items-center shadow-[0px_-1px_4px_0px_#5C5C5C40]">
-      <ScrollArea className="w-full h-[calc(100vh-510px)] 2xl:h-[calc(100vh-670px)]">
+      <ScrollArea className={`w-full ${!isHoldOrder ? "h-[calc(100vh-510px)] 2xl:h-[calc(100vh-670px)]" : "h-[calc(100vh-590px)] 2xl:h-[calc(100vh-670px)]"}`}>
         <div className="py-3 flex flex-col gap-3">
           {/* Payment Details */}
           <div className="px-6 2xl:px-8 w-full flex flex-col gap-1 text-[0.75rem] text-[#444444] font-normal">
@@ -136,20 +144,33 @@ const OrderPaymentDetails: React.FC = () => {
 
           {/* Action Buttons */}
           <div className="px-3 2xl:px-5 w-full flex flex-col gap-1.5">
-            <Button
-              variant="outline"
-              className="!w-full !h-8 border-[#0A869D] cursor-pointer"
-              disabled={isDisabled}
-              onClick={handleTokenClick}
-            >
-              Token
-            </Button>
-            <Button 
-              className="!w-full !h-8 cursor-pointer" 
-              disabled={isDisabled}
-              onClick={handleHoldClick}>
-              Hold
-            </Button>
+            {
+              isHoldOrder ? (
+                  <Button
+                    className="!w-full !h-8 border-[#0A869D] cursor-pointer"
+                    onClick={handleProceedPaymentClick}
+                  >
+                    Proceed to payment
+                  </Button>
+              ):(
+                 <>
+                  <Button
+                    variant="outline"
+                    className="!w-full !h-8 border-[#0A869D] cursor-pointer"
+                    disabled={isDisabled}
+                    onClick={handleTokenClick}
+                  >
+                    Token
+                  </Button>
+                  <Button
+                    className="!w-full !h-8 cursor-pointer"
+                    disabled={isDisabled}
+                    onClick={handleHoldClick}>
+                    Hold
+                  </Button>
+                </>
+              )
+            }
           </div>
         </div>
       </ScrollArea>

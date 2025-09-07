@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import React, { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
-import type { OrderFoodItem, OrderTokenType } from '../../order-model';
+import type { OrderFoodItem, OrderTokenType } from '../order-model';
 import {
   decreaseQuantity,
   increaseQuantity,
@@ -12,9 +12,10 @@ import {
 
 interface OrderTokenProps {
   token: OrderTokenType;
+  isHoldOrder?: boolean;
 }
 
-const OrderToken: React.FC<OrderTokenProps> = ({ token }) => {
+const OrderToken: React.FC<OrderTokenProps> = ({ token, isHoldOrder }) => {
   //console.log("t", token);
   const dispatch = useDispatch();
 
@@ -81,7 +82,7 @@ const OrderToken: React.FC<OrderTokenProps> = ({ token }) => {
                       <Button
                         variant="outline"
                         className="!p-1 !h-7 !rounded-none hover:!bg-transparent !border-none cursor-pointer"
-                        disabled={token.isPrinted}
+                        disabled={token.isPrinted || isHoldOrder}
                         onClick={() => handleRemoveItem(index)}
                       >
                         <Trash2 size={14} />
@@ -96,7 +97,7 @@ const OrderToken: React.FC<OrderTokenProps> = ({ token }) => {
                     <Button
                       variant="outline"
                       className="!p-1 !h-7 !rounded-none cursor-pointer"
-                      disabled={token.isPrinted}
+                      disabled={token.isPrinted || isHoldOrder}
                       onClick={() => handleDecreaseQuantity(item.foodId)}
                     >
                       <Minus size={10} strokeWidth={1.5} />
@@ -109,7 +110,7 @@ const OrderToken: React.FC<OrderTokenProps> = ({ token }) => {
                     <Button
                       variant="outline"
                       className="!p-1 !h-7 !rounded-none cursor-pointer"
-                      disabled={token.isPrinted}
+                      disabled={token.isPrinted || isHoldOrder}
                       onClick={() => handleIncreaseQuantity(item.foodId)}
                     >
                       <Plus size={10} strokeWidth={1.5} />

@@ -1,7 +1,7 @@
 import { fetchOrderById } from '@/api/order/get-order-data-api';
 import { type AppDispatch, type RootState } from '@/app/store';
 import FoodMenuDetailsSection from '@/component/beach-&-pool-restaurant/menu/FoodMenuDetailsSection';
-import OrderTokenDialog from '@/component/beach-&-pool-restaurant/menu/order-details/OrderTokenModal';
+import OrderTokenDialog from '@/component/beach-&-pool-restaurant/order-details/OrderTokenModal';
 import OrderDetailsSection from '@/component/beach-&-pool-restaurant/menu/OrderDetailsSection';
 import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';

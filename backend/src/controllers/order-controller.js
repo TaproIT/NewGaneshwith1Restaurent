@@ -343,6 +343,36 @@ export const getOrderDetails = async (req, res) => {
   }
 };
 
+// Get Hold Orders (only orders with holdOrderToken set)
+export const getHoldOrders = async (req, res) => {
+  try {
+    // Find all orders where holdOrderToken is not null
+    const holdOrders = await Order.find({
+      holdOrderToken: { $ne: null },
+    }).select("_id serviceType orderNumber");
+
+    if (!holdOrders || holdOrders.length === 0) {
+      return sendErrorResponse(res, 404, "No hold orders found");
+    }
+
+    // Format response
+    const formattedOrders = holdOrders.map((order) => ({
+      _id: order._id,
+      serviceType: order.serviceType,
+      orderNumber: order.orderNumber,
+    }));
+
+    return sendSuccessResponse(
+      res,
+      200,
+      "Hold orders retrieved successfully",
+      formattedOrders
+    );
+  } catch (error) {
+    console.error("Error fetching hold orders:", error);
+    return sendErrorResponse(res, 500, "Internal Server Error", error.message);
+  }
+};
 
 
 

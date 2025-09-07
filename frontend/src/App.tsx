@@ -12,6 +12,7 @@ import ProtectedRoute from "./component/ProtectedRoute";
 import BeachRestaurantHomePage from './pages/beach-restaurant/BeachRestaurantHomePage';
 import BeachRestaurantTablesPage from './pages/beach-restaurant/BeachRestaurantTablesPage';
 import BeachRestaurantMenuPage from './pages/beach-restaurant/BeachRestaurantMenuPage';
+import BeachRestaurantHoldPage from "./pages/beach-restaurant/BeachRestaurantHoldPage";
 
 function App() {
   return (
@@ -48,6 +49,7 @@ function App() {
           <Route path="/beach-restaurant/home" element={<BeachRestaurantHomePage />} />
           <Route path="/beach-restaurant/tables/:id" element={<BeachRestaurantTablesPage />} />
           <Route path="/beach-restaurant/menu/:id" element={<BeachRestaurantMenuPage />} />
+          <Route path="/beach-restaurant/hold" element={<BeachRestaurantHoldPage />} />
         </Route>
       </Routes>    
     </Router>
