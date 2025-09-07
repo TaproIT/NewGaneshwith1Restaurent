@@ -15,6 +15,7 @@ import { api } from "@/api/axios";
 import InvoiceFooter from "../footer/InvoiceFooter";
 import SelectedRoomsList from "./room_details/SelectedRoomsList";
 import RoomDetailsPanel from "./room_details/RoomDetailsPanel";
+import { toast } from "react-toastify";
 
 interface RoomDetailsProps {
   viewedRoom: Room | null;
@@ -117,15 +118,26 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
     setRemovedRooms((prev) => [...prev, removedRoom]);
   };
 
-  const handleSwitchRoom = () => {
-    removedRooms.forEach((room) => {
-      dispatch(addOldRoom(room));
-    });
-    dispatch(nextStep());
-    navigate("/onboarding", {
-      state: { daysStayed },
-    });
-  };
+const handleSwitchRoom = () => {
+  if (removedRooms.length === 0) {
+    toast.error("No rooms to switch.");
+    return;
+  }
+
+  // Add rooms to Redux slice
+  removedRooms.forEach((room) => dispatch(addOldRoom(room)));
+
+  // Navigate and pass data
+  navigate("/onboarding", {
+    state: {
+      daysStayed,
+      oldRooms: removedRooms, // pass the array directly
+    },
+  });
+
+  dispatch(nextStep());
+};
+
 
   const handleBookRooms = () => {
     if (selectedRooms.length === 0) return;
