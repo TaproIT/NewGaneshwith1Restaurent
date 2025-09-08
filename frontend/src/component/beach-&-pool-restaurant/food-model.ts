@@ -13,7 +13,7 @@ export interface FoodItem {
   isVisible: boolean;
   category: FoodCategory | null;
   isEnableBeverage: boolean;
-  beverages: string[] | null; // array of Beverage ObjectIds
+  liquor: string[] | null; // array of Beverage ObjectIds
   fetchAllFoodItemsStatus: FetchAllFoodItemsStatus
 }
 

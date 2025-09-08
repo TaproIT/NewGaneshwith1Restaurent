@@ -1,6 +1,6 @@
 import { fetchOrderById } from "@/api/order/get-order-data-api";
 import { createOrderWithInitialData } from "@/api/order/create-order-initial-data-api";
-import type { Order, OrderFoodItem} from "@/component/beach-&-pool-restaurant/order-model";
+import type { Order, OrderBeverageItem, OrderFoodItem} from "@/component/beach-&-pool-restaurant/order-model";
 import { CustomerTypes, ServiceTypes } from "@/lib/enums/order-related-enums";
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
@@ -104,6 +104,22 @@ const orderSlice = createSlice({
       //   lastToken.foodItems.push(action.payload);
       // }
       state.newOrderToken?.foodOrders.push(action.payload);
+    },
+
+    addBeverageItemToOrderToken: (state, action: PayloadAction<OrderBeverageItem>) => {
+      // if (state.orderTokens && state.orderTokens.length > 0) {
+      //   // get the last token
+      //   const lastToken = state.orderTokens[state.orderTokens.length - 1];
+
+      //   // make sure foodItems array exists
+      //   if (!lastToken.foodItems) {
+      //     lastToken.foodItems = [];
+      //   }
+
+      //   // push the new item
+      //   lastToken.foodItems.push(action.payload);
+      // }
+      state.newOrderToken?.beverageOrders.push(action.payload);
     },
 
     removeFoodItemFromOrderToken: (state, action: PayloadAction<number>) => {
@@ -375,6 +391,7 @@ export const {
   setGuestName,
   setTableId,
   addFoodItemToOrderToken,
+  addBeverageItemToOrderToken,
   removeFoodItemFromOrderToken,
   removeAllOrderItemsFromToken,
   openOrderTokenModal,

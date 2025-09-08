@@ -1,0 +1,60 @@
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+import React, { useCallback } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import type { AppDispatch, RootState } from '@/app/store';
+import type { BeverageItem } from '../beverage-model';
+import type { OrderBeverageItem } from '../order-model';
+import { addBeverageItemToOrderToken } from '@/features/beach-restaurant/orderSlice';
+
+interface BeverageItemSelectorProps {
+  beverageItem: BeverageItem;
+}
+
+const BeverageItemSelector: React.FC<BeverageItemSelectorProps> = ({ beverageItem }) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const order = useSelector((state: RootState) => state.order);
+  const orderBeverageItems = order.newOrderToken?.foodOrders;
+
+  // Check if the food item already exists in the current new order token
+  const existBeverageItem = orderBeverageItems?.some((item) => item.foodId === beverageItem._id);
+
+  // Determine whether the Add button should be disabled
+  const isDisabled = existBeverageItem || (order.orderTokens.length > 0 && !order.isAddNewOrderToken && !order.holdOrderToken);
+
+  // Handler to add food item to new order token
+  const handleAddClick = useCallback(() => {
+    const orderBeverageItem: OrderBeverageItem = {
+      foodId: beverageItem._id,
+      title: beverageItem.beverageName,
+      price: beverageItem.price,
+      quantity: 1,
+    };
+    dispatch(addBeverageItemToOrderToken(orderBeverageItem));
+  }, [dispatch, beverageItem]);
+
+  return (
+    <div className="p-1 flex flex-col gap-1 border rounded-sm">
+      {/* Food item name */}
+      <div className="py-6 flex items-center justify-center text-[#444444] text-[0.625rem] bg-[#F4F4F4] rounded-sm">
+        {beverageItem.beverageName}
+      </div>
+
+      {/* Price and Add button */}
+      <div className="grid grid-cols-7 gap-1">
+        <div className="py-1.5 col-span-5 bg-[#F4F4F4] flex items-center justify-center rounded-sm">
+          <p className="text-[#0A869D] text-[0.75rem]">LKR {beverageItem.price}</p>
+        </div>
+        <Button
+          className="col-span-2 !w-full !h-full flex items-center justify-center rounded-sm cursor-pointer"
+          onClick={handleAddClick}
+          disabled={isDisabled}
+        >
+          <Plus size={16} className="text-[#FEFEFE]" />
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+export default BeverageItemSelector;

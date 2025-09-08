@@ -1,6 +1,6 @@
-//import { fetchAllBeverageCategories } from "@/api/order/get-beverage-categories-api";
+import { fetchAllBeverageCategories } from "@/api/order/get-beverage-categories-api";
 import type { RootState } from "@/app/store";
-//import { setBeverageCategoryId } from "@/features/beach-restaurant/foodCategorySlice";
+import { setCategoryId, setIsBeverageItemsList } from "@/features/beach-restaurant/beverageCategorySlice";
 import React, { useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -20,48 +20,49 @@ const staticBeverageCategories = [
 
 const BeverageCategorySelector: React.FC = () => {
   const dispatch = useDispatch();
-//   const beverageCategory = useSelector(
-//     (state: RootState) => state.beverageCategory
-//   );
+  const beverageCategory = useSelector(
+    (state: RootState) => state.beverageCategory
+  );
 
-  //const categories = beverageCategory.categories;
-  //const selectedCategoryId = beverageCategory.selectedCategoryId;
+  const categories = beverageCategory.categories;
+  const selectedCategoryId = beverageCategory.selectedCategoryId;
 
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-//   const selectedIndex = categories.findIndex(
-//     (cat) => cat._id === selectedCategoryId
-//   );
+  const selectedIndex = categories.findIndex(
+    (cat) => cat._id === selectedCategoryId
+  );
 
   useEffect(() => {
-    //dispatch(fetchAllBeverageCategories() as any);
+    dispatch(fetchAllBeverageCategories() as any);
   }, [dispatch]);
 
   //Auto select first category if none selected
-//   useEffect(() => {
-//     if (!selectedCategoryId && categories.length > 0) {
-//       dispatch(setBeverageCategoryId(categories[0]._id));
-//     }
-//   }, [categories, selectedCategoryId, dispatch]);
+  // useEffect(() => {
+  //   if (!selectedCategoryId && categories.length > 0) {
+  //     dispatch(setBeverageCategoryId(categories[0]._id));
+  //   }
+  // }, [categories, selectedCategoryId, dispatch]);
 
   // Ensure selected item is visible when it changes
-//   useEffect(() => {
-//     if (selectedIndex >= 0) {
-//       itemRefs.current[selectedIndex]?.scrollIntoView({
-//         behavior: "smooth",
-//         block: "nearest",
-//       });
-//     }
-//   }, [selectedIndex]);
+  useEffect(() => {
+    if (selectedIndex >= 0) {
+      itemRefs.current[selectedIndex]?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
+  }, [selectedIndex]);
 
   const handleClick = (index: number) => {
-    //dispatch(setBeverageCategoryId(categories[index]._id));
+    //dispatch(setCategoryId(categories[index]._id));
+    dispatch(setIsBeverageItemsList(true));
   };
 
   return (
     <div className="flex flex-col items-start w-[135px] h-[calc(100vh-250px)] overflow-y-auto no-scrollbar rounded-md">
       {staticBeverageCategories.map((cat, index) => {
-        const isSelected = cat._id === "1";
+        const isSelected = cat._id === selectedCategoryId;
         return (
           <div
             key={cat._id}

@@ -138,20 +138,21 @@
 
 import { fetchAllFoodCategories } from "@/api/order/get-food-categories-api";
 import type { RootState } from "@/app/store";
+import { setIsBeverageItemsList } from "@/features/beach-restaurant/beverageCategorySlice";
 import { setCategoryId } from "@/features/beach-restaurant/foodCategorySlice";
 import React, { useRef, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-const staticCategories = [
-  { _id: "1", categoryName: "BreakFast" },
-  { _id: "2", categoryName: "Lunch" },
-  { _id: "3", categoryName: "BreakFast2" },
-  { _id: "4", categoryName: "Lunch2" },
-  { _id: "5", categoryName: "BreakFast" },
-  { _id: "6", categoryName: "Lunch" },
-  { _id: "7", categoryName: "BreakFast2" },
-  { _id: "8", categoryName: "Lunch2" },
-];
+// const staticCategories = [
+//   { _id: "1", categoryName: "BreakFast" },
+//   { _id: "2", categoryName: "Lunch" },
+//   { _id: "3", categoryName: "BreakFast2" },
+//   { _id: "4", categoryName: "Lunch2" },
+//   { _id: "5", categoryName: "BreakFast" },
+//   { _id: "6", categoryName: "Lunch" },
+//   { _id: "7", categoryName: "BreakFast2" },
+//   { _id: "8", categoryName: "Lunch2" },
+// ];
 
 const FoodCategorySelector: React.FC = () => {
   const dispatch = useDispatch();
@@ -196,6 +197,7 @@ const FoodCategorySelector: React.FC = () => {
 
   const handleClick = (index: number) => {
     dispatch(setCategoryId(categories[index]._id));
+    dispatch(setIsBeverageItemsList(false));
   };
 
   // Drag handlers
@@ -228,7 +230,7 @@ const FoodCategorySelector: React.FC = () => {
         onMouseMove={handleMouseMove}
         className="flex gap-2 overflow-x-auto cursor-grab active:cursor-grabbing no-scrollbar w-full"
       >
-        {staticCategories.map((cat, index) => {
+        {categories.map((cat, index) => {
           const isSelected = cat._id === selectedCategoryId;
           return (
             <div

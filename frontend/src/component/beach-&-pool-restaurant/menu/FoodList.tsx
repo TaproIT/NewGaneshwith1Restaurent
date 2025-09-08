@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react';
 import { Plus } from 'lucide-react';
-import { ScrollArea } from '@radix-ui/react-scroll-area';
 import { useSelector } from 'react-redux';
 import { type AppDispatch, type RootState } from '@/app/store';
 import { useDispatch } from 'react-redux';
 import { fetchAllFoodItems } from '@/api/order/get-food-list-api';
 import type { FoodItem } from '../food-model';
 import FoodItemSelector from './FoodItemSelector';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const FoodList:React.FC = () => {
   const foods = useSelector((state:RootState) => state.food.foodItems);

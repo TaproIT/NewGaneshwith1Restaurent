@@ -9,6 +9,8 @@ import removedRoomsReducer from '../features/switch-rooms/removedRooms';
 import foodCategoryReducer from "../features/beach-restaurant/foodCategorySlice";
 import holdOrderReducer from "../features/beach-restaurant/holdOrderSlice";
 import dailyOrderSummaryReducer from "../features/beach-restaurant/dailySummarySlice";
+import beverageCategoryReducer from "../features/beach-restaurant/beverageCategorySlice";
+import beverageReducer from "../features/beach-restaurant/beverageSlice";
 
 
 export const store = configureStore({
@@ -22,7 +24,9 @@ export const store = configureStore({
         removedRooms: removedRoomsReducer,
         foodCategory: foodCategoryReducer,
         holdOrder: holdOrderReducer,
-        dailyOrderSummary: dailyOrderSummaryReducer
+        dailyOrderSummary: dailyOrderSummaryReducer,
+        beverageCategory: beverageCategoryReducer,
+        beverage: beverageReducer
     }
 })
 
