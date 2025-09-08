@@ -24,8 +24,9 @@ import { useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
-import { useSelector } from "react-redux";
-import type { RootState } from "@/app/store";
+import { useDispatch} from "react-redux";
+import { setUserRole } from "@/features/user/userSlice";
+import type { UserRole } from "@/types/roleTypes";
 
 const loginSchema = z.object({
   userRole: z.string().nonempty("User role is required"),
@@ -36,7 +37,7 @@ const loginSchema = z.object({
 type FormValues = z.infer<typeof loginSchema>;
 
 const Login = () => {
-  const userRole = useSelector((state: RootState) => state.user.role)
+  // const userRole = useSelector((state: RootState) => state.user.role)
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate()
   const form = useForm<FormValues>({
@@ -47,6 +48,7 @@ const Login = () => {
       password: "",
     },
   });
+  const dispatch = useDispatch()
 
   const onSubmit = async (data: FormValues) => {
   setIsLoading(true); // Show spinner immediately
@@ -55,25 +57,28 @@ const Login = () => {
     const response = await api.post("/auth/login", data);
 
     if (response.data.data.accessToken) {
-      localStorage.setItem("authToken", response.data.data.accessToken);
+  localStorage.setItem("authToken", response.data.data.accessToken);
 
-      const roleRedirects: Record<string, string> = {
-        "Super-Admin": "/",
-        "Admin": "/menu",
-        "Reception": "/onboarding",
-        "Beach-Restaurant-Staff": "/kitchen",
-        "Pool-Restaurant-Staff": "/kitchen",
-      };
+  dispatch(setUserRole(data.userRole as UserRole));
 
-      const redirectPath = roleRedirects[userRole] || "/";
+  const roleRedirects: Record<string, string> = {
+    "Super-Admin": "/",
+    "Admin": "/menu",
+    "Reception": "/onboarding",
+    "Beach-Restaurant-Staff": "/kitchen",
+    "Pool-Restaurant-Staff": "/kitchen",
+  };
 
-      // Delay navigation to show spinner
-      setTimeout(() => {
-        setIsLoading(false); // Stop spinner
-        navigate(redirectPath);
-        toast.success("Login Successful!");
-      }, 2000); // 2-second delay
-    }
+  // ✅ Use role from form data
+  const redirectPath = roleRedirects[data.userRole] || "/";
+
+  setTimeout(() => {
+    setIsLoading(false);
+    navigate(redirectPath);
+    toast.success("Login Successful!");
+  }, 2000);
+}
+
 
   } catch (error: any) {
     toast.error(error.response?.data?.message || "Something went wrong!");

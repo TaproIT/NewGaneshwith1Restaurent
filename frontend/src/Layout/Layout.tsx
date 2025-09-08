@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Logo from '../assets/Images/Logos/main_logo.png';
 import { 
@@ -9,11 +9,12 @@ import {
   BookText
 } from 'lucide-react';
 import CurrencyDropdown from '@/component/currencyDropdown';
-import { useSelector } from 'react-redux';
-import type { RootState } from '@/app/store';
+import { useDispatch, useSelector } from 'react-redux';
+import type { RootState, AppDispatch } from '@/app/store';
 import type { UserRole } from '@/types/roleTypes';
 import { api } from '@/api/axios';
 import { toast } from 'react-toastify';
+import { fetchUserRole } from '@/features/user/userSlice';
 
 interface NavItem {
   path: string;
@@ -29,9 +30,9 @@ const navigationConfig: Record<UserRole, NavItem[]> = {
     { path: '/settings', title: 'System Settings', icon: <Settings size={22} /> }
   ],
   'Admin': [
-    { path: '/menu', title: 'Room Availability', icon: <ShieldCheck size={22} /> },
-    { path: '/bookings', title: 'Alterations', icon: <Repeat size={22} /> },
-    { path: '/staff', title: 'Staff Management', icon: <Users size={22} /> }
+    { path: '/beverage-inventory/dashboard', title: 'Dashboard', icon: <ShieldCheck size={22} /> },
+    // { path: '/bookings', title: 'Alterations', icon: <Repeat size={22} /> },
+    // { path: '/staff', title: 'Staff Management', icon: <Users size={22} /> }
   ],
   'Reception': [
     { path: '/onboarding', title: 'Onboarding', icon: <UserRoundPlus size={22} /> },
@@ -42,11 +43,11 @@ const navigationConfig: Record<UserRole, NavItem[]> = {
   ],
   'Beach-Restaurant-Staff': [
     { path: '/kitchen', title: 'Beach Orders', icon: <ChefHat size={22} /> },
-    { path: '/menu', title: 'Beach Menu', icon: <Coffee size={22} /> }
+    // { path: '/menu', title: 'Beach Menu', icon: <Coffee size={22} /> }
   ],
   'Pool-Restaurant-Staff': [
     { path: '/kitchen', title: 'Pool Orders', icon: <ChefHat size={22} /> },
-    { path: '/menu', title: 'Pool Menu', icon: <Coffee size={22} /> }
+    // { path: '/menu', title: 'Pool Menu', icon: <Coffee size={22} /> }
   ]
 };
 
@@ -55,7 +56,7 @@ const pathTitles: Record<string, string> = {
   '/room-availability': 'Room Availability',
   '/switch-rooms': 'Switch Rooms',
   '/settings': 'Settings | System',
-  '/menu': 'Room Availability | Status',
+  '/beverage-inventory/dashboard': 'Dashboard',
   '/staff': 'Staff Management | Overview',
   '/checkouts': 'Checkouts',
   '/kitchen': 'Kitchen | Orders',
@@ -68,6 +69,7 @@ const Layout: React.FC = () => {
   const location = useLocation();
   const userRole =useSelector((state: RootState) => state.user.role)
   const navigate = useNavigate()
+  const dispatch = useDispatch<AppDispatch>()
 
   const getLinkClassName = (path: string) => {
     const baseClasses = "flex gap-2 p-3 rounded-lg";
@@ -105,6 +107,14 @@ const Layout: React.FC = () => {
     toast.error(error.response?.data?.message || "Logout failed");
   }
   }
+
+  useEffect(() => {
+    // Only fetch if token exists
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      dispatch(fetchUserRole());
+    }
+  }, [dispatch]);
 
   return (
     <div className="flex h-screen bg-bg p-5 gap-5">

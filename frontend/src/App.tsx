@@ -9,6 +9,8 @@ import Login from "./pages/login/Login";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ProtectedRoute from "./component/ProtectedRoute";
+import Menu from "./pages/admin/Menu";
+import Dashboard from "./pages/admin/beverage_inventory/Dashboard";
 
 function App() {
   return (
@@ -41,7 +43,9 @@ function App() {
           <Route path="/switch-rooms" element={<SwitchRooms />} />
           <Route path="/checkouts" element={<Checkouts />} />
           <Route path="/invoice" element={<Invoice />} />
+          <Route path="/beverage-inventory/dashboard" element={<Dashboard />} />
         </Route>
+        <Route path="/menu" element={<ProtectedRoute><Menu /></ProtectedRoute>} />
       </Routes>
     </Router>
   );
