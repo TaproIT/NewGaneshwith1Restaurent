@@ -28,6 +28,8 @@ const orderTokenSchema = new mongoose.Schema({
   tokenDiscount: { type: Number, required: false, default: 0 },
   tokenServiceCharge: { type: Number, required: false, default: 0 },
   tokenTotalBill: { type: Number, required: true },
+}, {
+  timestamps: true
 });
 
 const OrderToken = mongoose.model("OrderToken", orderTokenSchema);

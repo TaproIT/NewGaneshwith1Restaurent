@@ -22,5 +22,14 @@ export const getAllTokenSubTotal = (tokens: OrderTokenType[]) => {
   }, 0);
 };
 
+export const  formatDate = (date: Date) => {
+  if (!date) return ""
+  return date.toLocaleDateString("en-US", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  })
+}
+
 
 

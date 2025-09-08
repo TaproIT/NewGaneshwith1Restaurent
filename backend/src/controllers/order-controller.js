@@ -343,7 +343,6 @@ export const getOrderDetails = async (req, res) => {
   }
 };
 
-// Get Hold Orders (only orders with holdOrderToken set)
 export const getHoldOrders = async (req, res) => {
   try {
     // Find all orders where holdOrderToken is not null
@@ -373,6 +372,72 @@ export const getHoldOrders = async (req, res) => {
     return sendErrorResponse(res, 500, "Internal Server Error", error.message);
   }
 };
+
+export const getDailyOrdersSummary = async (req, res) => {
+  try {
+    const { date } = req.query; // expected format: YYYY-MM-DD
+    if (!date) {
+      return sendErrorResponse(res, 400, "Date is required");
+    }
+
+    // Build start/end of day 
+    const start = new Date(date);
+    const end = new Date(date);
+    end.setDate(end.getDate() + 1);
+
+    // Query orders within date range 
+    const orders = await Order.find({
+      createdAt: { $gte: start, $lt: end },
+    })
+      .populate({
+        path: "orderTokens",
+        populate: {
+          path: "foodOrders",
+          model: "FoodOrderItem",
+        },
+      })
+      .lean();
+
+    // Summary counts 
+    const dineInCount = orders.filter(
+      (o) => o.serviceType === ServiceTypes.DINE_IN.value
+    ).length;
+    const saveToRoomCount = orders.filter(
+      (o) => o.serviceType === ServiceTypes.SAVE_TO_ROOM.value
+    ).length;
+    const takeAwayCount = orders.filter(
+      (o) => o.serviceType === ServiceTypes.TAKE_AWAY.value
+    ).length;
+    
+    
+    // Transform orders into DailyOrder format 
+    const dailyOrders = orders.map((order) => ({
+      _id: order._id.toString(),
+      orderNumber: order.orderNumber,
+      serviceType: order.serviceType,
+      orderTokens: order.orderTokens.map((token) => ({
+        tokenNumber: token.tokenNumber,
+        orderedTime: token.createdAt?.toISOString() ?? "",
+        orderItems: token.foodOrders?.map((item) => item.title) ?? [],
+      })),
+    }));
+
+    return sendSuccessResponse(res, 200, "Daily order summary retrieve successfully", {
+      date,
+      summary: {
+        dineInCount,
+        saveToRoomCount,
+        takeAwayCount,
+        totalOrders: orders.length,
+      },
+      orders: dailyOrders,
+    });
+  } catch (error) {
+    console.error("Error fetching daily orders:", error);
+    return sendErrorResponse(res, 500, "Internal server error");
+  }
+};
+
 
 
 

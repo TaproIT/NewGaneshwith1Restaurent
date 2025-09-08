@@ -13,6 +13,7 @@ import BeachRestaurantHomePage from './pages/beach-restaurant/BeachRestaurantHom
 import BeachRestaurantTablesPage from './pages/beach-restaurant/BeachRestaurantTablesPage';
 import BeachRestaurantMenuPage from './pages/beach-restaurant/BeachRestaurantMenuPage';
 import BeachRestaurantHoldPage from "./pages/beach-restaurant/BeachRestaurantHoldPage";
+import BeachRestaurantDailySummaryPage from "./pages/beach-restaurant/BeachRestaurantDailySummaryPage";
 
 function App() {
   return (
@@ -50,6 +51,7 @@ function App() {
           <Route path="/beach-restaurant/tables/:id" element={<BeachRestaurantTablesPage />} />
           <Route path="/beach-restaurant/menu/:id" element={<BeachRestaurantMenuPage />} />
           <Route path="/beach-restaurant/hold" element={<BeachRestaurantHoldPage />} />
+          <Route path="/beach-restaurant/daily-summary" element={<BeachRestaurantDailySummaryPage />} />
         </Route>
       </Routes>    
     </Router>

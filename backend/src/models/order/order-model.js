@@ -76,6 +76,8 @@ const orderSchema = new mongoose.Schema({
   //   required: true,
   //   enum: Object.values(OrderProgressStatuses).map((s) => s.value),
   // },
+},{
+  timestamps: true
 });
 
 const Order = mongoose.model("Order", orderSchema);

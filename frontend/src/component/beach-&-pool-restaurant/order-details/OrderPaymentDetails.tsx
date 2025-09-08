@@ -16,7 +16,12 @@ import React, { useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
-const OrderPaymentDetails: React.FC<{isHoldOrder:boolean}> = ({isHoldOrder}) => {
+interface OrderPaymentDetailsProps {
+   isHoldOrder?:boolean;
+   isSummaryOrder?: boolean
+}
+
+const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, isSummaryOrder}) => {
   const order = useSelector((state: RootState) => state.order);
   const {selectedHoldOrderId:id} = useSelector((state: RootState) => state.holdOrder);
   const dispatch = useDispatch<AppDispatch>();
@@ -143,35 +148,41 @@ const OrderPaymentDetails: React.FC<{isHoldOrder:boolean}> = ({isHoldOrder}) => 
           </div>
 
           {/* Action Buttons */}
-          <div className="px-3 2xl:px-5 w-full flex flex-col gap-1.5">
-            {
-              isHoldOrder ? (
-                  <Button
-                    className="!w-full !h-8 border-[#0A869D] cursor-pointer"
-                    onClick={handleProceedPaymentClick}
-                  >
-                    Proceed to payment
-                  </Button>
-              ):(
-                 <>
-                  <Button
-                    variant="outline"
-                    className="!w-full !h-8 border-[#0A869D] cursor-pointer"
-                    disabled={isDisabled}
-                    onClick={handleTokenClick}
-                  >
-                    Token
-                  </Button>
-                  <Button
-                    className="!w-full !h-8 cursor-pointer"
-                    disabled={isDisabled}
-                    onClick={handleHoldClick}>
-                    Hold
-                  </Button>
-                </>
-              )
-            }
-          </div>
+          {
+            isSummaryOrder ? (
+              <p className="text-[0.875rem] text-[#444444] text-center">LKR {order.totalBill.toFixed(2)}</p>
+            ) : (
+              <div className="px-3 2xl:px-5 w-full flex flex-col gap-1.5">
+                {
+                  isHoldOrder ? (
+                    <Button
+                      className="!w-full !h-8 border-[#0A869D] cursor-pointer"
+                      onClick={handleProceedPaymentClick}
+                    >
+                      Proceed to payment
+                    </Button>
+                  ) : (
+                    <>
+                      <Button
+                        variant="outline"
+                        className="!w-full !h-8 border-[#0A869D] cursor-pointer"
+                        disabled={isDisabled}
+                        onClick={handleTokenClick}
+                      >
+                        Token
+                      </Button>
+                      <Button
+                        className="!w-full !h-8 cursor-pointer"
+                        disabled={isDisabled}
+                        onClick={handleHoldClick}>
+                        Hold
+                      </Button>
+                    </>
+                  )
+                }
+              </div>
+            )
+          }
         </div>
       </ScrollArea>
     </div>

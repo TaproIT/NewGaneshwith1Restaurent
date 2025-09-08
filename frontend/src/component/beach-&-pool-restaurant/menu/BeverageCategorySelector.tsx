@@ -13,6 +13,9 @@ const staticBeverageCategories = [
   { _id: "6", categoryName: "Mocktails" },
   { _id: "7", categoryName: "Cocktails" },
   { _id: "8", categoryName: "Beers" },
+  { _id: "9", categoryName: "Mocktails" },
+  { _id: "10", categoryName: "Cocktails" },
+  { _id: "11", categoryName: "Beers" },
 ];
 
 const BeverageCategorySelector: React.FC = () => {

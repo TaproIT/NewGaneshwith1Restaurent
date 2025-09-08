@@ -8,6 +8,7 @@ import bookingReducer from '../features/booking/bookingSlice';
 import removedRoomsReducer from '../features/switch-rooms/removedRooms';
 import foodCategoryReducer from "../features/beach-restaurant/foodCategorySlice";
 import holdOrderReducer from "../features/beach-restaurant/holdOrderSlice";
+import dailyOrderSummaryReducer from "../features/beach-restaurant/dailySummarySlice";
 
 
 export const store = configureStore({
@@ -20,7 +21,8 @@ export const store = configureStore({
         booking: bookingReducer,
         removedRooms: removedRoomsReducer,
         foodCategory: foodCategoryReducer,
-        holdOrder: holdOrderReducer
+        holdOrder: holdOrderReducer,
+        dailyOrderSummary: dailyOrderSummaryReducer
     }
 })
 
