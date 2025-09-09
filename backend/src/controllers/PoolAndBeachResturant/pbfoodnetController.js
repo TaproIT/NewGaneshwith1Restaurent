@@ -14,10 +14,10 @@ export const createPBFoodNet = async (req, res) => {
             return res.status(400).json({ error: "Category not found or not visible." });
         }
 
-        const food = PBFoodNet.findOne({
-            itemName: req.body.itemName,
+        const food = await PBFoodNet.findOne({
+            itemName: { $regex: new RegExp(`^${req.body.itemName}$`, "i") },
             category: req.body.category,
-        })
+        });
 
         if (food) {
             return res.status(400).json({ error: "Food already exists in this category" });
