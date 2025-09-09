@@ -4,6 +4,7 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 const initialState: FoodItems = {
    foodItems: [],
+   isClickAddNewFoodItem:false,
    fetchAllFoodItemsStatus: {
      loading: false,
      error: null
@@ -14,7 +15,9 @@ const foodSlice = createSlice({
   name: "food",
   initialState,
   reducers: {
-   
+     setIsClickAddNewFoodItem: (state, action:PayloadAction<boolean>) => {
+        state.isClickAddNewFoodItem = action.payload;
+     }
   },
   
   extraReducers: (builder) => {
@@ -57,5 +60,5 @@ const foodSlice = createSlice({
   
 });
 
-export const { } = foodSlice.actions;
+export const { setIsClickAddNewFoodItem } = foodSlice.actions;
 export default foodSlice.reducer;

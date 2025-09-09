@@ -12,6 +12,6 @@ export interface FetchAllBeverageCategoriesStatus{
 export interface BeverageCategoryState {
     categories: BeverageCategory[],
     fetchAllBeverageCategoriesStatus: FetchAllBeverageCategoriesStatus,
-    selectedCategoryId: string | null;
+    selectedCategory: string | null;
     isBeverageItemList: boolean;
 }

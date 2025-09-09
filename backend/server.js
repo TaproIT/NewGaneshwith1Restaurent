@@ -31,20 +31,23 @@ const allowedSocketOrigins = process.env.SOCKET_IO_ORIGINS.split(',');
 const allowedApiOrigins = process.env.API_ORIGINS
 
 // --- Middleware ---
-app.use(cors({
-    origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl)
-        if (!origin) return callback(null, true);
-        if (allowedApiOrigins.includes(origin)) {
-            return callback(null, true);
-        } else {
-            return callback(new Error('Not allowed by CORS'));
-        }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"]
-}));
+// app.use(cors({
+//     origin: function (origin, callback) {
+//         // Allow requests with no origin (like mobile apps or curl)
+//         if (!origin) return callback(null, true);
+//         if (allowedApiOrigins.includes(origin)) {
+//             return callback(null, true);
+//         } else {
+//             return callback(new Error('Not allowed by CORS'));
+//         }
+//     },
+//     credentials: true,
+//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+//     allowedHeaders: ["Content-Type", "Authorization"]
+// }));
+
+app.use(cors(corsOptions))
+
 app.use(bodyParser.json());
 app.use(express.json());
 app.use(cookieParser());

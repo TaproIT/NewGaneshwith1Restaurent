@@ -128,6 +128,12 @@ const orderSlice = createSlice({
       }
     },
 
+    removeBeverageItemFromOrderToken: (state, action: PayloadAction<number>) => {
+      if (state.newOrderToken?.beverageOrders) {
+        state.newOrderToken.beverageOrders.splice(action.payload, 1);
+      }
+    },
+
     removeAllOrderItemsFromToken: (state) => {
        if (state.newOrderToken?.foodOrders) {
         state.newOrderToken.foodOrders = [];
@@ -170,6 +176,21 @@ const orderSlice = createSlice({
         }
     },
 
+    increaseBeverageQuantity: (state, action: PayloadAction<string>) => {
+     
+        const token = state.newOrderToken;
+
+        // find the beverage item by id
+        const beverageItem = token?.beverageOrders.find(
+          (item) => item.beverageId === action.payload
+        );
+
+        // if found, increase quantity
+        if (beverageItem) {
+          beverageItem.quantity += 1;
+        }
+    },
+
     decreaseQuantity: (state, action: PayloadAction<string>) => {
       // if (state.orderTokens && state.orderTokens.length > 0) {
       //   // get the last token
@@ -201,6 +222,21 @@ const orderSlice = createSlice({
         // if found, increase quantity
         if (foodItem && (foodItem.quantity > 1)) {
           foodItem.quantity -= 1;
+        }
+    },
+
+     decreaseBeverageQuantity: (state, action: PayloadAction<string>) => {
+
+        const token = state.newOrderToken;
+
+         // find the beverage item by id
+        const beverageItem = token?.beverageOrders.find(
+          (item) => item.beverageId === action.payload
+        );
+
+        // if found, decrease quantity
+        if (beverageItem && (beverageItem.quantity > 1)) {
+          beverageItem.quantity -= 1;
         }
     },
 
@@ -393,12 +429,15 @@ export const {
   addFoodItemToOrderToken,
   addBeverageItemToOrderToken,
   removeFoodItemFromOrderToken,
+  removeBeverageItemFromOrderToken,
   removeAllOrderItemsFromToken,
   openOrderTokenModal,
   closeOrderTokenModal,
   setOrderTokenModal,
   increaseQuantity,
+  increaseBeverageQuantity,
   decreaseQuantity,
+  decreaseBeverageQuantity,
   setIsPrintedForNewOrderToken,
   setIsHoldForNewOrderToken,
   setIsAddNewOrderToken,

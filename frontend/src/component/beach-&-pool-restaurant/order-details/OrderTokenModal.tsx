@@ -85,6 +85,19 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
                   </TableCell>
                 </TableRow>
               ))}
+               {order.newOrderToken.beverageOrders.map((item) => (
+                <TableRow key={item.beverageId} className="border-b border-gray-300">
+                  <TableCell className="text-[0.75rem] text-[#444444] font-normal border-r border-gray-300">
+                    {item.title}
+                  </TableCell>
+                  <TableCell className="text-[0.75rem] text-[#444444] font-normal text-center border-r border-gray-300">
+                    {item.quantity}
+                  </TableCell>
+                  <TableCell className="text-[0.75rem] text-[#444444] font-normal text-right">
+                    {(item.quantity * item.price).toLocaleString()} LKR
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
           

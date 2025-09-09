@@ -14,10 +14,10 @@ interface BeverageItemSelectorProps {
 const BeverageItemSelector: React.FC<BeverageItemSelectorProps> = ({ beverageItem }) => {
   const dispatch = useDispatch<AppDispatch>();
   const order = useSelector((state: RootState) => state.order);
-  const orderBeverageItems = order.newOrderToken?.foodOrders;
+  const orderBeverageItems = order.newOrderToken?.beverageOrders;
 
   // Check if the food item already exists in the current new order token
-  const existBeverageItem = orderBeverageItems?.some((item) => item.foodId === beverageItem._id);
+  const existBeverageItem = orderBeverageItems?.some((item) => item.beverageId === beverageItem._id);
 
   // Determine whether the Add button should be disabled
   const isDisabled = existBeverageItem || (order.orderTokens.length > 0 && !order.isAddNewOrderToken && !order.holdOrderToken);
@@ -25,14 +25,14 @@ const BeverageItemSelector: React.FC<BeverageItemSelectorProps> = ({ beverageIte
   // Handler to add food item to new order token
   const handleAddClick = useCallback(() => {
     const orderBeverageItem: OrderBeverageItem = {
-      foodId: beverageItem._id,
+      beverageId: beverageItem._id,
       title: beverageItem.beverageName,
       price: beverageItem.price,
       quantity: 1,
     };
     dispatch(addBeverageItemToOrderToken(orderBeverageItem));
   }, [dispatch, beverageItem]);
-
+  
   return (
     <div className="p-1 flex flex-col gap-1 border rounded-sm">
       {/* Food item name */}

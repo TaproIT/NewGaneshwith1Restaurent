@@ -7,7 +7,7 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 // Initial State
 const initialState: BeverageCategoryState = {
   categories: [],
-  selectedCategoryId: null,
+  selectedCategory: null,
   fetchAllBeverageCategoriesStatus: {
      loading: false,
      error: null
@@ -21,8 +21,8 @@ const beverageCategorySlice = createSlice({
     name: "beverageCategory",
     initialState,
     reducers: {
-        setCategoryId: (state, action: PayloadAction<string>) => {
-            state.selectedCategoryId = action.payload;
+        setCategory: (state, action: PayloadAction<string>) => {
+            state.selectedCategory = action.payload;
         },
         setCategories: (state, action: PayloadAction<BeverageCategory[]>) => {
             state.categories = action.payload;
@@ -70,5 +70,5 @@ const beverageCategorySlice = createSlice({
     },
 });
 
-export const { setCategoryId, setIsBeverageItemsList } = beverageCategorySlice.actions;
+export const { setCategory, setIsBeverageItemsList } = beverageCategorySlice.actions;
 export default beverageCategorySlice.reducer;

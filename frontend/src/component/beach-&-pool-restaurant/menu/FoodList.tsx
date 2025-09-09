@@ -7,6 +7,7 @@ import { fetchAllFoodItems } from '@/api/order/get-food-list-api';
 import type { FoodItem } from '../food-model';
 import FoodItemSelector from './FoodItemSelector';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { setIsClickAddNewFoodItem } from '@/features/beach-restaurant/foodSlice';
 
 const FoodList:React.FC = () => {
   const foods = useSelector((state:RootState) => state.food.foodItems);
@@ -14,6 +15,11 @@ const FoodList:React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
 
   const categoryFoods = foods.filter((food) => food.category?._id === selectedCategoryId);
+
+  const handleAddNewFoodItem = () => {
+    dispatch(setIsClickAddNewFoodItem(true));
+  }
+
   useEffect( () => {
     dispatch(fetchAllFoodItems());
   },[])
@@ -21,7 +27,7 @@ const FoodList:React.FC = () => {
   return (
     <ScrollArea className="w-full h-[calc(100vh-250px)]">
       <div className="grid grid-cols-3 gap-1">
-        <div className="py-8 flex items-center justify-center border rounded-sm">
+        <div className="py-8 flex items-center justify-center border rounded-sm" onClick={handleAddNewFoodItem}>
           <Plus size={24} className="text-[#0A869D]" />
         </div>
         {categoryFoods?.map((food:FoodItem) => (

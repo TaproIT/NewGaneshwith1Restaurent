@@ -192,7 +192,7 @@ export const addOrderToken = async (req, res) => {
     const { id } = req.params; // order id
     const { newOrderToken, subTotal, tax, discount, serviceCharge, totalBill } =
       req.body.data;
-
+    console.log(newOrderToken);
     const order = await Order.findById(id);
     if (!order) {
       await session.abortTransaction();
@@ -219,9 +219,18 @@ export const addOrderToken = async (req, res) => {
         }
       }
 
-      // TODO: add beverage items here if required (same pattern as food)
+      const beverageOrderIds = [];
+      if (newOrderToken.beverageOrders?.length) {
+        for (const beverage of newOrderToken.beverageOrders) {
+          const { _id, ...foodData } = beverage; // strip old _id
+          const beverageItem = new BeverageOrderItem(foodData);
+          await beverageItem.save({ session });
+          beverageOrderIds.push(beverageItem._id);
+        }
+      }
 
       orderToken.foodOrders = foodOrderIds;
+      orderToken.beverageOrders = beverageOrderIds;
       orderToken.isPrinted = newOrderToken.isPrinted;
       orderToken.tokenSubTotal = newOrderToken.tokenSubTotal;
       orderToken.tokenTax = newOrderToken.tokenTax;
@@ -244,7 +253,6 @@ export const addOrderToken = async (req, res) => {
     // Creating a brand new token
     else {
       const foodOrderIds = [];
-      const beverageOrderIds = [];
 
       if (newOrderToken.foodOrders?.length) {
         for (const food of newOrderToken.foodOrders) {
@@ -252,6 +260,16 @@ export const addOrderToken = async (req, res) => {
           const foodItem = new FoodOrderItem(foodData);
           await foodItem.save({ session });
           foodOrderIds.push(foodItem._id);
+        }
+      }
+
+      const beverageOrderIds = [];
+      if (newOrderToken.beverageOrders?.length) {
+        for (const beverage of newOrderToken.beverageOrders) {
+          const { _id, ...beverageData } = beverage; // strip old _id
+          const beverageItem = new BeverageOrderItem(beverageData);
+          await beverageItem.save({ session });
+          beverageOrderIds.push(beverageItem._id);
         }
       }
 
@@ -298,7 +316,7 @@ export const addOrderToken = async (req, res) => {
     return sendErrorResponse(res, 500, "Internal Server Error", error.message);
   } finally {
     session.endSession();
-  }
+   }
 };
 
 export const getOrderDetails = async (req, res) => {
@@ -314,17 +332,29 @@ export const getOrderDetails = async (req, res) => {
       .populate("restaurantTable") // populate table details
       .populate({
         path: "orderTokens", // populate orderTokens
-        populate: {
-          path: "foodOrders", // populate foodOrders inside each orderToken
-          model: "FoodOrderItem", 
-        },
+        populate: [
+          {
+            path: "foodOrders",
+            model: "FoodOrderItem",
+          },
+          {
+            path: "beverageOrders",
+            model: "BeverageOrderItem",
+          },
+        ],
       })
       .populate({
         path: "holdOrderToken", // populate orderTokens
-        populate: {
-          path: "foodOrders", // populate foodOrders inside hold orderToken
-          model: "FoodOrderItem", 
-        },
+        populate: [
+          {
+            path: "foodOrders",
+            model: "FoodOrderItem",
+          },
+          {
+            path: "beverageOrders",
+            model: "BeverageOrderItem",
+          },
+        ],
       });
 
     if (!order) {

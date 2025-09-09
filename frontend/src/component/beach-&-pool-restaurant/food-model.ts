@@ -19,5 +19,6 @@ export interface FoodItem {
 
 export interface FoodItems {
   foodItems: FoodItem[];
+  isClickAddNewFoodItem: boolean;
   fetchAllFoodItemsStatus: FetchAllFoodItemsStatus
 }

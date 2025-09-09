@@ -27,3 +27,8 @@ export const OrderStatuses = Object.freeze({
   SERVED: { value: 4, label: "Served" },
   CLOSED: { value: 5, label: "Closed" },
 });
+
+export const BeverageCategories = Object.freeze({
+  HARD_LIQUOR: { value: "hard liquor", label: "Hard Liquor"},
+  SOFT_DRINKS: { value: "soft drinks", label: "Soft Drinks"},
+});
