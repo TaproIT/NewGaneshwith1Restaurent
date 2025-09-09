@@ -11,6 +11,7 @@ import "react-toastify/dist/ReactToastify.css";
 import ProtectedRoute from "./component/ProtectedRoute";
 import Menu from "./pages/admin/Menu";
 import Dashboard from "./pages/admin/beverage_inventory/Dashboard";
+import ManageInventory from "./pages/admin/beverage_inventory/ManageInventory";
 
 function App() {
   return (
@@ -44,6 +45,7 @@ function App() {
           <Route path="/checkouts" element={<Checkouts />} />
           <Route path="/invoice" element={<Invoice />} />
           <Route path="/beverage-inventory/dashboard" element={<Dashboard />} />
+          <Route path="/beverage-inventory/manage-inventory" element={<ManageInventory />} />
         </Route>
         <Route path="/menu" element={<ProtectedRoute><Menu /></ProtectedRoute>} />
       </Routes>

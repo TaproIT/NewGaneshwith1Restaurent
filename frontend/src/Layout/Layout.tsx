@@ -2,11 +2,13 @@ import React, { useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Logo from '../assets/Images/Logos/main_logo.png';
 import { 
-  Bell, CircleArrowRight, LogOut, Repeat, Settings, 
+  Bell, CircleArrowRight, LogOut, Settings, 
   ShieldCheck, User, UserRoundPlus, Users, Calendar,
-  ChefHat, Coffee,
+  ChefHat,
   RepeatIcon,
-  BookText
+  BookText,
+  House,
+  Table2
 } from 'lucide-react';
 import CurrencyDropdown from '@/component/currencyDropdown';
 import { useDispatch, useSelector } from 'react-redux';
@@ -30,9 +32,8 @@ const navigationConfig: Record<UserRole, NavItem[]> = {
     { path: '/settings', title: 'System Settings', icon: <Settings size={22} /> }
   ],
   'Admin': [
-    { path: '/beverage-inventory/dashboard', title: 'Dashboard', icon: <ShieldCheck size={22} /> },
-    // { path: '/bookings', title: 'Alterations', icon: <Repeat size={22} /> },
-    // { path: '/staff', title: 'Staff Management', icon: <Users size={22} /> }
+    { path: '/beverage-inventory/dashboard', title: 'Dashboard', icon: <House size={22} /> },
+    { path: '/beverage-inventory/manage-inventory', title: 'Manage Inventory', icon: <Table2 size={22} /> },
   ],
   'Reception': [
     { path: '/onboarding', title: 'Onboarding', icon: <UserRoundPlus size={22} /> },
@@ -57,6 +58,7 @@ const pathTitles: Record<string, string> = {
   '/switch-rooms': 'Switch Rooms',
   '/settings': 'Settings | System',
   '/beverage-inventory/dashboard': 'Dashboard',
+  '/beverage-inventory/manage-inventory': 'Manage Inventory',
   '/staff': 'Staff Management | Overview',
   '/checkouts': 'Checkouts',
   '/kitchen': 'Kitchen | Orders',
