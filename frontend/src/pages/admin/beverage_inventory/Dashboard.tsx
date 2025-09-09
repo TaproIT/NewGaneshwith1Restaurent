@@ -3,19 +3,23 @@ import MonthlyBeverageSales from "@/component/beverage-inventory/dashboard/Month
 import OutOfStock from "@/component/beverage-inventory/dashboard/OutOfStock";
 import Restock from "@/component/beverage-inventory/dashboard/Restock";
 import TotalInStock from "@/component/beverage-inventory/dashboard/TotalInStock";
-import type { BeverageItem } from "@/types/BeverageItem";
+import type { CategoryData } from "@/types/beverageCategory";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 
 const Dashboard = () => {
-    const [beverageItems, setBeverageItems] = useState<BeverageItem[]>([]);
+    const [beverageCategoryItems, setBeverageCategoryItems] = useState<CategoryData[]>([]);
+
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
 
     useEffect(() => {
         const fetchAllBeverageItems = async () => {
             try {
-                const response = await api.get("/beverages");
-                setBeverageItems(response.data.data);
+                const response = await api.get(`/beverages/categories/summary?year=${year}&month=${month}`);
+                setBeverageCategoryItems(response.data.data);
             } catch (error) {
                 toast.error("Error fetching beverage items");
             }
@@ -27,9 +31,9 @@ const Dashboard = () => {
   return (
     <div className="flex flex-col gap-4">
         <div className="grid grid-cols-3 gap-5">
-            <TotalInStock items={beverageItems} />
+            <TotalInStock items={beverageCategoryItems} />
             <OutOfStock />
-            <Restock />
+            <Restock items={beverageCategoryItems}/>
         </div>
 
         <MonthlyBeverageSales />
