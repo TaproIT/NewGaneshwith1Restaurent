@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-const Menu = () => {
+const Menu:React.FC = () => {
     const navigate = useNavigate()
   return (
     <div className="flex flex-col gap-4 items-center justify-center h-screen">
