@@ -276,21 +276,44 @@ export const getAllBeverages = async (req, res) => {
       ...(category ? { category } : {}),
     };
 
-    const list = await Beverage.find(filter).lean();
+    // if year + month provided, fetch only relevant histories
+    let beverages;
+    if (year && month) {
+      beverages = await Beverage.find({
+        ...filter,
+        history: {
+          $elemMatch: {
+            year: Number(year),
+            month: Number(month),
+          },
+        },
+      }).lean();
+    } else {
+      beverages = await Beverage.find(filter).lean();
+    }
 
-    if (year || month || date) {
-      const y = Number(year) || new Date().getFullYear();
-      const m = Number(month) || new Date().getMonth() + 1;
+    // 🚨 check for not found
+    if (!beverages || beverages.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No beverages found for the given criteria",
+      });
+    }
+
+    // post-processing: attach the meta info
+    if (year && month) {
+      const y = Number(year);
+      const m = Number(month);
 
       const dateObj = date ? new Date(date) : null;
       const dayStart = dateObj
-        ? new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate())
-        : null;
+          ? new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate())
+          : null;
       const dayEnd = dateObj
-        ? new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate() + 1)
-        : null;
+          ? new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate() + 1)
+          : null;
 
-      for (const it of list) {
+      for (const it of beverages) {
         const hist = (it.history || []).find((h) => h.year === y && h.month === m);
         if (hist) {
           it.meta = {
@@ -307,6 +330,7 @@ export const getAllBeverages = async (req, res) => {
             },
           };
 
+          // If a specific day is requested
           if (dayStart && dayEnd) {
             const inRange = (d) => {
               const x = new Date(d);
@@ -315,26 +339,102 @@ export const getAllBeverages = async (req, res) => {
             it.meta.day = {
               date,
               restocked: (hist.restockEvents || [])
-                .filter((e) => inRange(e.date))
-                .reduce((s, e) => s + e.quantity, 0),
+                  .filter((e) => inRange(e.date))
+                  .reduce((s, e) => s + e.quantity, 0),
               removed: (hist.removalEvents || [])
-                .filter((e) => inRange(e.date))
-                .reduce((s, e) => s + e.quantity, 0),
+                  .filter((e) => inRange(e.date))
+                  .reduce((s, e) => s + e.quantity, 0),
               purchased: (hist.purchaseEvents || [])
-                .filter((e) => inRange(e.date))
-                .reduce((s, e) => s + e.quantity, 0),
+                  .filter((e) => inRange(e.date))
+                  .reduce((s, e) => s + e.quantity, 0),
             };
           }
         }
       }
     }
 
-    return res.json({ success: true, data: list });
+    return res.json({ success: true, data: beverages });
   } catch (err) {
     console.error(err);
     return res.status(400).json({ success: false, message: err.message });
   }
 };
+
+
+// export const getAllBeverages = async (req, res) => {
+//   try {
+//     const {
+//       includeDeleted = "false",
+//       category,
+//       year,
+//       month,
+//       date, // optional day filter
+//     } = req.query;
+//
+//     const filter = {
+//       ...(includeDeleted !== "true" ? { status: "active" } : {}),
+//       ...(category ? { category } : {}),
+//     };
+//
+//     const list = await Beverage.find(filter).lean();
+//
+//     if (year || month || date) {
+//       const y = Number(year) || new Date().getFullYear();
+//       const m = Number(month) || new Date().getMonth() + 1;
+//
+//       const dateObj = date ? new Date(date) : null;
+//       const dayStart = dateObj
+//         ? new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate())
+//         : null;
+//       const dayEnd = dateObj
+//         ? new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate() + 1)
+//         : null;
+//
+//       for (const it of list) {
+//         const hist = (it.history || []).find((h) => h.year === y && h.month === m);
+//         if (hist) {
+//           it.meta = {
+//             month: {
+//               year: y,
+//               month: m,
+//               openingStock: hist.openingStock,
+//               totalRestocked: hist.totalRestocked,
+//               totalRemoved: hist.totalRemoved,
+//               totalPurchased: hist.totalPurchased,
+//               totalInStock: hist.totalInStock,
+//               availableAfterPurchases: hist.availableAfterPurchases,
+//               lastUpdateAt: hist.lastUpdateAt,
+//             },
+//           };
+//
+//           if (dayStart && dayEnd) {
+//             const inRange = (d) => {
+//               const x = new Date(d);
+//               return x >= dayStart && x < dayEnd;
+//             };
+//             it.meta.day = {
+//               date,
+//               restocked: (hist.restockEvents || [])
+//                 .filter((e) => inRange(e.date))
+//                 .reduce((s, e) => s + e.quantity, 0),
+//               removed: (hist.removalEvents || [])
+//                 .filter((e) => inRange(e.date))
+//                 .reduce((s, e) => s + e.quantity, 0),
+//               purchased: (hist.purchaseEvents || [])
+//                 .filter((e) => inRange(e.date))
+//                 .reduce((s, e) => s + e.quantity, 0),
+//             };
+//           }
+//         }
+//       }
+//     }
+//
+//     return res.json({ success: true, data: list });
+//   } catch (err) {
+//     console.error(err);
+//     return res.status(400).json({ success: false, message: err.message });
+//   }
+// };
 
 // READ: get one
 
