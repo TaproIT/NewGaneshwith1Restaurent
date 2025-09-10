@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from '@/app/store';
 import type { OrderFoodItem } from '../order-model';
 import { addFoodItemToOrderToken } from '@/features/beach-restaurant/orderSlice';
+import { useParams } from 'react-router-dom';
 
 interface FoodItemSelectorProps {
   foodItem: FoodItem;
@@ -14,13 +15,17 @@ interface FoodItemSelectorProps {
 const FoodItemSelector: React.FC<FoodItemSelectorProps> = ({ foodItem }) => {
   const dispatch = useDispatch<AppDispatch>();
   const order = useSelector((state: RootState) => state.order);
+
+  const param = useParams();
+  const id = param?.id as string;
+
   const orderFoodItems = order.newOrderToken?.foodOrders;
 
   // Check if the food item already exists in the current new order token
   const existFoodItem = orderFoodItems?.some((item) => item.foodId === foodItem._id);
 
   // Determine whether the Add button should be disabled
-  const isDisabled = existFoodItem || (order.orderTokens.length > 0 && !order.isAddNewOrderToken && !order.holdOrderToken);
+  const isDisabled = existFoodItem || (order.orderTokens.length > 0 && !order.isAddNewOrderToken && !order.holdOrderToken) || id===":id" ;
 
   // Handler to add food item to new order token
   const handleAddClick = useCallback(() => {

@@ -6,6 +6,7 @@ import type { AppDispatch, RootState } from '@/app/store';
 import type { BeverageItem } from '../beverage-model';
 import type { OrderBeverageItem } from '../order-model';
 import { addBeverageItemToOrderToken } from '@/features/beach-restaurant/orderSlice';
+import { useParams } from 'react-router-dom';
 
 interface BeverageItemSelectorProps {
   beverageItem: BeverageItem;
@@ -14,13 +15,17 @@ interface BeverageItemSelectorProps {
 const BeverageItemSelector: React.FC<BeverageItemSelectorProps> = ({ beverageItem }) => {
   const dispatch = useDispatch<AppDispatch>();
   const order = useSelector((state: RootState) => state.order);
+
+  const param = useParams();
+  const id = param?.id as string;
+
   const orderBeverageItems = order.newOrderToken?.beverageOrders;
 
   // Check if the food item already exists in the current new order token
   const existBeverageItem = orderBeverageItems?.some((item) => item.beverageId === beverageItem._id);
 
   // Determine whether the Add button should be disabled
-  const isDisabled = existBeverageItem || (order.orderTokens.length > 0 && !order.isAddNewOrderToken && !order.holdOrderToken);
+  const isDisabled = existBeverageItem || (order.orderTokens.length > 0 && !order.isAddNewOrderToken && !order.holdOrderToken) || id===":id";
 
   // Handler to add food item to new order token
   const handleAddClick = useCallback(() => {

@@ -1,3 +1,4 @@
+import { addNewBeverage } from "@/api/order/add-beverage-api";
 import { fetchAllBeverageItems } from "@/api/order/get-beverage-list-api";
 import type { BeverageItems } from "@/component/beach-&-pool-restaurant/beverage-model";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
@@ -36,23 +37,20 @@ const beverageSlice = createSlice({
         state.fetchAllBeverageItemsStatus.error = action.payload as string;
       })
 
-    //   // add
-    //   .addCase(addCategory.fulfilled, (state, action: PayloadAction<FoodCategory>) => {
-    //     state.categories.push(action.payload);
-    //   })
+      // add
+      .addCase(addNewBeverage.pending, (state, action) => {
+        //state.beverageItems.push(action.payload);
+      })
 
-    //   // update
-    //   .addCase(updateCategory.fulfilled, (state, action: PayloadAction<FoodCategory>) => {
-    //     const index = state.categories.findIndex((c) => c._id === action.payload._id);
-    //     if (index !== -1) {
-    //       state.categories[index] = action.payload;
-    //     }
-    //   })
+      // update
+      .addCase(addNewBeverage.fulfilled, (state, action) => {
+       
+      })
 
-    //   // delete
-    //   .addCase(deleteCategory.fulfilled, (state, action: PayloadAction<string>) => {
-    //     state.categories = state.categories.filter((c) => c._id !== action.payload);
-    //   });
+      // delete
+      .addCase(addNewBeverage.rejected, (state, action) => {
+        
+      });
   },
   
 });

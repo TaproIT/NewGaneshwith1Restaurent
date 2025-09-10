@@ -11,8 +11,10 @@ export interface BeverageItem {
   price: number;
   restaurantType: string;
   isVisible: boolean;
-  category: BeverageCategory | null;
-  isEnableBeverage: boolean;
+  category: string | null;
+  //isEnableBeverage: boolean;
+  initialStock: number;
+  note: string;
 }
 
 export interface BeverageItems {

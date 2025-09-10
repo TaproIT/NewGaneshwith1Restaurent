@@ -15,14 +15,33 @@ import {
 } from "@/components/ui/select";
 import { Plus, Trash2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "@/app/store";
+import { BeverageCategories } from "@/lib/enums/order-related-enums";
+import type { BeverageItem } from "../beverage-model";
+import { addNewBeverage } from "@/api/order/add-beverage-api";
 
 export default function AddFoodItemSection() {
+  const dispatch = useDispatch<AppDispatch>();
+  const { categories: foodCategories } = useSelector(
+    (state: RootState) => state.foodCategory
+  );
+
+  const beverageCategories = Object.values(BeverageCategories);
+
+  // Form states
+  const [itemType, setItemType] = useState<string | null>(null);
+  const [category, setCategory] = useState<string | null>(null);
+  const [itemName, setItemName] = useState("");
+  const [price, setPrice] = useState<number>(0);
+
+  // Liqueur states
   const [addLiqueur, setAddLiqueur] = useState(false);
   const [liqueurs, setLiqueurs] = useState<{ name: string; amount: string }[]>(
     []
   );
 
-  // Show at least one field when toggle is enabled
+  // Toggle liqueur section
   const handleToggleLiqueur = (checked: boolean) => {
     setAddLiqueur(checked);
     if (checked && liqueurs.length === 0) {
@@ -33,6 +52,7 @@ export default function AddFoodItemSection() {
     }
   };
 
+  // Add/remove liqueur fields
   const handleAddLiqueur = () => {
     setLiqueurs([...liqueurs, { name: "", amount: "" }]);
   };
@@ -43,6 +63,33 @@ export default function AddFoodItemSection() {
     setLiqueurs(updated);
   };
 
+  // Handle Add button click
+  const handleAddItem = () => {
+    const beverageItem : BeverageItem = {
+      _id: "",
+      category,
+      beverageName: itemName,
+      price,
+      isVisible: true,
+      restaurantType: "",
+      initialStock: 10,
+      note: ""
+    };
+
+    console.log("New Item:", beverageItem);
+
+    // Example: dispatch to redux
+    dispatch(addNewBeverage(beverageItem));
+
+    // Reset form if needed
+    setItemType(null);
+    setCategory(null);
+    setItemName("");
+    setPrice(0);
+    setAddLiqueur(false);
+    setLiqueurs([]);
+  };
+
   return (
     <div className="max-w-sm h-full text-[#444444] mx-auto p-4 flex flex-col items-center justify-between bg-mainWhite rounded-l-2xl">
       <div className="w-full">
@@ -51,13 +98,23 @@ export default function AddFoodItemSection() {
         {/* Item Type */}
         <div className="grid grid-cols-3 mb-3 items-center">
           <Label className="col-span-1 text-[0.75rem]">Item Type :</Label>
-          <Select>
+          <Select
+            value={itemType ?? ""}
+            onValueChange={(val) => {
+              setItemType(val);
+              setCategory(null); // reset category when type changes
+            }}
+          >
             <SelectTrigger className="col-span-2 w-full text-[0.75rem]">
               <SelectValue placeholder="Select Type" />
             </SelectTrigger>
-            <SelectContent className="text-[0.75rem]">
-              <SelectItem value="food">Food</SelectItem>
-              <SelectItem value="beverage">Beverage</SelectItem>
+            <SelectContent>
+              <SelectItem value="food" className="text-[0.75rem]">
+                Food
+              </SelectItem>
+              <SelectItem value="beverage" className="text-[0.75rem]">
+                Beverage
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -65,14 +122,34 @@ export default function AddFoodItemSection() {
         {/* Category */}
         <div className="grid grid-cols-3 mb-3 items-center">
           <Label className="col-span-1 text-[0.75rem]">Category :</Label>
-          <Select>
+          <Select
+            value={category ?? ""}
+            onValueChange={setCategory}
+            disabled={!itemType}
+          >
             <SelectTrigger className="col-span-2 w-full text-[0.75rem]">
               <SelectValue placeholder="Select Category" />
             </SelectTrigger>
             <SelectContent className="text-[0.75rem]">
-              <SelectItem value="breakfast">Breakfast</SelectItem>
-              <SelectItem value="lunch">Lunch</SelectItem>
-              <SelectItem value="dinner">Dinner</SelectItem>
+              {itemType === "food"
+                ? foodCategories.map((cat, i) => (
+                    <SelectItem
+                      key={i}
+                      value={cat._id}
+                      className="text-[0.75rem]"
+                    >
+                      {cat.categoryName}
+                    </SelectItem>
+                  ))
+                : beverageCategories.map((cat: any, i) => (
+                    <SelectItem
+                      key={i}
+                      value={cat.value}
+                      className="text-[0.75rem]"
+                    >
+                      {cat.label}
+                    </SelectItem>
+                  ))}
             </SelectContent>
           </Select>
         </div>
@@ -81,6 +158,8 @@ export default function AddFoodItemSection() {
         <div className="grid grid-cols-3 mb-3">
           <Label className="col-span-1 text-[0.75rem]">Item Name :</Label>
           <Input
+            value={itemName}
+            onChange={(e) => setItemName(e.target.value)}
             placeholder="Item Name"
             className="col-span-2 text-[0.75rem] placeholder:text-[0.75rem]"
           />
@@ -90,6 +169,8 @@ export default function AddFoodItemSection() {
         <div className="grid grid-cols-3 mb-3">
           <Label className="col-span-1 text-[0.75rem]">Price :</Label>
           <Input
+            value={price}
+            onChange={(e) => setPrice(Number(e.target.value))}
             placeholder="LKR 0.00"
             className="col-span-2 text-[0.75rem] placeholder:text-[0.75rem]"
           />
@@ -110,7 +191,14 @@ export default function AddFoodItemSection() {
                   <div key={index} className="relative border-b pb-6 mb-3">
                     <div className="flex items-center gap-2 mb-3">
                       <Label className="w-24 text-[0.75rem]">Liqueur :</Label>
-                      <Select>
+                      <Select
+                        value={liq.name}
+                        onValueChange={(val) => {
+                          const updated = [...liqueurs];
+                          updated[index].name = val;
+                          setLiqueurs(updated);
+                        }}
+                      >
                         <SelectTrigger className="w-full text-[0.75rem]">
                           <SelectValue placeholder="Select Name" />
                         </SelectTrigger>
@@ -125,12 +213,18 @@ export default function AddFoodItemSection() {
                     <div className="flex items-center">
                       <Label className="w-24 text-[0.75rem]">Amount :</Label>
                       <Input
+                        value={liq.amount}
+                        onChange={(e) => {
+                          const updated = [...liqueurs];
+                          updated[index].amount = e.target.value;
+                          setLiqueurs(updated);
+                        }}
                         placeholder="Amount of Liqueur"
                         className="text-[0.75rem] placeholder:text-[0.75rem]"
                       />
                     </div>
 
-                    {/* Remove button bottom-right */}
+                    {/* Remove button */}
                     <Button
                       type="button"
                       variant="ghost"
@@ -160,7 +254,12 @@ export default function AddFoodItemSection() {
       </div>
 
       {/* Add Button */}
-      <Button className="w-full bg-teal-600 hover:bg-teal-700">Add</Button>
+      <Button
+        className="w-full bg-teal-600 hover:bg-teal-700"
+        onClick={handleAddItem}
+      >
+        Add
+      </Button>
     </div>
   );
 }
