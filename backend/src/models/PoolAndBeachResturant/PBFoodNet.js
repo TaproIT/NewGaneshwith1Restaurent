@@ -7,7 +7,12 @@ const PBFoodNetSchema = new mongoose.Schema({
     isVisible: { type: Boolean, default: true },
     category: { type: mongoose.Schema.Types.ObjectId, ref: "PBFoodNetCategory", required: true },
     isEnableBeverage: { type: Boolean, default: false },
-    liquor: [{ type: mongoose.Schema.Types.ObjectId, ref: "Beverage" }]
+    liquor: [
+        {
+            beverage: { type: mongoose.Schema.Types.ObjectId, ref: "Beverage", required: true },
+            amount: { type: Number, default: 0 },
+        },
+    ],
 }, { timestamps: true });
 
 const PBFoodNet = mongoose.model("PBFoodNet", PBFoodNetSchema);
