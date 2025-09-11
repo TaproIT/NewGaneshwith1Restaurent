@@ -26,7 +26,7 @@ import { toast } from "react-toastify";
 import { setIsBeverageItemsList, setSelectedCategory } from "@/features/beach-restaurant/beverageCategorySlice";
 import { setSelectedCategoryId } from "@/features/beach-restaurant/foodCategorySlice";
 
-type Liqueur = { id: string; amount: number };
+type Liqueur = { beverage: string; amount: number };
 
 export default function AddFoodItemSection() {
   const dispatch = useDispatch<AppDispatch>();
@@ -68,11 +68,11 @@ export default function AddFoodItemSection() {
 
   const handleToggleLiqueur = (checked: boolean) => {
     setAddLiqueur(checked);
-    setLiqueurs(checked ? [{ id: "", amount: 0 }] : []);
+    setLiqueurs(checked ? [{ beverage: "", amount: 0 }] : []);
   };
 
   const handleAddLiqueur = () =>
-    setLiqueurs((prev) => [...prev, { id: "", amount: 0 }]);
+    setLiqueurs((prev) => [...prev, { beverage: "", amount: 0 }]);
 
   const handleRemoveLiqueur = (index: number) =>
     setLiqueurs((prev) => prev.filter((_, i) => i !== index));
@@ -249,11 +249,11 @@ export default function AddFoodItemSection() {
                   <div key={index} className="relative border-b pb-6 mb-3">
                     <FormRow label="Liqueur :">
                       <Select
-                        value={liq.id}
+                        value={liq.beverage}
                         onValueChange={(val) =>
                           setLiqueurs((prev) =>
                             prev.map((l, i) =>
-                              i === index ? { ...l, id: val } : l
+                              i === index ? { ...l, beverage: val } : l
                             )
                           )
                         }

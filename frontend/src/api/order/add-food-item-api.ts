@@ -9,7 +9,7 @@ interface AddFoodItem {
   isVisible: boolean;
   category: string | null;
   isEnableBeverage: boolean;
-  liquor: {id:string, amount:number}[];
+  liquor: {beverage:string, amount:number}[];
 }
 /**
  * Async thunk to add a table into specific order
