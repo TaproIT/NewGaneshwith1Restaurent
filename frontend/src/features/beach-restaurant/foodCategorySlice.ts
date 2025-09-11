@@ -20,7 +20,7 @@ const foodCategorySlice = createSlice({
     name: "foodCategory",
     initialState,
     reducers: {
-        setCategoryId: (state, action: PayloadAction<string>) => {
+        setSelectedCategoryId: (state, action: PayloadAction<string>) => {
             state.selectedCategoryId = action.payload;
         },
         setCategories: (state, action: PayloadAction<FoodCategory[]>) => {
@@ -66,5 +66,5 @@ const foodCategorySlice = createSlice({
     },
 });
 
-export const { setCategoryId } = foodCategorySlice.actions;
+export const { setSelectedCategoryId } = foodCategorySlice.actions;
 export default foodCategorySlice.reducer;

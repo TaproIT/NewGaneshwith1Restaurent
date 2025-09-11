@@ -8,7 +8,6 @@ import BeverageList from './BeverageList';
 
 const FoodCategoryList: React.FC = () => { 
   const isBeverageItemList = useSelector((state:RootState) => state.beverageCategory.isBeverageItemList);
-  console.log(isBeverageItemList);
   useEffect(() => {
 
   },[isBeverageItemList]);

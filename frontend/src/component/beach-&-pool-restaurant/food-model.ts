@@ -5,6 +5,11 @@ export interface FetchAllFoodItemsStatus {
      error: string | null
 }
 
+export interface AddFoodItemStatus {
+     loading: boolean,
+     error: string | null
+}
+
 export interface FoodItem {
   _id: string;
   itemName: string;
@@ -18,7 +23,9 @@ export interface FoodItem {
 }
 
 export interface FoodItems {
+  isAddedNewFoodItem: boolean;
   foodItems: FoodItem[];
   isClickAddNewFoodItem: boolean;
   fetchAllFoodItemsStatus: FetchAllFoodItemsStatus
+  addFoodItemStatus: AddFoodItemStatus
 }

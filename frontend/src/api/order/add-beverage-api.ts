@@ -11,7 +11,6 @@ export const addNewBeverage = createAsyncThunk<
 >("beverage/addNewBeverage", async (beverageItem:BeverageItem, { rejectWithValue }) => {
   try {
     const response = await api.post(`/beverages`,beverageItem);
-    console.log(response);
     return response.data.data.order as BeverageItem;
   } catch (error: any) {
     return rejectWithValue(error?.response?.data || "Failed to add table into order");

@@ -102,7 +102,7 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
 
   return (
     <div className="w-full flex flex-col items-center shadow-[0px_-1px_4px_0px_#5C5C5C40]">
-      <ScrollArea className={`w-full ${!isHoldOrder ? "h-[calc(100vh-510px)] 2xl:h-[calc(100vh-670px)]" : "h-[calc(100vh-590px)] 2xl:h-[calc(100vh-670px)]"}`}>
+      <ScrollArea className={`w-full ${!isHoldOrder ? "h-[calc(100vh-500px)] 2xl:h-[calc(100vh-670px)]" : "h-[calc(100vh-590px)] 2xl:h-[calc(100vh-670px)]"}`}>
         <div className="py-3 flex flex-col gap-3">
           {/* Payment Details */}
           <div className="px-6 2xl:px-8 w-full flex flex-col gap-1 text-[0.75rem] text-[#444444] font-normal">

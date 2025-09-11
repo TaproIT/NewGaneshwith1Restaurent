@@ -1,7 +1,7 @@
 import { fetchAllBeverageCategories } from "@/api/order/get-beverage-categories-api";
 import type { RootState } from "@/app/store";
-import { setCategory, setIsBeverageItemsList } from "@/features/beach-restaurant/beverageCategorySlice";
-import { setCategoryId } from "@/features/beach-restaurant/foodCategorySlice";
+import { setSelectedCategory, setIsBeverageItemsList } from "@/features/beach-restaurant/beverageCategorySlice";
+import { setSelectedCategoryId } from "@/features/beach-restaurant/foodCategorySlice";
 import { setIsClickAddNewFoodItem } from "@/features/beach-restaurant/foodSlice";
 import { BeverageCategories } from "@/lib/enums/order-related-enums";
 import React, { useRef, useEffect } from "react";
@@ -38,8 +38,8 @@ const BeverageCategorySelector: React.FC = () => {
   }, [selectedIndex]);
 
   const handleClick = (category: string) => {
-    dispatch(setCategory(category));
-    dispatch(setCategoryId(""));
+    dispatch(setSelectedCategory(category));
+    dispatch(setSelectedCategoryId(""));
     dispatch(setIsBeverageItemsList(true));
     dispatch(setIsClickAddNewFoodItem(false));
   };

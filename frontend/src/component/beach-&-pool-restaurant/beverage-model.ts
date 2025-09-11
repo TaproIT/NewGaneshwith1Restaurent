@@ -5,6 +5,11 @@ export interface FetchAllBeverageItemsStatus {
      error: string | null
 }
 
+export interface AddBeverageItemStatus {
+     loading: boolean,
+     error: string | null
+}
+
 export interface BeverageItem {
   _id: string;
   beverageName: string;
@@ -19,5 +24,7 @@ export interface BeverageItem {
 
 export interface BeverageItems {
   beverageItems: BeverageItem[];
-  fetchAllBeverageItemsStatus: FetchAllBeverageItemsStatus
+  fetchAllBeverageItemsStatus: FetchAllBeverageItemsStatus;
+  isAddedBeverageItem: boolean;
+  addBeverageItemStatus: AddBeverageItemStatus;
 }

@@ -15,7 +15,6 @@ export const addTableToOrder = createAsyncThunk<
 >("order/addTableToOrder", async (tableData:AddTableData, { rejectWithValue }) => {
   try {
     const response = await api.patch(`/order/${tableData.orderId}`,{tableId: tableData.tableId});
-    console.log(response);
     return response.data.data.order as Order;
   } catch (error: any) {
     return rejectWithValue(error?.response?.data || "Failed to add table into order");

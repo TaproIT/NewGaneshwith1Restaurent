@@ -10,7 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { setIsClickAddNewFoodItem } from '@/features/beach-restaurant/foodSlice';
 
 const FoodList:React.FC = () => {
-  const foods = useSelector((state:RootState) => state.food.foodItems);
+  const {foodItems:foods, isAddedNewFoodItem} = useSelector((state:RootState) => state.food);
   const selectedCategoryId = useSelector((state: RootState) => state.foodCategory.selectedCategoryId);
   const dispatch = useDispatch<AppDispatch>();
 
@@ -22,7 +22,7 @@ const FoodList:React.FC = () => {
 
   useEffect( () => {
     dispatch(fetchAllFoodItems());
-  },[])
+  },[isAddedNewFoodItem])
 
   return (
     <ScrollArea className="w-full h-[calc(100vh-250px)]">
@@ -30,8 +30,8 @@ const FoodList:React.FC = () => {
         <div className="py-8 flex items-center justify-center border rounded-sm" onClick={handleAddNewFoodItem}>
           <Plus size={24} className="text-[#0A869D]" />
         </div>
-        {categoryFoods?.map((food:FoodItem) => (
-          <FoodItemSelector foodItem={food} />
+        {categoryFoods?.map((food:FoodItem, index) => (
+          <FoodItemSelector foodItem={food} key={index} />
         ))}
       </div>
     </ScrollArea>

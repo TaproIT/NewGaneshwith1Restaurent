@@ -138,8 +138,8 @@
 
 import { fetchAllFoodCategories } from "@/api/order/get-food-categories-api";
 import type { RootState } from "@/app/store";
-import { setCategory, setIsBeverageItemsList } from "@/features/beach-restaurant/beverageCategorySlice";
-import { setCategoryId } from "@/features/beach-restaurant/foodCategorySlice";
+import { setSelectedCategory, setIsBeverageItemsList } from "@/features/beach-restaurant/beverageCategorySlice";
+import { setSelectedCategoryId } from "@/features/beach-restaurant/foodCategorySlice";
 import { setIsClickAddNewFoodItem } from "@/features/beach-restaurant/foodSlice";
 import React, { useRef, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -182,7 +182,7 @@ const FoodCategorySelector: React.FC = () => {
   // Auto select first category if none selected
   useEffect(() => {
     if (!selectedCategoryId && !selectedCategory && categories.length > 0) {
-      dispatch(setCategoryId(categories[0]._id));
+      dispatch(setSelectedCategoryId(categories[0]._id));
     }
   }, [categories, selectedCategoryId, dispatch]);
 
@@ -198,8 +198,8 @@ const FoodCategorySelector: React.FC = () => {
   }, [selectedIndex]);
 
   const handleClick = (index: number) => {
-    dispatch(setCategory(""));
-    dispatch(setCategoryId(categories[index]._id));
+    dispatch(setSelectedCategory(""));
+    dispatch(setSelectedCategoryId(categories[index]._id));
     dispatch(setIsBeverageItemsList(false));
     dispatch(setIsClickAddNewFoodItem(false));
   };

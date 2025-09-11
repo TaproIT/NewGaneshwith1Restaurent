@@ -11,7 +11,6 @@ export const fetchAllFoodItems = createAsyncThunk<
 >("food/fetchAllFoodItems", async ( __ ,{ rejectWithValue }) => {
   try {
     const response = await api.get(`/pbfoodnets`);
-    console.log(response);
     return response.data as FoodItem[];
   } catch (error: any) {
     return rejectWithValue(error?.response?.data || "Failed to fetch order");

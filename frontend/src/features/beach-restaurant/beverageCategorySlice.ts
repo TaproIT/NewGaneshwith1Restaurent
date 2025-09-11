@@ -21,7 +21,7 @@ const beverageCategorySlice = createSlice({
     name: "beverageCategory",
     initialState,
     reducers: {
-        setCategory: (state, action: PayloadAction<string>) => {
+        setSelectedCategory: (state, action: PayloadAction<string>) => {
             state.selectedCategory = action.payload;
         },
         setCategories: (state, action: PayloadAction<BeverageCategory[]>) => {
@@ -70,5 +70,5 @@ const beverageCategorySlice = createSlice({
     },
 });
 
-export const { setCategory, setIsBeverageItemsList } = beverageCategorySlice.actions;
+export const { setSelectedCategory, setIsBeverageItemsList } = beverageCategorySlice.actions;
 export default beverageCategorySlice.reducer;

@@ -8,7 +8,12 @@ const initialState: BeverageItems = {
    fetchAllBeverageItemsStatus: {
      loading: false,
      error: null
-   }
+   },
+   isAddedBeverageItem: false,
+   addBeverageItemStatus: {
+     loading: false,
+     error: null
+   },
 };
 
 const beverageSlice = createSlice({
@@ -20,7 +25,7 @@ const beverageSlice = createSlice({
   
   extraReducers: (builder) => {
     builder
-      // fetch
+      // fetch beverage items
       .addCase(fetchAllBeverageItems.pending, (state) => {
         state.fetchAllBeverageItemsStatus.loading = true;
         state.fetchAllBeverageItemsStatus.error = null;
@@ -37,19 +42,19 @@ const beverageSlice = createSlice({
         state.fetchAllBeverageItemsStatus.error = action.payload as string;
       })
 
-      // add
+      // add new beverage item
       .addCase(addNewBeverage.pending, (state, action) => {
-        //state.beverageItems.push(action.payload);
+        state.addBeverageItemStatus.loading = true;
+        state.addBeverageItemStatus.error = null;
       })
 
-      // update
       .addCase(addNewBeverage.fulfilled, (state, action) => {
-       
+        state.isAddedBeverageItem = true;
       })
 
-      // delete
       .addCase(addNewBeverage.rejected, (state, action) => {
-        
+        state.addBeverageItemStatus.loading = true;
+        state.addBeverageItemStatus.error = null;
       });
   },
   

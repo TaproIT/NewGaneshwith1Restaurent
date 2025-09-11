@@ -11,10 +11,7 @@ export const fetchHoldOrders = createAsyncThunk<
 >("order/fetchHoldOrders", async (_, { rejectWithValue }) => {
   try {
     const response = await api.get("/order/hold-orders");
-    console.log("Hold orders response:", response.data);
-
     // Assuming your backend wraps data like { data: [...] }
-    console.log(response);
     return response.data?.data as HoldOrder[];
   } catch (error: any) {
     return rejectWithValue(error?.response?.data || "Failed to fetch hold orders");

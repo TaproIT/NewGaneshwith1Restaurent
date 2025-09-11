@@ -1,11 +1,17 @@
+import { addNewFoodItem } from "@/api/order/add-food-item-api";
 import { fetchAllFoodItems } from "@/api/order/get-food-list-api";
 import type { FoodItems } from "@/component/beach-&-pool-restaurant/food-model";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 const initialState: FoodItems = {
+   isAddedNewFoodItem: false,
    foodItems: [],
    isClickAddNewFoodItem:false,
    fetchAllFoodItemsStatus: {
+     loading: false,
+     error: null
+   },
+    addFoodItemStatus: {
      loading: false,
      error: null
    }
@@ -39,23 +45,23 @@ const foodSlice = createSlice({
         state.fetchAllFoodItemsStatus.error = action.payload as string;
       })
 
-    //   // add
-    //   .addCase(addCategory.fulfilled, (state, action: PayloadAction<FoodCategory>) => {
-    //     state.categories.push(action.payload);
-    //   })
+      // add new food item
+      .addCase(addNewFoodItem.pending, (state, action) => {
+        state.addFoodItemStatus.loading = true;
+        state.addFoodItemStatus.error = null;
+      })
 
-    //   // update
-    //   .addCase(updateCategory.fulfilled, (state, action: PayloadAction<FoodCategory>) => {
-    //     const index = state.categories.findIndex((c) => c._id === action.payload._id);
-    //     if (index !== -1) {
-    //       state.categories[index] = action.payload;
-    //     }
-    //   })
+      
+      .addCase(addNewFoodItem.fulfilled, (state, action) => {
+          state.addFoodItemStatus.loading = false;
+          state.isAddedNewFoodItem = true;
+      })
 
-    //   // delete
-    //   .addCase(deleteCategory.fulfilled, (state, action: PayloadAction<string>) => {
-    //     state.categories = state.categories.filter((c) => c._id !== action.payload);
-    //   });
+      
+      .addCase(addNewFoodItem.rejected, (state, action) => {
+        state.addFoodItemStatus.loading = false;
+        state.addFoodItemStatus.error = action.payload as string;
+      });
   },
   
 });

@@ -10,7 +10,7 @@ import BeverageItemSelector from './BeverageItemSelector';
 import { setIsClickAddNewFoodItem } from '@/features/beach-restaurant/foodSlice';
 
 const BeverageList:React.FC = () => {
-  const beverages = useSelector((state:RootState) => state.beverage.beverageItems);
+  const { beverageItems:beverages, isAddedBeverageItem } = useSelector((state:RootState) => state.beverage);
   const selectedCategoryId = useSelector((state: RootState) => state.beverageCategory.selectedCategory);
   const dispatch = useDispatch<AppDispatch>();
 
@@ -22,7 +22,7 @@ const BeverageList:React.FC = () => {
   
   useEffect( () => {
     dispatch(fetchAllBeverageItems());
-  },[])
+  },[isAddedBeverageItem]);
 
   return (
     <ScrollArea className="w-full h-[calc(100vh-250px)]">

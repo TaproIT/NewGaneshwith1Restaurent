@@ -17,8 +17,6 @@ const BeachRestaurantMenuPage: React.FC = () => {
   const param = useParams();
   const id = param?.id as string;
 
-  console.log("id", id)
-
   useEffect(() => {
     if (!id) return;
     dispatch(fetchOrderById(id));

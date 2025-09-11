@@ -11,7 +11,6 @@ export const fetchAllTables = createAsyncThunk<
 >("order/fetchAllTables", async ( __ ,{ rejectWithValue }) => {
   try {
     const response = await api.get(`/order/table`);
-    console.log(response);
     return response.data.data.tables as Table[];
   } catch (error: any) {
     return rejectWithValue(error?.response?.data || "Failed to fetch order");
