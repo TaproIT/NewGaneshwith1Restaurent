@@ -7,53 +7,59 @@ export const createPBFoodNet = async (req, res) => {
         // 1. check if category exists and visible
         const category = await PBFoodNetCategory.findOne({
             _id: req.body.category,
-            isVisible: true
+            isVisible: true,
         });
 
         if (!category) {
             return res.status(400).json({ error: "Category not found or not visible." });
         }
 
-        const food = PBFoodNet.findOne({
-            itemName: req.body.itemName,
+        // 2. check if food already exists in this category
+        const food = await PBFoodNet.findOne({
+            itemName: { $regex: new RegExp(`^${req.body.itemName}$`, "i") },
             category: req.body.category,
-        })
+        });
 
         if (food) {
             return res.status(400).json({ error: "Food already exists in this category" });
         }
 
+        if (Array.isArray(req.body.liquor) && req.body.liquor.length > 0 && req.body.isEnableBeverage !== true) {
+            return res.status(400).json({ error: "isEnableBeverage must be true when liquor is provided." });
+        }
 
+        // 3. validate liquors if provided
         if (req.body.liquor && req.body.liquor.length > 0) {
-            const liquorIds = req.body.liquor;
+            // Extract beverage IDs from liquor array
+            const liquorIds = req.body.liquor.map((l) => l.beverage);
 
-            const uniqueIds = new Set(liquorIds.map(id => id.toString()));
+            // Check duplicates
+            const uniqueIds = new Set(liquorIds.map((id) => id.toString()));
             if (uniqueIds.size !== liquorIds.length) {
-                return res.status(400).json({error: "Duplicate liquor IDs are not allowed."});
+                return res.status(400).json({ error: "Duplicate liquor IDs are not allowed." });
             }
 
-            // 2. check beverages if provided
-            if (req.body.liquor && req.body.liquor.length > 0) {
-                const beverages = await Beverage.find({
-                    _id: {$in: req.body.liquor},
-                    isVisible: true,
-                    category: "hard liquor"
-                });
+            // Verify all beverages exist, visible, and category is "hard liquor"
+            const beverages = await Beverage.find({
+                _id: { $in: liquorIds },
+                isVisible: true,
+                category: "hard liquor",
+            });
 
-                if (beverages.length !== liquorIds.length) {
-                    return res.status(400).json({error: "One or more liquors not found, not visible, or not hard liquor."});
-                }
+            if (beverages.length !== liquorIds.length) {
+                return res
+                    .status(400)
+                    .json({ error: "One or more liquors not found, not visible, or not hard liquor." });
             }
         }
 
-        // 3. create PBFoodNet item
+        // 4. create PBFoodNet item
         const item = await PBFoodNet.create(req.body);
         res.status(201).json(item);
     } catch (err) {
         return res.status(400).json({ error: err.message });
     }
 };
-
 export const updatePBFoodNet = async (req, res) => {
     try {
         const updateData = {};
@@ -62,68 +68,91 @@ export const updatePBFoodNet = async (req, res) => {
         if (req.body.itemName && req.body.itemName.trim() !== "") {
             updateData.itemName = req.body.itemName;
         }
+
         if (req.body.price !== null && req.body.price !== undefined) {
             updateData.price = req.body.price;
         }
+
         if (req.body.restaurantType && req.body.restaurantType.trim() !== "") {
             updateData.restaurantType = req.body.restaurantType;
         }
+
         if (req.body.isVisible !== null && req.body.isVisible !== undefined) {
             updateData.isVisible = req.body.isVisible;
         }
+
+        // Validate category if provided
         if (req.body.category !== null && req.body.category !== undefined) {
-           const category = await PBFoodNetCategory.findOne({
+            const category = await PBFoodNetCategory.findOne({
                 _id: req.body.category,
-                isVisible: true
+                isVisible: true,
             });
             if (!category) {
                 return res.status(400).json({ error: "Category not found or not visible." });
             }
-
             updateData.category = req.body.category;
         }
+
+        // isEnableBeverage flag
         if (req.body.isEnableBeverage !== null && req.body.isEnableBeverage !== undefined) {
             updateData.isEnableBeverage = req.body.isEnableBeverage;
         }
-if (req.body.liquor !== null && req.body.liquor !== undefined) {
-            const liquorIds = req.body.liquor.map(id => id.toString());
 
-            const uniqueIds = new Set(liquorIds);
+        // Liquor validation
+        if (req.body.liquor !== null && req.body.liquor !== undefined) {
+            if (!Array.isArray(req.body.liquor)) {
+                return res.status(400).json({ error: "Liquor must be an array." });
+            }
+
+            // Extract only beverage IDs
+            const liquorIds = req.body.liquor.map((l) =>
+                typeof l.beverage === "object" ? l.beverage._id : l.beverage
+            );
+
+            // Check for duplicates
+            const uniqueIds = new Set(liquorIds.map((id) => id.toString()));
             if (uniqueIds.size !== liquorIds.length) {
                 return res.status(400).json({ error: "Duplicate liquor IDs are not allowed." });
             }
 
+            // Validate beverages
             const beverages = await Beverage.find({
                 _id: { $in: liquorIds },
                 isVisible: true,
-                category: "hard liquor"
+                category: "hard liquor",
             });
 
             if (beverages.length !== liquorIds.length) {
-                return res.status(400).json({ error: "One or more liquors not found, not visible, or not Hard Liquor." });
+                return res.status(400).json({
+                    error: "One or more liquors not found, not visible, or not Hard Liquor.",
+                });
             }
 
-            updateData.liquor = liquorIds;
+            // Store full liquor objects (beverage + amount)
+            updateData.liquor = req.body.liquor.map((l) => ({
+                beverage: typeof l.beverage === "object" ? l.beverage._id : l.beverage,
+                amount: l.amount !== undefined ? l.amount : 0,
+            }));
         }
 
-        //  Partial update without triggering required field validation
+        // Partial update without triggering required field validation
         const updatedItem = await PBFoodNet.findByIdAndUpdate(
             req.params.id,
             { $set: updateData },
-            { new: true, runValidators: false } 
-        ).populate("category liquor");
+            { new: true, runValidators: false }
+        )
+            .populate("category")
+            .populate("liquor.beverage");
 
         if (!updatedItem) {
             return res.status(404).json({ error: "Item not found" });
         }
 
-         return res.json(updatedItem);
+        return res.json(updatedItem);
     } catch (err) {
-         return res.status(400).json({ error: err.message });
+        return res.status(400).json({ error: err.message });
     }
 };
-
-
 export const deletePBFoodNet = async (req, res) => {
     try {
         const item = await PBFoodNet.findByIdAndUpdate(
