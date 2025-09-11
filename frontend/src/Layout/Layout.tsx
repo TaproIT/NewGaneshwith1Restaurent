@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Logo from '../assets/Images/Logos/main_logo.png';
 import { 
@@ -8,7 +8,9 @@ import {
   RepeatIcon,
   BookText,
   House,
-  Table2
+  Table2,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import CurrencyDropdown from '@/component/currencyDropdown';
 import { useDispatch, useSelector } from 'react-redux';
@@ -44,11 +46,9 @@ const navigationConfig: Record<UserRole, NavItem[]> = {
   ],
   'Beach-Restaurant-Staff': [
     { path: '/kitchen', title: 'Beach Orders', icon: <ChefHat size={22} /> },
-    // { path: '/menu', title: 'Beach Menu', icon: <Coffee size={22} /> }
   ],
   'Pool-Restaurant-Staff': [
     { path: '/kitchen', title: 'Pool Orders', icon: <ChefHat size={22} /> },
-    // { path: '/menu', title: 'Pool Menu', icon: <Coffee size={22} /> }
   ]
 };
 
@@ -69,49 +69,48 @@ const pathTitles: Record<string, string> = {
 
 const Layout: React.FC = () => {
   const location = useLocation();
-  const userRole =useSelector((state: RootState) => state.user.role)
+  const userRole = useSelector((state: RootState) => state.user.role)
   const navigate = useNavigate()
   const dispatch = useDispatch<AppDispatch>()
 
+  const [isCollapsed, setIsCollapsed] = useState(false); // 👈 Sidebar collapse state
+
   const getLinkClassName = (path: string) => {
-    const baseClasses = "flex gap-2 p-3 rounded-lg";
+    const baseClasses = "flex items-center gap-2 p-3 rounded-lg";
     const isActive = location.pathname === path;
     return `${baseClasses} ${isActive ? 'bg-primary text-white' : 'hover:bg-primary hover:text-white'}`;
   };
 
   const handleLogout = async () => {
     try {
-    const token = localStorage.getItem("authToken");
-
-    if (!token) {
-      toast.error("No user logged in");
-      return;
-    }
-
-    const response = await api.post(
-      "/auth/logout",
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        withCredentials: true,
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        toast.error("No user logged in");
+        return;
       }
-    );
+      const response = await api.post(
+        "/auth/logout",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          withCredentials: true,
+        }
+      );
 
-    if (response.status === 200) {
-      localStorage.removeItem("authToken");
-      toast.success("Logout successful");
-      navigate('/')
+      if (response.status === 200) {
+        localStorage.removeItem("authToken");
+        toast.success("Logout successful");
+        navigate('/')
+      }
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Logout failed");
     }
-  } catch (error: any) {
-    console.error(error);
-    toast.error(error.response?.data?.message || "Logout failed");
-  }
   }
 
   useEffect(() => {
-    // Only fetch if token exists
     const token = localStorage.getItem("authToken");
     if (token) {
       dispatch(fetchUserRole());
@@ -121,10 +120,16 @@ const Layout: React.FC = () => {
   return (
     <div className="flex h-screen bg-bg p-5 gap-5">
       {/* Sidebar */}
-      <div className='bg-mainWhite w-[264px] flex rounded-2xl flex-col justify-between shadow-lg p-4'>
+      <div className={`bg-mainWhite ${isCollapsed ? 'w-20' : 'w-[264px]'} flex rounded-2xl flex-col justify-between shadow-lg p-4 transition-all duration-300`}>
         <div className="w-full">
-          <div className='flex justify-center items-center mt-5'>
-            <img src={Logo} alt="logo" className="w-32" />
+          <div className='flex justify-between items-center mt-5'>
+            {!isCollapsed && <img src={Logo} alt="logo" className="w-32" />}
+            <button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="p-2 rounded-lg hover:bg-gray-100"
+            >
+              {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+            </button>
           </div>
           
           <nav className="mt-10 space-y-4 text-gray">
@@ -134,7 +139,7 @@ const Layout: React.FC = () => {
                 to={item.path} 
                 className={getLinkClassName(item.path)}
               >
-                {item.icon} <p>{item.title}</p>
+                {item.icon} {!isCollapsed && <p>{item.title}</p>}
               </Link>
             ))}
           </nav>
@@ -144,13 +149,13 @@ const Layout: React.FC = () => {
         <div>
           <nav className="space-y-2 text-gray">
             <Link to="/profile" className={getLinkClassName('/profile')}>
-              <Settings size={22}/> <p>Settings</p>
+              <Settings size={22}/> {!isCollapsed && <p>Settings</p>}
             </Link>
             <button 
               onClick={handleLogout} 
-              className="flex gap-2 p-3 rounded-lg w-full hover:bg-danger hover:text-white"
+              className="flex items-center gap-2 p-3 rounded-lg w-full hover:bg-danger hover:text-white"
             >
-              <LogOut size={22}/> <span>Logout</span>
+              <LogOut size={22}/> {!isCollapsed && <span>Logout</span>}
             </button>
           </nav>
         </div>
@@ -169,11 +174,12 @@ const Layout: React.FC = () => {
               <div className='rounded-full bg-mainWhite p-2'>
                 <User size={22} className='rounded-full' />
               </div>
-              <div className='flex flex-col'>
-                {/* <span className='text-sm font-medium'>{userRole.charAt(0).toUpperCase() + userRole.slice(1)}</span> */}
-                <span className='text-sm font-medium'>User</span>
-                <span className='text-xs text-primary'>user@example.com</span>
-              </div>
+              {!isCollapsed && (
+                <div className='flex flex-col'>
+                  <span className='text-sm font-medium'>User</span>
+                  <span className='text-xs text-primary'>user@example.com</span>
+                </div>
+              )}
             </div>
           </div>
         </header>

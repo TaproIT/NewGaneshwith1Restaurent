@@ -12,6 +12,8 @@ const ManageInventory: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [beverages, setBeverages] = useState<BeverageItem[]>([])
   const [loading, setLoading] = useState(true);
+  const [selectedBeverage, setSelectedBeverage] = useState("")
+  const [isModal, setIsModal] = useState(false)
 
   useEffect(() => {
   const fetchBeverage = async () => {
@@ -26,7 +28,7 @@ const ManageInventory: React.FC = () => {
   };
 
   fetchBeverage();
-}, [active, isModalOpen]);
+}, [active, isModalOpen, selectedBeverage, isModal]);
 
 
   const handleClick = (category: string) => {
@@ -34,9 +36,9 @@ const ManageInventory: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col">
-      <div className="grid grid-cols-4 gap-5">
-        <div className="col-span-3 bg-mainWhite p-4 rounded-2xl">
+    <div className="flex flex-col overflow-y-auto">
+      <div className="grid grid-cols-4 gap-5 overflow-y-auto">
+        <div className="col-span-3 bg-mainWhite p-4 rounded-2xl overflow-y-auto h-[calc(100vh-145px)]">
           <div className="flex gap-4 mb-4">
             <Button
               size="lg"
@@ -60,11 +62,11 @@ const ManageInventory: React.FC = () => {
               Hard Liquor
             </Button>
           </div>
-          {loading ? <InventoryItemsSkeleton /> : <InventoryItems onOpenModal={() => setIsModalOpen(true)} beverages={beverages} category={active}/>}
+          {loading ? <InventoryItemsSkeleton /> : <InventoryItems onOpenModal={() => setIsModalOpen(true)} beverages={beverages} category={active} onSelectBeverage={(id) => setSelectedBeverage(id)} />}
         </div>
 
-        <div className="col-span-1 bg-mainWhite p-4 rounded-2xl">
-          <AddItem />
+        <div className="col-span-1 bg-mainWhite p-4 rounded-2xl h-screen">
+          <AddItem selectedBeverage={selectedBeverage} onModalChange={(open) => setIsModal(open)}/>
         </div>
       </div>
 
