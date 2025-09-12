@@ -7,6 +7,7 @@ import type { PayloadAction } from "@reduxjs/toolkit";
 import { fetchAllTables } from "@/api/order/get-tables-api";
 import { addTableToOrder } from "@/api/order/add-table-to-order-api";
 import { addNewOrderTokenToOrder } from "@/api/order/add-new-order-token-to-order-api";
+import { fetchAllAvailableRooms } from "@/api/order/get-available-rooms-with-guest-details-api";
 
 /**
  * Initial state for the Order slice.
@@ -16,9 +17,11 @@ const initialState: Order = {
   orderNumber: 0,
   orderStatus: 0,
   customerType: CustomerTypes.CHECKED_IN.value,  
-  serviceType: ServiceTypes.DINE_IN.value,      
+  serviceType: ServiceTypes.DINE_IN.value, 
+  rooms: [],     
   roomNumber: "",            
-  guestName: "",              
+  guestName: "",
+  guestId: "",              
   tableId: null,
   tables: [],
   restaurantTable: null,
@@ -61,6 +64,10 @@ const initialState: Order = {
     error: null,
     loading: false,
   },
+  fetchAvailableBookedRoomsStatus: {
+    error: null,
+    loading: false,
+  },
 };
 
 /**
@@ -85,6 +92,8 @@ const orderSlice = createSlice({
     setGuestName: (state, action: PayloadAction<string>) => {
       state.guestName = action.payload;
     },
+
+    resetOrderData: () => initialState,
 
     setTableId: (state, action: PayloadAction<string | null>) => {
       state.tableId = action.payload;
@@ -307,6 +316,19 @@ const orderSlice = createSlice({
 
   extraReducers: (builder) => {
     builder
+      .addCase(fetchAllAvailableRooms.pending, (state) => {
+        state.fetchAvailableBookedRoomsStatus.loading = true;
+        state.fetchAvailableBookedRoomsStatus.error = null;
+      })
+      .addCase(fetchAllAvailableRooms.fulfilled, (state, action) => {
+        state.fetchAvailableBookedRoomsStatus.loading = false;
+        state.rooms = action.payload;
+      })
+      .addCase(fetchAllAvailableRooms.rejected, (state, action) => {
+        state.fetchAvailableBookedRoomsStatus.loading = false;
+        state.fetchAvailableBookedRoomsStatus.error = action.payload as string;
+      })
+
       .addCase(createOrderWithInitialData.pending, (state) => {
         state.orderInitialDataStatus.loading = true;
         state.orderInitialDataStatus.error = null;
@@ -425,6 +447,7 @@ export const {
   setServiceType, 
   setRoomNumber, 
   setGuestName,
+  resetOrderData,
   setTableId,
   addFoodItemToOrderToken,
   addBeverageItemToOrderToken,

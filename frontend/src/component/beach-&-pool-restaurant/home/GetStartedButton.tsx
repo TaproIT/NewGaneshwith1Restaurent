@@ -1,20 +1,20 @@
-import { createOrderWithInitialData } from '@/api/order/create-order-initial-data-api'
-import type { AppDispatch, RootState } from '@/app/store'
-import { Button } from '@/components/ui/button'
-import { ServiceTypes } from '@/lib/enums/order-related-enums'
-import React from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import React from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { createOrderWithInitialData } from "@/api/order/create-order-initial-data-api";
+import type { AppDispatch, RootState } from "@/app/store";
+import { CustomerTypes, ServiceTypes } from "@/lib/enums/order-related-enums";
+import { toast } from "react-toastify";
+import { resetOrderData } from "@/features/beach-restaurant/orderSlice";
 
 const GetStartedButton: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-
-  const order = useSelector(
-    (state:RootState) => state.order
-  );
-
   const navigate = useNavigate();
 
+  const order = useSelector((state: RootState) => state.order);
+  const { loading, error } = order.orderInitialDataStatus;
+  
   const handleInitialOrderDetails = async () => {
     try {
       const resultAction = await dispatch(
@@ -27,34 +27,53 @@ const GetStartedButton: React.FC = () => {
       );
 
       if (createOrderWithInitialData.fulfilled.match(resultAction)) {
-        const newOrder = resultAction.payload; // response from API (orderId, orderNumber, etc.)
-        console.log(newOrder);
-        if (newOrder.serviceType === ServiceTypes.DINE_IN.value) {
-          navigate(`/beach-restaurant/tables/${newOrder._id}`);
-        } else {
-          navigate(`/beach-restaurant/menu/${newOrder._id}`);
-        }
+        const newOrder = resultAction.payload; // this contains order._id from API
+        toast.success("Successfully added data");
+
+        const targetPath =
+          newOrder.serviceType === ServiceTypes.DINE_IN.value
+            ? `/beach-restaurant/tables/${newOrder._id}`
+            : `/beach-restaurant/menu/${newOrder._id}`;
+        
+        dispatch(resetOrderData());
+
+        // Navigate after toast shows for a short time
+        setTimeout(() => {
+          navigate(targetPath);
+        }, 1200);
+
       } else {
-        console.error("Failed to create order:", resultAction.payload);
+        toast.error(error || "Failed to create order");
       }
-    } catch (error) {
-      console.error("Unexpected error while creating order:", error);
+    } catch (err) {
+      toast.error("Unexpected error occurred");
+      console.error(err);
     }
   };
 
-  
-  const disabled = order.guestName === "" || order.roomNumber === "";
+  const isDisabled =
+    order.customerType === CustomerTypes.CHECKED_IN.value
+      ? !order.guestName || !order.roomNumber || loading
+      : !order.guestName || loading;
+
   return (
     <div className="mt-5 flex items-center justify-end">
-      <Button 
+      <Button
         onClick={handleInitialOrderDetails}
         className="px-20 py-6 text-[1rem] cursor-pointer"
-        disabled={disabled}
+        disabled={isDisabled}
       >
-        Get Started
+        {loading ? (
+          <>
+            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
+            Processing
+          </>
+        ) : (
+          "Get Started"
+        )}
       </Button>
     </div>
-  )
-}
+  );
+};
 
-export default GetStartedButton
+export default GetStartedButton;

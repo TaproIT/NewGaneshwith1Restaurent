@@ -35,6 +35,14 @@ export interface Table{
    status: string;
 }
 
+export interface AvailableBookedRoom {
+   number: string;
+   guest: string;
+   roomId: string;
+   guestId: string;
+   guestName: string;
+}
+
 export type TableStatus = "Selected" | "Empty" | "Reserved";
 
 export interface OrderInitialDataStatus {
@@ -57,14 +65,21 @@ export interface AddTableToOrderStatus {
    loading: boolean;
 }
 
+export interface FetchAvailableBookedRoomsStatus {
+   error: string | null;
+   loading: boolean;
+}
+
 export interface Order{
   _id: string;
   orderNumber: number;
   orderStatus: number;
   customerType: string;       
-  serviceType: string;        
+  serviceType: string; 
+  rooms: AvailableBookedRoom[];       
   roomNumber: string;         
-  guestName: string;          
+  guestName: string;
+  guestId: string;          
   tableId: string | null;
   restaurantTable: Table | null; 
   tables: Table[];
@@ -82,4 +97,5 @@ export interface Order{
   fetchOrderDataStatus: FetchOrderDataStatus;
   fetchTablesStatus: FetchTablesStatus;
   addTableToOrderStatus: AddTableToOrderStatus;
+  fetchAvailableBookedRoomsStatus: FetchAvailableBookedRoomsStatus;
 }

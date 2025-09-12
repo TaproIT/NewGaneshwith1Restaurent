@@ -1,6 +1,6 @@
 import type { AppDispatch, RootState } from "@/app/store";
 import { setServiceType } from "@/features/beach-restaurant/orderSlice";
-import { ServiceTypes } from "@/lib/enums/order-related-enums";
+import { CustomerTypes, ServiceTypes } from "@/lib/enums/order-related-enums";
 import { UtensilsCrossed, ShoppingBag, Bed } from "lucide-react";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -31,13 +31,19 @@ const serviceTypes: ServiceTypeItem[] = [
 
 const ServiceType: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const selected = useSelector((state: RootState) => state.order.serviceType);
+  const order = useSelector((state: RootState) => state.order);
+  
+  const customerType = order.customerType;
+
+  const selected = order.serviceType;
+
+  const filteredServiceTypes = serviceTypes.filter((service) => customerType === CustomerTypes.WALK_IN.value ? service.value !== ServiceTypes.SAVE_TO_ROOM.value : service );
 
   return (
     <div className="flex flex-col">
       <p className="text-[#444444] text-[1rem]">Service Type</p>
       <div className="mt-5 grid grid-cols-3 gap-7">
-        {serviceTypes.map((type) => {
+        {filteredServiceTypes.map((type) => {
           const isSelected = type.value === selected;
           return (
             <div

@@ -30,6 +30,6 @@ export const createOrderWithInitialData = createAsyncThunk<
     const response = await api.post("/order", orderData);
     return response.data.data.order as CreateOrderResponse;
   } catch (error: any) {
-    return rejectWithValue(error?.response?.data || "Failed to create order");
+    return rejectWithValue(error?.response?.data?.message || "Failed to create order");
   }
 });
