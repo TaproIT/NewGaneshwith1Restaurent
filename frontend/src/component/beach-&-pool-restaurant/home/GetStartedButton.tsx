@@ -6,7 +6,6 @@ import { createOrderWithInitialData } from "@/api/order/create-order-initial-dat
 import type { AppDispatch, RootState } from "@/app/store";
 import { CustomerTypes, ServiceTypes } from "@/lib/enums/order-related-enums";
 import { toast } from "react-toastify";
-import { resetOrderData } from "@/features/beach-restaurant/orderSlice";
 
 const GetStartedButton: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -35,8 +34,6 @@ const GetStartedButton: React.FC = () => {
             ? `/beach-restaurant/tables/${newOrder._id}`
             : `/beach-restaurant/menu/${newOrder._id}`;
         
-        dispatch(resetOrderData());
-
         // Navigate after toast shows for a short time
         setTimeout(() => {
           navigate(targetPath);

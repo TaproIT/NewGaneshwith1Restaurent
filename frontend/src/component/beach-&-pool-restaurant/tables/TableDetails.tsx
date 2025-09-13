@@ -1,27 +1,63 @@
 import { Button } from "@/components/ui/button";
-import React from "react";
-import { useSelector } from "react-redux";
+import { Skeleton } from "@/components/ui/skeleton";
+import React, { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { type AppDispatch, type RootState } from "@/app/store";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
 import { addTableToOrder } from "@/api/order/add-table-to-order-api";
+import { toast } from "react-toastify";
 
 type TableDetailsProps = {
   orderId: string;
 };
 
-const TableDetails: React.FC<TableDetailsProps> = ({orderId}) => {
+const TableDetails: React.FC<TableDetailsProps> = ({ orderId }) => {
   const dispatch = useDispatch<AppDispatch>();
   const order = useSelector((state: RootState) => state.order);
- 
-  //Directly compute table from id
+
   const selectedTable = order.tables.find((table) => table._id === order.tableId);
+  const { loading, error } = order.addTableToOrderStatus;
 
   const navigate = useNavigate();
 
+  const isDisabled = !selectedTable || orderId === "0"
+
   const handleBook = async () => {
-    await dispatch(addTableToOrder({ orderId: orderId, tableId: selectedTable?._id as string }));
-    navigate(`/beach-restaurant/menu/${orderId}`)
+    try {
+      await dispatch(
+        addTableToOrder({ orderId: orderId, tableId: selectedTable?._id as string })
+      ).unwrap(); // unwrap will throw if error
+      
+      toast.success("Table reserved successfully");
+
+      setTimeout(() => {
+         navigate(`/beach-restaurant/menu/${orderId}`);
+      }, 1000);
+
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to add table to order");
+    }
+  };
+
+  // Show error toast if Redux error state updates separately
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
+
+  // Show skeleton while loading
+  if (loading) {
+    return (
+      <div className="h-full flex flex-col justify-between gap-5 bg-mainWhite rounded-2xl border-b-[1px] border-b-[#5C5C5C40] p-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-5 w-32 rounded-md" />
+          <Skeleton className="h-6 w-16 rounded-md" />
+        </div>
+        <Skeleton className="h-4 w-24 mt-4 rounded-md" />
+        <Skeleton className="h-10 w-full mt-8 rounded-md" />
+      </div>
+    );
   }
 
   return (
@@ -47,7 +83,7 @@ const TableDetails: React.FC<TableDetailsProps> = ({orderId}) => {
         <Button
           className="mt-12 w-full text-[0.75rem] text-[#FEFEFE] cursor-pointer"
           value="primary"
-          disabled={!selectedTable} // prevent booking when nothing selected
+          disabled={isDisabled}
           onClick={handleBook}
         >
           Book
