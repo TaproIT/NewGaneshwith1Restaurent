@@ -12,6 +12,7 @@ import ProtectedRoute from "./component/ProtectedRoute";
 import Menu from "./pages/admin/Menu";
 import Dashboard from "./pages/admin/beverage_inventory/Dashboard";
 import ManageInventory from "./pages/admin/beverage_inventory/ManageInventory";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 
 function App() {
   return (
@@ -46,8 +47,9 @@ function App() {
           <Route path="/invoice" element={<Invoice />} />
           <Route path="/beverage-inventory/dashboard" element={<Dashboard />} />
           <Route path="/beverage-inventory/manage-inventory" element={<ManageInventory />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Route>
-        <Route path="/menu" element={<ProtectedRoute><Menu /></ProtectedRoute>} />
+        {/* <Route path="/menu" element={<ProtectedRoute><Menu /></ProtectedRoute>} /> */}
       </Routes>
     </Router>
   );

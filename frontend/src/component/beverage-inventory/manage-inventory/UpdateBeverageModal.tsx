@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -23,13 +23,14 @@ const UpdateBeverageModal: React.FC<UpdateBeverageModalProps> = ({
   open,
   onOpenChange,
   selectedBeverage,
-  action
+  action,
 }) => {
   const [form, setForm] = React.useState<UpdateBeverage>({
     action: action,
     quantity: 0,
     note: "",
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -44,28 +45,36 @@ const UpdateBeverageModal: React.FC<UpdateBeverageModalProps> = ({
       ...form,
       action,
     };
+    setIsLoading(true);
 
     try {
       await api.patch(`/beverages/${selectedBeverage}`, payload); // adjust endpoint if needed
-      {action === 'restock' ? toast.success("Beverage updated successfully") : toast.success("Beverage removed successfully")}
+      {
+        action === "restock"
+          ? toast.success("Beverage updated successfully")
+          : toast.success("Beverage removed successfully");
+      }
 
       onOpenChange(false); // close modal
-      setForm({ action: '', quantity: 0, note: "" }); // reset
+      setForm({ action: "", quantity: 0, note: "" }); // reset
+      setIsLoading(false);
     } catch (error: any) {
       if (error.response?.data) {
         const message =
           error.response.data.message || "Failed to update beverage";
         toast.error(message);
-        setForm({ action: '', quantity: 0, note: "" });
+        setForm({ action: "", quantity: 0, note: "" });
+        setIsLoading(false);
       } else {
         toast.error("Something went wrong. Please try again.");
-        setForm({ action: '', quantity: 0, note: "" });
+        setForm({ action: "", quantity: 0, note: "" });
+        setIsLoading(false);
       }
       console.error("Backend error:", error);
     }
   };
 
-  console.log(action)
+  console.log(action);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -97,7 +106,13 @@ const UpdateBeverageModal: React.FC<UpdateBeverageModalProps> = ({
         </div>
 
         <DialogFooter className="mt-4">
-          <Button onClick={handleSubmit}>Update</Button>
+          <Button onClick={handleSubmit}>
+            {isLoading ? (
+              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            ) : (
+              "Update"
+            )}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -26,7 +26,7 @@ interface NavItem {
   icon: React.ReactNode;
 }
 
-const navigationConfig: Record<UserRole, NavItem[]> = {
+const navigationConfig: Record<string, NavItem[]> = {
   'Super-Admin': [
     { path: '/', title: 'Dashboard', icon: <UserRoundPlus size={22} /> },
     { path: '/users', title: 'User Management', icon: <Users size={22} /> },
@@ -34,8 +34,9 @@ const navigationConfig: Record<UserRole, NavItem[]> = {
     { path: '/settings', title: 'System Settings', icon: <Settings size={22} /> }
   ],
   'Admin': [
-    { path: '/beverage-inventory/dashboard', title: 'Dashboard', icon: <House size={22} /> },
-    { path: '/beverage-inventory/manage-inventory', title: 'Manage Inventory', icon: <Table2 size={22} /> },
+    { path: '/admin/dashboard', title: 'Dashboard', icon: <House size={22} /> },
+    { path: '/admin/reception', title: 'Reception', icon: <Users size={22} /> },
+    { path: '/admin/beverage-inventory', title: 'Beverage Inventory', icon: <Table2 size={22} /> },
   ],
   'Reception': [
     { path: '/onboarding', title: 'Onboarding', icon: <UserRoundPlus size={22} /> },
@@ -49,6 +50,10 @@ const navigationConfig: Record<UserRole, NavItem[]> = {
   ],
   'Pool-Restaurant-Staff': [
     { path: '/kitchen', title: 'Pool Orders', icon: <ChefHat size={22} /> },
+  ],
+  'Beverage-Inventory': [
+    { path: '/beverage-inventory/dashboard', title: 'Dashboard', icon: <House size={22} /> },
+    { path: '/beverage-inventory/manage-inventory', title: 'Manage Inventory', icon: <Table2 size={22} /> },
   ]
 };
 
@@ -57,23 +62,25 @@ const pathTitles: Record<string, string> = {
   '/room-availability': 'Room Availability',
   '/switch-rooms': 'Switch Rooms',
   '/settings': 'Settings | System',
-  '/beverage-inventory/dashboard': 'Dashboard',
-  '/beverage-inventory/manage-inventory': 'Manage Inventory',
+  '/beverage-inventory/dashboard': 'Beverage Inventory | Dashboard',
+  '/beverage-inventory/manage-inventory': 'Beverage Inventory | Manage',
   '/staff': 'Staff Management | Overview',
   '/checkouts': 'Checkouts',
   '/kitchen': 'Kitchen | Orders',
   '/rooms': 'Rooms | Status',
   '/tasks': 'Tasks | Today',
   '/invoice': 'Invoice',
+  '/admin/dashboard': 'Admin Dashboard',
 };
 
 const Layout: React.FC = () => {
   const location = useLocation();
-  const userRole = useSelector((state: RootState) => state.user.role)
-  const navigate = useNavigate()
-  const dispatch = useDispatch<AppDispatch>()
+  const userRole = useSelector((state: RootState) => state.user.role);
+  const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
 
-  const [isCollapsed, setIsCollapsed] = useState(false); // 👈 Sidebar collapse state
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [selectedSidebar, setSelectedSidebar] = useState<UserRole | 'Beverage-Inventory' | 'Reception'>(userRole);
 
   const getLinkClassName = (path: string) => {
     const baseClasses = "flex items-center gap-2 p-3 rounded-lg";
@@ -110,6 +117,11 @@ const Layout: React.FC = () => {
     }
   }
 
+  // Determine which sidebar to show
+  const sidebarItems = userRole === 'Admin'
+    ? navigationConfig[selectedSidebar]
+    : navigationConfig[userRole];
+
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     if (token) {
@@ -131,17 +143,60 @@ const Layout: React.FC = () => {
               {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
             </button>
           </div>
-          
-          <nav className="mt-10 space-y-4 text-gray">
-            {navigationConfig[userRole].map((item) => (
-              <Link 
-                key={item.path} 
-                to={item.path} 
-                className={getLinkClassName(item.path)}
+
+          {/* Sidebar Navigation */}
+          <nav className="mt-10 space-y-4 text-gray w-full">
+            {sidebarItems.map((item) => {
+              if (userRole === "Admin" && item.title === "Reception") {
+                return (
+                  <a
+                    key={item.title}
+                    onClick={() => {
+                      setSelectedSidebar("Reception")
+                      navigate("/onboarding");
+                    }}
+                    
+                    className={getLinkClassName(item.path)}
+                    style={{cursor: 'pointer'}}
+                  >
+                    {item.icon} {!isCollapsed && <p>{item.title}</p>}
+                  </a>
+                );
+              }
+              if (userRole === "Admin" && item.title === "Beverage Inventory") {
+                return (
+                  <a
+                    key={item.title}
+                    onClick={() => {
+                      setSelectedSidebar("Beverage-Inventory")
+                      navigate("/beverage-inventory/dashboard");
+                    }}
+                    className={getLinkClassName(item.path)}
+                    style={{cursor: 'pointer'}}
+                  >
+                    {item.icon} {!isCollapsed && <p>{item.title}</p>}
+                  </a>
+                );
+              }
+              return (
+                <Link key={item.path} to={item.path} className={getLinkClassName(item.path)}>
+                  {item.icon} {!isCollapsed && <p>{item.title}</p>}
+                </Link>
+              );
+            })}
+
+            {/* Back to Admin button */}
+            {userRole === "Admin" && selectedSidebar !== "Admin" && (
+              <button
+                onClick={() => {
+                  setSelectedSidebar("Admin")
+                  navigate("/admin/dashboard")
+                }}
+                className="flex items-center gap-2 p-3 rounded-lg w-full hover:bg-primary hover:text-white mt-4"
               >
-                {item.icon} {!isCollapsed && <p>{item.title}</p>}
-              </Link>
-            ))}
+                <House size={22}/> {!isCollapsed && <span>Back to Admin</span>}
+              </button>
+            )}
           </nav>
         </div>
 
