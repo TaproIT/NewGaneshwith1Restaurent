@@ -18,7 +18,7 @@ const BeachRestaurantMenuPage: React.FC = () => {
   const id = param?.id as string;
 
   useEffect(() => {
-    if (!id) return;
+    if (id === "0") return;
     dispatch(fetchOrderById(id));
   }, [id, orderTokens?.length]);
 
@@ -29,7 +29,7 @@ const BeachRestaurantMenuPage: React.FC = () => {
       </div>
       <div className="col-span-2">
         {
-          isClickAddNewFoodItem || id===":id" ? (
+          isClickAddNewFoodItem || id==="0" ? (
              <AddFoodItemSection />
           ): (
             <OrderDetailsSection />

@@ -64,6 +64,10 @@ const initialState: Order = {
     error: null,
     loading: false,
   },
+  addNewOrderTokenStatus: {
+    error: null,
+    loading: false,
+  },
   fetchAvailableBookedRoomsStatus: {
     error: null,
     loading: false,
@@ -413,10 +417,10 @@ const orderSlice = createSlice({
     })
 
     // Add new order token to order
-    .addCase(addNewOrderTokenToOrder.pending, (state,action) => {
-      
+    .addCase(addNewOrderTokenToOrder.pending, (state) => {
+       state.addNewOrderTokenStatus = { loading: true, error: null };
     })
-    .addCase(addNewOrderTokenToOrder.fulfilled, (state, action) => {
+    .addCase(addNewOrderTokenToOrder.fulfilled, (state) => {
       state.isOrderTokenOpen = false;
       state.isAddNewOrderToken = false;
       state.newOrderToken = {
@@ -435,7 +439,7 @@ const orderSlice = createSlice({
       }
     })
     .addCase(addNewOrderTokenToOrder.rejected, (state, action) => {
-
+       state.addNewOrderTokenStatus = { loading: false, error: action.payload as string };
     });
   },
 

@@ -59,13 +59,13 @@ const TableSelectionSection: React.FC = () => {
         <div className="px-4 pb-4 grid grid-cols-4 gap-3">
           {/* Skeleton while loading */}
           {loading
-            ? Array.from({ length: 8 }).map((_, idx) => (
+            ? Array.from({ length: 12 }).map((_, idx) => (
                 <div
                   key={idx}
                   className="col-span-1 flex flex-col gap-1 cursor-pointer"
                 >
                   <Skeleton className="h-3 w-full rounded-sm" />
-                  <Skeleton className="h-14 w-full rounded-sm" />
+                  <Skeleton className="h-16 w-full rounded-sm" />
                   <Skeleton className="h-3 w-full rounded-sm" />
                 </div>
               ))

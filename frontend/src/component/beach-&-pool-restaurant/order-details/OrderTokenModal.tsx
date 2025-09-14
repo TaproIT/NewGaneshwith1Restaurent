@@ -8,6 +8,7 @@ import { type AppDispatch, type RootState } from "@/app/store";
 import { closeOrderTokenModal, setIsPrintedForNewOrderToken } from "@/features/beach-restaurant/orderSlice";
 import { addNewOrderTokenToOrder } from "@/api/order/add-new-order-token-to-order-api";
 import { fetchOrderById } from "@/api/order/get-order-data-api";
+import { toast } from "react-toastify";
 
 interface OrderTokenDialogProps {
   id: string;
@@ -20,16 +21,20 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
   // Handle print button click
   const handlePrint = async () => {
     try {
-      // Mark the current token as printed
+      // Mark the current token as printed (local state)
       dispatch(setIsPrintedForNewOrderToken(true));
 
       // Add the new order token to the backend order
-      await dispatch(addNewOrderTokenToOrder({ orderId: id }));
+      await dispatch(addNewOrderTokenToOrder({ orderId: id })).unwrap();
 
       // Refresh the order data
-      await dispatch(fetchOrderById(id));
-    } catch (error) {
-      console.error("Error printing order token:", error);
+      await dispatch(fetchOrderById(id)).unwrap();
+
+      toast.success("Order token printed successfully");
+    } catch (err: any) {
+      toast.error(
+        err?.message || "Failed to print order token. Please try again."
+      );
     }
   };
 

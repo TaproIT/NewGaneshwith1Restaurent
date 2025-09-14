@@ -3,6 +3,7 @@ import { fetchOrderById } from '@/api/order/get-order-data-api';
 import { type AppDispatch, type RootState } from '@/app/store';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   openOrderTokenModal,
   setIsPrintedForNewOrderToken,
@@ -15,6 +16,7 @@ import { getAllTokenSubTotal, getTokenSubTotal } from '@/lib/order-util';
 import React, { useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 interface OrderPaymentDetailsProps {
    isHoldOrder?:boolean;
@@ -25,7 +27,10 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
   const order = useSelector((state: RootState) => state.order);
   const {selectedHoldOrderId:id} = useSelector((state: RootState) => state.holdOrder);
   const dispatch = useDispatch<AppDispatch>();
+
   const newOrderToken = order.newOrderToken;
+
+  const { loading } = order.fetchOrderDataStatus;
 
   const navigate = useNavigate();
 
@@ -39,24 +44,24 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
     dispatch(openOrderTokenModal());
   }, [dispatch]);
 
-  const handleHoldClick = async () => {
-      try {
-        // Mark the current token as printed
-        dispatch(setIsPrintedForNewOrderToken(false));
-  
-        // Add the new order token to the backend order
-        await dispatch(addNewOrderTokenToOrder({ orderId: order._id }));
-  
-        // Refresh the order data
-        await dispatch(fetchOrderById(order._id));
-      } catch (error) {
-        console.error("Error printing order token:", error);
-      }
-    };
-  
+ const handleHoldClick = async () => {
+   try {
+     dispatch(setIsPrintedForNewOrderToken(false));
+
+     await dispatch(addNewOrderTokenToOrder({ orderId: order._id })).unwrap();
+     await dispatch(fetchOrderById(order._id)).unwrap();
+
+     toast.success("Order token held successfully");
+   } catch (err: any) {
+     toast.error(
+       err?.message || "Error holding order token. Please try again."
+     );
+   }
+ };
+
   const handleProceedPaymentClick = () => {
-      navigate(`/beach-restaurant/menu/${id}`);
-  }
+    navigate(`/beach-restaurant/menu/${id}`);
+  };
 
   // Recalculate token subtotal and total bill when order tokens or charges change
   useEffect(() => {
@@ -100,93 +105,121 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
     order.serviceCharge,
   ]);
 
-  return (
-    <div className="w-full flex flex-col items-center shadow-[0px_-1px_4px_0px_#5C5C5C40]">
-      <ScrollArea className={`w-full ${!isHoldOrder ? "h-[calc(100vh-500px)] 2xl:h-[calc(100vh-670px)]" : "h-[calc(100vh-590px)] 2xl:h-[calc(100vh-670px)]"}`}>
-        <div className="py-3 flex flex-col gap-3">
-          {/* Payment Details */}
-          <div className="px-6 2xl:px-8 w-full flex flex-col gap-1 text-[0.75rem] text-[#444444] font-normal">
-            <div className="grid grid-cols-5 gap-2">
-              <p className="col-span-2">Subtotal</p>
-              <div className="col-span-3 flex items-center justify-between">
-                <p>:</p>
-                <p>LKR {order.subTotal.toFixed(2)}</p>
-              </div>
-            </div>
+ return (
+   <div className="w-full flex flex-col items-center shadow-[0px_-1px_4px_0px_#5C5C5C40]">
+     <ScrollArea
+       className={`w-full ${
+         !isHoldOrder
+           ? "h-[calc(100vh-500px)] 2xl:h-[calc(100vh-670px)]"
+           : "h-[calc(100vh-590px)] 2xl:h-[calc(100vh-670px)]"
+       }`}
+     >
+       <div className="py-3 flex flex-col gap-3">
+         {loading ? (
+           // Skeletons while loading
+           <div className="px-6 2xl:px-8 w-full flex flex-col gap-3">
+             {[...Array(5)].map((_, i) => (
+               <div key={i} className="my-0 h-4 grid grid-cols-5 gap-1 items-center">
+                 <Skeleton className="h-4 w-20 col-span-2" />
+                 <div className="col-span-3 flex items-center justify-between">
+                   <p>:</p>
+                   <Skeleton className="h-4 w-24" />
+                 </div>
+               </div>
+             ))}
 
-            <div className="grid grid-cols-5 gap-2">
-              <p className="col-span-2">Tax</p>
-              <div className="col-span-3 flex items-center justify-between">
-                <p>:</p>
-                <p>LKR {order.tax.toFixed(2)}</p>
-              </div>
-            </div>
+             <div className="px-3 2xl:px-5 w-full flex flex-col gap-2 mt-4">
+               <Skeleton className="h-8 w-full rounded-md" />
+               <Skeleton className="h-8 w-full rounded-md" />
+             </div>
+           </div>
+         ) : (
+           // Actual Payment Details
+           <div className="py-3 flex flex-col gap-3">
+             {/* Payment Details */}
+             <div className="px-6 2xl:px-8 w-full flex flex-col gap-1 text-[0.75rem] text-[#444444] font-normal">
+               <div className="grid grid-cols-5 gap-2">
+                 <p className="col-span-2">Subtotal</p>
+                 <div className="col-span-3 flex items-center justify-between">
+                   <p>:</p>
+                   <p>LKR {order.subTotal.toFixed(2)}</p>
+                 </div>
+               </div>
 
-            <div className="grid grid-cols-5 gap-2">
-              <p className="col-span-2">Discount</p>
-              <div className="col-span-3 flex items-center justify-between">
-                <p>:</p>
-                <p>LKR {order.discount.toFixed(2)}</p>
-              </div>
-            </div>
+               <div className="grid grid-cols-5 gap-2">
+                 <p className="col-span-2">Tax</p>
+                 <div className="col-span-3 flex items-center justify-between">
+                   <p>:</p>
+                   <p>LKR {order.tax.toFixed(2)}</p>
+                 </div>
+               </div>
 
-            <div className="grid grid-cols-5 gap-2">
-              <p className="col-span-2">Service Charge</p>
-              <div className="col-span-3 flex items-center justify-between">
-                <p>:</p>
-                <p>LKR {order.serviceCharge.toFixed(2)}</p>
-              </div>
-            </div>
+               <div className="grid grid-cols-5 gap-2">
+                 <p className="col-span-2">Discount</p>
+                 <div className="col-span-3 flex items-center justify-between">
+                   <p>:</p>
+                   <p>LKR {order.discount.toFixed(2)}</p>
+                 </div>
+               </div>
 
-            <div className="grid grid-cols-5 gap-2">
-              <p className="col-span-2">Total Bill</p>
-              <div className="col-span-3 flex items-center justify-between">
-                <p>:</p>
-                <p>LKR {order.totalBill.toFixed(2)}</p>
-              </div>
-            </div>
-          </div>
+               <div className="grid grid-cols-5 gap-2">
+                 <p className="col-span-2">Service Charge</p>
+                 <div className="col-span-3 flex items-center justify-between">
+                   <p>:</p>
+                   <p>LKR {order.serviceCharge.toFixed(2)}</p>
+                 </div>
+               </div>
 
-          {/* Action Buttons */}
-          {
-            isSummaryOrder ? (
-              <p className="text-[0.875rem] text-[#444444] text-center">LKR {order.totalBill.toFixed(2)}</p>
-            ) : (
-              <div className="px-3 2xl:px-5 w-full flex flex-col gap-1.5">
-                {
-                  isHoldOrder ? (
-                    <Button
-                      className="!w-full !h-8 border-[#0A869D] cursor-pointer"
-                      onClick={handleProceedPaymentClick}
-                    >
-                      Proceed to payment
-                    </Button>
-                  ) : (
-                    <>
-                      <Button
-                        variant="outline"
-                        className="!w-full !h-8 border-[#0A869D] cursor-pointer"
-                        disabled={isDisabled}
-                        onClick={handleTokenClick}
-                      >
-                        Token
-                      </Button>
-                      <Button
-                        className="!w-full !h-8 cursor-pointer"
-                        disabled={isDisabled}
-                        onClick={handleHoldClick}>
-                        Hold
-                      </Button>
-                    </>
-                  )
-                }
-              </div>
-            )
-          }
-        </div>
-      </ScrollArea>
-    </div>
-  );
+               <div className="grid grid-cols-5 gap-2">
+                 <p className="col-span-2">Total Bill</p>
+                 <div className="col-span-3 flex items-center justify-between">
+                   <p>:</p>
+                   <p>LKR {order.totalBill.toFixed(2)}</p>
+                 </div>
+               </div>
+             </div>
+
+             {/* Action Buttons */}
+             {isSummaryOrder ? (
+               <p className="text-[0.875rem] text-[#444444] text-center">
+                 LKR {order.totalBill.toFixed(2)}
+               </p>
+             ) : (
+               <div className="px-3 2xl:px-5 w-full flex flex-col gap-1.5">
+                 {isHoldOrder ? (
+                   <Button
+                     className="!w-full !h-8 border-[#0A869D] cursor-pointer"
+                     onClick={handleProceedPaymentClick}
+                   >
+                     Proceed to payment
+                   </Button>
+                 ) : (
+                   <>
+                     <Button
+                       variant="outline"
+                       className="!w-full !h-8 border-[#0A869D] cursor-pointer"
+                       disabled={isDisabled}
+                       onClick={handleTokenClick}
+                     >
+                       Token
+                     </Button>
+                     <Button
+                       className="!w-full !h-8 cursor-pointer"
+                       disabled={isDisabled}
+                       onClick={handleHoldClick}
+                     >
+                       Hold
+                     </Button>
+                   </>
+                 )}
+               </div>
+             )}
+           </div>
+         )}
+       </div>
+     </ScrollArea>
+   </div>
+ );
 };
 
 export default OrderPaymentDetails;
