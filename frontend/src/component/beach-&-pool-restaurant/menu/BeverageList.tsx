@@ -9,6 +9,7 @@ import BeverageItemSelector from "./BeverageItemSelector";
 import { setIsClickAddNewFoodItem } from "@/features/beach-restaurant/foodSlice";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const BeverageList: React.FC = () => {
   const {
@@ -27,10 +28,13 @@ const BeverageList: React.FC = () => {
     (beverage) => beverage.category === selectedCategoryId
   );
 
+  const navigate = useNavigate();
+
   const { loading, error } = fetchAllBeverageItemsStatus;
 
   const handleAddNewFoodItem = () => {
     dispatch(setIsClickAddNewFoodItem(true));
+    navigate("/beach-restaurant/menu/0");
   };
 
   useEffect(() => {

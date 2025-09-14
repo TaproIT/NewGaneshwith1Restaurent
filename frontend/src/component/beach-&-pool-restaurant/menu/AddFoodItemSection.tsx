@@ -30,12 +30,16 @@ type Liqueur = { beverage: string; amount: number };
 
 export default function AddFoodItemSection() {
   const dispatch = useDispatch<AppDispatch>();
-  const { addFoodItemStatus, isAddedNewFoodItem } = useSelector((state: RootState) => state.food);
-  const { addBeverageItemStatus, isAddedBeverageItem } = useSelector((state: RootState) => state.beverage);
   const { categories: foodCategories } = useSelector(
     (state: RootState) => state.foodCategory
   );
+  const { addFoodItemStatus } = useSelector(
+    (state: RootState) => state.food
+  );
   const { beverageItems: beverages } = useSelector(
+    (state: RootState) => state.beverage
+  );
+  const { addBeverageItemStatus } = useSelector(
     (state: RootState) => state.beverage
   );
 
@@ -77,71 +81,62 @@ export default function AddFoodItemSection() {
   const handleRemoveLiqueur = (index: number) =>
     setLiqueurs((prev) => prev.filter((_, i) => i !== index));
 
-  const handleAddItem = () => {
-    if (itemType === "food") {
-      const foodItem = {
-        itemName,
-        price,
-        restaurantType: "Pool Restaurant",
-        isVisible: true,
-        category,
-        isEnableBeverage: addLiqueur,
-        liquor: liqueurs
-      };
-      console.log("New Food Item:", foodItem);
-      dispatch(addNewFoodItem(foodItem));
-      dispatch(setIsBeverageItemsList(false));
-      dispatch(setSelectedCategoryId(category?category:""));
-      dispatch(setSelectedCategory(""));
-    } else {
-      const beverageItem: BeverageItem = {
-        _id: "",
-        category,
-        beverageName: itemName,
-        price,
-        isVisible: true,
-        restaurantType: "",
-        initialStock: 10,
-        note: "",
-      };
-      console.log("New Beverage Item:", beverageItem);
-      dispatch(addNewBeverage(beverageItem));
-      dispatch(setIsBeverageItemsList(true));
-      dispatch(setSelectedCategory(category?category:""));
-      dispatch(setSelectedCategoryId(""));
+  const handleAddItem = async () => {
+    try {
+      if (itemType === "food") {
+        const foodItem = {
+          itemName,
+          price,
+          restaurantType: "Pool Restaurant",
+          isVisible: true,
+          category,
+          isEnableBeverage: addLiqueur,
+          liquor: liqueurs,
+        };
+
+        await dispatch(addNewFoodItem(foodItem)).unwrap(); 
+        toast.success("Food item added successfully!");
+
+        // Reset form and update state
+        dispatch(setIsBeverageItemsList(false));
+        dispatch(setSelectedCategoryId(category ?? ""));
+        dispatch(setSelectedCategory(""));
+      } else {
+        const beverageItem: BeverageItem = {
+          _id: "",
+          category,
+          beverageName: itemName,
+          price,
+          isVisible: true,
+          restaurantType: "",
+          initialStock: 10,
+          note: "",
+        };
+
+        await dispatch(addNewBeverage(beverageItem)).unwrap();
+        toast.success("Beverage item added successfully!");
+
+        dispatch(setIsBeverageItemsList(true));
+        dispatch(setSelectedCategory(category ?? ""));
+        dispatch(setSelectedCategoryId(""));
+      }
+
+      resetForm();
+    } catch (err: any) {
+      //handle error directly
+      if (itemType==="food") {
+          toast.error(addFoodItemStatus.error || "Failed to add food item");
+          return;
+      }
+         toast.error(addBeverageItemStatus.error || "Failed to add beverage item");
     }
-    resetForm();
   };
+
 
    // fetch beverages
   useEffect(() => {
     dispatch(fetchAllBeverageItems());
   }, [dispatch]);
-
-  // handle errors
-  useEffect(() => {
-    if (addFoodItemStatus.error) {
-      toast.error(addFoodItemStatus.error);
-    }
-    if (addBeverageItemStatus.error) {
-      toast.error(addBeverageItemStatus.error);
-    }
-  }, [addFoodItemStatus.error, addBeverageItemStatus.error]);
-
-  // handle success
-  useEffect(() => {
-    if (isAddedNewFoodItem) {
-      toast.success("Food item added successfully!");
-      resetForm();
-    }
-  }, [isAddedNewFoodItem]);
-
-  useEffect(() => {
-    if (isAddedBeverageItem) {
-      toast.success("Beverage item added successfully!");
-      resetForm();
-    }
-  }, [isAddedBeverageItem]);
 
 
   return (
@@ -324,7 +319,7 @@ export default function AddFoodItemSection() {
 
       {/* Add Button */}
       <Button
-        className="w-full bg-teal-600 hover:bg-teal-700"
+        className="w-full bg-primary hover:bg-primary cursor-pointer"
         disabled={isDisabled}
         onClick={handleAddItem}
       >

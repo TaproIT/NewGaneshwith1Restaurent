@@ -46,13 +46,14 @@ const foodSlice = createSlice({
       })
 
       // add new food item
-      .addCase(addNewFoodItem.pending, (state, action) => {
+      .addCase(addNewFoodItem.pending, (state) => {
+        state.isAddedNewFoodItem = false;
         state.addFoodItemStatus.loading = true;
         state.addFoodItemStatus.error = null;
       })
 
       
-      .addCase(addNewFoodItem.fulfilled, (state, action) => {
+      .addCase(addNewFoodItem.fulfilled, (state) => {
           state.addFoodItemStatus.loading = false;
           state.isAddedNewFoodItem = true;
       })

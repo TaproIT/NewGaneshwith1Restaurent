@@ -13,6 +13,6 @@ export const addNewBeverage = createAsyncThunk<
     const response = await api.post(`/beverages`,beverageItem);
     return response.data.data.order as BeverageItem;
   } catch (error: any) {
-    return rejectWithValue(error?.response?.data || "Failed to add table into order");
+    return rejectWithValue(error?.response?.data.message || "Failed to add beverage item");
   }
 });

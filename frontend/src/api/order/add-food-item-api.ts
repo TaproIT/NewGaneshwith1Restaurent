@@ -22,6 +22,6 @@ export const addNewFoodItem = createAsyncThunk<
     const response = await api.post(`/pbfoodnets`,addFoodItem);
     return response.data.data as FoodItem;
   } catch (error: any) {
-    return rejectWithValue(error?.response?.data.message || "Failed to add food item");
+    return rejectWithValue(error?.response?.data.error || "Failed to add food item");
   }
 });

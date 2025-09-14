@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { setIsClickAddNewFoodItem } from "@/features/beach-restaurant/foodSlice";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const FoodList: React.FC = () => {
   const { foodItems: foods, isAddedNewFoodItem, fetchAllFoodItemsStatus } =
@@ -22,10 +23,13 @@ const FoodList: React.FC = () => {
     (food) => food.category?._id === selectedCategoryId
   );
 
+  const navigate = useNavigate();
+
   const { loading, error } = fetchAllFoodItemsStatus;
 
   const handleAddNewFoodItem = () => {
     dispatch(setIsClickAddNewFoodItem(true));
+    navigate("/beach-restaurant/menu/0");
   };
 
   useEffect(() => {

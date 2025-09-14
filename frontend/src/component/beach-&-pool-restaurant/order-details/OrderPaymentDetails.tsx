@@ -110,11 +110,11 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
      <ScrollArea
        className={`w-full ${
          !isHoldOrder
-           ? "h-[calc(100vh-500px)] 2xl:h-[calc(100vh-670px)]"
+           ? "h-[calc(100vh-510px)] 2xl:h-[calc(100vh-670px)]"
            : "h-[calc(100vh-590px)] 2xl:h-[calc(100vh-670px)]"
        }`}
      >
-       <div className="py-3 flex flex-col gap-3">
+       <div className="flex flex-col gap-3">
          {loading ? (
            // Skeletons while loading
            <div className="px-6 2xl:px-8 w-full flex flex-col gap-3">

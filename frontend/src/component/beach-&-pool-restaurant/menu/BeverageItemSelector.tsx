@@ -25,7 +25,7 @@ const BeverageItemSelector: React.FC<BeverageItemSelectorProps> = ({ beverageIte
   const existBeverageItem = orderBeverageItems?.some((item) => item.beverageId === beverageItem._id);
 
   // Determine whether the Add button should be disabled
-  const isDisabled = existBeverageItem || (order.orderTokens.length > 0 && !order.isAddNewOrderToken && !order.holdOrderToken) || id===":id";
+  const isDisabled = existBeverageItem || (order.orderTokens.length > 0 && !order.isAddNewOrderToken && !order.holdOrderToken) || id==="0";
 
   // Handler to add food item to new order token
   const handleAddClick = useCallback(() => {

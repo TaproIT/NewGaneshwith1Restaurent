@@ -1,7 +1,7 @@
 import { addNewBeverage } from "@/api/order/add-beverage-api";
 import { fetchAllBeverageItems } from "@/api/order/get-beverage-list-api";
 import type { BeverageItems } from "@/component/beach-&-pool-restaurant/beverage-model";
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 
 const initialState: BeverageItems = {
    beverageItems: [],
@@ -43,18 +43,18 @@ const beverageSlice = createSlice({
       })
 
       // add new beverage item
-      .addCase(addNewBeverage.pending, (state, action) => {
+      .addCase(addNewBeverage.pending, (state) => {
         state.addBeverageItemStatus.loading = true;
         state.addBeverageItemStatus.error = null;
       })
 
-      .addCase(addNewBeverage.fulfilled, (state, action) => {
+      .addCase(addNewBeverage.fulfilled, (state) => {
         state.isAddedBeverageItem = true;
       })
 
       .addCase(addNewBeverage.rejected, (state, action) => {
         state.addBeverageItemStatus.loading = true;
-        state.addBeverageItemStatus.error = null;
+        state.addBeverageItemStatus.error = action.payload as string;
       });
   },
   
