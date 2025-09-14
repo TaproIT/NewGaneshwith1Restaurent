@@ -9,7 +9,6 @@ import Login from "./pages/login/Login";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ProtectedRoute from "./component/ProtectedRoute";
-import Menu from "./pages/admin/Menu";
 import Dashboard from "./pages/admin/beverage_inventory/Dashboard";
 import ManageInventory from "./pages/admin/beverage_inventory/ManageInventory";
 import AdminDashboard from "./pages/admin/AdminDashboard";
