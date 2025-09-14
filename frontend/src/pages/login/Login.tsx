@@ -63,7 +63,7 @@ const Login = () => {
 
   const roleRedirects: Record<string, string> = {
     "Super-Admin": "/",
-    "Admin": "/menu",
+    "Admin": "/admin/dashboard",
     "Reception": "/onboarding",
     "Beach-Restaurant-Staff": "/kitchen",
     "Pool-Restaurant-Staff": "/kitchen",
