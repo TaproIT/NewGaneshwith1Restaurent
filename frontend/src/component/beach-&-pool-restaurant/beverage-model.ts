@@ -1,5 +1,3 @@
-import type { BeverageCategory } from "./beverage-category-model";
-
 export interface FetchAllBeverageItemsStatus {
      loading: boolean,
      error: string | null
