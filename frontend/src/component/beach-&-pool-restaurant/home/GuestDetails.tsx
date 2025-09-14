@@ -61,9 +61,9 @@ const GuestDetails: React.FC = () => {
   };
 
   const handleSelectRoom = (selectedRoom: string) => {
-    const room = rooms.find((r) => r.number === selectedRoom);
+    const room = rooms.find((r) => r.no === selectedRoom);
     if (room) {
-      dispatch(setRoomNumber(room.number));
+      dispatch(setRoomNumber(room.no));
       dispatch(setGuestName(room.guest));
     }
     setOpen(false);
@@ -107,17 +107,17 @@ const GuestDetails: React.FC = () => {
                     <CommandGroup>
                       {rooms.map((room) => (
                         <CommandItem
-                          key={room.number}
-                          value={room.number}
-                          onSelect={() => handleSelectRoom(room.number)}
+                          key={room._id}
+                          value={room.no}
+                          onSelect={() => handleSelectRoom(room.no)}
                         >
                           <Check
                             className={cn(
                               "mr-2 h-4 w-4",
-                              roomNumber === room.number ? "opacity-100" : "opacity-0"
+                              room.no === room.no ? "opacity-100" : "opacity-0"
                             )}
                           />
-                          Room {room.number} — {room.guest}
+                          Room {room.no} — {room.guest}
                         </CommandItem>
                       ))}
                     </CommandGroup>

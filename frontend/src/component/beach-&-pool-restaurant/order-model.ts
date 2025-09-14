@@ -36,7 +36,8 @@ export interface Table{
 }
 
 export interface AvailableBookedRoom {
-   number: string;
+   _id:string;
+   no: string;
    guest: string;
    roomId: string;
    guestId: string;
