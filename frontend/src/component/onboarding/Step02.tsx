@@ -10,18 +10,7 @@ import type { Room } from "@/types/roomTypes";
 import { addRoom } from "@/features/onboarding/onboardingSlice";
 import { api } from "@/api/axios";
 import { useLocation } from "react-router-dom";
-
-// --- Skeletons ---
-const RoomGridSkeleton = () => (
-  <div className="grid grid-cols-4 gap-5">
-    {Array.from({ length: 8 }).map((_, i) => (
-      <div
-        key={i}
-        className="h-32 bg-gray-200 rounded-lg animate-pulse"
-      />
-    ))}
-  </div>
-);
+import RoomGridSkeleton from "../skeleton/RoomGridSkeleton";
 
 const SOCKET_URL = import.meta.env.SOCKET_URL;
 
@@ -33,16 +22,17 @@ const Step02 = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bookingId, setBookingId] = useState<string>("");
   const [whatsAppBookingId, setWhatsAppBookingId] = useState<string>("");
-
-  const guestDetails = useSelector(
-    (state: RootState) => state.onboarding.step01Data
-  );
-  const removedRooms = useSelector(
-    (state: RootState) => state.removedRooms.oldRooms
-  );
   const dispatch = useDispatch();
   const location = useLocation();
   const daysStayed = location.state?.daysStayed;
+  const removedRooms = location.state?.oldRooms
+const guestDetails = useSelector(
+    (state: RootState) => state.onboarding.step01Data
+  );
+  // const removedRooms = useSelector(
+  //   (state: RootState) => state.removedRooms.oldRooms
+  // );
+  console.log(removedRooms)
 
   const socketRef = useRef<Socket | null>(null);
 
@@ -82,24 +72,29 @@ const Step02 = () => {
 
   // Fetch bookingId when removedRooms changes
   useEffect(() => {
-    if (removedRooms.length === 0) return;
-    if (!bookingId) return; // already have bookingId
+    console.log("Removed rooms:", removedRooms);
+  if (removedRooms.length === 0) return; // no removed rooms
 
-    const firstRoomNo = removedRooms[0].roomNo;
+  const firstRoomNo = removedRooms[0].roomNo;
+  console.log(firstRoomNo);
 
-    const fetchBooking = async () => {
-      try {
-        const res = await api.get(
-          `/booking/active-rooms-with-prices/${firstRoomNo}`
-        );
-        setBookingId(res.data.bookingId);
-      } catch (err) {
-        console.error("Failed to fetch booking:", err);
-      }
-    };
+  const fetchBooking = async () => {
+    try {
+      const res = await api.get(`/booking/active-rooms-with-prices/${firstRoomNo}`);
+      setBookingId(res.data.bookingId);
+    } catch (err) {
+      console.error("Failed to fetch booking:", err);
+    }
+  };
 
+  // Only fetch if bookingId is empty
+  if (!bookingId) {
     fetchBooking();
-  }, [removedRooms]);
+  }
+}, [removedRooms, bookingId]);
+
+  console.log("First removed room number:", removedRooms[0]?.roomNo);
+  console.log("Current booking ID:", bookingId);
 
   // Handle selecting/unselecting rooms
   const handleRoomClick = (room: Room) => {
@@ -170,7 +165,6 @@ const Step02 = () => {
 
       setSelectedRooms([]);
       setViewedRoom(null);
-
       toast.success("Rooms booked successfully!");
       setIsModalOpen(true);
     } catch (err) {
@@ -184,6 +178,16 @@ const Step02 = () => {
       sum + (guestDetails.lengthOfStay || daysStayed) * room.perDayPrice,
     0
   );
+
+  const handleCloseModal = () => {
+  setIsModalOpen(false); // close the modal
+
+  // Refresh page after a short delay
+  setTimeout(() => {
+    window.location.reload();
+  }, 100); // 100ms delay ensures modal visually closes first
+};
+
 
   return (
     <div className="grid grid-cols-4 gap-5">
@@ -209,7 +213,7 @@ const Step02 = () => {
           isModalOpen={isModalOpen}
           onRemoveRoom={handleRemoveRoom}
           onBookRoom={handleBook}
-          onCloseModal={() => setIsModalOpen(false)}
+          onCloseModal={handleCloseModal}
           readOnly={false}
           checkout={false}
           invoice={false}
