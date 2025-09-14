@@ -14,6 +14,9 @@ import BeachRestaurantTablesPage from './pages/beach-restaurant/BeachRestaurantT
 import BeachRestaurantMenuPage from './pages/beach-restaurant/BeachRestaurantMenuPage';
 import BeachRestaurantHoldPage from "./pages/beach-restaurant/BeachRestaurantHoldPage";
 import BeachRestaurantDailySummaryPage from "./pages/beach-restaurant/BeachRestaurantDailySummaryPage";
+import Dashboard from "./pages/admin/beverage_inventory/Dashboard";
+import ManageInventory from "./pages/admin/beverage_inventory/ManageInventory";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 
 function App() {
   return (
@@ -52,8 +55,13 @@ function App() {
           <Route path="/beach-restaurant/menu/:id" element={<BeachRestaurantMenuPage />} />
           <Route path="/beach-restaurant/hold" element={<BeachRestaurantHoldPage />} />
           <Route path="/beach-restaurant/daily-summary" element={<BeachRestaurantDailySummaryPage />} />
+         
+          <Route path="/beverage-inventory/dashboard" element={<Dashboard />} />
+          <Route path="/beverage-inventory/manage-inventory" element={<ManageInventory />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Route>
-      </Routes>    
+        {/* <Route path="/menu" element={<ProtectedRoute><Menu /></ProtectedRoute>} /> */}
+      </Routes>
     </Router>
   );
 }

@@ -6,7 +6,7 @@ import { useSelector } from "react-redux";
 const Onboarding = () => {
     const step = useSelector((state: RootState) => state.onboarding.step);
   return (
-    <div className="w-full">
+    <div className="w-full h-[calc(100vh-140px)]">
         {step === 1 && <Step01 />}
         {step === 2 && <Step02 />}
     </div>
