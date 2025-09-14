@@ -110,8 +110,8 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
      <ScrollArea
        className={`w-full ${
          !isHoldOrder
-           ? "h-[calc(100vh-510px)] 2xl:h-[calc(100vh-670px)]"
-           : "h-[calc(100vh-590px)] 2xl:h-[calc(100vh-670px)]"
+           ? "h-[calc(100vh-470px)] 2xl:h-[calc(100vh-670px)]"
+           : "h-[calc(100vh-510px)] 2xl:h-[calc(100vh-670px)]"
        }`}
      >
        <div className="flex flex-col gap-3">
@@ -188,7 +188,7 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
                <div className="px-3 2xl:px-5 w-full flex flex-col gap-1.5">
                  {isHoldOrder ? (
                    <Button
-                     className="!w-full !h-8 border-[#0A869D] cursor-pointer"
+                     className="mt-5 !w-full !h-8 border-[#0A869D] cursor-pointer"
                      onClick={handleProceedPaymentClick}
                    >
                      Proceed to payment

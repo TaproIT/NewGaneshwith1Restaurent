@@ -1,5 +1,5 @@
 import type { RootState } from "@/app/store";
-import { OrderStatuses, ServiceTypes } from "@/lib/enums/order-related-enums";
+import { CustomerTypes, OrderStatuses, ServiceTypes } from "@/lib/enums/order-related-enums";
 import React, { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -65,7 +65,9 @@ const OrderInitialDetails: React.FC = () => {
         {serviceTypes.map((service) => (
           <div
             key={service.id}
-            className={`${service.col} flex items-center justify-center text-[0.75rem] rounded-sm py-1
+            className={`${
+              service.col
+            } flex items-center justify-center text-[0.75rem] rounded-sm py-1
               ${
                 order.serviceType === service.id
                   ? "bg-bg-highlight text-[#FEFEFE]"
@@ -85,12 +87,18 @@ const OrderInitialDetails: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-2">
-          <p className="col-span-1">Room</p>
-          <p className="col-span-1">
-            : <span className="px-2">{order.roomNumber || "R-02"}</span>
-          </p>
-        </div>
+        {order.customerType === CustomerTypes.CHECKED_IN.value ? (
+          <div className="grid grid-cols-2">
+            <p className="col-span-1">Room</p>
+            <p className="col-span-1">
+              : <span className="px-2">{order.roomNumber || "R-02"}</span>
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2">
+            <p className="col-span-1">Walk-In Customer</p>
+          </div>
+        )}
 
         {order.restaurantTable && (
           <div className="grid grid-cols-2">

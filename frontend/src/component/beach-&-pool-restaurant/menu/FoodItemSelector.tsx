@@ -41,7 +41,7 @@ const FoodItemSelector: React.FC<FoodItemSelectorProps> = ({ foodItem }) => {
   return (
     <div className="p-1 flex flex-col gap-1 border rounded-sm">
       {/* Food item name */}
-      <div className="py-6 flex items-center justify-center text-[#444444] text-[0.625rem] bg-[#F4F4F4] rounded-sm">
+      <div className="py-6 flex items-center justify-center text-[#444444] text-[0.625rem] capitalize bg-[#F4F4F4] rounded-sm">
         {foodItem.itemName}
       </div>
 

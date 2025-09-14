@@ -35,6 +35,7 @@ const holdOrderSlice = createSlice({
     builder
       //fetch daily order summary
       .addCase(fetchDailyOrderSummary.pending, (state) => {
+        state.selectedOrderId = "";
         state.fetchDailyOrderSummaryStatus.loading = true;
         state.fetchDailyOrderSummaryStatus.error = null;
       })

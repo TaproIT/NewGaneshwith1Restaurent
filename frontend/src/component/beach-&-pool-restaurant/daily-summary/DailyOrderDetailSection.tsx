@@ -7,17 +7,34 @@ import OrderToken from "../order-details/OrderToken";
 import { useDispatch } from "react-redux";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { fetchOrderById } from "@/api/order/get-order-data-api";
+import { TicketX } from "lucide-react";
 
 
 const DailyOrderDetailsSection: React.FC = () => {
   const  order = useSelector((state:RootState) => state.order);
-  const {selectedOrderId: id} = useSelector((state:RootState) => state.dailyOrderSummary);
+  const {selectedOrderId: id, date} = useSelector((state:RootState) => state.dailyOrderSummary);
   const dispatch = useDispatch<AppDispatch>();
-  
+
   useEffect(() => {
       if (!id) return;
       dispatch(fetchOrderById(id));
-  }, [id]);
+  }, [id, date]);
+  
+  if (!id || !order || !order._id) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center bg-mainWhite rounded-2xl p-6 text-center">
+        <div className="p-3 flex items-center justify-center bg-[#e6f3f5] rounded-full">
+          <TicketX size={24} className="text-primary" />
+        </div>
+        <h3 className="text-base font-semibold text-gray-700">
+          No Order Selected
+        </h3>
+        <p className="text-sm text-gray-500 mt-1">
+          Select a hold order from the left to view its details.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col justify-between bg-mainWhite rounded-2xl">

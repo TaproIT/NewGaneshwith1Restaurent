@@ -23,6 +23,8 @@ const holdOrderSlice = createSlice({
     builder
       //fetch hold orders
       .addCase(fetchHoldOrders.pending, (state) => {
+        state.selectedHoldOrderId = "";
+        state.holdOrders = [];
         state.fetchHoldOrdersStatus.loading = true;
         state.fetchHoldOrdersStatus.error = null;
       })

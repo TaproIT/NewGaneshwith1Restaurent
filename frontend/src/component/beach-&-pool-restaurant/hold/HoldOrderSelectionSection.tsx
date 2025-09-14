@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { HoldOrderServiceType } from "../hold-order-model";
 import { setSelectedHoldOrderId } from "@/features/beach-restaurant/holdOrderSlice";
+import { TicketX } from "lucide-react";
 
 const HoldOrderSelectionSection: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -65,26 +66,41 @@ const HoldOrderSelectionSection: React.FC = () => {
 
       {/* Hold Orders */}
       <ScrollArea className="h-[calc(100vh-190px)] w-full rounded-2xl">
-        <div className="px-4 pb-4 grid grid-cols-4 gap-3">
-          {orders.map((order) => {
-            const isSelected = selectedId === order._id;
-            const orderClass = getHoldOrderClasses(order.serviceType as HoldOrderServiceType, isSelected);
+        {orders.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full py-20 text-center text-[#5B5B5B]">
+            <div className="p-3 flex items-center justify-center bg-[#e6f3f5] rounded-full">
+               <TicketX size={24} className="text-primary"/>
+            </div>
+            <p className="text-lg font-semibold">No Hold Orders</p>
+            <p className="text-sm text-gray-500 mt-1">
+              All orders have been cleared or completed.
+            </p>
+          </div>
+        ) : (
+          <div className="px-4 pb-4 grid grid-cols-4 gap-3">
+            {orders.map((order) => {
+              const isSelected = selectedId === order._id;
+              const orderClass = getHoldOrderClasses(
+                order.serviceType as HoldOrderServiceType,
+                isSelected
+              );
 
-            return (
-              <div
-                key={order._id}
-                onClick={() => handleHoldOrderClick(order._id)}
-                className="col-span-1 flex flex-col gap-1 cursor-pointer"
-              >
+              return (
                 <div
-                  className={`py-8 flex items-center justify-center rounded-sm font-[500] text-[0.875rem] ${orderClass}`}
+                  key={order._id}
+                  onClick={() => handleHoldOrderClick(order._id)}
+                  className="col-span-1 flex flex-col gap-1 cursor-pointer"
                 >
-                  {order.orderNumber}
+                  <div
+                    className={`py-8 flex items-center justify-center rounded-sm font-[500] text-[0.875rem] ${orderClass}`}
+                  >
+                    {order.orderNumber}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </ScrollArea>
     </div>
   );

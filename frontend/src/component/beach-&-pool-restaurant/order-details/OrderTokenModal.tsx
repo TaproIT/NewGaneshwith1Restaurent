@@ -120,7 +120,7 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
 
           {/* Print Button */}
           <div className="my-3 px-3 flex">
-            <Button onClick={handlePrint} className="!w-full">
+            <Button onClick={handlePrint} className="!w-full cursor-pointer">
               Print
             </Button>
           </div>
