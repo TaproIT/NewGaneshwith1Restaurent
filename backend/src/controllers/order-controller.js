@@ -438,8 +438,10 @@ export const getDailyOrdersSummary = async (req, res) => {
     const takeAwayCount = orders.filter(
       (o) => o.serviceType === ServiceTypes.TAKE_AWAY.value
     ).length;
-    
-    
+
+    // ✅ Count total tokens across all orders
+    const totalTokens = orders.reduce((sum, order) => sum + (order.orderTokens?.length || 0), 0);
+
     // Transform orders into DailyOrder format 
     const dailyOrders = orders.map((order) => ({
       _id: order._id.toString(),
@@ -452,13 +454,14 @@ export const getDailyOrdersSummary = async (req, res) => {
       })),
     }));
 
-    return sendSuccessResponse(res, 200, "Daily order summary retrieve successfully", {
+    return sendSuccessResponse(res, 200, "Daily order summary retrieved successfully", {
       date,
       summary: {
         dineInCount,
         saveToRoomCount,
         takeAwayCount,
         totalOrders: orders.length,
+        totalTokens, // ✅ added here
       },
       orders: dailyOrders,
     });
@@ -467,6 +470,7 @@ export const getDailyOrdersSummary = async (req, res) => {
     return sendErrorResponse(res, 500, "Internal server error");
   }
 };
+
 
 
 
