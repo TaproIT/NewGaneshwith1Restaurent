@@ -192,7 +192,6 @@ export const addOrderToken = async (req, res) => {
     const { id } = req.params; // order id
     const { newOrderToken, subTotal, tax, discount, serviceCharge, totalBill } =
       req.body.data;
-    console.log(newOrderToken);
     const order = await Order.findById(id);
     if (!order) {
       await session.abortTransaction();
@@ -439,7 +438,7 @@ export const getDailyOrdersSummary = async (req, res) => {
       (o) => o.serviceType === ServiceTypes.TAKE_AWAY.value
     ).length;
 
-    // ✅ Count total tokens across all orders
+    // Count total tokens across all orders
     const totalTokens = orders.reduce((sum, order) => sum + (order.orderTokens?.length || 0), 0);
 
     // Transform orders into DailyOrder format 
@@ -461,7 +460,7 @@ export const getDailyOrdersSummary = async (req, res) => {
         saveToRoomCount,
         takeAwayCount,
         totalOrders: orders.length,
-        totalTokens, // ✅ added here
+        totalTokens, // added here
       },
       orders: dailyOrders,
     });

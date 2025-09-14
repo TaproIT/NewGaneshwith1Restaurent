@@ -77,7 +77,7 @@ export function DatePicker({ defaultDate, onDateChange }: DatePickerProps) {
               variant="ghost"
               className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
             >
-              <CalendarIcon className="size-3.5" />
+              <CalendarIcon className="size-3.5 cursor-pointer" />
               <span className="sr-only">Select date</span>
             </Button>
           </PopoverTrigger>

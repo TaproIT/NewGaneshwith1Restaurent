@@ -8,7 +8,8 @@ const initialState: DailyOrderSummary = {
        dineInCount: 0,
        takeAwayCount: 0,
        saveToRoomCount: 0,
-       totalOrders: 0
+       totalOrders: 0,
+       totalTokens: 0
      },
      orders: [],
      selectedOrderId: "",
@@ -27,6 +28,7 @@ const holdOrderSlice = createSlice({
     setSelectedDate: (state, action: PayloadAction<string>) => {
       state.date = action.payload;
     },
+    resetDailySummaryData : () => initialState
   },
   
   extraReducers: (builder) => {
@@ -52,5 +54,5 @@ const holdOrderSlice = createSlice({
   
 });
 
-export const { setSelectedOrderId, setSelectedDate } = holdOrderSlice.actions;
+export const { setSelectedOrderId, setSelectedDate, resetDailySummaryData } = holdOrderSlice.actions;
 export default holdOrderSlice.reducer;

@@ -24,6 +24,7 @@ export interface DailyOrderSummary {
     takeAwayCount: number;
     saveToRoomCount: number;
     totalOrders: number;
+    totalTokens: number;
   }
   orders: DailyOrder[];
   selectedOrderId: string;

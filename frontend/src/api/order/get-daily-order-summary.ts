@@ -9,13 +9,20 @@ import type { RootState } from "@/app/store";
 export const fetchDailyOrderSummary = createAsyncThunk<
   DailyOrderSummary,
   void,
-  {state: RootState}
->("dailyOrderSummary/fetchDailyOrderSummary", async ( __ ,{ getState, rejectWithValue }) => {
-  try {
-    const {dailyOrderSummary} = getState();
-    const response = await api.get(`/order/daily-summary?date=${dailyOrderSummary.date}`);
-    return response.data.data as DailyOrderSummary;
-  } catch (error: any) {
-    return rejectWithValue(error?.response?.data || "Failed to fetch order");
+  { state: RootState }
+>(
+  "dailyOrderSummary/fetchDailyOrderSummary",
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const { dailyOrderSummary } = getState();
+
+      const response = await api.get(
+        `/order/daily-summary?date=${dailyOrderSummary.date}`
+      );
+
+      return response.data.data as DailyOrderSummary;
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data || "Failed to fetch order");
+    }
   }
-});
+);
