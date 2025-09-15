@@ -9,6 +9,9 @@ import {
   BookText,
   House,
   Table2,
+  NotepadText,
+  PauseCircle,
+  Newspaper,
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
@@ -46,7 +49,11 @@ const navigationConfig: Record<string, NavItem[]> = {
     { path: '/invoice', title: 'Invoice', icon: <BookText size={22} /> },
   ],
   'Beach-Restaurant-Staff': [
-    { path: '/kitchen', title: 'Beach Orders', icon: <ChefHat size={22} /> },
+    { path: '/beach-restaurant/home', title: 'Home', icon: <House size={22} /> },
+    { path: `/beach-restaurant/tables/0`, title: 'Tables', icon: <Table2 size={22} /> },
+    { path: '/beach-restaurant/menu/0', title: 'Menu', icon: <NotepadText size={22} /> },
+    { path: '/beach-restaurant/hold', title: 'Hold', icon: <PauseCircle size={22} /> },
+    { path: '/beach-restaurant/daily-summary', title: 'Daily Summary', icon: <Newspaper size={22} /> }
   ],
   'Pool-Restaurant-Staff': [
     { path: '/kitchen', title: 'Pool Orders', icon: <ChefHat size={22} /> },
@@ -82,11 +89,25 @@ const Layout: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selectedSidebar, setSelectedSidebar] = useState<UserRole | 'Beverage-Inventory' | 'Reception'>(userRole);
 
-  const getLinkClassName = (path: string) => {
-    const baseClasses = "flex items-center gap-2 p-3 rounded-lg";
-    const isActive = location.pathname === path;
-    return `${baseClasses} ${isActive ? 'bg-primary text-white' : 'hover:bg-primary hover:text-white'}`;
-  };
+ const getLinkClassName = (path: string) => {
+   const baseClasses = "flex gap-2 p-3 rounded-lg";
+   const currentPath = location.pathname;
+
+   let isActive = false;
+
+   // Handle dynamic "tables" and "menu" paths
+   if (path.startsWith("/beach-restaurant/tables")) {
+     isActive = currentPath.startsWith("/beach-restaurant/tables");
+   } else if (path.startsWith("/beach-restaurant/menu")) {
+     isActive = currentPath.startsWith("/beach-restaurant/menu");
+   } else {
+     isActive = currentPath === path;
+   }
+
+   return `${baseClasses} ${
+     isActive ? "bg-primary text-white" : "hover:bg-primary hover:text-white"
+   }`;
+ };
 
   const handleLogout = async () => {
     try {

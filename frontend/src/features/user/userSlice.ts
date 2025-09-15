@@ -4,7 +4,7 @@ import type { RoleState, UserRole } from "@/types/roleTypes";
 import { api } from "@/api/axios";
 
 const initialState: RoleState = {
-  role: "Reception",
+    role: 'Beach-Restaurant-Staff'
 };
 
 export const fetchUserRole = createAsyncThunk<UserRole>(

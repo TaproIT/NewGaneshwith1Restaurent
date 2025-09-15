@@ -1,7 +1,7 @@
 import express from "express";
 import { verifyTokenNotBlacklisted } from "../middleware/check-black-list-token.js";
 import { authenticateToken } from "../middleware/verify-token.js";
-import { addOrderToken, selectTableForOrder, setInitialOrderDetails } from "../controllers/order-controller.js";
+import { addOrderToken, addTable, getAllTables, getDailyOrdersSummary, getHoldOrders, getOrderDetails, getTableById, selectTableForOrder, setInitialOrderDetails, updateTable } from "../controllers/order-controller.js";
 import { authorizeRoles } from "../middleware/role-authorize.js";
 import { userRoles } from "../utils/enums/user-role.js";
 
@@ -13,24 +13,80 @@ router.post(
   "/",
   verifyTokenNotBlacklisted,
   authenticateToken,
-  authorizeRoles([userRoles.ADMIN.value]),
+  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value, userRoles.ADMIN.value]),
   setInitialOrderDetails
 );
 
 router.post(
-  "/:id/table",
+  "/table",
   verifyTokenNotBlacklisted,
   authenticateToken,
-  authorizeRoles([userRoles.ADMIN.value]),
+  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value,userRoles.ADMIN.value]),
+  addTable
+);
+
+router.get(
+  "/table",
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value,userRoles.ADMIN.value]),
+  getAllTables
+);
+
+router.get(
+  "/table/:id",
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value,userRoles.ADMIN.value]),
+  getTableById
+);
+
+router.patch(
+  "/table/:id",
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value, userRoles.ADMIN.value]),
+  updateTable
+);
+
+router.patch(
+  "/:id",
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value,userRoles.ADMIN.value]),
   selectTableForOrder
 );
 
-router.post(
+router.patch(
   "/:id/token",
   verifyTokenNotBlacklisted,
   authenticateToken,
-  authorizeRoles([userRoles.ADMIN.value]),
+  authorizeRoles([userRoles.ADMIN.value, userRoles.BEACH_RESTAURANT_STAFF.value]),
   addOrderToken
+);
+
+router.get(
+  "/hold-orders",
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value, userRoles.ADMIN.value]),
+  getHoldOrders
+);
+
+router.get(
+  "/daily-summary",
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value, userRoles.ADMIN.value]),
+  getDailyOrdersSummary
+)
+
+router.get(
+  "/:id",
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value, userRoles.ADMIN.value]),
+  getOrderDetails
 );
 
 

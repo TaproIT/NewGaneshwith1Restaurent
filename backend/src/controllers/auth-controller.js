@@ -1,4 +1,4 @@
-import User from "../models/user-model.js";
+import User from "../models/user/user-model.js";
 import { comparePasswords, compareRefreshTokens, generateTempPassword, hashPassword, hashRefreshToken, sendTempPasswordEmail } from "../utils/auth-util.js";
 import { userRoles } from "../utils/enums/user-role.js";
 import { sendErrorResponse, sendSuccessResponse } from "../utils/response-util.js";
