@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { CustomerTypes, ServiceTypes, OrderStatuses, PaymentMethods } from "../../utils/enums/order-related-enums.js";
+import { CustomerTypes, ServiceTypes, OrderStatuses, PaymentMethods, RestaurantTypes } from "../../utils/enums/order-related-enums.js";
 
 const orderSchema = new mongoose.Schema({
   orderNumber: {
@@ -15,6 +15,11 @@ const orderSchema = new mongoose.Schema({
     type: String,
     required: true,
     enum: [ServiceTypes.DINE_IN.value, ServiceTypes.SAVE_TO_ROOM.value, ServiceTypes.TAKE_AWAY.value],
+  },
+  restaurantType: {
+    type: String,
+    required: true,
+    enum: [RestaurantTypes.BEACH.value, RestaurantTypes.POOL.value]
   },
   roomNumber: {
     type: String,

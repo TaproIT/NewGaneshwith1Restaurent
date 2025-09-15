@@ -1,7 +1,7 @@
 import { fetchOrderById } from "@/api/order/get-order-data-api";
-import { createOrderWithInitialData } from "@/api/order/create-order-initial-data-api";
+import { createOrderWithInitialData } from "@/api/order/add-order-initial-data-api";
 import type { Order, OrderBeverageItem, OrderFoodItem} from "@/component/beach-&-pool-restaurant/order-model";
-import { CustomerTypes, ServiceTypes } from "@/lib/enums/order-related-enums";
+import { CustomerTypes, RestaurantTypes, ServiceTypes } from "@/lib/enums/order-related-enums";
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import { fetchAllTables } from "@/api/order/get-tables-api";
@@ -17,7 +17,8 @@ const initialState: Order = {
   orderNumber: 0,
   orderStatus: 0,
   customerType: CustomerTypes.CHECKED_IN.value,  
-  serviceType: ServiceTypes.DINE_IN.value, 
+  serviceType: ServiceTypes.DINE_IN.value,
+  restaurantType: RestaurantTypes.BEACH.value, 
   rooms: [],     
   roomNumber: "",            
   guestName: "",
@@ -87,6 +88,10 @@ const orderSlice = createSlice({
 
     setServiceType: (state, action: PayloadAction<string>) => {
       state.serviceType = action.payload;
+    },
+
+     setRestaurantType: (state, action: PayloadAction<string>) => {
+      state.restaurantType = action.payload;
     },
 
     setRoomNumber: (state, action: PayloadAction<string>) => {

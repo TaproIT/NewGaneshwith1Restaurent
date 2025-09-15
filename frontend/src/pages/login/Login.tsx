@@ -65,7 +65,7 @@ const Login = () => {
     "Super-Admin": "/",
     "Admin": "/admin/dashboard",
     "Reception": "/onboarding",
-    "Beach-Restaurant-Staff": "/kitchen",
+    "Beach-Restaurant-Staff": "/beach-restaurant/home",
     "Pool-Restaurant-Staff": "/kitchen",
   };
 

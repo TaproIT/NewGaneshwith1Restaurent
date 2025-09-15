@@ -2,7 +2,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { createOrderWithInitialData } from "@/api/order/create-order-initial-data-api";
+import { createOrderWithInitialData } from "@/api/order/add-order-initial-data-api";
 import type { AppDispatch, RootState } from "@/app/store";
 import { CustomerTypes, ServiceTypes } from "@/lib/enums/order-related-enums";
 import { toast } from "react-toastify";
@@ -12,6 +12,7 @@ const GetStartedButton: React.FC = () => {
   const navigate = useNavigate();
 
   const order = useSelector((state: RootState) => state.order);
+
   const { loading, error } = order.orderInitialDataStatus;
   
   const handleInitialOrderDetails = async () => {
@@ -22,6 +23,7 @@ const GetStartedButton: React.FC = () => {
           serviceType: order.serviceType,
           roomNumber: Number(order.roomNumber),
           guestName: order.guestName,
+          guestId: order.guestId
         })
       );
 

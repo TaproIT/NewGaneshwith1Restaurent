@@ -82,6 +82,7 @@ export interface Order{
   orderStatus: number;
   customerType: string;       
   serviceType: string; 
+  restaurantType: string;
   rooms: AvailableBookedRoom[];       
   roomNumber: string;         
   guestName: string;

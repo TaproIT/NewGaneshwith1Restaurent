@@ -78,6 +78,11 @@ const pathTitles: Record<string, string> = {
   '/tasks': 'Tasks | Today',
   '/invoice': 'Invoice',
   '/admin/dashboard': 'Admin Dashboard',
+  '/beach-restaurant/home': 'Home',
+  '/beach-restaurant/tables/0': 'Tables',
+  '/beach-restaurant/menu/0': 'Menu',
+  '/beach-restaurant/hold': 'Hold',
+  '/beach-restaurant/daily-summary': 'Daily Summary',
 };
 
 const Layout: React.FC = () => {

@@ -7,20 +7,27 @@ import { OrderStatuses, ServiceTypes, TableStatuses } from "../utils/enums/order
 import { generateOrderNumber, generateTokenId } from "../utils/order-util.js";
 import { sendErrorResponse, sendSuccessResponse } from "../utils/response-util.js";
 import mongoose from "mongoose";
+import { getRestaurantTypeByUserRole } from "../utils/user-util.js";
 
 export const setInitialOrderDetails = async (req, res) => {
     try{
-        const {customerType, serviceType, roomNumber, guestName } = req.body;
+        const {customerType, serviceType, roomNumber, guestName, guestId } = req.body;
+
+        const { userId } = req.user;
 
         const orderStatus = OrderStatuses.SET_INITIAL_ORDER_DATA.value;
 
         const orderNumber = await generateOrderNumber();
 
+        const restaurantType = await getRestaurantTypeByUserRole(userId);
+
         const newOrder = await Order.create({
             orderNumber,
             customerType,
             serviceType,
+            restaurantType,
             roomNumber,
+            guestId,
             guestName,
             orderStatus
         });
