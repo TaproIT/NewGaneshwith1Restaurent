@@ -381,9 +381,15 @@ export const getOrderDetails = async (req, res) => {
 
 export const getHoldOrders = async (req, res) => {
   try {
+
+    const { userId } = req.user;
+
+    const restaurantType = await getRestaurantTypeByUserRole(userId);
+
     // Find all orders where holdOrderToken is not null
     const holdOrders = await Order.find({
       holdOrderToken: { $ne: null },
+      restaurantType
     }).select("_id serviceType orderNumber");
 
     if (!holdOrders || holdOrders.length === 0) {
@@ -412,6 +418,11 @@ export const getHoldOrders = async (req, res) => {
 export const getDailyOrdersSummary = async (req, res) => {
   try {
     const { date } = req.query; // expected format: YYYY-MM-DD
+
+    const { userId } = req.user;
+
+    const restaurantType = await getRestaurantTypeByUserRole(userId);
+
     if (!date) {
       return sendErrorResponse(res, 400, "Date is required");
     }
@@ -424,6 +435,7 @@ export const getDailyOrdersSummary = async (req, res) => {
     // Query orders within date range 
     const orders = await Order.find({
       createdAt: { $gte: start, $lt: end },
+      restaurantType
     })
       .populate({
         path: "orderTokens",
