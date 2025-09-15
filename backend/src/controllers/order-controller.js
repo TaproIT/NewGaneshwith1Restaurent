@@ -105,10 +105,8 @@ export const updateTable = async (req, res) => {
 export const getAllTables = async (req, res) => {
   try {
     const { userId } = req.user;
-    
-    const { restaurantType } = req.query;
 
-    //const restaurantType = await getRestaurantTypeByUserRole(userId);
+    const restaurantType = await getRestaurantTypeByUserRole(userId);
 
     const tables = await RestaurantTable.find({restaurantType}).sort({ tableNumber: 1 }); // Sorted by table number (optional)
 

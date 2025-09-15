@@ -13,7 +13,7 @@ router.post(
   "/",
   verifyTokenNotBlacklisted,
   authenticateToken,
-  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value, userRoles.ADMIN.value]),
+  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value, userRoles.POOL_RESTAURANT_STAFF.value, userRoles.ADMIN.value]),
   setInitialOrderDetails
 );
 
@@ -21,7 +21,7 @@ router.post(
   "/table",
   verifyTokenNotBlacklisted,
   authenticateToken,
-  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value,userRoles.ADMIN.value]),
+  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value, userRoles.POOL_RESTAURANT_STAFF.value, userRoles.ADMIN.value]),
   addTable
 );
 
@@ -29,7 +29,7 @@ router.get(
   "/table",
   verifyTokenNotBlacklisted,
   authenticateToken,
-  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value,userRoles.ADMIN.value]),
+  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value, userRoles.POOL_RESTAURANT_STAFF.value, userRoles.ADMIN.value]),
   getAllTables
 );
 
@@ -37,7 +37,7 @@ router.get(
   "/table/:id",
   verifyTokenNotBlacklisted,
   authenticateToken,
-  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value,userRoles.ADMIN.value]),
+  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value, userRoles.POOL_RESTAURANT_STAFF.value, userRoles.ADMIN.value]),
   getTableById
 );
 
@@ -45,7 +45,7 @@ router.patch(
   "/table/:id",
   verifyTokenNotBlacklisted,
   authenticateToken,
-  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value, userRoles.ADMIN.value]),
+  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value, userRoles.POOL_RESTAURANT_STAFF.value, userRoles.ADMIN.value]),
   updateTable
 );
 
@@ -53,7 +53,7 @@ router.patch(
   "/:id",
   verifyTokenNotBlacklisted,
   authenticateToken,
-  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value,userRoles.ADMIN.value]),
+  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value, userRoles.POOL_RESTAURANT_STAFF.value, userRoles.ADMIN.value]),
   selectTableForOrder
 );
 
@@ -61,7 +61,7 @@ router.patch(
   "/:id/token",
   verifyTokenNotBlacklisted,
   authenticateToken,
-  authorizeRoles([userRoles.ADMIN.value, userRoles.BEACH_RESTAURANT_STAFF.value]),
+  authorizeRoles([userRoles.ADMIN.value, userRoles.POOL_RESTAURANT_STAFF.value, userRoles.BEACH_RESTAURANT_STAFF.value]),
   addOrderToken
 );
 
@@ -69,7 +69,7 @@ router.get(
   "/hold-orders",
   verifyTokenNotBlacklisted,
   authenticateToken,
-  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value, userRoles.ADMIN.value]),
+  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value, userRoles.POOL_RESTAURANT_STAFF.value, userRoles.ADMIN.value]),
   getHoldOrders
 );
 
@@ -77,7 +77,7 @@ router.get(
   "/daily-summary",
   verifyTokenNotBlacklisted,
   authenticateToken,
-  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value, userRoles.ADMIN.value]),
+  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value, userRoles.POOL_RESTAURANT_STAFF.value, userRoles.ADMIN.value]),
   getDailyOrdersSummary
 )
 
@@ -85,7 +85,7 @@ router.get(
   "/:id",
   verifyTokenNotBlacklisted,
   authenticateToken,
-  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value, userRoles.ADMIN.value]),
+  authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value, userRoles.POOL_RESTAURANT_STAFF.value, userRoles.ADMIN.value]),
   getOrderDetails
 );
 
