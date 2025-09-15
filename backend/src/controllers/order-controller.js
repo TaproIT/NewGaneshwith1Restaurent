@@ -40,19 +40,19 @@ export const setInitialOrderDetails = async (req, res) => {
 
 export const addTable = async (req, res) => {
   try {
-    const { name, tableNumber, status } = req.body;
+    const { name, tableNumber, status, restaurantType } = req.body;
 
     if (!name || !tableNumber || !status) {
       return sendErrorResponse(res, 400, "Name and table number are required");
     }
 
-    const existTable = await RestaurantTable.findOne({name, tableNumber});
+    const existTable = await RestaurantTable.findOne({name, tableNumber, restaurantType});
 
     if (existTable) {
       return sendErrorResponse(res, 400, "Already existed table" );
     }
 
-    const table = await RestaurantTable.create({ name, tableNumber, status });
+    const table = await RestaurantTable.create({ name, tableNumber, status, restaurantType });
 
     return sendSuccessResponse(res, 201, "Table added successfully", { table });
   } catch (error) {
@@ -104,7 +104,13 @@ export const updateTable = async (req, res) => {
 
 export const getAllTables = async (req, res) => {
   try {
-    const tables = await RestaurantTable.find().sort({ tableNumber: 1 }); // Sorted by table number (optional)
+    const { userId } = req.user;
+    
+    const { restaurantType } = req.query;
+
+    //const restaurantType = await getRestaurantTypeByUserRole(userId);
+
+    const tables = await RestaurantTable.find({restaurantType}).sort({ tableNumber: 1 }); // Sorted by table number (optional)
 
     if (!tables || tables.length === 0) {
       return sendSuccessResponse(res, 200, "No tables found", { tables: [] });

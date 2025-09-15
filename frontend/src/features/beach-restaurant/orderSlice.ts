@@ -90,7 +90,7 @@ const orderSlice = createSlice({
       state.serviceType = action.payload;
     },
 
-     setRestaurantType: (state, action: PayloadAction<string>) => {
+    setRestaurantType: (state, action: PayloadAction<string>) => {
       state.restaurantType = action.payload;
     },
 
@@ -453,7 +453,8 @@ const orderSlice = createSlice({
 // Export actions to dispatch them in components
 export const { 
   setCustomerType, 
-  setServiceType, 
+  setServiceType,
+  setRestaurantType, 
   setRoomNumber, 
   setGuestName,
   resetOrderData,
