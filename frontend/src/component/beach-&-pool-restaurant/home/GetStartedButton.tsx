@@ -33,8 +33,8 @@ const GetStartedButton: React.FC = () => {
 
         const targetPath =
           newOrder.serviceType === ServiceTypes.DINE_IN.value
-            ? `/beach-restaurant/tables/${newOrder._id}`
-            : `/beach-restaurant/menu/${newOrder._id}`;
+            ? `/restaurant/tables/${newOrder._id}`
+            : `/restaurant/menu/${newOrder._id}`;
         
         // Navigate after toast shows for a short time
         setTimeout(() => {

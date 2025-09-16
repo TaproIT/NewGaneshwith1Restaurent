@@ -50,11 +50,11 @@ function App() {
           <Route path="/checkouts" element={<Checkouts />} />
           <Route path="/invoice" element={<Invoice />} />
 
-          <Route path="/beach-restaurant/home" element={<BeachRestaurantHomePage />} />
-          <Route path="/beach-restaurant/tables/:id" element={<BeachRestaurantTablesPage />} />
-          <Route path="/beach-restaurant/menu/:id" element={<BeachRestaurantMenuPage />} />
-          <Route path="/beach-restaurant/hold" element={<BeachRestaurantHoldPage />} />
-          <Route path="/beach-restaurant/daily-summary" element={<BeachRestaurantDailySummaryPage />} />
+          <Route path="/restaurant/home" element={<BeachRestaurantHomePage />} />
+          <Route path="/restaurant/tables/:id" element={<BeachRestaurantTablesPage />} />
+          <Route path="/restaurant/menu/:id" element={<BeachRestaurantMenuPage />} />
+          <Route path="/restaurant/hold" element={<BeachRestaurantHoldPage />} />
+          <Route path="/restaurant/daily-summary" element={<BeachRestaurantDailySummaryPage />} />
          
           <Route path="/beverage-inventory/dashboard" element={<Dashboard />} />
           <Route path="/beverage-inventory/manage-inventory" element={<ManageInventory />} />

@@ -31,7 +31,7 @@ const TableDetails: React.FC<TableDetailsProps> = ({ orderId }) => {
       toast.success("Table reserved successfully");
 
       setTimeout(() => {
-         navigate(`/beach-restaurant/menu/${orderId}`);
+         navigate(`/restaurant/menu/${orderId}`);
       }, 1000);
 
     } catch (err: any) {

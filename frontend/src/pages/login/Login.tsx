@@ -65,8 +65,8 @@ const Login = () => {
     "Super-Admin": "/",
     "Admin": "/admin/dashboard",
     "Reception": "/onboarding",
-    "Beach-Restaurant-Staff": "/beach-restaurant/home",
-    "Pool-Restaurant-Staff": "/kitchen",
+    "Beach-Restaurant-Staff": "/restaurant/home",
+    "Pool-Restaurant-Staff": "/restaurant/home",
   };
 
   // ✅ Use role from form data
