@@ -1,4 +1,3 @@
-import { fetchAllBeverageCategories } from "@/api/order/get-beverage-categories-api";
 import type { RootState } from "@/app/store";
 import {
   setSelectedCategory,

@@ -14,9 +14,9 @@ import { toast } from "react-toastify";
 const FoodCategorySelector: React.FC = () => {
   const dispatch = useDispatch();
   const foodCategory = useSelector((state: RootState) => state.foodCategory);
-  const { selectedCategory } = useSelector(
-    (state: RootState) => state.beverageCategory
-  );
+  // const { selectedCategory } = useSelector(
+  //   (state: RootState) => state.beverageCategory
+  // );
 
   const categories = foodCategory.categories;
   const selectedCategoryId = foodCategory.selectedCategoryId;

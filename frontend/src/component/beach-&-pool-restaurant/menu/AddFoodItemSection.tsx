@@ -18,7 +18,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/app/store";
 import { BeverageCategories } from "@/lib/enums/order-related-enums";
-import type { BeverageItem } from "../beverage-model";
 import { addNewBeverage } from "@/api/order/add-beverage-api";
 import { addNewFoodItem } from "@/api/order/add-food-item-api";
 import { fetchAllBeverageItems } from "@/api/order/get-beverage-list-api";

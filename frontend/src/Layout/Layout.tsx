@@ -4,7 +4,6 @@ import Logo from '../assets/Images/Logos/main_logo.png';
 import { 
   Bell, CircleArrowRight, LogOut, Settings, 
   ShieldCheck, User, UserRoundPlus, Users, Calendar,
-  ChefHat,
   RepeatIcon,
   BookText,
   House,
