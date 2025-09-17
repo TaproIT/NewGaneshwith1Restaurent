@@ -16,6 +16,7 @@ import {orderRoutes} from "./src/routes/order-routes.js";
 import { pbfoodnetCategoryRoutes } from  "./src/routes/PoolAndBeachResturant/pbfoodnetCategoryRoutes.js";
 import { beverageRoutes } from "./src/routes/Beverage/beverageRoutes.js";
 import {pbfoodnetRoutes} from "./src/routes/PoolAndBeachResturant/pbfoodnetRoutes.js";
+import { invoiceRoutes } from "./src/routes/Reception/invoice-routes.js";
 
 // Load env variables
 dotenv.config();
@@ -56,6 +57,8 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/user", userRoutes);
 // --- Reception/booking ---
 app.use("/api/v1/booking", bookingRoutes);
+// --- Reception/invoice ---
+app.use("/api/v1/invoice", invoiceRoutes);
 // -- room handling ---
 app.use("/api/v1/room", roomRoutes);
 
