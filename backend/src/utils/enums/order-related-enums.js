@@ -33,3 +33,9 @@ export const TableStatuses = Object.freeze({
    SELECTED: { value: "Selected", label: "Selected" },
    RESERVED: { value: "Reserved", label: "Reserved" }
 });
+
+export const RestaurantTypes = Object.freeze({
+   BEACH: { value: "Beach", label: "Beach" },
+   POOL : { value: "Pool", label: "Pool"}
+});
+

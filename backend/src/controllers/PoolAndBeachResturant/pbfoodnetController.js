@@ -1,65 +1,95 @@
 import PBFoodNet from "../../models/PoolAndBeachResturant/PBFoodNet.js";
 import PBFoodNetCategory from "../../models/PoolAndBeachResturant/PBFoodNetCategory.js";
 import Beverage from "../../models/Beverage/./beverage.js";
+import { getRestaurantTypeByUserRole } from "../../utils/user-util.js";
 
 export const createPBFoodNet = async (req, res) => {
     try {
-        // 1. check if category exists and visible
-        const category = await PBFoodNetCategory.findOne({
-            _id: req.body.category,
-            isVisible: true,
+      const { userId } = req.user;
+
+      const defaultRestaurantType = await getRestaurantTypeByUserRole(userId);
+
+      const restaurantType = req.body.restaurantType || defaultRestaurantType;
+
+      console.log(restaurantType);
+
+      // 1. check if category exists and visible
+      const category = await PBFoodNetCategory.findOne({
+        _id: req.body.category,
+        isVisible: true,
+        restaurantType,
+      });
+
+      if (!category) {
+        return res
+          .status(400)
+          .json({ error: "Category not found or not visible." });
+      }
+
+      // 2. check if food already exists in this category
+      const food = await PBFoodNet.findOne({
+        itemName: { $regex: new RegExp(`^${req.body.itemName}$`, "i") },
+        category: req.body.category,
+        restaurantType,
+      });
+
+      if (food) {
+        return res
+          .status(400)
+          .json({ error: "Food already exists in this category" });
+      }
+
+      if (
+        Array.isArray(req.body.liquor) &&
+        req.body.liquor.length > 0 &&
+        req.body.isEnableBeverage !== true
+      ) {
+        return res
+          .status(400)
+          .json({
+            error: "isEnableBeverage must be true when liquor is provided.",
+          });
+      }
+
+      // 3. validate liquors if provided
+      if (req.body.liquor && req.body.liquor.length > 0) {
+        // Extract beverage IDs from liquor array
+        const liquorIds = req.body.liquor.map((l) => l.beverage);
+
+        // Check duplicates
+        const uniqueIds = new Set(liquorIds.map((id) => id.toString()));
+        if (uniqueIds.size !== liquorIds.length) {
+          return res
+            .status(400)
+            .json({ error: "Duplicate liquor IDs are not allowed." });
+        }
+
+        // Verify all beverages exist, visible, and category is "hard liquor"
+        const beverages = await Beverage.find({
+          _id: { $in: liquorIds },
+          isVisible: true,
+          category: "hard liquor",
+          //restaurantType,
         });
 
-        if (!category) {
-            return res.status(400).json({ error: "Category not found or not visible." });
-        }
-
-        // 2. check if food already exists in this category
-        const food = await PBFoodNet.findOne({
-            itemName: { $regex: new RegExp(`^${req.body.itemName}$`, "i") },
-            category: req.body.category,
-        });
-
-        if (food) {
-            return res.status(400).json({ error: "Food already exists in this category" });
-        }
-
-        if (Array.isArray(req.body.liquor) && req.body.liquor.length > 0 && req.body.isEnableBeverage !== true) {
-            return res.status(400).json({ error: "isEnableBeverage must be true when liquor is provided." });
-        }
-
-        // 3. validate liquors if provided
-        if (req.body.liquor && req.body.liquor.length > 0) {
-            // Extract beverage IDs from liquor array
-            const liquorIds = req.body.liquor.map((l) => l.beverage);
-
-            // Check duplicates
-            const uniqueIds = new Set(liquorIds.map((id) => id.toString()));
-            if (uniqueIds.size !== liquorIds.length) {
-                return res.status(400).json({ error: "Duplicate liquor IDs are not allowed." });
-            }
-
-            // Verify all beverages exist, visible, and category is "hard liquor"
-            const beverages = await Beverage.find({
-                _id: { $in: liquorIds },
-                isVisible: true,
-                category: "hard liquor",
+        if (beverages.length !== liquorIds.length) {
+          return res
+            .status(400)
+            .json({
+              error:
+                "One or more liquors not found, not visible, or not hard liquor.",
             });
-
-            if (beverages.length !== liquorIds.length) {
-                return res
-                    .status(400)
-                    .json({ error: "One or more liquors not found, not visible, or not hard liquor." });
-            }
         }
+      }
 
-        // 4. create PBFoodNet item
-        const item = await PBFoodNet.create(req.body);
-        res.status(201).json(item);
+      // 4. create PBFoodNet item
+      const item = await PBFoodNet.create({...req.body, restaurantType});
+      res.status(201).json(item);
     } catch (err) {
         return res.status(400).json({ error: err.message });
     }
 };
+
 export const updatePBFoodNet = async (req, res) => {
     try {
         const updateData = {};
@@ -166,7 +196,16 @@ export const deletePBFoodNet = async (req, res) => {
     }
 };
 export const getPBFoodNets = async (req, res) => {
-    const items = await PBFoodNet.find()
+    const { userId } = req.user;
+
+    const defaultRestaurantType = await getRestaurantTypeByUserRole(userId);
+
+    const restaurantType = req.query.restaurantType || defaultRestaurantType;
+    
+    const filter = {
+      ...(restaurantType ? { restaurantType } : {}), 
+    };
+    const items = await PBFoodNet.find( filter )
         .populate("category")
         .populate("liquor");
     return res.json(items);
@@ -181,7 +220,18 @@ export const getPBFoodNet = async (req, res) => {
 
 export const getAvailablePBFoodNets = async (req, res) => {
     try{
-        const items = await PBFoodNet.find({ isVisible: true })
+        const { userId } = req.user;
+
+        const defaultRestaurantType = await getRestaurantTypeByUserRole(userId);
+
+        const restaurantType = req.query.restaurantType || defaultRestaurantType;
+
+        const filter = {
+          isVisible: true,
+          ...(restaurantType ? { restaurantType } : {}),
+        };
+
+        const items = await PBFoodNet.find(filter)
             .populate("category")
             .populate("liquor");
 

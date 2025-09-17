@@ -60,7 +60,7 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
  };
 
   const handleProceedPaymentClick = () => {
-    navigate(`/beach-restaurant/menu/${id}`);
+    navigate(`/restaurant/menu/${id}`);
   };
 
   // Recalculate token subtotal and total bill when order tokens or charges change

@@ -32,3 +32,8 @@ export const BeverageCategories = Object.freeze({
   HARD_LIQUOR: { value: "hard liquor", label: "Hard Liquor"},
   SOFT_DRINKS: { value: "soft drinks", label: "Soft Drinks"},
 });
+
+export const RestaurantTypes = Object.freeze({
+   BEACH: { value: "Beach", label: "Beach" },
+   POOL : { value: "Pool", label: "Pool"}
+});

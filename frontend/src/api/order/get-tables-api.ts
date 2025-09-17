@@ -8,7 +8,7 @@ import type { Table } from "@/component/beach-&-pool-restaurant/order-model";
 export const fetchAllTables = createAsyncThunk<
   Table[],
   void
->("order/fetchAllTables", async ( __ ,{ rejectWithValue }) => {
+>(`order/fetchAllTables?restaurantType=`, async ( __ ,{ rejectWithValue }) => {
   try {
     const response = await api.get(`/order/table`);
     return response.data.data.tables as Table[];

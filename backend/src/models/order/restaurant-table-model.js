@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { TableStatuses } from "../../utils/enums/order-related-enums.js";
+import { RestaurantTypes, TableStatuses } from "../../utils/enums/order-related-enums.js";
 
 const restaurantTableSchema = new mongoose.Schema({
     name: {
@@ -9,6 +9,11 @@ const restaurantTableSchema = new mongoose.Schema({
     tableNumber: {
         type: Number,
         required: true
+    },
+    restaurantType: {
+        type: String,
+        required: true,
+        enums: [RestaurantTypes.BEACH.value, RestaurantTypes.POOL.value]
     },
     isSelected: {
         type: Boolean,

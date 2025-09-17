@@ -14,9 +14,9 @@ import { toast } from "react-toastify";
 const FoodCategorySelector: React.FC = () => {
   const dispatch = useDispatch();
   const foodCategory = useSelector((state: RootState) => state.foodCategory);
-  const { selectedCategory } = useSelector(
-    (state: RootState) => state.beverageCategory
-  );
+  // const { selectedCategory } = useSelector(
+  //   (state: RootState) => state.beverageCategory
+  // );
 
   const categories = foodCategory.categories;
   const selectedCategoryId = foodCategory.selectedCategoryId;
@@ -44,13 +44,13 @@ const FoodCategorySelector: React.FC = () => {
       toast.error("Failed to load food categories. Please try again.");
     }
   }, [error]);
-
+  console.log(selectedCategoryId);
   // Auto select first category if none selected
-  useEffect(() => {
-    if (!selectedCategoryId && !selectedCategory && categories.length > 0) {
-      dispatch(setSelectedCategoryId(categories[0]._id));
-    }
-  }, [categories, selectedCategoryId, dispatch]);
+  // useEffect(() => {
+  //   if (!selectedCategoryId && !selectedCategory && categories.length > 0) {
+  //     dispatch(setSelectedCategoryId(categories[0]._id));
+  //   }
+  // }, [categories, selectedCategoryId, dispatch]);
 
   // Ensure selected item is visible when it changes
   useEffect(() => {

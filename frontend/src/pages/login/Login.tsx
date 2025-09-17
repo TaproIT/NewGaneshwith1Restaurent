@@ -50,36 +50,54 @@ const Login = () => {
   const dispatch = useDispatch();
 
   const onSubmit = async (data: FormValues) => {
-    setIsLoading(true);
+// <<<<<<< raveesha/beverage-inventory
+//     setIsLoading(true);
 
-    try {
-      const response = await api.post("/auth/login", data);
+//     try {
+//       const response = await api.post("/auth/login", data);
 
-      if (response.data.data.accessToken) {
-        localStorage.setItem("authToken", response.data.data.accessToken);
+//       if (response.data.data.accessToken) {
+//         localStorage.setItem("authToken", response.data.data.accessToken);
 
-        dispatch(setUserRole(data.userRole as UserRole));
+//         dispatch(setUserRole(data.userRole as UserRole));
 
-        const roleRedirects: Record<string, string> = {
-          "Super-Admin": "/",
-          Admin: "/admin/dashboard",
-          Reception: "/onboarding",
-          "Beach-Restaurant-Staff": "/kitchen",
-          "Pool-Restaurant-Staff": "/kitchen",
-        };
+//         const roleRedirects: Record<string, string> = {
+//           "Super-Admin": "/",
+//           Admin: "/admin/dashboard",
+//           Reception: "/onboarding",
+//           "Beach-Restaurant-Staff": "/kitchen",
+//           "Pool-Restaurant-Staff": "/kitchen",
+//         };
 
-        const redirectPath = roleRedirects[data.userRole] || "/";
+//         const redirectPath = roleRedirects[data.userRole] || "/";
 
-        setTimeout(() => {
-          setIsLoading(false);
-          navigate(redirectPath);
-          toast.success("Login Successful!");
-        }, 2000);
-      }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Something went wrong!");
-      setIsLoading(false);
-    }
+//         setTimeout(() => {
+//           setIsLoading(false);
+//           navigate(redirectPath);
+//           toast.success("Login Successful!");
+//         }, 2000);
+//       }
+//     } catch (error: any) {
+//       toast.error(error.response?.data?.message || "Something went wrong!");
+//       setIsLoading(false);
+//     }
+// =======
+  setIsLoading(true); // Show spinner immediately
+
+  try {
+    const response = await api.post("/auth/login", data);
+
+    if (response.data.data.accessToken) {
+  localStorage.setItem("authToken", response.data.data.accessToken);
+
+  dispatch(setUserRole(data.userRole as UserRole));
+
+  const roleRedirects: Record<string, string> = {
+    "Super-Admin": "/",
+    "Admin": "/admin/dashboard",
+    "Reception": "/onboarding",
+    "Beach-Restaurant-Staff": "/restaurant/home",
+    "Pool-Restaurant-Staff": "/restaurant/home",
   };
 
   return (
