@@ -1,4 +1,4 @@
-export const guestTypes = Object.freeze({
+export const CustomerTypes = Object.freeze({
     checkedIn: {
         value: "Checked-In",
         label: "Checked-in"

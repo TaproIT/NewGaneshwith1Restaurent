@@ -1,5 +1,5 @@
 import { sendErrorResponse } from "../utils/response-util.js";
-import User from "../models/user-model.js";
+import User from "../models/user/user-model.js";
 
 /**
  * Allows access only if the logged-in user's role is included in the allowed roles.
