@@ -30,9 +30,9 @@ const BeverageCategorySelector: React.FC = () => {
     (cat) => cat.value === selectedCategory
   );
 
-  useEffect(() => {
-    dispatch(fetchAllBeverageCategories() as any);
-  }, [dispatch]);
+  // useEffect(() => {
+  //   dispatch(fetchAllBeverageCategories() as any);
+  // }, [dispatch]);
 
   // show error toast
   useEffect(() => {
@@ -59,7 +59,7 @@ const BeverageCategorySelector: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-start w-[135px] h-[calc(100vh-250px)] overflow-y-auto no-scrollbar rounded-md">
+    <div className="flex flex-col items-start w-[135px] 2xl:w-[163px] h-[calc(100vh-250px)] overflow-y-auto no-scrollbar rounded-md">
       {loading
         ? Array.from({ length: 2 }).map((_, index) => (
             <Skeleton key={index} className="h-[60px] w-full mb-2 rounded-md" />

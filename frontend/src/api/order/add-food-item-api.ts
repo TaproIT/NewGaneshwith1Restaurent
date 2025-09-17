@@ -5,7 +5,6 @@ import type { FoodItem } from "@/component/beach-&-pool-restaurant/food-model";
 interface AddFoodItem {
   itemName: string;
   price: number;
-  restaurantType: string;
   isVisible: boolean;
   category: string | null;
   isEnableBeverage: boolean;

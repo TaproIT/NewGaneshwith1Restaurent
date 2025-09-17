@@ -69,7 +69,7 @@ export const createPBFoodNet = async (req, res) => {
           _id: { $in: liquorIds },
           isVisible: true,
           category: "hard liquor",
-          restaurantType,
+          //restaurantType,
         });
 
         if (beverages.length !== liquorIds.length) {

@@ -40,6 +40,7 @@ const foodCategorySlice = createSlice({
                     state.categories = [];
                 }
                 state.categories = [...state.categories, ...action.payload];
+                state.selectedCategoryId = state.categories[0]._id;
             })
             .addCase(fetchAllFoodCategories.rejected, (state, action) => {
                 state.fetchAllFoodCategoriesStatus.loading = false;

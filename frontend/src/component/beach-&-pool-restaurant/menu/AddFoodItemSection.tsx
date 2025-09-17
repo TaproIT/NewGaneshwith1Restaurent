@@ -87,7 +87,6 @@ export default function AddFoodItemSection() {
         const foodItem = {
           itemName,
           price,
-          restaurantType: "Pool Restaurant",
           isVisible: true,
           category,
           isEnableBeverage: addLiqueur,
@@ -102,13 +101,11 @@ export default function AddFoodItemSection() {
         dispatch(setSelectedCategoryId(category ?? ""));
         dispatch(setSelectedCategory(""));
       } else {
-        const beverageItem: BeverageItem = {
-          _id: "",
+        const beverageItem = {
           category,
           beverageName: itemName,
           price,
           isVisible: true,
-          restaurantType: "",
           initialStock: 10,
           note: "",
         };
@@ -153,14 +150,14 @@ export default function AddFoodItemSection() {
               setCategory(null);
             }}
           >
-            <SelectTrigger className="w-full text-[0.75rem]">
+            <SelectTrigger className="w-full text-[0.75rem] cursor-pointer">
               <SelectValue placeholder="Select Type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="food" className="text-[0.75rem]">
+              <SelectItem value="food" className="text-[0.75rem] cursor-pointer">
                 Food
               </SelectItem>
-              <SelectItem value="beverage" className="text-[0.75rem]">
+              <SelectItem value="beverage" className="text-[0.75rem] cursor-pointer">
                 Beverage
               </SelectItem>
             </SelectContent>
@@ -174,7 +171,7 @@ export default function AddFoodItemSection() {
             onValueChange={setCategory}
             disabled={!itemType}
           >
-            <SelectTrigger className="w-full text-[0.75rem]">
+            <SelectTrigger className="w-full text-[0.75rem] cursor-pointer">
               <SelectValue placeholder="Select Category" />
             </SelectTrigger>
             <SelectContent className="text-[0.75rem]">
@@ -183,7 +180,7 @@ export default function AddFoodItemSection() {
                     <SelectItem
                       key={cat._id}
                       value={cat._id}
-                      className="text-[0.75rem]"
+                      className="text-[0.75rem] cursor-pointer"
                     >
                       {cat.categoryName}
                     </SelectItem>
@@ -230,7 +227,7 @@ export default function AddFoodItemSection() {
           itemType === "food" && (
             <div className="mt-10 flex items-center mb-3">
               <Label className="w-24 text-[0.75rem]">Add Liqueur</Label>
-              <Switch checked={addLiqueur} onCheckedChange={handleToggleLiqueur} />
+              <Switch checked={addLiqueur} onCheckedChange={handleToggleLiqueur} className="cursor-pointer" />
             </div>
           )
         }
@@ -253,7 +250,7 @@ export default function AddFoodItemSection() {
                           )
                         }
                       >
-                        <SelectTrigger className="w-full text-[0.75rem]">
+                        <SelectTrigger className="w-full text-[0.75rem] cursor-pointer">
                           <SelectValue placeholder="Select Name" />
                         </SelectTrigger>
                         <SelectContent className="text-[0.75rem]">
@@ -261,7 +258,7 @@ export default function AddFoodItemSection() {
                             <SelectItem
                               key={liquor._id}
                               value={liquor._id}
-                              className="text-[0.75rem]"
+                              className="text-[0.75rem] cursor-pointer"
                             >
                               {liquor.beverageName}
                             </SelectItem>
@@ -293,7 +290,7 @@ export default function AddFoodItemSection() {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="absolute bottom-1 right-1 h-6 w-6"
+                      className="absolute bottom-1 right-1 h-6 w-6 cursor-pointer"
                       onClick={() => handleRemoveLiqueur(index)}
                     >
                       <Trash2 className="mt-2 h-4 w-4" />
@@ -303,6 +300,7 @@ export default function AddFoodItemSection() {
 
                 <div className="flex justify-center">
                   <Button
+                    className="cursor-pointer"
                     type="button"
                     variant="outline"
                     size="icon"
