@@ -1,7 +1,7 @@
 import express from "express";
 import { verifyTokenNotBlacklisted } from "../middleware/check-black-list-token.js";
 import { authenticateToken } from "../middleware/verify-token.js";
-import { addOrderToken, addTable, getAllTables, getDailyOrdersSummary, getHoldOrders, getOrderDetails, getTableById, selectTableForOrder, setInitialOrderDetails, updateTable } from "../controllers/order-controller.js";
+import { addOrderToken, addTable, getAllTables, getDailyOrdersSummary, getHoldOrders, getOrderDetails, getOrderSummary, getTableById, selectTableForOrder, setInitialOrderDetails, updateTable } from "../controllers/order-controller.js";
 import { authorizeRoles } from "../middleware/role-authorize.js";
 import { userRoles } from "../utils/enums/user-role.js";
 
@@ -79,7 +79,15 @@ router.get(
   authenticateToken,
   authorizeRoles([userRoles.BEACH_RESTAURANT_STAFF.value, userRoles.POOL_RESTAURANT_STAFF.value, userRoles.ADMIN.value]),
   getDailyOrdersSummary
-)
+);
+
+router.get(
+  "/order-summary",
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  authorizeRoles([userRoles.ADMIN.value]),
+  getOrderSummary
+);
 
 router.get(
   "/:id",

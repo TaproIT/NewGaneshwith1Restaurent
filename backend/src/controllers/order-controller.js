@@ -493,6 +493,135 @@ export const getDailyOrdersSummary = async (req, res) => {
   }
 };
 
+export const getOrderSummary = async (req, res) => {
+  try {
+    console.log("order summary");
+
+    // === Define date range (first day of month -> today) ===
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    const dateFilter = {
+      createdAt: { $gte: firstDayOfMonth, $lte: today },
+    };
+
+    // ===== Orders grouped by restaurantType & serviceType =====
+    const ordersByRestaurantType = await Order.aggregate([
+      { $match: dateFilter },
+      {
+        $group: {
+          _id: {
+            restaurantType: "$restaurantType",
+            serviceType: "$serviceType",
+          },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    // ===== Customers grouped by restaurantType & customerType =====
+    const customersByRestaurantType = await Order.aggregate([
+      { $match: dateFilter },
+      {
+        $group: {
+          _id: {
+            restaurantType: "$restaurantType",
+            customerType: "$customerType",
+          },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    // ===== Beverage sales grouped by restaurantType & category =====
+    const beverageSummary = await OrderToken.aggregate([
+      { $match: dateFilter },
+      { $unwind: "$items" },
+      {
+        $lookup: {
+          from: "beverages",
+          localField: "items.beverageId",
+          foreignField: "_id",
+          as: "beverageInfo",
+        },
+      },
+      { $unwind: "$beverageInfo" },
+      {
+        $group: {
+          _id: {
+            restaurantType: "$restaurantType",
+            category: "$beverageInfo.category",
+          },
+          totalAmount: { $sum: "$items.amount" },
+        },
+      },
+    ]);
+
+    // === Format response grouped by restaurantType ===
+    const summaryByRestaurantType = {};
+
+    const restaurantTypes = new Set([
+      ...ordersByRestaurantType.map((o) => o._id.restaurantType),
+      ...customersByRestaurantType.map((c) => c._id.restaurantType),
+      ...beverageSummary.map((b) => b._id.restaurantType),
+    ]);
+
+    restaurantTypes.forEach((type) => {
+      summaryByRestaurantType[type] = {
+        orderSummary: {
+          totalOrders: ordersByRestaurantType
+            .filter((o) => o._id.restaurantType === type)
+            .reduce((sum, o) => sum + o.count, 0),
+          byServiceType: ordersByRestaurantType
+            .filter((o) => o._id.restaurantType === type)
+            .map((o) => ({
+              serviceType: o._id.serviceType,
+              count: o.count,
+            })),
+        },
+        customerSummary: {
+          totalCustomers: customersByRestaurantType
+            .filter((c) => c._id.restaurantType === type)
+            .reduce((sum, c) => sum + c.count, 0),
+          byCustomerType: customersByRestaurantType
+            .filter((c) => c._id.restaurantType === type)
+            .map((c) => ({
+              customerType: c._id.customerType,
+              count: c.count,
+            })),
+        },
+        beverageSummary: beverageSummary
+          .filter((b) => b._id.restaurantType === type)
+          .map((b) => ({
+            category: b._id.category,
+            totalAmount: b.totalAmount,
+          })),
+      };
+    });
+
+    // === Final Response ===
+    return sendSuccessResponse(
+      res,
+      200,
+      "Monthly order summary retrieved successfully",
+      {
+        dateRange: {
+          from: firstDayOfMonth.toLocaleString("en-CA", {
+            timeZone: "Asia/Colombo",
+          }),
+          to: today.toLocaleString("en-CA", { timeZone: "Asia/Colombo" }),
+        },
+        summaryByRestaurantType,
+      }
+    );
+
+  } catch (error) {
+    console.error("Error generating order summary:", error);
+    return sendErrorResponse(res, 500, "Internal server error");
+  }
+};
 
 
 
