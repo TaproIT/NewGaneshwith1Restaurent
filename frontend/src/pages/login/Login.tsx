@@ -24,7 +24,7 @@ import { useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
-import { useDispatch} from "react-redux";
+import { useDispatch } from "react-redux";
 import { setUserRole } from "@/features/user/userSlice";
 import type { UserRole } from "@/types/roleTypes";
 
@@ -37,9 +37,8 @@ const loginSchema = z.object({
 type FormValues = z.infer<typeof loginSchema>;
 
 const Login = () => {
-  // const userRole = useSelector((state: RootState) => state.user.role)
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const form = useForm<FormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -48,66 +47,59 @@ const Login = () => {
       password: "",
     },
   });
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
 
   const onSubmit = async (data: FormValues) => {
-  setIsLoading(true); // Show spinner immediately
+    setIsLoading(true);
 
-  try {
-    const response = await api.post("/auth/login", data);
+    try {
+      const response = await api.post("/auth/login", data);
 
-    if (response.data.data.accessToken) {
-  localStorage.setItem("authToken", response.data.data.accessToken);
+      if (response.data.data.accessToken) {
+        localStorage.setItem("authToken", response.data.data.accessToken);
 
-  dispatch(setUserRole(data.userRole as UserRole));
+        dispatch(setUserRole(data.userRole as UserRole));
 
-  const roleRedirects: Record<string, string> = {
-    "Super-Admin": "/",
-    "Admin": "/admin/dashboard",
-    "Reception": "/onboarding",
-    "Beach-Restaurant-Staff": "/kitchen",
-    "Pool-Restaurant-Staff": "/kitchen",
+        const roleRedirects: Record<string, string> = {
+          "Super-Admin": "/",
+          Admin: "/admin/dashboard",
+          Reception: "/onboarding",
+          "Beach-Restaurant-Staff": "/kitchen",
+          "Pool-Restaurant-Staff": "/kitchen",
+        };
+
+        const redirectPath = roleRedirects[data.userRole] || "/";
+
+        setTimeout(() => {
+          setIsLoading(false);
+          navigate(redirectPath);
+          toast.success("Login Successful!");
+        }, 2000);
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Something went wrong!");
+      setIsLoading(false);
+    }
   };
 
-  // ✅ Use role from form data
-  const redirectPath = roleRedirects[data.userRole] || "/";
-
-  setTimeout(() => {
-    setIsLoading(false);
-    navigate(redirectPath);
-    toast.success("Login Successful!");
-  }, 2000);
-}
-
-
-  } catch (error: any) {
-    toast.error(error.response?.data?.message || "Something went wrong!");
-    setIsLoading(false); // Stop spinner if error occurs
-  }
-};
-
   return (
-    <div className="grid grid-cols-3 overflow-hidden h-screen">
-      {/* Left side with image */}
-      <div className="col-span-2 font-['Times_New_Roman'] relative">
-        <img src={bg} alt="background" className="w-full object-cover h-screen" />
-        <div className="font-bold text-5xl text-white absolute top-[15%] text-center left-[18%]">
-          Ganesh Garden Beach Cabanas <br /> & <br /> Ayurvedic SPA
-        </div>
-        <div className="absolute w-full h-[20%] bg-[#361401]/70 bottom-0"></div>
-        <div className="absolute bottom-[5%] left-[15%] text-[24px] text-center text-[#FEFEFE]">
-          Most luxurious Beach Cabanas of Tangalle with the royal treatments <br /> and
-          excellent customer service.
-        </div>
-      </div>
+    <div
+      className="relative flex justify-center items-center w-full h-screen bg-cover bg-center bg-no-repeat overflow-hidden"
+      style={{ backgroundImage: `url(${bg})` }}
+    >
+      {/* Glassy Overlay */}
+      <div className="absolute inset-0 bg-white/20 backdrop-blur-md"></div>
 
-      {/* Right side login form */}
-      <div className="col-span-1 flex justify-center items-center flex-col gap-6 p-6 bg-white shadow-lg">
+      {/* Login Card */}
+      <div className="relative z-10 flex justify-center items-center flex-col gap-6 p-6 bg-white shadow-lg w-[500px] rounded-2xl">
         <img src={logo} alt="logo" className="w-32 h-auto" />
         <div className="font-bold text-2xl my-3">User Login</div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full text-[14px] font-medium text-gray-700 p-10">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4 w-[500px] text-[14px] font-medium text-gray-700 p-10"
+          >
             {/* User Role */}
             <FormField
               control={form.control}
@@ -116,10 +108,7 @@ const Login = () => {
                 <FormItem>
                   <FormLabel>User Role</FormLabel>
                   <FormControl>
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
+                    <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger className="w-full text-gray">
                         <SelectValue placeholder="Select role" />
                       </SelectTrigger>
@@ -127,12 +116,18 @@ const Login = () => {
                         <SelectItem value="Super-Admin">Super-Admin</SelectItem>
                         <SelectItem value="Admin">Admin</SelectItem>
                         <SelectItem value="Reception">Reception</SelectItem>
-                        <SelectItem value="Beach-Restaurant-Staff">Beach Staff</SelectItem>
-                        <SelectItem value="Pool-Restaurant-Staff">Pool Staff</SelectItem>
+                        <SelectItem value="Beach-Restaurant-Staff">
+                          Beach Staff
+                        </SelectItem>
+                        <SelectItem value="Pool-Restaurant-Staff">
+                          Pool Staff
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </FormControl>
-                  <FormMessage>{form.formState.errors.userRole?.message}</FormMessage>
+                  <FormMessage>
+                    {form.formState.errors.userRole?.message}
+                  </FormMessage>
                 </FormItem>
               )}
             />
@@ -147,7 +142,9 @@ const Login = () => {
                   <FormControl>
                     <Input placeholder="Enter username" {...field} />
                   </FormControl>
-                  <FormMessage>{form.formState.errors.email?.message}</FormMessage>
+                  <FormMessage>
+                    {form.formState.errors.email?.message}
+                  </FormMessage>
                 </FormItem>
               )}
             />
@@ -160,16 +157,26 @@ const Login = () => {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Enter password" {...field} />
+                    <Input
+                      type="password"
+                      placeholder="Enter password"
+                      {...field}
+                    />
                   </FormControl>
-                  <FormMessage>{form.formState.errors.password?.message}</FormMessage>
+                  <FormMessage>
+                    {form.formState.errors.password?.message}
+                  </FormMessage>
                 </FormItem>
               )}
             />
 
             {/* Login Button */}
             <Button type="submit" className="w-full mt-2 cursor-pointer">
-              {isLoading ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> : "Login"}
+              {isLoading ? (
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              ) : (
+                "Login"
+              )}
             </Button>
 
             <Button variant="link" className="w-full mt-2 cursor-pointer">
