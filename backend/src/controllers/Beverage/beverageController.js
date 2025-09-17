@@ -1,5 +1,6 @@
 // controllers/beverageController.js
 import Beverage from "../../models/Beverage/beverage.js";
+import { getRestaurantTypeByUserRole } from "../../utils/user-util.js";
 
 
 // helpers
@@ -82,12 +83,19 @@ const ensureMonthEntry = (bev, year, month) => {
 
 export const createBeverage = async (req, res) => {
   try {
-    const { beverageName, price, category, isVisible, initialStock = 0, note } =
+    const { beverageName, price, category, isVisible, initialStock = 0, note, restaurantType } =
       req.body;
+    
+    //const { userId } = req.user;
+
+    //const defaultRestaurantType = await getRestaurantTypeByUserRole(userId);
+
+    //const resolvedRestaurantType = restaurantType || defaultRestaurantType;
 
     const existingBeverage = await Beverage.findOne({
       beverageName: beverageName.trim(),
       category: category.trim().toLowerCase(),
+      //restaurantType: resolvedRestaurantType
     });
 
     if (existingBeverage) {
@@ -100,6 +108,7 @@ export const createBeverage = async (req, res) => {
       beverageName,
       price,
       category,
+      //restaurantType: resolvedRestaurantType,
       isVisible: isVisible ?? true,
       runningStock: Math.max(0, Number(initialStock) || 0),
       lastUpdateAt: new Date(),
@@ -269,9 +278,17 @@ export const getAllBeverages = async (req, res) => {
       year,
       month,
       date, // optional day filter
+      //restaurantType
     } = req.query;
 
+    //const { userId } = req.user;
+
+    //const defaultRestaurantType = await getRestaurantTypeByUserRole(userId);
+
+    //const resolvedRestaurantType = restaurantType || defaultRestaurantType;
+
     const filter = {
+      //...(restaurantType ? { resolvedRestaurantType } : {}),
       ...(includeDeleted !== "true" ? { status: "active" } : {}),
       ...(category ? { category } : {}),
     };

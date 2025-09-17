@@ -2,4 +2,5 @@ export type UserRole = 'Super-Admin' | 'Admin' | 'Reception' | 'Beach-Restaurant
 
 export interface RoleState {
     role: UserRole;
+    restaurantType: string;
 }

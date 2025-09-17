@@ -7,20 +7,27 @@ import { OrderStatuses, ServiceTypes, TableStatuses } from "../utils/enums/order
 import { generateOrderNumber, generateTokenId } from "../utils/order-util.js";
 import { sendErrorResponse, sendSuccessResponse } from "../utils/response-util.js";
 import mongoose from "mongoose";
+import { getRestaurantTypeByUserRole } from "../utils/user-util.js";
 
 export const setInitialOrderDetails = async (req, res) => {
     try{
-        const {customerType, serviceType, roomNumber, guestName } = req.body;
+        const {customerType, serviceType, roomNumber, guestName, guestId } = req.body;
+
+        const { userId } = req.user;
 
         const orderStatus = OrderStatuses.SET_INITIAL_ORDER_DATA.value;
 
         const orderNumber = await generateOrderNumber();
 
+        const restaurantType = await getRestaurantTypeByUserRole(userId);
+
         const newOrder = await Order.create({
             orderNumber,
             customerType,
             serviceType,
+            restaurantType,
             roomNumber,
+            guestId,
             guestName,
             orderStatus
         });
@@ -33,19 +40,19 @@ export const setInitialOrderDetails = async (req, res) => {
 
 export const addTable = async (req, res) => {
   try {
-    const { name, tableNumber, status } = req.body;
+    const { name, tableNumber, status, restaurantType } = req.body;
 
     if (!name || !tableNumber || !status) {
       return sendErrorResponse(res, 400, "Name and table number are required");
     }
 
-    const existTable = await RestaurantTable.findOne({name, tableNumber});
+    const existTable = await RestaurantTable.findOne({name, tableNumber, restaurantType});
 
     if (existTable) {
       return sendErrorResponse(res, 400, "Already existed table" );
     }
 
-    const table = await RestaurantTable.create({ name, tableNumber, status });
+    const table = await RestaurantTable.create({ name, tableNumber, status, restaurantType });
 
     return sendSuccessResponse(res, 201, "Table added successfully", { table });
   } catch (error) {
@@ -97,7 +104,11 @@ export const updateTable = async (req, res) => {
 
 export const getAllTables = async (req, res) => {
   try {
-    const tables = await RestaurantTable.find().sort({ tableNumber: 1 }); // Sorted by table number (optional)
+    const { userId } = req.user;
+
+    const restaurantType = await getRestaurantTypeByUserRole(userId);
+
+    const tables = await RestaurantTable.find({restaurantType}).sort({ tableNumber: 1 }); // Sorted by table number (optional)
 
     if (!tables || tables.length === 0) {
       return sendSuccessResponse(res, 200, "No tables found", { tables: [] });
@@ -374,9 +385,15 @@ export const getOrderDetails = async (req, res) => {
 
 export const getHoldOrders = async (req, res) => {
   try {
+
+    const { userId } = req.user;
+
+    const restaurantType = await getRestaurantTypeByUserRole(userId);
+
     // Find all orders where holdOrderToken is not null
     const holdOrders = await Order.find({
       holdOrderToken: { $ne: null },
+      restaurantType
     }).select("_id serviceType orderNumber");
 
     if (!holdOrders || holdOrders.length === 0) {
@@ -405,6 +422,11 @@ export const getHoldOrders = async (req, res) => {
 export const getDailyOrdersSummary = async (req, res) => {
   try {
     const { date } = req.query; // expected format: YYYY-MM-DD
+
+    const { userId } = req.user;
+
+    const restaurantType = await getRestaurantTypeByUserRole(userId);
+
     if (!date) {
       return sendErrorResponse(res, 400, "Date is required");
     }
@@ -417,6 +439,7 @@ export const getDailyOrdersSummary = async (req, res) => {
     // Query orders within date range 
     const orders = await Order.find({
       createdAt: { $gte: start, $lt: end },
+      restaurantType
     })
       .populate({
         path: "orderTokens",
