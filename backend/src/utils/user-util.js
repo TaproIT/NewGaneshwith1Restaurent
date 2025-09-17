@@ -14,7 +14,9 @@ export const getRestaurantTypeByUserRole = async (id) => {
       return RestaurantTypes.BEACH.value;
     }
 
-    return RestaurantTypes.POOL.value;
+    if (user.userRole === userRoles.POOL_RESTAURANT_STAFF.value) {
+      return RestaurantTypes.POOL.value;
+    }
   } catch (error) {
     console.error("Error in getRestaurantTypeByUserRole:", error.message);
     return null; // return null explicitly on error
