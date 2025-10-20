@@ -1,5 +1,3 @@
-// src/components/CurrencyDropdown.tsx
-import React from "react";
 import { useCurrency } from "../context/CurrencyContext"; 
 import type { SupportedCurrency } from "../types/currency";
 // Assuming you have your custom component imports

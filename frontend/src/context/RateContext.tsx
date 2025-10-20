@@ -1,6 +1,6 @@
 // src/context/RateContext.tsx
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import type { ExchangeRates, RateContextType, BaseCurrency } from '../types/currency';
+import type { ExchangeRates, RateContextType} from '../types/currency';
 
 const defaultRates: ExchangeRates = { 'LKR_LKR': 1.00 };
 
