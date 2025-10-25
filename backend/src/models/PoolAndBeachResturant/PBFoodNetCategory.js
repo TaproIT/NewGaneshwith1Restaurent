@@ -1,7 +1,9 @@
 import mongoose from  "mongoose";
+import { RestaurantTypes } from "../../utils/enums/order-related-enums.js";
 
 const PBFoodNetCategorySchema = new mongoose.Schema({
-    categoryName: { type: String, required: true, unique: true },
+    categoryName: { type: String, required: true },
+    restaurantType: { type: String, required: true, enums: [RestaurantTypes.BEACH.value, RestaurantTypes.POOL.value] },
     isVisible: { type: Boolean, default: true }
 }, { timestamps: true });
 

@@ -9,9 +9,14 @@ import Login from "./pages/login/Login";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ProtectedRoute from "./component/ProtectedRoute";
-import Menu from "./pages/admin/Menu";
+import BeachRestaurantHomePage from './pages/beach-restaurant/BeachRestaurantHomePage';
+import BeachRestaurantTablesPage from './pages/beach-restaurant/BeachRestaurantTablesPage';
+import BeachRestaurantMenuPage from './pages/beach-restaurant/BeachRestaurantMenuPage';
+import BeachRestaurantHoldPage from "./pages/beach-restaurant/BeachRestaurantHoldPage";
+import BeachRestaurantDailySummaryPage from "./pages/beach-restaurant/BeachRestaurantDailySummaryPage";
 import Dashboard from "./pages/admin/beverage_inventory/Dashboard";
 import ManageInventory from "./pages/admin/beverage_inventory/ManageInventory";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 
 function App() {
   return (
@@ -44,10 +49,18 @@ function App() {
           <Route path="/switch-rooms" element={<SwitchRooms />} />
           <Route path="/checkouts" element={<Checkouts />} />
           <Route path="/invoice" element={<Invoice />} />
+
+          <Route path="/restaurant/home" element={<BeachRestaurantHomePage />} />
+          <Route path="/restaurant/tables/:id" element={<BeachRestaurantTablesPage />} />
+          <Route path="/restaurant/menu/:id" element={<BeachRestaurantMenuPage />} />
+          <Route path="/restaurant/hold" element={<BeachRestaurantHoldPage />} />
+          <Route path="/restaurant/daily-summary" element={<BeachRestaurantDailySummaryPage />} />
+         
           <Route path="/beverage-inventory/dashboard" element={<Dashboard />} />
           <Route path="/beverage-inventory/manage-inventory" element={<ManageInventory />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Route>
-        <Route path="/menu" element={<ProtectedRoute><Menu /></ProtectedRoute>} />
+        {/* <Route path="/menu" element={<ProtectedRoute><Menu /></ProtectedRoute>} /> */}
       </Routes>
     </Router>
   );

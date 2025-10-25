@@ -41,7 +41,7 @@ const AddItem: React.FC<AddItemProps> = ({ selectedBeverage, onModalChange }) =>
   }
 
   fetchBeverage()
-}, [selectedBeverage])
+}, [selectedBeverage, isModalOpen])
 
   return (
     <>

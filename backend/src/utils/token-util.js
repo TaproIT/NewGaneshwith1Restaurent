@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import BlackListToken from '../models/black-list-token-model.js';
+import BlackListToken from '../models/user/black-list-token-model.js';
 import { sendErrorResponse } from './response-util.js';
 
 // Generate a short-lived access token for authentication.

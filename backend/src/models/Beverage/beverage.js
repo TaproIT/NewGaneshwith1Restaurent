@@ -1,5 +1,6 @@
 // models/Beverage.js
 import mongoose from "mongoose";
+import { RestaurantTypes } from "../../utils/enums/order-related-enums.js";
 
 const EventSchema = new mongoose.Schema(
   {
@@ -43,6 +44,7 @@ const BeverageSchema = new mongoose.Schema(
       enum: ["hard liquor", "soft drinks"],
       required: true,
     },
+    //restaurantType: { type: String, required: true, enums: [RestaurantTypes.BEACH.value, RestaurantTypes.POOL.value] },
     isVisible: { type: Boolean, default: true },
 
     // NEW: soft-delete and lifecycle

@@ -7,7 +7,6 @@ import { connectDB } from "./src/config/db-config.js";
 import { authRoutes } from "./src/routes/auth-routes.js";
 import { corsOptions } from "./src/config/cors-config.js";
 import { userRoutes } from "./src/routes/user-routes.js";
-import { guestRoutes } from "./src/routes/guest-routes.js";
 import { bookingRoutes } from "./src/routes/Reception/booking-routes.js";
 import { roomRoutes } from "./src/routes/room-routes.js";
 import * as http from "node:http";
@@ -17,6 +16,7 @@ import {orderRoutes} from "./src/routes/order-routes.js";
 import { pbfoodnetCategoryRoutes } from  "./src/routes/PoolAndBeachResturant/pbfoodnetCategoryRoutes.js";
 import { beverageRoutes } from "./src/routes/Beverage/beverageRoutes.js";
 import {pbfoodnetRoutes} from "./src/routes/PoolAndBeachResturant/pbfoodnetRoutes.js";
+import { invoiceRoutes } from "./src/routes/Reception/invoice-routes.js";
 
 // Load env variables
 dotenv.config();
@@ -57,14 +57,13 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/user", userRoutes);
 // --- Reception/booking ---
 app.use("/api/v1/booking", bookingRoutes);
+// --- Reception/invoice ---
+app.use("/api/v1/invoice", invoiceRoutes);
 // -- room handling ---
 app.use("/api/v1/room", roomRoutes);
 
-// Guest Routes
-app.use("/api/v1/guest", guestRoutes);
-
 // Order Routes
-// app.use("/api/v1/order", orderRoutes);
+app.use("/api/v1/order", orderRoutes);
 
 app.use("/api/v1/pbfoodcategories", pbfoodnetCategoryRoutes);
 app.use("/api/v1/beverages", beverageRoutes);

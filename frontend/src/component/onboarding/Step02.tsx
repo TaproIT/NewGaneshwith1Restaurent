@@ -72,11 +72,9 @@ const guestDetails = useSelector(
 
   // Fetch bookingId when removedRooms changes
   useEffect(() => {
-    console.log("Removed rooms:", removedRooms);
-  if (removedRooms.length === 0) return; // no removed rooms
+  if (!removedRooms || removedRooms.length === 0) return; // no removed rooms
 
-  const firstRoomNo = removedRooms[0].roomNo;
-  console.log(firstRoomNo);
+  const firstRoomNo = removedRooms[0]?.roomNo;
 
   const fetchBooking = async () => {
     try {
@@ -92,9 +90,6 @@ const guestDetails = useSelector(
     fetchBooking();
   }
 }, [removedRooms, bookingId]);
-
-  console.log("First removed room number:", removedRooms[0]?.roomNo);
-  console.log("Current booking ID:", bookingId);
 
   // Handle selecting/unselecting rooms
   const handleRoomClick = (room: Room) => {
