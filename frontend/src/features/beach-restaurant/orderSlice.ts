@@ -140,15 +140,19 @@ const orderSlice = createSlice({
       state.newOrderToken?.beverageOrders.push(action.payload);
     },
 
-    removeFoodItemFromOrderToken: (state, action: PayloadAction<number>) => {
+    removeFoodItemFromOrderToken: (state, action: PayloadAction<string>) => {
       if (state.newOrderToken?.foodOrders) {
-        state.newOrderToken.foodOrders.splice(action.payload, 1);
+        state.newOrderToken.foodOrders = state.newOrderToken.foodOrders.filter(
+          (item) => item.foodId !== action.payload
+        );
       }
     },
 
-    removeBeverageItemFromOrderToken: (state, action: PayloadAction<number>) => {
+    removeBeverageItemFromOrderToken: (state, action: PayloadAction<string>) => {
       if (state.newOrderToken?.beverageOrders) {
-        state.newOrderToken.beverageOrders.splice(action.payload, 1);
+        state.newOrderToken.beverageOrders = state.newOrderToken.beverageOrders.filter(
+          (item) => item.beverageId !== action.payload
+        );
       }
     },
 

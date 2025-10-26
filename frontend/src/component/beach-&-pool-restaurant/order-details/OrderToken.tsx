@@ -30,15 +30,15 @@ const OrderToken: React.FC<OrderTokenProps> = ({ token, isHoldOrder }) => {
 
   // Handlers
   const handleRemoveItem = useCallback(
-    (index: number) => {
-      dispatch(removeFoodItemFromOrderToken(index));
+    (id: string) => {
+      dispatch(removeFoodItemFromOrderToken(id));
     },
     [dispatch]
   );
 
   const handleRemoveBeverageItem = useCallback(
-    (index: number) => {
-      dispatch(removeBeverageItemFromOrderToken(index));
+    (id: string) => {
+      dispatch(removeBeverageItemFromOrderToken(id));
     },
     [dispatch]
   );
@@ -130,7 +130,7 @@ const OrderToken: React.FC<OrderTokenProps> = ({ token, isHoldOrder }) => {
               {token.foodOrders
                 .slice()
                 .reverse()
-                .map((item, index) => (
+                .map((item) => (
                   <div
                     key={item.foodId}
                     className="p-2 flex flex-col gap-3 bg-mainWhite rounded-xs"
@@ -144,7 +144,7 @@ const OrderToken: React.FC<OrderTokenProps> = ({ token, isHoldOrder }) => {
                             variant="outline"
                             className="!p-1 !h-7 !rounded-none hover:!bg-transparent !border-none cursor-pointer"
                             disabled={token.isPrinted || isHoldOrder}
-                            onClick={() => handleRemoveItem(index)}
+                            onClick={() => handleRemoveItem(item.foodId)}
                           >
                             <Trash2 size={14} />
                           </Button>
@@ -193,7 +193,7 @@ const OrderToken: React.FC<OrderTokenProps> = ({ token, isHoldOrder }) => {
               {token.beverageOrders
                 .slice()
                 .reverse()
-                .map((item, index) => (
+                .map((item) => (
                   <div
                     key={item.beverageId}
                     className="p-2 flex flex-col gap-3 bg-mainWhite rounded-xs"
@@ -207,7 +207,7 @@ const OrderToken: React.FC<OrderTokenProps> = ({ token, isHoldOrder }) => {
                             variant="outline"
                             className="!p-1 !h-7 !rounded-none hover:!bg-transparent !border-none cursor-pointer"
                             disabled={token.isPrinted || isHoldOrder}
-                            onClick={() => handleRemoveBeverageItem(index)}
+                            onClick={() => handleRemoveBeverageItem(item.beverageId)}
                           >
                             <Trash2 size={14} />
                           </Button>
