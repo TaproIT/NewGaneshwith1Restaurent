@@ -16,6 +16,7 @@ export const generateInvoice = async (req, res) => {
       discount,
       total
     } = req.body;
+    console.log(req.body)
 
     if (!checkInDate || !checkOutDate || !customerName || !roomIds || roomIds.length === 0) {
       return sendErrorResponse(res,400, "Required fields are missing");

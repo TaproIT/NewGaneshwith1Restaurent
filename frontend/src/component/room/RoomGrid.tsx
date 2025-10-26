@@ -4,7 +4,7 @@ import type { Room } from "@/types/roomTypes";
 interface RoomGridProps {
   rooms: Room[];
   selectedRooms: Room[];
-  onRoomClick: (room: Room) => void;
+  onRoomClick?: (room: Room) => void;
   readOnly: boolean;
 }
 
@@ -46,7 +46,7 @@ const RoomGrid: React.FC<RoomGridProps> = ({
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
 
   const handleRoomClick = (room: Room) => {
-    onRoomClick(room);
+    onRoomClick?.(room);
     setActiveRoomId(room._id || null);
   };
 
@@ -81,7 +81,7 @@ const RoomGrid: React.FC<RoomGridProps> = ({
       </div>
 
       {/* Rooms */}
-      <div className="grid grid-cols-4 gap-4 h-screen overflow-auto">
+      <div className="grid grid-cols-4 gap-4 overflow-auto">
         {rooms.map((room) => {
           const status = getStatus(room);
 
@@ -91,7 +91,7 @@ const RoomGrid: React.FC<RoomGridProps> = ({
               className={`p-4 rounded-xl text-center h-22 
                 ${getStatusColor(status)} 
                 ${status !== "empty" ? "cursor-not-allowed" : "cursor-pointer"}`}
-              onClick={() => status === "empty" && onRoomClick(room)}
+              onClick={() => status === "empty" && onRoomClick?.(room)}
             >
               <p className="font-bold">{room.no}</p>
               {status === "reserved" && <p className="text-sm">Booked</p>}
