@@ -6,7 +6,6 @@ import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import type { Room } from "@/types/roomTypes";
 import { toast } from "react-toastify";
-import axios from "axios";
 
 interface InvoiceFooterProps {
   readOnly?: boolean;
