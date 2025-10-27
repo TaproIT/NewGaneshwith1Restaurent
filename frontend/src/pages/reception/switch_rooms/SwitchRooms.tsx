@@ -2,20 +2,10 @@ import { api } from "@/api/axios";
 import type { RootState } from "@/app/store";
 import RoomDetails from "@/component/room/RoomDetails";
 import RoomGrid from "@/component/room/RoomGrid";
+import RoomGridSkeleton from "@/component/skeleton/RoomGridSkeleton";
 import type { Room } from "@/types/roomTypes";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-
-const RoomGridSkeleton = () => (
-  <div className="grid grid-cols-4 gap-5">
-    {Array.from({ length: 8 }).map((_, i) => (
-      <div
-        key={i}
-        className="h-32 bg-gray-200 rounded-lg animate-pulse"
-      />
-    ))}
-  </div>
-);
 
 const SwitchRooms = () => {
   const [rooms, setRooms] = useState<Room[]>([]);

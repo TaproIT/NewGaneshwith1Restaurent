@@ -1,4 +1,4 @@
-import { OrderCounter } from "../models/order-counter-model.js";
+import { OrderCounter } from "../models/order/order-counter-model.js";
 
 
 export async function generateOrderNumber() {

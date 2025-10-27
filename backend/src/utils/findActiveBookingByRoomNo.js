@@ -1,4 +1,4 @@
-import Booking from "../models/Reception/Booking.js";
+import Booking from "../models/Reception/booking.js";
 
 
 export const findActiveBookingByRoomNo = async (roomNo) => {
@@ -13,4 +13,3 @@ export const findActiveBookingByRoomNo = async (roomNo) => {
 
     return booking ? booking._id : null;
 };
-

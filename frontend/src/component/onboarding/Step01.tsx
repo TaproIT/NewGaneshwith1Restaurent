@@ -77,12 +77,16 @@ export default function Step01() {
   };
 
   return (
-    <div className="p-6 rounded-2xl bg-mainWhite h-[calc(100vh-140px)]">
+    <div className="p-6 rounded-2xl bg-mainWhite">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-4 w-full"
+        >
           {/* Hotel Selection */}
           <FormField
             control={form.control}
+            rules={{ required: "Select a hotel" }}
             name="hotel"
             render={({ field }) => (
               <FormItem>
@@ -124,26 +128,34 @@ export default function Step01() {
             <div className="flex justify-between">
               <FormField
                 control={form.control}
+                rules={{ required: "Guest name is required" }}
                 name="guestName"
                 render={({ field }) => (
-                  <FormItem className="flex items-center">
-                    <FormLabel className="w-50">Guest Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter guest name" {...field} />
-                    </FormControl>
-                    <FormMessage />
+                  <FormItem className="flex flex-col items-center">
+                    <div className="flex items-center">
+                      <FormLabel className="w-50">Guest Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter guest name" {...field} />
+                      </FormControl>
+                    </div>
+                    <div>
+                      <FormMessage />
+                    </div>
                   </FormItem>
                 )}
               />
               <FormField
                 control={form.control}
                 name="country"
+                rules={{ required: "Country is required" }}
                 render={({ field }) => (
-                  <FormItem className="flex items-center">
-                    <FormLabel className="w-50">Country</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter country" {...field} />
-                    </FormControl>
+                  <FormItem className="flex flex-col items-center">
+                    <div className="flex items-center">
+                      <FormLabel className="w-50">Country</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter country" {...field} />
+                      </FormControl>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -154,13 +166,16 @@ export default function Step01() {
             <div className="flex justify-between">
               <FormField
                 control={form.control}
+                rules={{ required: "Passport ID is required" }}
                 name="passportId"
                 render={({ field }) => (
-                  <FormItem className="flex items-center">
-                    <FormLabel className="w-50">Passport ID</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter passport ID" {...field} />
-                    </FormControl>
+                  <FormItem className="flex flex-col items-center">
+                    <div className="flex items-center">
+                      <FormLabel className="w-50">Passport ID</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter passport ID" {...field} />
+                      </FormControl>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -168,12 +183,19 @@ export default function Step01() {
               <FormField
                 control={form.control}
                 name="email"
+                rules={{ required: "Email is required" }}
                 render={({ field }) => (
-                  <FormItem className="flex items-center">
-                    <FormLabel className="w-50">Email</FormLabel>
-                    <FormControl>
-                      <Input placeholder="guest@example.com" type="email" {...field} />
-                    </FormControl>
+                  <FormItem className="flex flex-col items-center">
+                    <div className="flex items-center">
+                      <FormLabel className="w-50">Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="guest@example.com"
+                          type="email"
+                          {...field}
+                        />
+                      </FormControl>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -184,14 +206,22 @@ export default function Step01() {
             <div className="flex justify-between">
               <FormField
                 control={form.control}
+                rules={{ required: "WhatsApp number is required" }}
                 name="whatsapp"
                 render={({ field }) => (
-                  <FormItem className="flex items-center">
-                    <FormLabel className="w-50">WhatsApp</FormLabel>
-                    <FormControl>
-                      <Input placeholder="07X XXX XXXX" {...field} maxLength={12} minLength={12}/>
-                    </FormControl>
-                    <FormMessage />
+                  <FormItem className="flex flex-col items-center">
+                    <div className="flex items-center">
+                      <FormLabel className="w-50">WhatsApp</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="+947X XXX XXXX"
+                          {...field}
+                          maxLength={12}
+                          minLength={12}
+                        />
+                      </FormControl>
+                    </div>
+                    <FormMessage className="ml-10" />
                   </FormItem>
                 )}
               />
@@ -201,25 +231,39 @@ export default function Step01() {
             <div className="flex justify-between">
               <FormField
                 control={form.control}
+                rules={{
+                  validate: (value) =>
+                    value > 0 || "Total Guests must be greater than 0",
+                }}
                 name="totalGuests"
                 render={({ field }) => (
-                  <FormItem className="flex items-center">
-                    <FormLabel className="w-50">Total Guests</FormLabel>
-                    <FormControl>
-                      <Input type="number" {...field} disabled />
-                    </FormControl>
+                  <FormItem className="flex flex-col items-center">
+                    <div className="flex items-center">
+                      <FormLabel className="w-50">Total Guests</FormLabel>
+                      <FormControl>
+                        <Input type="number" {...field} disabled />
+                      </FormControl>
+                    </div>
+                    <FormMessage className="ml-20"/>
                   </FormItem>
                 )}
               />
               <FormField
                 control={form.control}
+                rules={{
+                  validate: (value) =>
+                    value > 0 || "Length must be greater than 0",
+                }}
                 name="lengthOfStay"
                 render={({ field }) => (
-                  <FormItem className="flex items-center">
-                    <Label className="w-50">Length of Stay</Label>
-                    <FormControl>
-                      <Input type="number" {...field} disabled />
-                    </FormControl>
+                  <FormItem className="flex flex-col items-center">
+                    <div className="flex items-center">
+                      <Label className="w-54">Length of Stay</Label>
+                      <FormControl>
+                        <Input type="number" {...field} disabled />
+                      </FormControl>
+                    </div>
+                    <FormMessage className="ml-20"/>
                   </FormItem>
                 )}
               />
@@ -229,6 +273,7 @@ export default function Step01() {
             <div className="flex justify-between">
               <FormField
                 control={form.control}
+                rules={{ required: "Check In date is required" }}
                 name="adults"
                 render={({ field }) => (
                   <FormItem className="flex items-center w-100">
@@ -236,7 +281,9 @@ export default function Step01() {
                     <div className="flex items-center gap-2">
                       <Button
                         type="button"
-                        onClick={() => field.onChange(Math.max(field.value - 1, 0))}
+                        onClick={() =>
+                          field.onChange(Math.max(field.value - 1, 0))
+                        }
                         className="bg-white text-black border-gray border-2 hover:bg-white hover:text-black"
                       >
                         -
@@ -280,7 +327,9 @@ export default function Step01() {
                     <div className="flex items-center gap-2">
                       <Button
                         type="button"
-                        onClick={() => field.onChange(Math.max(field.value - 1, 0))}
+                        onClick={() =>
+                          field.onChange(Math.max(field.value - 1, 0))
+                        }
                         className="bg-white text-black border-gray border-2 hover:bg-white hover:text-black"
                       >
                         -
