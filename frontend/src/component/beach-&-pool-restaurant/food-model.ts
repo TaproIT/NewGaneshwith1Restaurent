@@ -1,0 +1,31 @@
+import type { FoodCategory } from "./food-category";
+
+export interface FetchAllFoodItemsStatus {
+     loading: boolean,
+     error: string | null
+}
+
+export interface AddFoodItemStatus {
+     loading: boolean,
+     error: string | null
+}
+
+export interface FoodItem {
+  _id: string;
+  itemName: string;
+  price: number;
+  restaurantType: string;
+  isVisible: boolean;
+  category: FoodCategory | null;
+  isEnableBeverage: boolean;
+  liquor: string[] | null; // array of Beverage ObjectIds
+  fetchAllFoodItemsStatus: FetchAllFoodItemsStatus
+}
+
+export interface FoodItems {
+  isAddedNewFoodItem: boolean;
+  foodItems: FoodItem[];
+  isClickAddNewFoodItem: boolean;
+  fetchAllFoodItemsStatus: FetchAllFoodItemsStatus
+  addFoodItemStatus: AddFoodItemStatus
+}

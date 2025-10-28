@@ -3,29 +3,20 @@ import type { RootState } from "@/app/store";
 import InvoiceForm from "@/component/invoice/InvoiceForm";
 import RoomDetails from "@/component/room/RoomDetails";
 import RoomGrid from "@/component/room/RoomGrid";
+import RoomGridSkeleton from "@/component/skeleton/RoomGridSkeleton";
 import type { Room } from "@/types/roomTypes";
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { io, type Socket } from "socket.io-client";
 
-const SOCKET_URL = "http://localhost:4000";
-
-const RoomGridSkeleton = () => (
-  <div className="grid grid-cols-4 gap-5">
-    {Array.from({ length: 8 }).map((_, i) => (
-      <div
-        key={i}
-        className="h-32 bg-gray-200 rounded-lg animate-pulse"
-      />
-    ))}
-  </div>
-);
+const SOCKET_URL = import.meta.env.SOCKET_URL;
 
 const Invoice = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [selectedRooms, setSelectedRooms] = useState<Room[]>([]);
   const [viewedRoom, setViewedRoom] = useState<Room | null>(null);
   const [loadingRooms, setLoadingRooms] = useState(true);
+  const [isFormComplete, setIsFormComplete] = useState(false);
 
   const guestDetails = useSelector((state: RootState) => state.onboarding.step01Data);
 
@@ -65,6 +56,12 @@ const Invoice = () => {
     };
   }, []);
 
+  const handleRemoveRoom = (roomNo: string) => {
+    setSelectedRooms((prev) => prev.filter((r) => r.no !== roomNo));
+    if (viewedRoom?.no === roomNo) setViewedRoom(null);
+    socketRef.current?.emit("unlockRoom", roomNo);
+  };
+
   // Handle selecting/unselecting rooms
   const handleRoomClick = (room: Room) => {
     if (room.isBooked || room.isMaintenance) return;
@@ -85,13 +82,18 @@ const Invoice = () => {
     }
   };
 
+  const handleFormStatus = (status: boolean) => {
+    setIsFormComplete(status);
+    console.log("Form complete:", status);
+  };
+
 
   return (
     <div className="grid grid-cols-4 gap-5">
-      <div className=" col-span-3 h-screen overflow-auto">
-        <InvoiceForm />
+      <div className=" col-span-3 h-[calc(100vh-140px)] overflow-auto">
+        <InvoiceForm onFormStatus={handleFormStatus}/>
         {loadingRooms ? <RoomGridSkeleton /> : (
-          <RoomGrid
+          isFormComplete && <RoomGrid
             rooms={rooms}
             selectedRooms={selectedRooms}
             onRoomClick={handleRoomClick}
@@ -107,7 +109,7 @@ const Invoice = () => {
           guestDetails={guestDetails}
           grandTotal={0} // not used
           isModalOpen={false} // no modal
-          onRemoveRoom={() => {}} // do nothing
+          onRemoveRoom={handleRemoveRoom}
           onBookRoom={() => {}} // do nothing
           onCloseModal={() => {}} // do nothing
           readOnly={false}
