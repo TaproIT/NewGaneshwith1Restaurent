@@ -1077,7 +1077,41 @@ export const getAllRoomsWithBookingDetails = async (req, res) => {
         const enrichedRooms = await Promise.all(
             rooms.map(async (room) => {
                 if (room.isBooked) {
-                    const booking = await findActiveBookingByRoomNo(room._id);
+                    const bookingId = await findActiveBookingByRoomNo(room.no);
+                    const booking = await Booking.findById(bookingId);
+                    if (booking) {
+                        room.bookingId = booking._id;
+                        room.guestName = booking.guestName;
+                    } else {
+                        room.bookingId = null;
+                        room.guestName = null;
+                    }
+                }
+                return room;
+            })
+        );
+
+        return res.status(200).json({
+            success: true,
+            total: enrichedRooms.length,
+            rooms: enrichedRooms
+        });
+
+    } catch (err) {
+        console.error("Error fetching rooms:", err);
+        return res.status(500).json({ error: "Failed to fetch rooms" });
+    }
+};
+
+export const getAllReservedRoomsWithBookingDetails = async (req, res) => {
+    try {
+        const rooms = await Room.find({isBooked: true}).lean();
+
+        const enrichedRooms = await Promise.all(
+            rooms.map(async (room) => {
+                if (room.isBooked) {
+                    const bookingId = await findActiveBookingByRoomNo(room.no);
+                    const booking = await Booking.findById(bookingId);
                     if (booking) {
                         room.bookingId = booking._id;
                         room.guestName = booking.guestName;

@@ -18,6 +18,7 @@ import { beverageRoutes } from "./src/routes/Beverage/beverageRoutes.js";
 import {pbfoodnetRoutes} from "./src/routes/PoolAndBeachResturant/pbfoodnetRoutes.js";
 import {scheduleExtendCheckoutCron} from "./src/utils/scheduleExtendCheckouts.js";
 import { invoiceRoutes } from "./src/routes/Reception/invoice-routes.js";
+import extraBeverageRoutes from "./src/routes/ExtraBeverageRoutes/extra-beverage-routes.js";
 
 // Load env variables
 dotenv.config();
@@ -69,6 +70,9 @@ app.use("/api/v1/order", orderRoutes);
 app.use("/api/v1/pbfoodcategories", pbfoodnetCategoryRoutes);
 app.use("/api/v1/beverages", beverageRoutes);
 app.use("/api/v1/pbfoodnets", pbfoodnetRoutes);
+
+// extra beverages
+app.use("/api/v1/extra-beverages", extraBeverageRoutes);
 
 // --- Socket.io ---
 const io = new Server(server, {
