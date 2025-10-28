@@ -1,4 +1,4 @@
-import Booking from "../models/Reception/Booking.js";
+import Booking from "../models/Reception/booking.js";
 
 const MIN = 60 * 1000;
 const DAY = 24 * 60 * MIN;

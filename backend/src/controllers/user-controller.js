@@ -1,4 +1,4 @@
-import User from "../models/user-model.js";
+import User from "../models/user/user-model.js";
 import { sendErrorResponse, sendSuccessResponse } from "../utils/response-util.js";
 
 /**

@@ -6,18 +6,7 @@ import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { api } from "@/api/axios";
 import { useLocation } from "react-router-dom";
-
-// --- Skeleton for RoomGrid ---
-const RoomGridSkeleton = () => (
-  <div className="grid grid-cols-4 gap-5">
-    {Array.from({ length: 8 }).map((_, i) => (
-      <div
-        key={i}
-        className="h-32 bg-gray-200 rounded-lg animate-pulse"
-      />
-    ))}
-  </div>
-);
+import RoomGridSkeleton from "@/component/skeleton/RoomGridSkeleton";
 
 const RoomAvailability = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -56,7 +45,7 @@ const RoomAvailability = () => {
   return (
     <div className="grid grid-cols-4 gap-5">
       {/* Left side: room grid */}
-      <div className="col-span-3 h-screen overflow-x-auto">
+      <div className="col-span-3 h-full overflow-auto">
         {loadingRooms ? (
           <RoomGridSkeleton />
         ) : (
