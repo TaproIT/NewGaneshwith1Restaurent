@@ -4,6 +4,7 @@ import Room from "../../models/Room.js";
 import {generateAndUploadQr} from "../../utils/qr.js";
 import {sendWhatsAppMessage} from "../../utils/sendWhatsAppMessage.js";
 import {findActiveBookingByRoomNo} from "../../utils/findActiveBookingByRoomNo.js";
+import nodemailer from "nodemailer";
 
 // Function to validate incoming body data
 function validateCreateBookingBody(body) {
@@ -159,6 +160,33 @@ export const createBooking = async (req, res) => {
         return res.status(status).json({
             error: status === 400 ? err.message : "Internal server error",
         });
+    }
+};
+
+export const sendBookingQrViaEmail = async (req, res) => {
+    const { id } = req.params;
+    const { message } = req.body;
+    try {
+        const booking = await Booking.findById(id).lean();
+        if (!booking) return res.status(404).json({ error: "Booking not found" });
+        if (!booking.email) return res.status(400).json({ error: "No email found for this booking" });
+
+        const defaultMessage = `Hello ${booking.guestName}, your booking is confirmed!
+                Booking ID: ${booking._id}
+                Hotel: ${booking.hotel}
+                Total Guests: ${booking.totalGuests}
+                Check-in: ${new Date(booking.checkIn).toDateString()}
+                Check-out: ${new Date(booking.checkOut).toDateString()}
+                QR attached for your booking.`;
+
+        const finalMessage = message || defaultMessage;
+
+        await sendEmailMessage(booking.email, finalMessage, booking.qrUrl);
+
+        return res.status(200).json({ success: true, message: "Email sent successfully" });
+    } catch (err) {
+        console.error(" Email send error:", err);
+        return res.status(500).json({ error: "Failed to send email" });
     }
 };
 
@@ -532,4 +560,49 @@ export const getAllRoomsWithBookingDetails = async (req, res) => {
         console.error("Error fetching rooms:", err);
         return res.status(500).json({ error: "Failed to fetch rooms" });
     }
+};
+
+export const sendEmailMessage = async (to, message, qrUrl) => {
+    if (!to) throw new Error("Recipient email address is required.");
+
+    // 🔐 Gmail SMTP Transporter
+    const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+        },
+    });
+
+    const mailOptions = {
+        from: `"${process.env.EMAIL_FROM_NAME || "Hotel Booking"}" <${process.env.EMAIL_USER}>`,
+        to,
+        subject: "Your Booking Confirmation",
+        text: message, // plain text fallback
+        html: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <h2>Booking Confirmation</h2>
+        <p>${message.replace(/\n/g, "<br/>")}</p>
+        ${
+            qrUrl
+                ? `<p><strong>Your Booking QR:</strong></p>
+               <img src="${qrUrl}" alt="Booking QR" width="200" height="200" style="border:1px solid #ccc;"/>`
+                : ""
+        }
+        <p style="margin-top:20px;">Thank you for booking with us!</p>
+      </div>
+    `,
+        attachments: qrUrl
+            ? [
+                {
+                    filename: "booking_qr.png",
+                    path: qrUrl,
+                },
+            ]
+            : [],
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log(" Email sent:", info.response);
+    return info;
 };
