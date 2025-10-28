@@ -17,6 +17,7 @@ import {orderRoutes} from "./src/routes/order-routes.js";
 import { pbfoodnetCategoryRoutes } from  "./src/routes/PoolAndBeachResturant/pbfoodnetCategoryRoutes.js";
 import { beverageRoutes } from "./src/routes/Beverage/beverageRoutes.js";
 import {pbfoodnetRoutes} from "./src/routes/PoolAndBeachResturant/pbfoodnetRoutes.js";
+import {scheduleExtendCheckoutCron} from "./src/utils/scheduleExtendCheckouts.js";
 
 // Load env variables
 dotenv.config();
@@ -97,3 +98,6 @@ const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+
+// CRON
+scheduleExtendCheckoutCron();

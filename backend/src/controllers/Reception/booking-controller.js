@@ -5,6 +5,7 @@ import {generateAndUploadQr} from "../../utils/qr.js";
 import {sendWhatsAppMessage} from "../../utils/sendWhatsAppMessage.js";
 import {findActiveBookingByRoomNo} from "../../utils/findActiveBookingByRoomNo.js";
 import nodemailer from "nodemailer";
+import dayjs from "dayjs";
 
 // Function to validate incoming body data
 function validateCreateBookingBody(body) {
@@ -565,7 +566,6 @@ export const getAllRoomsWithBookingDetails = async (req, res) => {
 export const sendEmailMessage = async (to, message, qrUrl) => {
     if (!to) throw new Error("Recipient email address is required.");
 
-    // 🔐 Gmail SMTP Transporter
     const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
@@ -605,4 +605,38 @@ export const sendEmailMessage = async (to, message, qrUrl) => {
     const info = await transporter.sendMail(mailOptions);
     console.log(" Email sent:", info.response);
     return info;
+};
+
+const HOTEL_TZ = "Asia/Colombo";
+
+export const getTodayExtendedRooms = async (req, res) => {
+    try {
+        const startOfToday = dayjs().tz(HOTEL_TZ).startOf("day").toDate();
+        const startOfTomorrow = dayjs(startOfToday).add(1, "day").toDate();
+
+        const bookings = await Booking.find({
+            isCheckOut: false,
+            lastExtendedOn: { $gte: startOfToday, $lt: startOfTomorrow },
+        })
+            .select("guestName hotel currentRooms.roomNo lastExtendedOn checkOut")
+            .lean();
+
+        const rooms = bookings.flatMap((b) =>
+            (b.currentRooms || [])
+                .filter((r) => r.isActive)
+                .map((r) => ({
+                    bookingId: b._id,
+                    roomNo: r.roomNo,
+                    guestName: b.guestName,
+                    hotel: b.hotel,
+                    lastExtendedOn: b.lastExtendedOn,
+                    checkOut: b.checkOut,
+                }))
+        );
+
+        return res.status(200).json({ success: true, rooms });
+    } catch (err) {
+        console.error("getTodayExtendedRooms error:", err);
+        return res.status(500).json({ error: "Failed to fetch extended rooms" });
+    }
 };

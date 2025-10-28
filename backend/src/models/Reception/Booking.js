@@ -56,11 +56,17 @@ const bookingSchema = new mongoose.Schema(
         // Additional verification
         bookingDate: { type: Date, required: true },
         isCheckOut: { type: Boolean, required: true },
-        realCheckOutDate: { type: Date },
+        oldCheckOutDate: { type: Date },
+        // CRON JOB
+        oldCheckOutDateStatus:{ type: Boolean, default: false },
+        lastExtendedOn: { type: Date }, // set to start-of-day when extension happens
     },
     { timestamps: true }
 );
 
+// Add these indexes to speed up the nightly job & frontend query:
+bookingSchema.index({ isCheckOut: 1, checkOut: 1 });
+bookingSchema.index({ lastExtendedOn: 1, isCheckOut: 1 });
 
 const Booking = mongoose.model("Booking", bookingSchema);
 export default Booking;
