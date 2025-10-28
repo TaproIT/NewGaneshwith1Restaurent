@@ -8,10 +8,44 @@ import {
     getPBFoodNets,
     updatePBFoodNet
 } from "../../controllers/PoolAndBeachResturant/pbfoodnetController.js";
+import { verifyTokenNotBlacklisted } from "../../middleware/check-black-list-token.js";
+import { authenticateToken } from "../../middleware/verify-token.js";
+import { authorizeRoles } from "../../middleware/role-authorize.js";
+import { userRoles } from "../../utils/enums/user-role.js";
 
-router.post("/", createPBFoodNet);
-router.get("/", getPBFoodNets);
-router.get("/available",getAvailablePBFoodNets);
+router.post(
+  "/",
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  authorizeRoles([
+    userRoles.BEACH_RESTAURANT_STAFF.value,
+    userRoles.POOL_RESTAURANT_STAFF.value,
+    userRoles.ADMIN.value,
+  ]),
+  createPBFoodNet
+);
+router.get(
+  "/",
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  authorizeRoles([
+    userRoles.BEACH_RESTAURANT_STAFF.value,
+    userRoles.POOL_RESTAURANT_STAFF.value,
+    userRoles.ADMIN.value,
+  ]),
+  getPBFoodNets
+);
+router.get(
+  "/available",
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  authorizeRoles([
+    userRoles.BEACH_RESTAURANT_STAFF.value,
+    userRoles.POOL_RESTAURANT_STAFF.value,
+    userRoles.ADMIN.value,
+  ]),
+  getAvailablePBFoodNets
+);
 router.get("/:id", getPBFoodNet);
 router.patch("/:id",updatePBFoodNet);
 router.delete("/:id", deletePBFoodNet);
