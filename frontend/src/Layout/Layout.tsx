@@ -12,7 +12,8 @@ import {
   PauseCircle,
   Newspaper,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Banknote
 } from 'lucide-react';
 import CurrencyDropdown from '@/component/currencyDropdown';
 import { useDispatch, useSelector } from 'react-redux';
@@ -39,6 +40,7 @@ const navigationConfig: Record<string, NavItem[]> = {
     { path: '/admin/dashboard', title: 'Dashboard', icon: <House size={22} /> },
     { path: '/admin/reception', title: 'Reception', icon: <Users size={22} /> },
     { path: '/admin/beverage-inventory', title: 'Beverage Inventory', icon: <Table2 size={22} /> },
+    { path: '/admin/currency-config', title: 'Currency Config', icon: <Banknote size={22} /> },
   ],
   'Reception': [
     { path: '/onboarding', title: 'Onboarding', icon: <UserRoundPlus size={22} /> },
@@ -86,6 +88,7 @@ const pathTitles: Record<string, string> = {
   '/restaurant/menu/0': 'Menu',
   '/restaurant/hold': 'Hold',
   '/restaurant/daily-summary': 'Daily Summary',
+  '/admin/currency-config': 'Currency Config',
 };
 
 const Layout: React.FC = () => {
