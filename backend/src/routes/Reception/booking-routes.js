@@ -1,6 +1,9 @@
 import express from "express";
 import {
-    createBooking, getAllRoomsWithBookingDetails, getBookingWithActiveRoomsAndPrices,
+    createBooking,
+    getAllReservedRoomsWithBookingDetails,
+    getAllRoomsWithBookingDetails,
+    getBookingWithActiveRoomsAndPrices,
     sendBookingQrViaWhatsApp,
     switchRoomsBulk
 } from "../../controllers/Reception/booking-controller.js";
@@ -12,5 +15,6 @@ router.put("/:bookingId/switch-rooms", switchRoomsBulk);
 router.post("/:id/send-whatsapp", sendBookingQrViaWhatsApp);
 router.get("/active-rooms-with-prices/:roomNo", getBookingWithActiveRoomsAndPrices);
 router.get("/details/all-rooms", getAllRoomsWithBookingDetails);
+router.get("/details/reserved-all-rooms", getAllReservedRoomsWithBookingDetails );
 
 export { router as bookingRoutes };
