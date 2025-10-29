@@ -49,6 +49,7 @@ const initialState: Order = {
   discount: 0,
   serviceCharge: 0,
   totalBill: 0,
+  isOrderBillDetailsOpen: false,
   orderInitialDataStatus: {
      error:null,
      loading: false,
@@ -325,6 +326,12 @@ const orderSlice = createSlice({
     setOrderTokenModal: (state, action: PayloadAction<boolean>) => {
       state.isOrderTokenOpen = action.payload;
     },
+    openOrderBillDetailsModal: (state) => {
+      state.isOrderBillDetailsOpen = true;
+    },
+    closeOrderBillDetailsModal: (state) => {
+      state.isOrderBillDetailsOpen = false;
+    },
   },
 
   extraReducers: (builder) => {
@@ -487,7 +494,9 @@ export const {
   setDiscount,
   setServiceCharge,
   setTotalBill,
-  setSubTotal
+  setSubTotal,
+  openOrderBillDetailsModal,
+  closeOrderBillDetailsModal
 } = orderSlice.actions;
 
 // Export the reducer to include in the Redux store

@@ -9,6 +9,7 @@ import { useDispatch } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import AddFoodItemSection from '@/component/beach-&-pool-restaurant/menu/AddFoodItemSection';
 import AddCategorySection from '@/component/beach-&-pool-restaurant/menu/AddCategorySection';
+import OrderBillDetailsModal from '@/component/beach-&-pool-restaurant/order-details/OrderBillDetailsModal';
 
 const BeachRestaurantMenuPage: React.FC = () => {
   const orderTokens = useSelector((state:RootState) => state.order.orderTokens);
@@ -41,6 +42,7 @@ const BeachRestaurantMenuPage: React.FC = () => {
         }
       </div>
       <OrderTokenDialog id={id} />
+      <OrderBillDetailsModal id={id} />
     </div>
   )
 }
