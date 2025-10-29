@@ -4,6 +4,7 @@ import { authenticateToken } from "../../middleware/verify-token.js";
 import { registerNewUser } from "../../controllers/auth-controller.js";
 import { authorizeRoles } from "../../middleware/role-authorize.js";
 import { userRoles } from "../../utils/enums/user-role.js";
+import { getAllUsers, getUserById } from "../../controllers/user-controller.js";
 
 const router = express.Router();
 
@@ -15,6 +16,26 @@ router.post(
     userRoles.ADMIN.value,
   ]),
   registerNewUser
+);
+
+router.get(
+  "/get-users",
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  authorizeRoles([
+    userRoles.ADMIN.value,
+  ]),
+  getAllUsers
+);
+
+router.get(
+  "/get-user/:id",
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  authorizeRoles([
+    userRoles.ADMIN.value,
+  ]),
+  getUserById
 );
 
 export { router as adminRoutes }
