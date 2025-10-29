@@ -47,6 +47,65 @@ export const getUserById = async (req, res) => {
   }
 };
 
+export const deleteUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if user exists
+    const user = await User.findById(id);
+
+    if (!user) {
+      return sendErrorResponse(res, 404, "User not found.");
+    }
+
+    // If already inactive
+    if (!user.isActive) {
+      return sendErrorResponse(res, 400, "User is already inactive.");
+    }
+
+    // Mark user as inactive
+    user.isActive = false;
+    await user.save();
+
+    return sendSuccessResponse(res, 200, "User deactivated successfully.", {
+      user,
+    });
+  } catch (error) {
+    if (error.name === "CastError") {
+      return sendErrorResponse(res, 400, "Invalid user ID format.");
+    }
+
+    return sendErrorResponse(res, 500, "Internal Server Error", error);
+  }
+};
+
+export const activateUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return sendErrorResponse(res, 404, "User not found.");
+    }
+
+    if (user.isActive) {
+      return sendErrorResponse(res, 400, "User is already active.");
+    }
+
+    user.isActive = true;
+    await user.save();
+
+    return sendSuccessResponse(res, 200, "User reactivated successfully.", {
+      user,
+    });
+  } catch (error) {
+    if (error.name === "CastError") {
+      return sendErrorResponse(res, 400, "Invalid user ID format.");
+    }
+
+    return sendErrorResponse(res, 500, "Internal Server Error", error);
+  }
+};
 
 // Get the role of the currently authenticated user
 export const getUserRole = async (req, res) => {

@@ -4,7 +4,7 @@ import { authenticateToken } from "../../middleware/verify-token.js";
 import { registerNewUser } from "../../controllers/auth-controller.js";
 import { authorizeRoles } from "../../middleware/role-authorize.js";
 import { userRoles } from "../../utils/enums/user-role.js";
-import { getAllUsers, getUserById } from "../../controllers/user-controller.js";
+import { activateUserById, deleteUserById, getAllUsers, getUserById } from "../../controllers/user-controller.js";
 
 const router = express.Router();
 
@@ -36,6 +36,26 @@ router.get(
     userRoles.ADMIN.value,
   ]),
   getUserById
+);
+
+router.patch(
+  "/deactivate-user/:id",
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  authorizeRoles([
+    userRoles.ADMIN.value,
+  ]),
+  deleteUserById
+);
+
+router.patch(
+  "/activate-user/:id",
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  authorizeRoles([
+    userRoles.ADMIN.value,
+  ]),
+  activateUserById
 );
 
 export { router as adminRoutes }
