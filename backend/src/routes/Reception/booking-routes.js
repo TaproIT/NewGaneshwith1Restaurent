@@ -5,11 +5,7 @@ import {
     getBookingWithActiveRoomsAndPrices,
     getTodayExtendedRooms,
     sendBookingQrViaEmail,
-    createBooking,
     getAllReservedRoomsWithBookingDetails,
-    getAllRoomsWithBookingDetails,
-    getBookingWithActiveRoomsAndPrices,
-    sendBookingQrViaEmail,
     sendBookingQrViaWhatsApp,
     switchRoomsBulk
 } from "../../controllers/Reception/booking-controller.js";
