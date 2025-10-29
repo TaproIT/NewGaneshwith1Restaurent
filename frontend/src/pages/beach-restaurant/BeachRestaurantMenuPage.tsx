@@ -8,10 +8,12 @@ import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import AddFoodItemSection from '@/component/beach-&-pool-restaurant/menu/AddFoodItemSection';
+import AddCategorySection from '@/component/beach-&-pool-restaurant/menu/AddCategorySection';
 
 const BeachRestaurantMenuPage: React.FC = () => {
   const orderTokens = useSelector((state:RootState) => state.order.orderTokens);
   const isClickAddNewFoodItem = useSelector((state:RootState) => state.food.isClickAddNewFoodItem);
+  const isClickedAddFoodCategory = useSelector((state:RootState) => state.foodCategory.isClickedAddFoodCategory);
   const dispatch = useDispatch<AppDispatch>();
 
   const param = useParams();
@@ -29,8 +31,10 @@ const BeachRestaurantMenuPage: React.FC = () => {
       </div>
       <div className="col-span-2">
         {
-          isClickAddNewFoodItem || id==="0" ? (
-             <AddFoodItemSection />
+          id==="0" ? (
+            isClickAddNewFoodItem ? (<AddFoodItemSection/>)
+             : isClickedAddFoodCategory ? (<AddCategorySection />) 
+               :(<></>)
           ): (
             <OrderDetailsSection />
           )
