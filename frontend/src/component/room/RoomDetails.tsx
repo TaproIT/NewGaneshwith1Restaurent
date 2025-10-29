@@ -67,7 +67,7 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
   const [daysStayed, setDaysStayed] = useState(0);
 
   useEffect(() => {
-    if (viewedRoom?.no) {
+    if (viewedRoom?.no && !invoice) {
       dispatch(clearBooking());
       dispatch(fetchRoomBooking(viewedRoom.no));
     }
@@ -227,6 +227,7 @@ const handleSwitchRoom = () => {
         setDiscountPercent={setDiscountPercent}
         handleBookRooms={handleBookRooms}
         handleSwitchRoom={handleSwitchRoom}
+        selectedRooms={selectedRooms}
       />
     </div>
   );

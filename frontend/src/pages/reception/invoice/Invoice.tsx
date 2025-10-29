@@ -16,6 +16,7 @@ const Invoice = () => {
   const [selectedRooms, setSelectedRooms] = useState<Room[]>([]);
   const [viewedRoom, setViewedRoom] = useState<Room | null>(null);
   const [loadingRooms, setLoadingRooms] = useState(true);
+  const [isFormComplete, setIsFormComplete] = useState(false);
 
   const guestDetails = useSelector((state: RootState) => state.onboarding.step01Data);
 
@@ -55,6 +56,12 @@ const Invoice = () => {
     };
   }, []);
 
+  const handleRemoveRoom = (roomNo: string) => {
+    setSelectedRooms((prev) => prev.filter((r) => r.no !== roomNo));
+    if (viewedRoom?.no === roomNo) setViewedRoom(null);
+    socketRef.current?.emit("unlockRoom", roomNo);
+  };
+
   // Handle selecting/unselecting rooms
   const handleRoomClick = (room: Room) => {
     if (room.isBooked || room.isMaintenance) return;
@@ -75,13 +82,18 @@ const Invoice = () => {
     }
   };
 
+  const handleFormStatus = (status: boolean) => {
+    setIsFormComplete(status);
+    console.log("Form complete:", status);
+  };
+
 
   return (
     <div className="grid grid-cols-4 gap-5">
       <div className=" col-span-3 h-[calc(100vh-140px)] overflow-auto">
-        <InvoiceForm />
+        <InvoiceForm onFormStatus={handleFormStatus}/>
         {loadingRooms ? <RoomGridSkeleton /> : (
-          <RoomGrid
+          isFormComplete && <RoomGrid
             rooms={rooms}
             selectedRooms={selectedRooms}
             onRoomClick={handleRoomClick}
@@ -97,7 +109,7 @@ const Invoice = () => {
           guestDetails={guestDetails}
           grandTotal={0} // not used
           isModalOpen={false} // no modal
-          onRemoveRoom={() => {}} // do nothing
+          onRemoveRoom={handleRemoveRoom}
           onBookRoom={() => {}} // do nothing
           onCloseModal={() => {}} // do nothing
           readOnly={false}
