@@ -1,20 +1,34 @@
 import PBFoodNetCategory from "../../models/PoolAndBeachResturant/PBFoodNetCategory.js";
+import { getRestaurantTypeByUserRole } from "../../utils/user-util.js";
 
 export const createCategory = async (req, res) => {
-    try {
-        const { categoryName } = req.body;
+  try {
+    const { categoryName, restaurantType } = req.body;
+    const { userId } = req.user;
 
-        const existing = await PBFoodNetCategory.findOne({ categoryName: new RegExp(`^${categoryName}$`, "i") });
+    // get default type based on user role
+    const defaultRestaurantType = await getRestaurantTypeByUserRole(userId);
 
-        if (existing) {
-            return res.status(400).json({ error: "Category already exists" });
-        }
+    // check if category already exists for this restaurant type
+    const existing = await PBFoodNetCategory.findOne({
+      categoryName: new RegExp(`^${categoryName}$`, "i"),
+      restaurantType: restaurantType || defaultRestaurantType,
+    });
 
-        const category = await PBFoodNetCategory.create({ categoryName });
-        res.status(201).json(category);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+    if (existing) {
+      return res.status(400).json({ error: "Category already exists" });
     }
+
+    // create new category
+    const category = await PBFoodNetCategory.create({
+      categoryName,
+      restaurantType: restaurantType || defaultRestaurantType,
+    });
+
+    return res.status(201).json(category);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
 };
 
 export const updateCategory = async (req, res) => {
@@ -44,12 +58,32 @@ export const deleteCategory = async (req, res) => {
 };
 
 export const getCategories = async (req, res) => {
-    const categories = await PBFoodNetCategory.find();
+    const { userId } = req.user;
+
+    const defaultRestaurantType = await getRestaurantTypeByUserRole(userId);
+
+    const restaurantType =  req.query.restaurantType || defaultRestaurantType;
+    const filter = {
+      ...(restaurantType ? { restaurantType } : {}),
+    };
+
+    const categories = await PBFoodNetCategory.find(filter);
     res.json(categories);
 };
 
 export const getAvailableCategories = async (req, res) => {
-    const categories = await PBFoodNetCategory.find({ isVisible: true });
+    const { userId } = req.user;
+
+    const defaultRestaurantType = await getRestaurantTypeByUserRole(userId);
+
+    const restaurantType =  req.query.restaurantType || defaultRestaurantType;
+
+    const filter = {
+      isVisible: true,
+      ...(restaurantType ? { restaurantType } : {}),
+    };
+
+    const categories = await PBFoodNetCategory.find(filter );
     res.json(categories);
 };
 
