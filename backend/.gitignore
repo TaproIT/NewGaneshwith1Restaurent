@@ -45,3 +45,8 @@ build/
 # Mac / Linux / Windows system files
 .DS_Store
 Thumbs.db
+
+.idea/
+
+# IDE project settings
+.idea/
