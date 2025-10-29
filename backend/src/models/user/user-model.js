@@ -3,6 +3,18 @@ import { userRoles } from "../../utils/enums/user-role.js";
 
 const userSchema = new mongoose.Schema(
   {
+    isActive: {
+      type: Boolean,
+      default: true
+    },
+    name: {
+      type: String,
+      required: true,
+    },
+    contactNumber: {
+      type: String,
+      required: true,
+    },
     email: {
       type: String,
       required: true,
@@ -26,11 +38,11 @@ const userSchema = new mongoose.Schema(
       type: String,
     },
     tempPassword: {
-      type: String
+      type: String,
     },
     tempPasswordExpires: {
-      type: Date
-    }
+      type: Date,
+    },
   },
   {
     timestamps: true,
