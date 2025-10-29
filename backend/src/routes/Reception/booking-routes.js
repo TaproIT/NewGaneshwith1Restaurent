@@ -1,10 +1,10 @@
 import express from "express";
 import {
-    createBooking,
-    getAllRoomsWithBookingDetails,
-    getBookingWithActiveRoomsAndPrices,
+    //createBooking,
+    //getAllRoomsWithBookingDetails,
+    //getBookingWithActiveRoomsAndPrices,
     getTodayExtendedRooms,
-    sendBookingQrViaEmail,
+    //sendBookingQrViaEmail,
     createBooking,
     getAllReservedRoomsWithBookingDetails,
     getAllRoomsWithBookingDetails,
