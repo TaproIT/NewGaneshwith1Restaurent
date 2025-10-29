@@ -8,7 +8,15 @@ const extraBeverageCategorySchema = new mongoose.Schema(
     { timestamps: true, collection: "extrabeveragecategories" }
 );
 
-extraBeverageCategorySchema.index({ name: 1 }, { unique: true });
+// #TODO: Remove one of the unique indexes on 'name' to fix the warning.
+// The problem is that you are defining the unique index on the name field in two different ways.
+
+// Inline: unique: true inside the schema definition.
+
+// Explicitly: extraBeverageCategorySchema.index({ name: 1 }, { unique: true });
+
+// Mongoose sees both and creates the same index twice, which triggers the warning.
+// extraBeverageCategorySchema.index({ name: 1 }, { unique: true });
 
 const ExtraBeverageCategory = mongoose.model(
     "ExtraBeverageCategory",
