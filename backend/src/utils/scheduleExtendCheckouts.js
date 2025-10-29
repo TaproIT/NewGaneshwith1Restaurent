@@ -3,7 +3,8 @@ import cron from "node-cron";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc.js";
 import timezone from "dayjs/plugin/timezone.js";
-import Booking from "../models/Reception/Booking.js";
+import Booking from "../models/Reception/booking.js";
+
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
