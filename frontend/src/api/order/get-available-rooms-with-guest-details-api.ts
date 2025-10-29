@@ -10,7 +10,8 @@ export const fetchAllAvailableRooms = createAsyncThunk<
   void
 >("order/fetchAllAvailableRooms", async ( __ ,{ rejectWithValue }) => {
   try {
-    const response = await api.get(`/booking/details/all-rooms`);
+    const response = await api.get(`/booking/details/reserved-all-rooms`);
+    console.log(response.data.rooms);
     return response.data.rooms as AvailableBookedRoom[];
   } catch (error: any) {
     return rejectWithValue("Failed to fetch room data");
