@@ -19,6 +19,7 @@ import ManageInventory from "./pages/admin/beverage_inventory/ManageInventory";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import { RateProvider } from "./context/RateContext";
 import { CurrencyProvider } from "./context/CurrencyContext";
+import CurrencyConfig from "./pages/admin/CurrencyConfig";
 
 function App() {
   return (
@@ -84,6 +85,7 @@ function App() {
                 element={<ManageInventory />}
               />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/currency-config" element={<CurrencyConfig />} />
             </Route>
             {/* <Route path="/menu" element={<ProtectedRoute><Menu /></ProtectedRoute>} /> */}
           </Routes>

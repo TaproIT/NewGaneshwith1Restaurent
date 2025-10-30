@@ -16,8 +16,8 @@ const Restock: React.FC<restockProps> = ({items}) => {
       <div className="flex justify-between">
         <div className="p-4 rounded-2xl bg-[#F2F4F7] flex justify-center items-center text-center"><Box color="#1D2939"/></div>
         <div className="flex flex-col gap-2">
-          <div className="text-[#B4AEAE] font-medium text-[16px]">Restock in this month</div>
-          <div className="text-gray font-bold text-2xl">{total}</div>
+          <div className="text-Primary_blue font-medium text-[16px]">Restock in this month</div>
+          <div className="text-Primary_orange font-bold text-2xl text-right">{total}</div>
         </div>
       </div>
 
