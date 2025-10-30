@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import { api } from "@/api/axios";
 import type { DateRange } from "@/types/DateRange";
 
-const PoolResturantDashboard = () => {
+const PoolResturantDashboard: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [orderSummary, setOrderSummary] = useState<any>(null);
     const [range, setRange] = useState<DateRange | null>(null);

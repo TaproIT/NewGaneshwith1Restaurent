@@ -1,7 +1,7 @@
 import { Users2 } from "lucide-react";
 import React from "react";
 
-const TotalGuests = () => {
+const TotalGuests: React.FC = () => {
   return (
     <div className="p-4 bg-mainWhite rounded-2xl flex gap-4 flex-col">
       <div className="flex justify-between">

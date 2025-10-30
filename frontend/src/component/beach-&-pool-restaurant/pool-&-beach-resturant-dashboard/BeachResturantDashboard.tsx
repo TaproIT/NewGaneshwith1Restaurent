@@ -7,7 +7,7 @@ import TotalOrders from "./TotalOrders";
 import TotalCustomers from "./TotalCustomers";
 import SoldLiqueurAmount from "./SoldLiqueurAmount";
 
-const BeachResturantDashboard = () => {
+const BeachResturantDashboard: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
         const [orderSummary, setOrderSummary] = useState<any>(null);
         const [range, setRange] = useState<DateRange | null>(null);
