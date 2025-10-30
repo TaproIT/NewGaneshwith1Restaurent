@@ -20,6 +20,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import { RateProvider } from "./context/RateContext";
 import { CurrencyProvider } from "./context/CurrencyContext";
 import CurrencyConfig from "./pages/admin/CurrencyConfig";
+import UserConfig from "./pages/admin/UserConfig";
 
 function App() {
   return (
@@ -86,6 +87,7 @@ function App() {
               />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/currency-config" element={<CurrencyConfig />} />
+              <Route path="/admin/user-config" element={<UserConfig />} />
             </Route>
             {/* <Route path="/menu" element={<ProtectedRoute><Menu /></ProtectedRoute>} /> */}
           </Routes>
