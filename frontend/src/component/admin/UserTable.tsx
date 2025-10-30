@@ -80,8 +80,6 @@ const UserTable: React.FC<UserTableProps> = ({
     }
   };
 
-  console.log(updatingUserId)
-
   return (
     <div className="p-6 rounded-2xl bg-mainWhite h-[calc(100vh-140px)] overflow-hidden">
       {/* Header */}
