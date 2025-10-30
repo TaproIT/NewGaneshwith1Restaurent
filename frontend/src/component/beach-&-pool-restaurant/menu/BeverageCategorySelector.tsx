@@ -29,9 +29,10 @@ const BeverageCategorySelector: React.FC = () => {
     (cat) => cat.value === selectedCategory
   );
 
-  // useEffect(() => {
-  //   dispatch(fetchAllBeverageCategories() as any);
-  // }, [dispatch]);
+  useEffect(() => {
+    dispatch(setSelectedCategory(""))
+     dispatch(setIsBeverageItemsList(false));
+  }, []);
 
   // show error toast
   useEffect(() => {

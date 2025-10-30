@@ -100,6 +100,7 @@ export interface Order{
   discount: number;
   serviceCharge: number;
   totalBill: number; 
+  isOrderBillDetailsOpen: boolean;
   orderInitialDataStatus: OrderInitialDataStatus; 
   fetchOrderDataStatus: FetchOrderDataStatus;
   fetchTablesStatus: FetchTablesStatus;

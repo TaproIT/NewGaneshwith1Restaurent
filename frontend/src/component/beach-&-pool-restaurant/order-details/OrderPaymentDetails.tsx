@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
+  openOrderBillDetailsModal,
   openOrderTokenModal,
   setIsPrintedForNewOrderToken,
+  setServiceCharge,
   setSubTotal,
   setTokenSubTotal,
   setTokenTotalBill,
@@ -63,6 +65,10 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
     navigate(`/restaurant/menu/${id}`);
   };
 
+   const handleProceedPayment = () => {
+     dispatch(openOrderBillDetailsModal());
+  };
+
   // Recalculate token subtotal and total bill when order tokens or charges change
   useEffect(() => {
     const tokenSubTotal =
@@ -72,6 +78,8 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
         : 0;
 
     dispatch(setTokenSubTotal(tokenSubTotal));
+
+    dispatch(setServiceCharge(tokenSubTotal*0.1));
 
     const tokenTotalBill =
       tokenSubTotal +
@@ -110,7 +118,7 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
      <ScrollArea
        className={`w-full ${
          !isHoldOrder
-           ? "h-[calc(100vh-470px)] 2xl:h-[calc(100vh-670px)]"
+           ? "h-[calc(100vh-400px)] 2xl:h-[calc(100vh-670px)]"
            : "h-[calc(100vh-510px)] 2xl:h-[calc(100vh-670px)]"
        }`}
      >
@@ -194,23 +202,33 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
                      Proceed to payment
                    </Button>
                  ) : (
-                   <>
-                     <Button
+                   <div className="grid grid-cols-2 gap-1">
+                      <Button
                        variant="outline"
-                       className="!w-full !h-8 border-[#0A869D] cursor-pointer"
+                       className="col-span-1 !w-full !h-8 border-[#0A869D] cursor-pointer"
                        disabled={isDisabled}
                        onClick={handleTokenClick}
                      >
                        Token
                      </Button>
+
                      <Button
-                       className="!w-full !h-8 cursor-pointer"
+                       variant="outline"
+                       className="col-span-1 !w-full !h-8 border-[#0A869D] cursor-pointer"
                        disabled={isDisabled}
                        onClick={handleHoldClick}
                      >
                        Hold
                      </Button>
-                   </>
+                     
+                     <Button
+                       className="col-span-2 !w-full !h-8 cursor-pointer"
+                       disabled={isDisabled}
+                       onClick={handleProceedPayment}
+                     >
+                       Proceed To Payment
+                     </Button>
+                   </div>
                  )}
                </div>
              )}
