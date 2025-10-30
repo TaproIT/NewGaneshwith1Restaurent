@@ -161,15 +161,23 @@ const Layout: React.FC = () => {
   return (
     <div className="flex h-screen bg-bg p-5 gap-5">
       {/* Sidebar */}
-      <div className={`bg-mainWhite ${isCollapsed ? 'w-20' : 'w-[264px]'} flex rounded-2xl flex-col justify-between shadow-lg p-4 transition-all duration-300`}>
+      <div
+        className={`bg-mainWhite ${
+          isCollapsed ? "w-20" : "w-[264px]"
+        } flex rounded-2xl flex-col justify-between shadow-lg p-4 transition-all duration-300`}
+      >
         <div className="w-full">
-          <div className='flex justify-between items-center mt-5'>
+          <div className="flex justify-between items-center mt-5">
             {!isCollapsed && <img src={Logo} alt="logo" className="w-32" />}
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
               className="p-2 rounded-lg hover:bg-gray-100"
             >
-              {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+              {isCollapsed ? (
+                <ChevronRight size={20} />
+              ) : (
+                <ChevronLeft size={20} />
+              )}
             </button>
           </div>
 
@@ -181,12 +189,11 @@ const Layout: React.FC = () => {
                   <a
                     key={item.title}
                     onClick={() => {
-                      setSelectedSidebar("Reception")
+                      setSelectedSidebar("Reception");
                       navigate("/onboarding");
                     }}
-                    
                     className={getLinkClassName(item.path)}
-                    style={{cursor: 'pointer'}}
+                    style={{ cursor: "pointer" }}
                   >
                     {item.icon} {!isCollapsed && <p>{item.title}</p>}
                   </a>
@@ -197,18 +204,22 @@ const Layout: React.FC = () => {
                   <a
                     key={item.title}
                     onClick={() => {
-                      setSelectedSidebar("Beverage-Inventory")
+                      setSelectedSidebar("Beverage-Inventory");
                       navigate("/beverage-inventory/dashboard");
                     }}
                     className={getLinkClassName(item.path)}
-                    style={{cursor: 'pointer'}}
+                    style={{ cursor: "pointer" }}
                   >
                     {item.icon} {!isCollapsed && <p>{item.title}</p>}
                   </a>
                 );
               }
               return (
-                <Link key={item.path} to={item.path} className={getLinkClassName(item.path)}>
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={getLinkClassName(item.path)}
+                >
                   {item.icon} {!isCollapsed && <p>{item.title}</p>}
                 </Link>
               );
@@ -218,12 +229,12 @@ const Layout: React.FC = () => {
             {userRole === "Admin" && selectedSidebar !== "Admin" && (
               <button
                 onClick={() => {
-                  setSelectedSidebar("Admin")
-                  navigate("/admin/dashboard")
+                  setSelectedSidebar("Admin");
+                  navigate("/admin/dashboard");
                 }}
                 className="flex items-center gap-2 p-3 rounded-lg w-full hover:bg-primary hover:text-white mt-4"
               >
-                <House size={22}/> {!isCollapsed && <span>Back to Admin</span>}
+                <House size={22} /> {!isCollapsed && <span>Back to Admin</span>}
               </button>
             )}
           </nav>
@@ -232,14 +243,14 @@ const Layout: React.FC = () => {
         {/* Footer Navigation */}
         <div>
           <nav className="space-y-2 text-gray">
-            <Link to="/profile" className={getLinkClassName('/profile')}>
-              <Settings size={22}/> {!isCollapsed && <p>Settings</p>}
+            <Link to="/profile" className={getLinkClassName("/profile")}>
+              <Settings size={22} /> {!isCollapsed && <p>Settings</p>}
             </Link>
-            <button 
-              onClick={handleLogout} 
+            <button
+              onClick={handleLogout}
               className="flex items-center gap-2 p-3 rounded-lg w-full hover:bg-danger hover:text-white"
             >
-              <LogOut size={22}/> {!isCollapsed && <span>Logout</span>}
+              <LogOut size={22} /> {!isCollapsed && <span>Logout</span>}
             </button>
           </nav>
         </div>
@@ -249,19 +260,32 @@ const Layout: React.FC = () => {
       <div className="flex-1 overflow-hidden">
         <header className="p-4 bg-mainWhite rounded-2xl flex justify-between items-center">
           <h1 className="text-sm text-gray">
-            {pathTitles[location.pathname] || 'Page Not Found'}
+            {(() => {
+              const currentPath = location.pathname;
+
+              if (currentPath.startsWith("/restaurant/tables")) {
+                return "Tables";
+              } else if (currentPath.startsWith("/restaurant/menu")) {
+                return "Menu";
+              } else {
+                return pathTitles[currentPath] || "Page Not Found";
+              }
+            })()}
           </h1>
-          <div className='flex justify-center items-center gap-4'>
-            <Bell size={24} className='text-gray cursor-pointer hover:text-primary'/>
+          <div className="flex justify-center items-center gap-4">
+            <Bell
+              size={24}
+              className="text-gray cursor-pointer hover:text-primary"
+            />
             <CurrencyDropdown />
-            <div className='flex justify-center items-center gap-2 text-gray p-2 rounded-lg bg-bg'>
-              <div className='rounded-full bg-mainWhite p-2'>
-                <User size={22} className='rounded-full' />
+            <div className="flex justify-center items-center gap-2 text-gray p-2 rounded-lg bg-bg">
+              <div className="rounded-full bg-mainWhite p-2">
+                <User size={22} className="rounded-full" />
               </div>
               {!isCollapsed && (
-                <div className='flex flex-col'>
-                  <span className='text-sm font-medium'>User</span>
-                  <span className='text-xs text-primary'>user@example.com</span>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">User</span>
+                  <span className="text-xs text-primary">user@example.com</span>
                 </div>
               )}
             </div>
