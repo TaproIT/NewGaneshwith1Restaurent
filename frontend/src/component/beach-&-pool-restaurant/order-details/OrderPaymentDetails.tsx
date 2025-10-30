@@ -54,6 +54,7 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
      await dispatch(fetchOrderById(order._id)).unwrap();
 
      toast.success("Order token held successfully");
+     navigate(`/restaurant/home`);
    } catch (err: any) {
      toast.error(
        err?.message || "Error holding order token. Please try again."
