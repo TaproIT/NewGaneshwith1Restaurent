@@ -23,7 +23,8 @@ const GetStartedButton: React.FC = () => {
           serviceType: order.serviceType,
           roomNumber: Number(order.roomNumber),
           guestName: order.guestName,
-          guestId: order.guestId
+          guestId: order.guestId,
+          bookingId: order.bookingId
         })
       );
 
