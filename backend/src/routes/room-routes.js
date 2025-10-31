@@ -1,5 +1,5 @@
 import express from "express";
-import {addRoom, getAllRooms, getAvailableAllRooms} from "../controllers/room-controller.js";
+import {addRoom, getAllRooms, getAvailableAllRooms, updateRoom} from "../controllers/room-controller.js";
 
 const router = express.Router();
 
@@ -11,5 +11,7 @@ router.get("/available", getAvailableAllRooms);
 
 // GET request to fetch all rooms
 router.get("/", getAllRooms);
+
+router.put("/update/:id", updateRoom);
 
 export { router as roomRoutes };
