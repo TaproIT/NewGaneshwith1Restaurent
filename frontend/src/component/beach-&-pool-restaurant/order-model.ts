@@ -42,6 +42,7 @@ export interface AvailableBookedRoom {
    roomId: string;
    guestId: string;
    guestName: string;
+   bookingId: string;
 }
 
 export type TableStatus = "Selected" | "Empty" | "Reserved";
@@ -91,7 +92,8 @@ export interface Order{
   rooms: AvailableBookedRoom[];       
   roomNumber: string;         
   guestName: string;
-  guestId: string;          
+  guestId: string; 
+  bookingId?: string;         
   tableId: string | null;
   restaurantTable: Table | null; 
   tables: Table[];

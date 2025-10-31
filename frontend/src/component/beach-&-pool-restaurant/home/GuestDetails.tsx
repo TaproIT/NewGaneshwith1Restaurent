@@ -3,7 +3,7 @@
 import React, { useState, useRef, useLayoutEffect, useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/app/store";
-import { setGuestName, setRoomNumber } from "@/features/beach-restaurant/orderSlice";
+import { setBookingId, setGuestName, setRoomNumber } from "@/features/beach-restaurant/orderSlice";
 import { CustomerTypes } from "@/lib/enums/order-related-enums";
 
 import { Label } from "@/components/ui/label";
@@ -67,6 +67,7 @@ const GuestDetails: React.FC = () => {
     if (room) {
       dispatch(setRoomNumber(room.no));
       dispatch(setGuestName(room.guestName));
+      dispatch(setBookingId(room.bookingId));
     }
     setSelectedRoomId(selectedRoom);
     setOpen(false);

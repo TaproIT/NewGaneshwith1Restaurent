@@ -1213,3 +1213,51 @@ export const getTodayExtendedRooms = async (req, res) => {
         return res.status(500).json({ error: "Failed to fetch extended rooms" });
     }
 };
+
+
+export const addOrderToBooking = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const { orderId, date } = req.body;
+
+    // Validate input
+    if (!bookingId) {
+      return sendErrorResponse(res, 400, "Booking ID is required");
+    }
+    if (!orderId) {
+      return sendErrorResponse(res, 400, "Order ID is required");
+    }
+
+    // Check if booking exists
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return sendErrorResponse(res, 404, "Booking not found");
+    }
+
+    // Check if order already exists (avoid duplicates)
+    const alreadyExists = booking.orders.some(
+      (order) => order.oderId.toString() === orderId
+    );
+
+    if (alreadyExists) {
+      return sendErrorResponse(res, 400, "This order is already added to the booking");
+    }
+
+    // Push the new order to the orders array
+    booking.orders.push({
+      oderId: orderId,
+      date: date || new Date(),
+    });
+
+    // Save the updated booking
+    await booking.save();
+
+    return sendSuccessResponse(res, 200, "Order successfully added to booking", {
+      bookingId: booking._id,
+      addedOrder: { orderId, date },
+      totalOrders: booking.orders.length,
+    });
+  } catch (error) {
+    return sendErrorResponse(res, 500, "Internal Server Error", error.message);
+  }
+};

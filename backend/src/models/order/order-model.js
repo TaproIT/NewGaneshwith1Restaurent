@@ -76,6 +76,10 @@ const orderSchema = new mongoose.Schema({
     type: String,
     enum: [PaymentMethods.CASH.value, PaymentMethods.CARD.value, PaymentMethods.FREE_BILL.value],
   },
+  bookingId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Booking",
+  }
   // orderProgressStatus: {
   //   type: Number,
   //   required: true,

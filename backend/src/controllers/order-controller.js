@@ -11,7 +11,7 @@ import { getRestaurantTypeByUserRole } from "../utils/user-util.js";
 
 export const setInitialOrderDetails = async (req, res) => {
     try{
-        const {customerType, serviceType, roomNumber, guestName, guestId } = req.body;
+        const {customerType, serviceType, roomNumber, guestName, guestId, bookingId } = req.body;
 
         const { userId } = req.user;
 
@@ -29,7 +29,8 @@ export const setInitialOrderDetails = async (req, res) => {
             roomNumber,
             guestId,
             guestName,
-            orderStatus
+            orderStatus,
+            bookingId
         });
 
         sendSuccessResponse(res,201, "Successfully set order initial data", {order:newOrder});

@@ -23,7 +23,8 @@ const initialState: Order = {
   rooms: [],     
   roomNumber: "",            
   guestName: "",
-  guestId: "",              
+  guestId: "",
+  bookingId: "",              
   tableId: null,
   tables: [],
   restaurantTable: null,
@@ -107,6 +108,10 @@ const orderSlice = createSlice({
 
     setGuestName: (state, action: PayloadAction<string>) => {
       state.guestName = action.payload;
+    },
+
+    setBookingId: (state, action: PayloadAction<string>) => {
+      state.bookingId = action.payload;
     },
 
     resetOrderData: () => initialState,
@@ -485,6 +490,7 @@ export const {
   setRestaurantType, 
   setRoomNumber, 
   setGuestName,
+  setBookingId,
   resetOrderData,
   setTableId,
   addFoodItemToOrderToken,
