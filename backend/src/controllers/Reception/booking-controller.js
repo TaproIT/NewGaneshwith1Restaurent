@@ -545,6 +545,7 @@ import {sendWhatsAppMessage} from "../../utils/sendWhatsAppMessage.js";
 import {findActiveBookingByRoomNo} from "../../utils/findActiveBookingByRoomNo.js";
 import nodemailer from "nodemailer";
 import dayjs from "dayjs";
+import { sendErrorResponse, sendSuccessResponse } from "../../utils/response-util.js";
 
 // Function to validate incoming body data
 function validateCreateBookingBody(body) {
@@ -1217,11 +1218,11 @@ export const getTodayExtendedRooms = async (req, res) => {
 
 export const addOrderToBooking = async (req, res) => {
   try {
-    const { bookingId } = req.params;
+    const { id } = req.params;
     const { orderId, date } = req.body;
-
+    
     // Validate input
-    if (!bookingId) {
+    if (!id) {
       return sendErrorResponse(res, 400, "Booking ID is required");
     }
     if (!orderId) {
@@ -1229,7 +1230,7 @@ export const addOrderToBooking = async (req, res) => {
     }
 
     // Check if booking exists
-    const booking = await Booking.findById(bookingId);
+    const booking = await Booking.findById(id);
     if (!booking) {
       return sendErrorResponse(res, 404, "Booking not found");
     }
@@ -1253,7 +1254,7 @@ export const addOrderToBooking = async (req, res) => {
     await booking.save();
 
     return sendSuccessResponse(res, 200, "Order successfully added to booking", {
-      bookingId: booking._id,
+      id: booking._id,
       addedOrder: { orderId, date },
       totalOrders: booking.orders.length,
     });

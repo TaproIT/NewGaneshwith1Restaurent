@@ -21,6 +21,7 @@ import { updateOrderBillDetails } from "@/api/order/update-order-bill-details";
 import { PaymentMethods } from "@/lib/enums/order-related-enums";
 import { fetchOrderById } from "@/api/order/get-order-data-api";
 import { useNavigate } from "react-router-dom";
+import { updateBookingDetailsWithOrderId } from "@/api/order/update-booking-details-with-order-id-api";
 
 interface OrderTokenDialogProps {
   id: string;
@@ -55,13 +56,24 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
       totalBill,
       paymentMethod: selectedPayment
     }
+
+    const bookingData = {
+       bookingId: order.bookingId,
+       orderId: order._id,
+       date: new Date(),
+    }
      try {
-       await dispatch(updateOrderBillDetails(orderData)).unwrap();
+      console.log(bookingData);
+        await dispatch(updateOrderBillDetails(orderData)).unwrap();
 
-       //await dispatch(fetchOrderById(id)).unwrap();
-       toast.success("Order payment has been successfully processed");
+       if (orderData.paymentMethod === PaymentMethods.ROOM.value) {
+        await dispatch(updateBookingDetailsWithOrderId(bookingData)).unwrap();
+       }
 
-       navigate("/restaurant/home");
+      //  //await dispatch(fetchOrderById(id)).unwrap();
+        toast.success("Order payment has been successfully processed");
+
+        navigate("/restaurant/home");
 
      } catch (err: any) {
        toast.error(

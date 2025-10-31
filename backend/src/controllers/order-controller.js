@@ -349,6 +349,7 @@ export const updateOrderBillDetails = async (req, res) => {
         PaymentMethods.CASH.value,
         PaymentMethods.CARD.value,
         PaymentMethods.FREE_BILL.value,
+        PaymentMethods.ROOM.value
       ].includes(paymentMethod)
     ) {
       return sendErrorResponse(res, 400, "Invalid payment method");

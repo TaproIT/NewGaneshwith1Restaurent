@@ -18,6 +18,7 @@ export const PaymentMethods = Object.freeze({
   CASH: { value: "Cash", label: "Cash" },
   CARD: { value: "Card", label: "Card" },
   FREE_BILL: { value: "Free-Bill", label: "Free Bill" },
+  ROOM: {value: "Room", label: "Room"}
 });
 
 export const OrderStatuses = Object.freeze({

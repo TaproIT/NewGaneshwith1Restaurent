@@ -74,7 +74,7 @@ const orderSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: [PaymentMethods.CASH.value, PaymentMethods.CARD.value, PaymentMethods.FREE_BILL.value],
+    enum: [PaymentMethods.CASH.value, PaymentMethods.CARD.value, PaymentMethods.FREE_BILL.value, PaymentMethods.ROOM.value],
   },
   bookingId: {
     type: mongoose.Schema.Types.ObjectId,
