@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import type { Room } from "@/types/roomTypes";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/app/store";
 
 interface RoomGridProps {
   rooms: Room[];
   selectedRooms: Room[];
   onRoomClick?: (room: Room) => void;
   readOnly: boolean;
+  onAddRoomClick?: () => void;
 }
 
 const RoomGrid: React.FC<RoomGridProps> = ({
@@ -13,9 +16,12 @@ const RoomGrid: React.FC<RoomGridProps> = ({
   selectedRooms,
   onRoomClick,
   readOnly,
+  onAddRoomClick,
 }) => {
   // Determine visual status from room data
-  const getStatus = (room: Room): "reserved" | "empty" | "maintain" | "selected" => {
+  const getStatus = (
+    room: Room
+  ): "reserved" | "empty" | "maintain" | "selected" => {
     if (selectedRooms.find((r) => r.no === room.no)) return "selected";
     if (room.isMaintenance) return "maintain";
     if (room.isBooked) return "reserved";
@@ -39,9 +45,12 @@ const RoomGrid: React.FC<RoomGridProps> = ({
 
   // Legend counts
   const reservedCount = rooms.filter((r) => r.isBooked).length;
-  const emptyCount = rooms.filter((r) => !r.isBooked && !r.isMaintenance).length;
+  const emptyCount = rooms.filter(
+    (r) => !r.isBooked && !r.isMaintenance
+  ).length;
   const maintainCount = rooms.filter((r) => r.isMaintenance).length;
   const selectedCount = selectedRooms.length;
+  const userRole = useSelector((state: RootState) => state.user.role);
 
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
 
@@ -72,16 +81,26 @@ const RoomGrid: React.FC<RoomGridProps> = ({
             Maintenance <span>{maintainCount}</span>
           </span>
         </div>
-        <div className="flex gap-1 items-center">
-          <div className="w-3 h-3 rounded-full border-2 border-black"></div>
-          <span>
-            Selected <span>{selectedCount}</span>
-          </span>
-        </div>
+        {userRole !== "Admin" && userRole !== "Super-Admin" && (
+          <div className="flex gap-1 items-center">
+            <div className="w-3 h-3 rounded-full border-2 border-black"></div>
+            <span>
+              Selected <span>{selectedCount}</span>
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Rooms */}
       <div className="grid grid-cols-4 gap-4 overflow-auto">
+        {(userRole === "Admin" || userRole === "Super-Admin") && (
+          <div
+            className="p-4 rounded-xl text-center h-22 cursor-pointer bg-gray-100 flex flex-col items-center justify-center hover:bg-gray-200 transition border-Primary_blue border-1"
+            onClick={onAddRoomClick}
+          >
+            <span className="text-3xl text-Primary_blue">+</span>
+          </div>
+        )}
         {rooms.map((room) => {
           const status = getStatus(room);
 
@@ -90,7 +109,9 @@ const RoomGrid: React.FC<RoomGridProps> = ({
               key={room._id}
               className={`p-4 rounded-xl text-center h-22 
                 ${getStatusColor(status)} 
-                ${status !== "empty" ? "cursor-not-allowed" : "cursor-pointer"}`}
+                ${
+                  status !== "empty" ? "cursor-not-allowed" : "cursor-pointer"
+                }`}
               onClick={() => status === "empty" && onRoomClick?.(room)}
             >
               <p className="font-bold">{room.no}</p>

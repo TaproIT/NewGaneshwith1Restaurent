@@ -4,16 +4,8 @@ import Logo from '../assets/Images/Logos/main_logo.png';
 import { 
   Bell, CircleArrowRight, LogOut, Settings, 
   ShieldCheck, User, UserRoundPlus, Users, Calendar,
-  RepeatIcon,
-  BookText,
-  House,
-  Table2,
-  NotepadText,
-  PauseCircle,
-  Newspaper,
-  ChevronLeft,
-  ChevronRight,
-  Banknote
+  RepeatIcon, BookText, House, Table2, NotepadText,
+  PauseCircle, Newspaper, ChevronLeft, ChevronRight, Banknote
 } from 'lucide-react';
 import CurrencyDropdown from '@/component/currencyDropdown';
 import { useDispatch, useSelector } from 'react-redux';
@@ -22,6 +14,7 @@ import type { UserRole } from '@/types/roleTypes';
 import { api } from '@/api/axios';
 import { toast } from 'react-toastify';
 import { fetchUserRole } from '@/features/user/userSlice';
+import SidebarSkeleton from '@/component/skeleton/SidebarSkeleton';
 
 interface NavItem {
   path: string;
@@ -42,6 +35,7 @@ const navigationConfig: Record<string, NavItem[]> = {
     { path: '/admin/beverage-inventory', title: 'Beverage Inventory', icon: <Table2 size={22} /> },
     { path: '/admin/currency-config', title: 'Currency Config', icon: <Banknote size={22} /> },
     { path: '/admin/user-config', title: 'User Config', icon: <User size={22} /> },
+    { path: '/admin/room-config', title: 'Room Config', icon: <User size={22} /> },
   ],
   'Reception': [
     { path: '/onboarding', title: 'Onboarding', icon: <UserRoundPlus size={22} /> },
@@ -91,6 +85,7 @@ const pathTitles: Record<string, string> = {
   '/restaurant/daily-summary': 'Daily Summary',
   '/admin/currency-config': 'Currency Config',
   '/admin/user-config': 'User Config',
+  '/admin/room-config': 'Room Config',
 };
 
 const Layout: React.FC = () => {
@@ -100,27 +95,26 @@ const Layout: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
 
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [selectedSidebar, setSelectedSidebar] = useState<UserRole | 'Beverage-Inventory' | 'Reception'>(userRole);
+  const [selectedSidebar, setSelectedSidebar] = useState<UserRole | 'Beverage-Inventory' | 'Reception' | undefined>(undefined);
 
- const getLinkClassName = (path: string) => {
-   const baseClasses = "flex gap-2 p-3 rounded-lg";
-   const currentPath = location.pathname;
+  const getLinkClassName = (path: string) => {
+    const baseClasses = "flex gap-2 p-3 rounded-lg";
+    const currentPath = location.pathname;
 
-   let isActive = false;
+    let isActive = false;
 
-   // Handle dynamic "tables" and "menu" paths
-   if (path.startsWith("/restaurant/tables")) {
-     isActive = currentPath.startsWith("/restaurant/tables");
-   } else if (path.startsWith("/restaurant/menu")) {
-     isActive = currentPath.startsWith("/restaurant/menu");
-   } else {
-     isActive = currentPath === path;
-   }
+    if (path.startsWith("/restaurant/tables")) {
+      isActive = currentPath.startsWith("/restaurant/tables");
+    } else if (path.startsWith("/restaurant/menu")) {
+      isActive = currentPath.startsWith("/restaurant/menu");
+    } else {
+      isActive = currentPath === path;
+    }
 
-   return `${baseClasses} ${
-     isActive ? "bg-primary text-white" : "hover:bg-primary hover:text-white"
-   }`;
- };
+    return `${baseClasses} ${
+      isActive ? "bg-primary text-white" : "hover:bg-primary hover:text-white"
+    }`;
+  };
 
   const handleLogout = async () => {
     try {
@@ -143,25 +137,42 @@ const Layout: React.FC = () => {
       if (response.status === 200) {
         localStorage.removeItem("authToken");
         toast.success("Logout successful");
-        navigate('/')
+        navigate('/');
       }
     } catch (error: any) {
       console.error(error);
       toast.error(error.response?.data?.message || "Logout failed");
     }
-  }
+  };
 
-  // Determine which sidebar to show
-  const sidebarItems = userRole === 'Admin'
-    ? navigationConfig[selectedSidebar]
-    : navigationConfig[userRole];
-
+  // 🔹 Fetch user role on mount
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     if (token) {
       dispatch(fetchUserRole());
     }
   }, [dispatch]);
+
+  // 🔹 Fix: update selectedSidebar after userRole is loaded
+  useEffect(() => {
+    if (userRole) {
+      setSelectedSidebar(userRole);
+    }
+  }, [userRole]);
+
+  if (!userRole) {
+    return (
+      <div className="flex h-screen bg-bg p-5 gap-5">
+        <SidebarSkeleton />
+      </div>
+    );
+  }
+
+  // 🔹 Determine which sidebar to render
+  const sidebarItems =
+    userRole === 'Admin'
+      ? navigationConfig[selectedSidebar || 'Admin']
+      : navigationConfig[userRole];
 
   return (
     <div className="flex h-screen bg-bg p-5 gap-5">
@@ -178,11 +189,7 @@ const Layout: React.FC = () => {
               onClick={() => setIsCollapsed(!isCollapsed)}
               className="p-2 rounded-lg hover:bg-gray-100"
             >
-              {isCollapsed ? (
-                <ChevronRight size={20} />
-              ) : (
-                <ChevronLeft size={20} />
-              )}
+              {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
             </button>
           </div>
 
@@ -220,11 +227,7 @@ const Layout: React.FC = () => {
                 );
               }
               return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={getLinkClassName(item.path)}
-                >
+                <Link key={item.path} to={item.path} className={getLinkClassName(item.path)}>
                   {item.icon} {!isCollapsed && <p>{item.title}</p>}
                 </Link>
               );
@@ -267,7 +270,6 @@ const Layout: React.FC = () => {
           <h1 className="text-sm text-gray">
             {(() => {
               const currentPath = location.pathname;
-
               if (currentPath.startsWith("/restaurant/tables")) {
                 return "Tables";
               } else if (currentPath.startsWith("/restaurant/menu")) {
@@ -278,10 +280,7 @@ const Layout: React.FC = () => {
             })()}
           </h1>
           <div className="flex justify-center items-center gap-4">
-            <Bell
-              size={24}
-              className="text-gray cursor-pointer hover:text-primary"
-            />
+            <Bell size={24} className="text-gray cursor-pointer hover:text-primary" />
             <CurrencyDropdown />
             <div className="flex justify-center items-center gap-2 text-gray p-2 rounded-lg bg-bg">
               <div className="rounded-full bg-mainWhite p-2">
