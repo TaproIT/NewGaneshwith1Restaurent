@@ -1,7 +1,12 @@
+import type { MonthlyReport } from "@/types/monthlySummary";
 import { Users2 } from "lucide-react";
 import React from "react";
 
-const TotalGuests: React.FC = () => {
+interface TotalGuestsProps {
+  monthlySummary?: MonthlyReport | null;
+}
+
+const TotalGuests: React.FC<TotalGuestsProps> = ({ monthlySummary }) => {
   return (
     <div className="p-4 bg-mainWhite rounded-2xl flex gap-4 flex-col">
       <div className="flex justify-between">
@@ -10,7 +15,7 @@ const TotalGuests: React.FC = () => {
         </div>
         <div className="flex flex-col gap-2">
           <div className="text-Primary_blue font-medium text-[16px]">Total Guests Registered</div>
-          <div className="text-Primary_orange font-bold text-2xl text-right">100</div>
+          <div className="text-Primary_orange font-bold text-2xl text-right">{(monthlySummary?.totalGuests?.hotelA ?? 0) + (monthlySummary?.totalGuests?.hotelB ?? 0)}</div>
         </div>
       </div>
 
@@ -18,12 +23,12 @@ const TotalGuests: React.FC = () => {
         <div className="grid-cols-4 text-[#6F6868] text-[14px] font-medium grid">
           <div className="col-span-2">Hotel A</div>
           <div className="col-span-1">:</div>
-          <div className="col-span-1">100</div>
+          <div className="col-span-1">{monthlySummary?.totalGuests?.hotelA ?? 0}</div>
         </div>
         <div className="grid-cols-4 text-[#6F6868] text-[14px] font-medium grid">
           <div className="col-span-2">Hotel B</div>
           <div className="col-span-1">:</div>
-          <div className="col-span-1">100</div>
+          <div className="col-span-1">{monthlySummary?.totalGuests?.hotelB ?? 0}</div>
         </div>
       </div>
     </div>
