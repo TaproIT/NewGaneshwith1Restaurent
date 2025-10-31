@@ -8,6 +8,7 @@ import { fetchAllTables } from "@/api/order/get-tables-api";
 import { addTableToOrder } from "@/api/order/add-table-to-order-api";
 import { addNewOrderTokenToOrder } from "@/api/order/add-new-order-token-to-order-api";
 import { fetchAllAvailableRooms } from "@/api/order/get-available-rooms-with-guest-details-api";
+import { updateOrderBillDetails } from "@/api/order/update-order-bill-details";
 
 /**
  * Initial state for the Order slice.
@@ -49,6 +50,7 @@ const initialState: Order = {
   discount: 0,
   serviceCharge: 0,
   totalBill: 0,
+  paymentMethod: "",
   isOrderBillDetailsOpen: false,
   orderInitialDataStatus: {
      error:null,
@@ -67,6 +69,10 @@ const initialState: Order = {
     loading: false,
   },
   addNewOrderTokenStatus: {
+    error: null,
+    loading: false,
+  },
+  updateOrderBillDetailsStatus: {
     error: null,
     loading: false,
   },
@@ -248,7 +254,7 @@ const orderSlice = createSlice({
         }
     },
 
-     decreaseBeverageQuantity: (state, action: PayloadAction<string>) => {
+    decreaseBeverageQuantity: (state, action: PayloadAction<string>) => {
 
         const token = state.newOrderToken;
 
@@ -456,7 +462,18 @@ const orderSlice = createSlice({
     })
     .addCase(addNewOrderTokenToOrder.rejected, (state, action) => {
        state.addNewOrderTokenStatus = { loading: false, error: action.payload as string };
-    });
+    })
+
+    .addCase(updateOrderBillDetails.pending, (state) => {
+      state.updateOrderBillDetailsStatus = { loading: true, error: null };
+    })
+    .addCase(updateOrderBillDetails.fulfilled, (state, action) => {
+      state.updateOrderBillDetailsStatus = { loading: false, error: null };
+      Object.assign(state, action.payload);
+    })
+    .addCase(updateOrderBillDetails.rejected, (state, action) => {
+      state.updateOrderBillDetailsStatus = { loading: false, error: action.payload as string };
+    })
   },
 
 });

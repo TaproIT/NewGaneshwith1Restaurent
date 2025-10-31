@@ -17,7 +17,7 @@ export const ServiceTypes = Object.freeze({
 export const PaymentMethods = Object.freeze({
   CASH: { value: "Cash", label: "Cash" },
   CARD: { value: "Card", label: "Card" },
-  CASH_AND_CARD: { value: "Cash-And-Card", label: "Cash And Card" },
+  FREE_BILL: { value: "Free-Bill", label: "Free Bill" },
 });
 
 export const OrderStatuses = Object.freeze({

@@ -63,7 +63,7 @@ const OrderDetailsSection: React.FC = () => {
           }
         </ScrollArea>
          {
-            (order.orderTokens.length > 0 && !order.isAddNewOrderToken && !order.holdOrderToken) && (
+            (order.orderTokens.length > 0 && !order.isAddNewOrderToken && !order.holdOrderToken && order.paymentMethod === "") && (
               <div className="pb-1 flex items-center justify-center">
                 <Button
                   variant="outline"

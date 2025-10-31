@@ -3,7 +3,7 @@ import FoodOrderItem from "../models/order/food-order-item-model.js";
 import Order from "../models/order/order-model.js";
 import OrderToken from "../models/order/order-token-model.js";
 import RestaurantTable from "../models/order/restaurant-table-model.js";
-import { OrderStatuses, ServiceTypes, TableStatuses } from "../utils/enums/order-related-enums.js";
+import { OrderStatuses, PaymentMethods, ServiceTypes, TableStatuses } from "../utils/enums/order-related-enums.js";
 import { generateOrderNumber, generateTokenId } from "../utils/order-util.js";
 import { sendErrorResponse, sendSuccessResponse } from "../utils/response-util.js";
 import mongoose from "mongoose";
@@ -327,6 +327,55 @@ export const addOrderToken = async (req, res) => {
   } finally {
     session.endSession();
    }
+};
+
+export const updateOrderBillDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      subTotal,
+      tax,
+      discount,
+      serviceCharge,
+      totalBill,
+      paymentMethod,
+    } = req.body;
+
+    // Validate payment method
+    if (
+      paymentMethod &&
+      ![
+        PaymentMethods.CASH.value,
+        PaymentMethods.CARD.value,
+        PaymentMethods.FREE_BILL.value,
+      ].includes(paymentMethod)
+    ) {
+      return sendErrorResponse(res, 400, "Invalid payment method");
+    }
+
+    // Find and update the order
+    const order = await Order.findByIdAndUpdate(
+      id,
+      {
+        subTotal,
+        tax,
+        discount,
+        serviceCharge,
+        totalBill,
+        paymentMethod,
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!order) {
+      return sendErrorResponse(res, 404, "Order not found");
+    }
+
+    return sendSuccessResponse(res, 200, "Order billing details updated successfully", { order });
+  } catch (error) {
+    console.error("Error updating order bill:", error);
+    return sendErrorResponse(res, 500, "Internal Server Error", error.message);
+  }
 };
 
 export const getOrderDetails = async (req, res) => {

@@ -74,7 +74,7 @@ const orderSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: [PaymentMethods.CASH.value, PaymentMethods.CARD.value, PaymentMethods.CASH_AND_CARD.value],
+    enum: [PaymentMethods.CASH.value, PaymentMethods.CARD.value, PaymentMethods.FREE_BILL.value],
   },
   // orderProgressStatus: {
   //   type: Number,

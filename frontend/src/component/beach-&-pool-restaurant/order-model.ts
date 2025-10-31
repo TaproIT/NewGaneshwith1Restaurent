@@ -71,6 +71,11 @@ export interface AddNewOrderTokenStatus {
    loading: boolean;
 }
 
+export interface UpdateOrderBillDetailsStatus {
+   error: string | null;
+   loading: boolean;
+}
+
 export interface FetchAvailableBookedRoomsStatus {
    error: string | null;
    loading: boolean;
@@ -100,11 +105,13 @@ export interface Order{
   discount: number;
   serviceCharge: number;
   totalBill: number; 
+  paymentMethod: string;
   isOrderBillDetailsOpen: boolean;
   orderInitialDataStatus: OrderInitialDataStatus; 
   fetchOrderDataStatus: FetchOrderDataStatus;
   fetchTablesStatus: FetchTablesStatus;
   addTableToOrderStatus: AddTableToOrderStatus;
+  updateOrderBillDetailsStatus: UpdateOrderBillDetailsStatus;
   addNewOrderTokenStatus: AddNewOrderTokenStatus;
   fetchAvailableBookedRoomsStatus: FetchAvailableBookedRoomsStatus;
 }
