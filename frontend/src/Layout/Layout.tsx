@@ -42,6 +42,7 @@ const navigationConfig: Record<string, NavItem[]> = {
     { path: '/admin/beverage-inventory', title: 'Beverage Inventory', icon: <Table2 size={22} /> },
     { path: '/admin/currency-config', title: 'Currency Config', icon: <Banknote size={22} /> },
     { path: '/admin/user-config', title: 'User Config', icon: <User size={22} /> },
+    { path: '/admin/room-config', title: 'Room Config', icon: <User size={22} /> },
   ],
   'Reception': [
     { path: '/onboarding', title: 'Onboarding', icon: <UserRoundPlus size={22} /> },
@@ -91,6 +92,7 @@ const pathTitles: Record<string, string> = {
   '/restaurant/daily-summary': 'Daily Summary',
   '/admin/currency-config': 'Currency Config',
   '/admin/user-config': 'User Config',
+  '/admin/room-config': 'Room Config',
 };
 
 const Layout: React.FC = () => {
