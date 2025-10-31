@@ -1,7 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { api } from "../axios";
 import type { BeverageCategory } from "@/component/beach-&-pool-restaurant/beverage-category-model";
-import { fetchAllBeverageCategories } from "./get-beverage-categories-api";
 import { fetchAllExtraBeverageCategories } from "./get-extra-beverge-categories-api";
 
 interface AddExtraBeverageCategory {

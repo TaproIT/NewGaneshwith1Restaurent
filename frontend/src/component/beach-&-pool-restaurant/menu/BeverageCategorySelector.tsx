@@ -61,7 +61,7 @@ const BeverageCategorySelector: React.FC = () => {
     dispatch(setSelectedCategory(category));
     dispatch(setSelectedCategoryId(""));
     dispatch(setIsBeverageItemsList(true));
-    dispatch(setIsClickAddNewFoodItem(false));
+    //dispatch(setIsClickAddNewFoodItem(false));
   };
 
   const handleAddNewBeverageCategory = () => {

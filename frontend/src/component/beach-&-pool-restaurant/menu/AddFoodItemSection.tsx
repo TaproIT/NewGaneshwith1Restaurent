@@ -24,6 +24,8 @@ import { fetchAllBeverageItems } from "@/api/order/get-beverage-list-api";
 import { toast } from "react-toastify";
 import { setIsBeverageItemsList, setSelectedCategory } from "@/features/beach-restaurant/beverageCategorySlice";
 import { setSelectedCategoryId } from "@/features/beach-restaurant/foodCategorySlice";
+import { fetchAllExtraBeverageCategories } from "@/api/order/get-extra-beverge-categories-api";
+import { addNewExtraBeverage } from "@/api/order/add-extra-beverage-api";
 
 type Liqueur = { beverage: string; amount: number };
 
@@ -32,15 +34,16 @@ export default function AddFoodItemSection() {
   const { categories: foodCategories } = useSelector(
     (state: RootState) => state.foodCategory
   );
+  const { extraCategories: extraBeverageCategories } = useSelector(
+    (state: RootState) => state.beverageCategory
+  );
   const { addFoodItemStatus } = useSelector(
     (state: RootState) => state.food
   );
-  const { beverageItems: beverages } = useSelector(
+  const { beverageItems: beverages, addBeverageItemStatus } = useSelector(
     (state: RootState) => state.beverage
   );
-  const { addBeverageItemStatus } = useSelector(
-    (state: RootState) => state.beverage
-  );
+
 
   const beverageCategories = Object.values(BeverageCategories);
   const hardLiquors = beverages.filter(
@@ -100,6 +103,8 @@ export default function AddFoodItemSection() {
         dispatch(setSelectedCategoryId(category ?? ""));
         dispatch(setSelectedCategory(""));
       } else {
+        const isExtraBeverageItem = category !== BeverageCategories.HARD_LIQUOR.value || BeverageCategories.SOFT_DRINKS.value;
+
         const beverageItem = {
           category,
           beverageName: itemName,
@@ -109,7 +114,19 @@ export default function AddFoodItemSection() {
           note: "",
         };
 
-        await dispatch(addNewBeverage(beverageItem)).unwrap();
+         const extraBeverageItem = {
+          extraBeverageCategory: category,
+          beverageName: itemName,
+          price,
+          isVisible: true,
+        };
+
+        if( isExtraBeverageItem ) {
+          await dispatch(addNewExtraBeverage(extraBeverageItem)).unwrap();
+        }else {
+          await dispatch(addNewBeverage(beverageItem)).unwrap();
+        }
+
         toast.success("Beverage item added successfully!");
 
         dispatch(setIsBeverageItemsList(true));
@@ -131,6 +148,7 @@ export default function AddFoodItemSection() {
 
    // fetch beverages
   useEffect(() => {
+    dispatch(fetchAllExtraBeverageCategories());
     dispatch(fetchAllBeverageItems());
   }, [dispatch]);
 
@@ -184,7 +202,8 @@ export default function AddFoodItemSection() {
                       {cat.categoryName}
                     </SelectItem>
                   ))
-                : beverageCategories.map((cat) => (
+                : <>
+                  {beverageCategories.map((cat) => (
                     <SelectItem
                       key={cat.value}
                       value={cat.value}
@@ -193,6 +212,17 @@ export default function AddFoodItemSection() {
                       {cat.label}
                     </SelectItem>
                   ))}
+                  {
+                    extraBeverageCategories.map((cat) => (
+                    <SelectItem
+                      key={cat._id}
+                      value={cat._id}
+                      className="text-[0.75rem]"
+                    >
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </>}
             </SelectContent>
           </Select>
         </FormRow>
