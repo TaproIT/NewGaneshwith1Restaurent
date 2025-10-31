@@ -24,10 +24,12 @@ interface NavItem {
 
 const navigationConfig: Record<string, NavItem[]> = {
   'Super-Admin': [
-    { path: '/', title: 'Dashboard', icon: <UserRoundPlus size={22} /> },
-    { path: '/users', title: 'User Management', icon: <Users size={22} /> },
-    { path: '/bookings', title: 'All Bookings', icon: <Calendar size={22} /> },
-    { path: '/settings', title: 'System Settings', icon: <Settings size={22} /> }
+    { path: '/admin/dashboard', title: 'Dashboard', icon: <House size={22} /> },
+    { path: '/admin/reception', title: 'Reception', icon: <Users size={22} /> },
+    { path: '/admin/beverage-inventory', title: 'Beverage Inventory', icon: <Table2 size={22} /> },
+    { path: '/admin/currency-config', title: 'Currency Config', icon: <Banknote size={22} /> },
+    { path: '/admin/user-config', title: 'User Config', icon: <User size={22} /> },
+    { path: '/admin/room-config', title: 'Room Config', icon: <User size={22} /> },
   ],
   'Admin': [
     { path: '/admin/dashboard', title: 'Dashboard', icon: <House size={22} /> },
@@ -170,7 +172,7 @@ const Layout: React.FC = () => {
 
   // 🔹 Determine which sidebar to render
   const sidebarItems =
-    userRole === 'Admin'
+    userRole === 'Admin' || userRole === 'Super-Admin'
       ? navigationConfig[selectedSidebar || 'Admin']
       : navigationConfig[userRole];
 
@@ -196,7 +198,7 @@ const Layout: React.FC = () => {
           {/* Sidebar Navigation */}
           <nav className="mt-10 space-y-4 text-gray w-full">
             {sidebarItems.map((item) => {
-              if (userRole === "Admin" && item.title === "Reception") {
+              if ((userRole === "Admin" || userRole === "Super-Admin") && item.title === "Reception") {
                 return (
                   <a
                     key={item.title}
@@ -211,7 +213,7 @@ const Layout: React.FC = () => {
                   </a>
                 );
               }
-              if (userRole === "Admin" && item.title === "Beverage Inventory") {
+              if ((userRole === "Admin" || userRole === "Super-Admin") && item.title === "Beverage Inventory") {
                 return (
                   <a
                     key={item.title}
@@ -234,7 +236,7 @@ const Layout: React.FC = () => {
             })}
 
             {/* Back to Admin button */}
-            {userRole === "Admin" && selectedSidebar !== "Admin" && (
+            {(userRole === "Admin" || userRole === "Super-Admin") && selectedSidebar !== "Admin" && (
               <button
                 onClick={() => {
                   setSelectedSidebar("Admin");

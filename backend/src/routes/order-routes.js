@@ -85,7 +85,7 @@ router.get(
   "/order-summary",
   verifyTokenNotBlacklisted,
   authenticateToken,
-  authorizeRoles([userRoles.ADMIN.value]),
+  authorizeRoles([userRoles.ADMIN.value, userRoles.SUPER_ADMIN.value]),
   getOrderSummary
 );
 
