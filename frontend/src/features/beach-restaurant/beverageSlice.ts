@@ -47,6 +47,7 @@ const beverageSlice = createSlice({
             state.beverageItems = [];
         }
         state.beverageItems = [...state.beverageItems, ...action.payload];
+        state.isAddedBeverageItem = false;
       })
       .addCase(fetchAllBeverageItems.rejected, (state, action) => {
         state.fetchAllBeverageItemsStatus.loading = false;
@@ -64,6 +65,7 @@ const beverageSlice = createSlice({
           state.extrabeverageItems = [];
         }
         state.extrabeverageItems = [...state.extrabeverageItems, ...action.payload];
+        state.isAddedBeverageItem = false;
       })
       .addCase(fetchAllExtraBeverageItems.rejected, (state, action) => {
         state.fetchAllExtraBeverageItemsStatus.loading = false;

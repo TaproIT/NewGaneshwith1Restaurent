@@ -31,10 +31,10 @@ type Liqueur = { beverage: string; amount: number };
 
 export default function AddFoodItemSection() {
   const dispatch = useDispatch<AppDispatch>();
-  const { categories: foodCategories } = useSelector(
+  const { categories: foodCategories, selectedFoodCategoryTitle, selectedCategoryId } = useSelector(
     (state: RootState) => state.foodCategory
   );
-  const { extraCategories: extraBeverageCategories } = useSelector(
+  const { extraCategories: extraBeverageCategories, selectedBeverageCategoryTitle, selectedCategory } = useSelector(
     (state: RootState) => state.beverageCategory
   );
   const { addFoodItemStatus } = useSelector(
@@ -60,8 +60,7 @@ export default function AddFoodItemSection() {
   const [addLiqueur, setAddLiqueur] = useState(false);
   const [liqueurs, setLiqueurs] = useState<Liqueur[]>([]);
 
-  const isDisabled =
-    !itemType || !category || !itemName.trim() || price <= 0;
+  const isDisabled = !itemName.trim() || price <= 0;
 
   const resetForm = () => {
     setItemType(null);
@@ -85,12 +84,12 @@ export default function AddFoodItemSection() {
 
   const handleAddItem = async () => {
     try {
-      if (itemType === "food") {
+      if (selectedFoodCategoryTitle) {
         const foodItem = {
           itemName,
           price,
           isVisible: true,
-          category,
+          category:selectedCategoryId,
           isEnableBeverage: addLiqueur,
           liquor: liqueurs,
         };
@@ -100,13 +99,15 @@ export default function AddFoodItemSection() {
 
         // Reset form and update state
         dispatch(setIsBeverageItemsList(false));
-        dispatch(setSelectedCategoryId(category ?? ""));
+        dispatch(setSelectedCategoryId(selectedCategoryId ?? ""));
         dispatch(setSelectedCategory(""));
       } else {
-        const isExtraBeverageItem = category !== BeverageCategories.HARD_LIQUOR.value || BeverageCategories.SOFT_DRINKS.value;
+        const isExtraBeverageItem =
+          selectedCategory !== BeverageCategories.HARD_LIQUOR.value &&
+          selectedCategory !== BeverageCategories.SOFT_DRINKS.value;
 
         const beverageItem = {
-          category,
+          category:selectedCategory,
           beverageName: itemName,
           price,
           isVisible: true,
@@ -115,7 +116,7 @@ export default function AddFoodItemSection() {
         };
 
          const extraBeverageItem = {
-          extraBeverageCategory: category,
+          extraBeverageCategory: selectedCategory,
           beverageName: itemName,
           price,
           isVisible: true,
@@ -130,14 +131,14 @@ export default function AddFoodItemSection() {
         toast.success("Beverage item added successfully!");
 
         dispatch(setIsBeverageItemsList(true));
-        dispatch(setSelectedCategory(category ?? ""));
+        dispatch(setSelectedCategory(selectedCategory ?? ""));
         dispatch(setSelectedCategoryId(""));
       }
 
       resetForm();
     } catch (err: any) {
       //handle error directly
-      if (itemType==="food") {
+      if (selectedFoodCategoryTitle) {
           toast.error(addFoodItemStatus.error || "Failed to add food item");
           return;
       }
@@ -160,7 +161,7 @@ export default function AddFoodItemSection() {
 
         {/* Item Type */}
         <FormRow label="Item Type :">
-          <Select
+          {/* <Select
             value={itemType ?? ""}
             onValueChange={(val) => {
               setItemType(val as "food" | "beverage");
@@ -178,12 +179,15 @@ export default function AddFoodItemSection() {
                 Beverage
               </SelectItem>
             </SelectContent>
-          </Select>
+          </Select> */}
+          <div className="text-[0.85rem] font-semibold">
+            { selectedFoodCategoryTitle ? "Food" : "Beverage"}
+          </div>
         </FormRow>
 
         {/* Category */}
         <FormRow label="Category :">
-          <Select
+          {/* <Select
             value={category ?? ""}
             onValueChange={setCategory}
             disabled={!itemType}
@@ -224,7 +228,10 @@ export default function AddFoodItemSection() {
                   ))}
                 </>}
             </SelectContent>
-          </Select>
+          </Select> */}
+          <div className="text-[0.85rem] font-semibold">
+            {selectedFoodCategoryTitle ? selectedFoodCategoryTitle :  selectedBeverageCategoryTitle}
+          </div>
         </FormRow>
 
         {/* Item Name */}
@@ -232,7 +239,7 @@ export default function AddFoodItemSection() {
           <Input
             value={itemName}
             onChange={(e) => setItemName(e.target.value)}
-            disabled={!itemType}
+            //disabled={!itemType}
             placeholder="Item Name"
             className="!text-[0.75rem] placeholder:text-[0.75rem]"
           />
@@ -245,7 +252,7 @@ export default function AddFoodItemSection() {
             min={0}
             value={price || ""}
             onChange={(e) => setPrice(Number(e.target.value))}
-            disabled={!itemType}
+            //disabled={!itemType}
             placeholder="LKR 0.00"
             className="!text-[0.75rem] placeholder:text-[0.75rem]"
           />

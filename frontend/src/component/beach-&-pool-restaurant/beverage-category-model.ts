@@ -26,5 +26,6 @@ export interface BeverageCategoryState {
     fetchAllExtraBeverageCategoriesStatus: FetchAllExtraBeverageCategoriesStatus,
     addNewExtraBeverageCategoryStatus: AddNewExtraBeverageCategoryStatus,
     selectedCategory: string | null;
+    selectedBeverageCategoryTitle: string | null;
     isBeverageItemList: boolean;
 }

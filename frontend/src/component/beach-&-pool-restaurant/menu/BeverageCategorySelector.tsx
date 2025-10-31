@@ -2,8 +2,9 @@ import type { AppDispatch, RootState } from "@/app/store";
 import {
   setSelectedCategory,
   setIsBeverageItemsList,
+  setSelectedBeverageCategoryTitle,
 } from "@/features/beach-restaurant/beverageCategorySlice";
-import { setIsClickedAddFoodCategory, setIsFoodCategory, setSelectedCategoryId } from "@/features/beach-restaurant/foodCategorySlice";
+import { setIsClickedAddFoodCategory, setIsFoodCategory, setSelectedCategoryId, setSelectedFoodCategoryTitle } from "@/features/beach-restaurant/foodCategorySlice";
 import { setIsClickAddNewFoodItem } from "@/features/beach-restaurant/foodSlice";
 import { BeverageCategories } from "@/lib/enums/order-related-enums";
 import React, { useRef, useEffect } from "react";
@@ -61,6 +62,8 @@ const BeverageCategorySelector: React.FC = () => {
     dispatch(setSelectedCategory(category));
     dispatch(setSelectedCategoryId(""));
     dispatch(setIsBeverageItemsList(true));
+    dispatch(setSelectedFoodCategoryTitle(""));
+    dispatch(setSelectedBeverageCategoryTitle(category));
     //dispatch(setIsClickAddNewFoodItem(false));
   };
 

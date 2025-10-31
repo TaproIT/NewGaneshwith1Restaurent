@@ -2,6 +2,7 @@ import { addNewExtraBeverageCategory } from "@/api/order/add-bevetage-category-a
 import { fetchAllBeverageCategories } from "@/api/order/get-beverage-categories-api";
 import { fetchAllExtraBeverageCategories } from "@/api/order/get-extra-beverge-categories-api";
 import type { BeverageCategory, BeverageCategoryState } from "@/component/beach-&-pool-restaurant/beverage-category-model";
+import { BeverageCategories } from "@/lib/enums/order-related-enums";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 
@@ -11,6 +12,7 @@ const initialState: BeverageCategoryState = {
   categories: [],
   extraCategories: [],
   selectedCategory: null,
+  selectedBeverageCategoryTitle: null,
   fetchAllBeverageCategoriesStatus: {
      loading: false,
      error: null
@@ -34,6 +36,22 @@ const beverageCategorySlice = createSlice({
     reducers: {
         setSelectedCategory: (state, action: PayloadAction<string>) => {
             state.selectedCategory = action.payload;
+        },
+         setSelectedBeverageCategoryTitle: (state, action: PayloadAction<string>) => {
+           if (action.payload === "" ) {
+              state.selectedBeverageCategoryTitle = null;
+           } 
+           const selectedCategory = Object.values(BeverageCategories).find((cat) => cat.value === action.payload)
+           const extraCategory = state.extraCategories.find((cat) => cat._id === action.payload) 
+           if (selectedCategory){
+            state.selectedBeverageCategoryTitle = selectedCategory.label;
+            return;
+           }
+           if (extraCategory){
+            state.selectedBeverageCategoryTitle = extraCategory.name;
+            return;
+           }
+
         },
         setCategories: (state, action: PayloadAction<BeverageCategory[]>) => {
             state.categories = action.payload;
@@ -121,5 +139,5 @@ const beverageCategorySlice = createSlice({
     },
 });
 
-export const { setSelectedCategory, setIsBeverageItemsList } = beverageCategorySlice.actions;
+export const { setSelectedCategory, setIsBeverageItemsList, setSelectedBeverageCategoryTitle } = beverageCategorySlice.actions;
 export default beverageCategorySlice.reducer;
