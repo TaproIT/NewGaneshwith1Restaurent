@@ -42,6 +42,7 @@ export interface AvailableBookedRoom {
    roomId: string;
    guestId: string;
    guestName: string;
+   bookingId: string;
 }
 
 export type TableStatus = "Selected" | "Empty" | "Reserved";
@@ -71,6 +72,16 @@ export interface AddNewOrderTokenStatus {
    loading: boolean;
 }
 
+export interface UpdateOrderBillDetailsStatus {
+   error: string | null;
+   loading: boolean;
+}
+
+export interface UpdateBookingDetailsStatus {
+   error: string | null;
+   loading: boolean;
+}
+
 export interface FetchAvailableBookedRoomsStatus {
    error: string | null;
    loading: boolean;
@@ -86,7 +97,8 @@ export interface Order{
   rooms: AvailableBookedRoom[];       
   roomNumber: string;         
   guestName: string;
-  guestId: string;          
+  guestId: string; 
+  bookingId?: string;         
   tableId: string | null;
   restaurantTable: Table | null; 
   tables: Table[];
@@ -100,11 +112,14 @@ export interface Order{
   discount: number;
   serviceCharge: number;
   totalBill: number; 
+  paymentMethod: string;
   isOrderBillDetailsOpen: boolean;
   orderInitialDataStatus: OrderInitialDataStatus; 
   fetchOrderDataStatus: FetchOrderDataStatus;
   fetchTablesStatus: FetchTablesStatus;
   addTableToOrderStatus: AddTableToOrderStatus;
+  updateOrderBillDetailsStatus: UpdateOrderBillDetailsStatus;
+  updateBookingDetailsStatus: UpdateBookingDetailsStatus;
   addNewOrderTokenStatus: AddNewOrderTokenStatus;
   fetchAvailableBookedRoomsStatus: FetchAvailableBookedRoomsStatus;
 }

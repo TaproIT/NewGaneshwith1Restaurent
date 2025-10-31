@@ -11,6 +11,7 @@ const initialState: FoodCategoryState = {
   isFoodCategory: true,
   categories: [],
   selectedCategoryId: null,
+  selectedFoodCategoryTitle: null,
   fetchAllFoodCategoriesStatus: {
      loading: false,
      error: null
@@ -30,8 +31,20 @@ const foodCategorySlice = createSlice({
         setIsClickedAddFoodCategory: (state, action: PayloadAction<boolean>) => {
             state.isClickedAddFoodCategory = action.payload;
         },
+        setIsFoodCategory: (state, action: PayloadAction<boolean>) => {
+            state.isFoodCategory = action.payload;
+        },
         setSelectedCategoryId: (state, action: PayloadAction<string>) => {
             state.selectedCategoryId = action.payload;
+        },
+        setSelectedFoodCategoryTitle: (state, action: PayloadAction<string>) => {
+           if (action.payload === "" ) {
+              state.selectedFoodCategoryTitle = null;
+           } 
+           const selectedCategory = state.categories.find((cat) => cat._id === action.payload)
+           if (selectedCategory){
+            state.selectedFoodCategoryTitle = selectedCategory?.categoryName;
+           }
         },
         setCategories: (state, action: PayloadAction<FoodCategory[]>) => {
             state.categories = action.payload;
@@ -98,5 +111,5 @@ const foodCategorySlice = createSlice({
     },
 });
 
-export const { setSelectedCategoryId, setIsClickedAddFoodCategory } = foodCategorySlice.actions;
+export const { setSelectedCategoryId, setIsClickedAddFoodCategory, setIsFoodCategory, setSelectedFoodCategoryTitle } = foodCategorySlice.actions;
 export default foodCategorySlice.reducer;

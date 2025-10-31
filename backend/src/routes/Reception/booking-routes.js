@@ -7,7 +7,8 @@ import {
     sendBookingQrViaEmail,
     getAllReservedRoomsWithBookingDetails,
     sendBookingQrViaWhatsApp,
-    switchRoomsBulk
+    switchRoomsBulk,
+    addOrderToBooking
 } from "../../controllers/Reception/booking-controller.js";
 
 const router = express.Router();
@@ -20,5 +21,6 @@ router.get("/active-rooms-with-prices/:roomNo", getBookingWithActiveRoomsAndPric
 router.get("/details/all-rooms", getAllRoomsWithBookingDetails);
 router.get("/extended-today", getTodayExtendedRooms);
 router.get("/details/reserved-all-rooms", getAllReservedRoomsWithBookingDetails );
+router.patch("/:id/add-order", addOrderToBooking);
 
 export { router as bookingRoutes };

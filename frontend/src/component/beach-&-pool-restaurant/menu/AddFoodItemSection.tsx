@@ -24,32 +24,35 @@ import { fetchAllBeverageItems } from "@/api/order/get-beverage-list-api";
 import { toast } from "react-toastify";
 import { setIsBeverageItemsList, setSelectedCategory } from "@/features/beach-restaurant/beverageCategorySlice";
 import { setSelectedCategoryId } from "@/features/beach-restaurant/foodCategorySlice";
+import { fetchAllExtraBeverageCategories } from "@/api/order/get-extra-beverge-categories-api";
+import { addNewExtraBeverage } from "@/api/order/add-extra-beverage-api";
 
 type Liqueur = { beverage: string; amount: number };
 
 export default function AddFoodItemSection() {
   const dispatch = useDispatch<AppDispatch>();
-  const { categories: foodCategories } = useSelector(
+  const { selectedFoodCategoryTitle, selectedCategoryId } = useSelector(
     (state: RootState) => state.foodCategory
+  );
+  const { selectedBeverageCategoryTitle, selectedCategory } = useSelector(
+    (state: RootState) => state.beverageCategory
   );
   const { addFoodItemStatus } = useSelector(
     (state: RootState) => state.food
   );
-  const { beverageItems: beverages } = useSelector(
-    (state: RootState) => state.beverage
-  );
-  const { addBeverageItemStatus } = useSelector(
+  const { beverageItems: beverages, addBeverageItemStatus } = useSelector(
     (state: RootState) => state.beverage
   );
 
-  const beverageCategories = Object.values(BeverageCategories);
+
+  // const beverageCategories = Object.values(BeverageCategories);
   const hardLiquors = beverages.filter(
     (b) => b.category === BeverageCategories.HARD_LIQUOR.value
   );
 
   // Form states
   const [itemType, setItemType] = useState<"food" | "beverage" | null>(null);
-  const [category, setCategory] = useState<string | null>(null);
+  //const [category, setCategory] = useState<string | null>(null);
   const [itemName, setItemName] = useState("");
   const [price, setPrice] = useState<number>(0);
 
@@ -57,12 +60,11 @@ export default function AddFoodItemSection() {
   const [addLiqueur, setAddLiqueur] = useState(false);
   const [liqueurs, setLiqueurs] = useState<Liqueur[]>([]);
 
-  const isDisabled =
-    !itemType || !category || !itemName.trim() || price <= 0;
+  const isDisabled = !itemName.trim() || price <= 0;
 
   const resetForm = () => {
     setItemType(null);
-    setCategory(null);
+    //setCategory(null);
     setItemName("");
     setPrice(0);
     setAddLiqueur(false);
@@ -82,12 +84,12 @@ export default function AddFoodItemSection() {
 
   const handleAddItem = async () => {
     try {
-      if (itemType === "food") {
+      if (selectedFoodCategoryTitle) {
         const foodItem = {
           itemName,
           price,
           isVisible: true,
-          category,
+          category:selectedCategoryId,
           isEnableBeverage: addLiqueur,
           liquor: liqueurs,
         };
@@ -97,11 +99,15 @@ export default function AddFoodItemSection() {
 
         // Reset form and update state
         dispatch(setIsBeverageItemsList(false));
-        dispatch(setSelectedCategoryId(category ?? ""));
+        dispatch(setSelectedCategoryId(selectedCategoryId ?? ""));
         dispatch(setSelectedCategory(""));
       } else {
+        const isExtraBeverageItem =
+          selectedCategory !== BeverageCategories.HARD_LIQUOR.value &&
+          selectedCategory !== BeverageCategories.SOFT_DRINKS.value;
+
         const beverageItem = {
-          category,
+          category:selectedCategory,
           beverageName: itemName,
           price,
           isVisible: true,
@@ -109,18 +115,30 @@ export default function AddFoodItemSection() {
           note: "",
         };
 
-        await dispatch(addNewBeverage(beverageItem)).unwrap();
+         const extraBeverageItem = {
+          extraBeverageCategory: selectedCategory,
+          beverageName: itemName,
+          price,
+          isVisible: true,
+        };
+
+        if( isExtraBeverageItem ) {
+          await dispatch(addNewExtraBeverage(extraBeverageItem)).unwrap();
+        }else {
+          await dispatch(addNewBeverage(beverageItem)).unwrap();
+        }
+
         toast.success("Beverage item added successfully!");
 
         dispatch(setIsBeverageItemsList(true));
-        dispatch(setSelectedCategory(category ?? ""));
+        dispatch(setSelectedCategory(selectedCategory ?? ""));
         dispatch(setSelectedCategoryId(""));
       }
 
       resetForm();
     } catch (err: any) {
       //handle error directly
-      if (itemType==="food") {
+      if (selectedFoodCategoryTitle) {
           toast.error(addFoodItemStatus.error || "Failed to add food item");
           return;
       }
@@ -131,6 +149,7 @@ export default function AddFoodItemSection() {
 
    // fetch beverages
   useEffect(() => {
+    dispatch(fetchAllExtraBeverageCategories());
     dispatch(fetchAllBeverageItems());
   }, [dispatch]);
 
@@ -142,7 +161,7 @@ export default function AddFoodItemSection() {
 
         {/* Item Type */}
         <FormRow label="Item Type :">
-          <Select
+          {/* <Select
             value={itemType ?? ""}
             onValueChange={(val) => {
               setItemType(val as "food" | "beverage");
@@ -160,12 +179,15 @@ export default function AddFoodItemSection() {
                 Beverage
               </SelectItem>
             </SelectContent>
-          </Select>
+          </Select> */}
+          <div className="text-[0.85rem] font-semibold">
+            { selectedFoodCategoryTitle ? "Food" : "Beverage"}
+          </div>
         </FormRow>
 
         {/* Category */}
         <FormRow label="Category :">
-          <Select
+          {/* <Select
             value={category ?? ""}
             onValueChange={setCategory}
             disabled={!itemType}
@@ -184,7 +206,8 @@ export default function AddFoodItemSection() {
                       {cat.categoryName}
                     </SelectItem>
                   ))
-                : beverageCategories.map((cat) => (
+                : <>
+                  {beverageCategories.map((cat) => (
                     <SelectItem
                       key={cat.value}
                       value={cat.value}
@@ -193,8 +216,22 @@ export default function AddFoodItemSection() {
                       {cat.label}
                     </SelectItem>
                   ))}
+                  {
+                    extraBeverageCategories.map((cat) => (
+                    <SelectItem
+                      key={cat._id}
+                      value={cat._id}
+                      className="text-[0.75rem]"
+                    >
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </>}
             </SelectContent>
-          </Select>
+          </Select> */}
+          <div className="text-[0.85rem] font-semibold">
+            {selectedFoodCategoryTitle ? selectedFoodCategoryTitle :  selectedBeverageCategoryTitle}
+          </div>
         </FormRow>
 
         {/* Item Name */}
@@ -202,7 +239,7 @@ export default function AddFoodItemSection() {
           <Input
             value={itemName}
             onChange={(e) => setItemName(e.target.value)}
-            disabled={!itemType}
+            //disabled={!itemType}
             placeholder="Item Name"
             className="!text-[0.75rem] placeholder:text-[0.75rem]"
           />
@@ -215,7 +252,7 @@ export default function AddFoodItemSection() {
             min={0}
             value={price || ""}
             onChange={(e) => setPrice(Number(e.target.value))}
-            disabled={!itemType}
+            //disabled={!itemType}
             placeholder="LKR 0.00"
             className="!text-[0.75rem] placeholder:text-[0.75rem]"
           />

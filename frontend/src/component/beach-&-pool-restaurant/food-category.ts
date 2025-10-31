@@ -21,4 +21,5 @@ export interface FoodCategoryState {
     fetchAllFoodCategoriesStatus: FetchAllFoodCategoriesStatus,
     addFoodCategoryStatus: AddFoodCategoryStatus,
     selectedCategoryId: string | null;
+    selectedFoodCategoryTitle: string | null;
 }
