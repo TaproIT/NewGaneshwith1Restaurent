@@ -20,6 +20,8 @@ import {scheduleExtendCheckoutCron} from "./src/utils/scheduleExtendCheckouts.js
 import { invoiceRoutes } from "./src/routes/Reception/invoice-routes.js";
 import extraBeverageRoutes from "./src/routes/ExtraBeverageRoutes/extra-beverage-routes.js";
 import { adminRoutes } from "./src/routes/Admin/user-handelling-routes.js";
+import currencyValueRoutes from "./src/routes/currency-value-routes.js";
+import dashboardRoutes from "./src/routes/dashboardRoutes.js";
 
 // Load env variables
 dotenv.config();
@@ -77,6 +79,12 @@ app.use("/api/v1/extra-beverages", extraBeverageRoutes);
 
 // Admin Routes
 app.use("/api/v1/admin", adminRoutes);
+
+// currency
+app.use("/api/v1/currency-values", currencyValueRoutes);
+
+// monthly-summary
+app.use("/api/v1/hotel-dashboard", dashboardRoutes);
 
 // --- Socket.io ---
 const io = new Server(server, {

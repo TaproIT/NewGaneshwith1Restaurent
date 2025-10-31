@@ -14,6 +14,7 @@ router.post(
   authenticateToken,
   authorizeRoles([
     userRoles.ADMIN.value,
+    userRoles.SUPER_ADMIN.value,
   ]),
   registerNewUser
 );
@@ -24,6 +25,7 @@ router.get(
   authenticateToken,
   authorizeRoles([
     userRoles.ADMIN.value,
+    userRoles.SUPER_ADMIN.value,
   ]),
   getAllUsers
 );
@@ -34,6 +36,7 @@ router.get(
   authenticateToken,
   authorizeRoles([
     userRoles.ADMIN.value,
+    userRoles.SUPER_ADMIN.value,
   ]),
   getUserById
 );
@@ -44,6 +47,7 @@ router.patch(
   authenticateToken,
   authorizeRoles([
     userRoles.ADMIN.value,
+    userRoles.SUPER_ADMIN.value,
   ]),
   deleteUserById
 );
@@ -54,6 +58,7 @@ router.patch(
   authenticateToken,
   authorizeRoles([
     userRoles.ADMIN.value,
+    userRoles.SUPER_ADMIN.value,
   ]),
   activateUserById
 );
