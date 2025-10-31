@@ -9,7 +9,7 @@ const TotalInvoices: React.FC = () => {
           <ReceiptIcon color="#1D2939" />
         </div>
         <div className="flex flex-col gap-2">
-          <div className="text-Primary_blue font-medium text-[16px]">Total Guests Registered</div>
+          <div className="text-Primary_blue font-medium text-[16px]">Total Invoices Generated</div>
           <div className="text-Primary_orange font-bold text-2xl text-right">100</div>
         </div>
       </div>
