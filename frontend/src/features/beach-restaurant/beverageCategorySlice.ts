@@ -1,3 +1,4 @@
+import { addNewExtraBeverageCategory } from "@/api/order/add-bevetage-category-api";
 import { fetchAllBeverageCategories } from "@/api/order/get-beverage-categories-api";
 import { fetchAllExtraBeverageCategories } from "@/api/order/get-extra-beverge-categories-api";
 import type { BeverageCategory, BeverageCategoryState } from "@/component/beach-&-pool-restaurant/beverage-category-model";
@@ -15,6 +16,10 @@ const initialState: BeverageCategoryState = {
      error: null
   },
   fetchAllExtraBeverageCategoriesStatus: {
+     loading: false,
+     error: null
+  },
+  addNewExtraBeverageCategoryStatus: {
      loading: false,
      error: null
   },
@@ -71,6 +76,27 @@ const beverageCategorySlice = createSlice({
             .addCase(fetchAllExtraBeverageCategories.rejected, (state, action) => {
                 state.fetchAllExtraBeverageCategoriesStatus.loading = false;
                 state.fetchAllExtraBeverageCategoriesStatus.error = action.payload as string;
+            }) 
+
+
+            // add extra beverage category
+            .addCase(addNewExtraBeverageCategory.pending, (state) => {
+                state.addNewExtraBeverageCategoryStatus = {
+                    loading: true,
+                    error: null,
+                };
+            })
+            .addCase(addNewExtraBeverageCategory.fulfilled, (state) => {
+                state.addNewExtraBeverageCategoryStatus = {
+                    loading: false,
+                    error: null,
+                };
+            })
+            .addCase(addNewExtraBeverageCategory.rejected, (state, action) => {
+                state.addNewExtraBeverageCategoryStatus = {
+                    loading: false,
+                    error: action.payload as string,
+                };
             })
 
 

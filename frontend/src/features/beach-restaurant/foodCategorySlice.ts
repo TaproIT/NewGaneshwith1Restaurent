@@ -30,6 +30,9 @@ const foodCategorySlice = createSlice({
         setIsClickedAddFoodCategory: (state, action: PayloadAction<boolean>) => {
             state.isClickedAddFoodCategory = action.payload;
         },
+        setIsFoodCategory: (state, action: PayloadAction<boolean>) => {
+            state.isFoodCategory = action.payload;
+        },
         setSelectedCategoryId: (state, action: PayloadAction<string>) => {
             state.selectedCategoryId = action.payload;
         },
@@ -98,5 +101,5 @@ const foodCategorySlice = createSlice({
     },
 });
 
-export const { setSelectedCategoryId, setIsClickedAddFoodCategory } = foodCategorySlice.actions;
+export const { setSelectedCategoryId, setIsClickedAddFoodCategory, setIsFoodCategory } = foodCategorySlice.actions;
 export default foodCategorySlice.reducer;

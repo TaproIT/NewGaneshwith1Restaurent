@@ -3,7 +3,7 @@ import {
   setSelectedCategory,
   setIsBeverageItemsList,
 } from "@/features/beach-restaurant/beverageCategorySlice";
-import { setSelectedCategoryId } from "@/features/beach-restaurant/foodCategorySlice";
+import { setIsClickedAddFoodCategory, setIsFoodCategory, setSelectedCategoryId } from "@/features/beach-restaurant/foodCategorySlice";
 import { setIsClickAddNewFoodItem } from "@/features/beach-restaurant/foodSlice";
 import { BeverageCategories } from "@/lib/enums/order-related-enums";
 import React, { useRef, useEffect } from "react";
@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "react-toastify";
 import { fetchAllExtraBeverageCategories } from "@/api/order/get-extra-beverge-categories-api";
+import { Plus } from "lucide-react";
 
 
 const BeverageCategorySelector: React.FC = () => {
@@ -63,14 +64,20 @@ const BeverageCategorySelector: React.FC = () => {
     dispatch(setIsClickAddNewFoodItem(false));
   };
 
+  const handleAddNewBeverageCategory = () => {
+    dispatch(setIsClickedAddFoodCategory(true));
+    dispatch(setIsFoodCategory(false));
+    dispatch(setIsClickAddNewFoodItem(false));
+  }
+
   return (
-    <div className="flex flex-col items-start w-[135px] 2xl:w-[163px] h-[calc(100vh-250px)] overflow-y-auto no-scrollbar rounded-md">
+    <div className="relative flex flex-col items-start w-[135px] 2xl:w-[163px] rounded-md">
       {loading ? (
-        Array.from({ length: 2 }).map((_, index) => (
+        Array.from({ length: 4 }).map((_, index) => (
           <Skeleton key={index} className="h-[60px] w-full mb-2 rounded-md" />
         ))
       ) : (
-        <>
+        <div className="w-full h-[calc(100vh-300px)] overflow-y-auto no-scrollbar">
           {categories.map((cat, index) => {
             const isSelected = cat.value === selectedCategory;
             return (
@@ -112,8 +119,16 @@ const BeverageCategorySelector: React.FC = () => {
               </div>
             );
           })}
-        </>
+        </div>
       )}
+       <div className="sticky left-0 bottom-5 pr-1 bg-white">
+        <div
+          className="py-5 px-14 flex items-center justify-center border rounded-sm cursor-pointer"
+          onClick={handleAddNewBeverageCategory}
+        >
+          <Plus size={24} className="text-[#0A869D]" />
+        </div>
+      </div>
     </div>
   );
 };
