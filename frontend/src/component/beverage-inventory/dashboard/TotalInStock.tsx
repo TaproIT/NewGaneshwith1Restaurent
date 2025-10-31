@@ -18,8 +18,8 @@ const TotalInStock: React.FC<Props> = ({ items }) => {
           <Users color="#1D2939" />
         </div>
         <div className="flex flex-col gap-2">
-          <div className="text-[#B4AEAE] font-medium text-[16px]">Total in Stock</div>
-          <div className="text-gray font-bold text-2xl">{total}</div>
+          <div className="text-Primary_blue font-medium text-[16px]">Total in Stock</div>
+          <div className="text-Primary_orange font-bold text-2xl text-right">{total}</div>
         </div>
       </div>
 

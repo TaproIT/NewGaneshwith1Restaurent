@@ -34,7 +34,7 @@ const BeverageList: React.FC = () => {
 
   const handleAddNewFoodItem = () => {
     dispatch(setIsClickAddNewFoodItem(true));
-    navigate("/beach-restaurant/menu/0");
+    navigate("/restaurant/menu/0");
   };
 
   useEffect(() => {

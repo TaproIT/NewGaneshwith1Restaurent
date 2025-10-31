@@ -3,6 +3,16 @@ import { userRoles } from "../utils/enums/user-role.js";
 
 export const validateUserRegistration = (data) => {
     const errors = [];
+    
+    // User name validation
+    if (!data.name || validator.isEmpty(String(data.name))) {
+      errors.push("Name is required");
+    }
+
+    // User contact number validation
+    if (!data.contactNumber || validator.isEmpty(String(data.contactNumber))) {
+      errors.push("Contact number is required");
+    }
 
     // User email validation
     if (!data.email || validator.isEmpty(String(data.email))) {

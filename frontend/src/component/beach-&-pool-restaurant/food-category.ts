@@ -9,8 +9,16 @@ export interface FetchAllFoodCategoriesStatus{
    loading: boolean;
 }
 
+export interface AddFoodCategoryStatus{
+   error: string | null;
+   loading: boolean;
+}
+
 export interface FoodCategoryState {
+    isClickedAddFoodCategory:boolean,
+    isFoodCategory: boolean,
     categories: FoodCategory[],
     fetchAllFoodCategoriesStatus: FetchAllFoodCategoriesStatus,
+    addFoodCategoryStatus: AddFoodCategoryStatus,
     selectedCategoryId: string | null;
 }

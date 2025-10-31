@@ -60,9 +60,9 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
           </div>
 
           {/* Table Info */}
-          {order.tableId && (
+          {order.restaurantTable?._id && (
             <div className="my-5 px-3 flex justify-between text-[0.75rem]">
-              <span className="font-medium">Table :</span>
+              <span className="font-medium">Table : {order.restaurantTable.name}</span>
             </div>
           )}
 

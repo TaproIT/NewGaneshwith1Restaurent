@@ -4,12 +4,13 @@ import {
   setSelectedCategory,
   setIsBeverageItemsList,
 } from "@/features/beach-restaurant/beverageCategorySlice";
-import { setSelectedCategoryId } from "@/features/beach-restaurant/foodCategorySlice";
+import { setIsClickedAddFoodCategory, setSelectedCategoryId } from "@/features/beach-restaurant/foodCategorySlice";
 import { setIsClickAddNewFoodItem } from "@/features/beach-restaurant/foodSlice";
 import React, { useRef, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "react-toastify";
+import { Plus } from "lucide-react";
 
 const FoodCategorySelector: React.FC = () => {
   const dispatch = useDispatch();
@@ -44,7 +45,6 @@ const FoodCategorySelector: React.FC = () => {
       toast.error("Failed to load food categories. Please try again.");
     }
   }, [error]);
-  console.log(selectedCategoryId);
   // Auto select first category if none selected
   // useEffect(() => {
   //   if (!selectedCategoryId && !selectedCategory && categories.length > 0) {
@@ -67,7 +67,7 @@ const FoodCategorySelector: React.FC = () => {
     dispatch(setSelectedCategory(""));
     dispatch(setSelectedCategoryId(categories[index]._id));
     dispatch(setIsBeverageItemsList(false));
-    dispatch(setIsClickAddNewFoodItem(false));
+    //dispatch(setIsClickAddNewFoodItem(false));
   };
 
   // Drag handlers
@@ -90,15 +90,20 @@ const FoodCategorySelector: React.FC = () => {
     }
   };
 
+  const handleAddNewFoodCategory = () => {
+    dispatch(setIsClickedAddFoodCategory(true));
+    dispatch(setIsClickAddNewFoodItem(false));
+  }
+
   return (
-    <div className="flex flex-col items-center w-full">
+    <div className="relative flex flex-col items-start w-full">
       <div
         ref={scrollContainerRef}
         onMouseDown={handleMouseDown}
         onMouseLeave={handleMouseLeave}
         onMouseUp={handleMouseUp}
         onMouseMove={handleMouseMove}
-        className="flex gap-2 overflow-x-auto cursor-grab active:cursor-grabbing no-scrollbar w-full"
+        className="flex gap-2.5 overflow-x-auto cursor-grab active:cursor-grabbing no-scrollbar w-[81.5%]"
       >
         {loading
           ? // Show skeletons while loading
@@ -128,6 +133,15 @@ const FoodCategorySelector: React.FC = () => {
                 </div>
               );
             })}
+      </div>
+      {/* Add New Category Button (fixed to right) */}
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 pr-1 bg-white">
+        <div
+          className="py-5 px-12 flex items-center justify-center border rounded-sm cursor-pointer"
+          onClick={handleAddNewFoodCategory}
+        >
+          <Plus size={24} className="text-[#0A869D]" />
+        </div>
       </div>
     </div>
   );
