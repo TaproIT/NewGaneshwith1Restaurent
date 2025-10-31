@@ -1,4 +1,5 @@
 import { fetchAllBeverageCategories } from "@/api/order/get-beverage-categories-api";
+import { fetchAllExtraBeverageCategories } from "@/api/order/get-extra-beverge-categories-api";
 import type { BeverageCategory, BeverageCategoryState } from "@/component/beach-&-pool-restaurant/beverage-category-model";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
@@ -7,8 +8,13 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 // Initial State
 const initialState: BeverageCategoryState = {
   categories: [],
+  extraCategories: [],
   selectedCategory: null,
   fetchAllBeverageCategoriesStatus: {
+     loading: false,
+     error: null
+  },
+  fetchAllExtraBeverageCategoriesStatus: {
      loading: false,
      error: null
   },
@@ -49,6 +55,25 @@ const beverageCategorySlice = createSlice({
                 state.fetchAllBeverageCategoriesStatus.loading = false;
                 state.fetchAllBeverageCategoriesStatus.error = action.payload as string;
             })
+
+
+            .addCase(fetchAllExtraBeverageCategories.pending, (state) => {
+                state.fetchAllExtraBeverageCategoriesStatus.loading = true;
+                state.fetchAllExtraBeverageCategoriesStatus.error = null;
+            })
+            .addCase(fetchAllExtraBeverageCategories.fulfilled, (state, action) => {
+                state.fetchAllExtraBeverageCategoriesStatus.loading = false;
+                if (state.extraCategories) {
+                    state.extraCategories = [];
+                }
+                state.extraCategories = [...state.categories, ...action.payload];
+            })
+            .addCase(fetchAllExtraBeverageCategories.rejected, (state, action) => {
+                state.fetchAllExtraBeverageCategoriesStatus.loading = false;
+                state.fetchAllExtraBeverageCategoriesStatus.error = action.payload as string;
+            })
+
+
 
         //   // add
         //   .addCase(addCategory.fulfilled, (state, action: PayloadAction<FoodCategory>) => {

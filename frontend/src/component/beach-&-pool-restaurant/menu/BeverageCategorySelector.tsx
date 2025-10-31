@@ -1,4 +1,4 @@
-import type { RootState } from "@/app/store";
+import type { AppDispatch, RootState } from "@/app/store";
 import {
   setSelectedCategory,
   setIsBeverageItemsList,
@@ -10,18 +10,22 @@ import React, { useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "react-toastify";
+import { fetchAllExtraBeverageCategories } from "@/api/order/get-extra-beverge-categories-api";
+
 
 const BeverageCategorySelector: React.FC = () => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const beverageCategory = useSelector(
     (state: RootState) => state.beverageCategory
   );
 
   const selectedCategory = beverageCategory.selectedCategory;
   
-  const { loading, error } = beverageCategory.fetchAllBeverageCategoriesStatus;
-
+  const { loading, error } = beverageCategory.fetchAllExtraBeverageCategoriesStatus; 
+  
   const categories = Object.values(BeverageCategories);
+
+  const extraCategories = beverageCategory.extraCategories;
 
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -30,8 +34,9 @@ const BeverageCategorySelector: React.FC = () => {
   );
 
   useEffect(() => {
-    dispatch(setSelectedCategory(""))
+     dispatch(setSelectedCategory(""))
      dispatch(setIsBeverageItemsList(false));
+     dispatch(fetchAllExtraBeverageCategories());
   }, []);
 
   // show error toast
@@ -60,11 +65,13 @@ const BeverageCategorySelector: React.FC = () => {
 
   return (
     <div className="flex flex-col items-start w-[135px] 2xl:w-[163px] h-[calc(100vh-250px)] overflow-y-auto no-scrollbar rounded-md">
-      {loading
-        ? Array.from({ length: 2 }).map((_, index) => (
-            <Skeleton key={index} className="h-[60px] w-full mb-2 rounded-md" />
-          ))
-        : categories.map((cat, index) => {
+      {loading ? (
+        Array.from({ length: 2 }).map((_, index) => (
+          <Skeleton key={index} className="h-[60px] w-full mb-2 rounded-md" />
+        ))
+      ) : (
+        <>
+          {categories.map((cat, index) => {
             const isSelected = cat.value === selectedCategory;
             return (
               <div
@@ -84,6 +91,29 @@ const BeverageCategorySelector: React.FC = () => {
               </div>
             );
           })}
+
+          {extraCategories.map((cat, index) => {
+            const isSelected = cat._id === selectedCategory;
+            return (
+              <div
+                key={cat._id}
+                ref={(el) => {
+                  itemRefs.current[index] = el;
+                }}
+                onClick={() => handleClick(cat._id)}
+                className={`px-4 py-6 mb-2 w-full flex items-center justify-center text-[0.75rem] font-medium cursor-pointer rounded-md
+                  ${
+                    isSelected
+                      ? "bg-[#B24E0E] text-white"
+                      : "bg-transparent text-[#5B5B5B] border border-[#CECECE]"
+                  }`}
+              >
+                {cat.name}
+              </div>
+            );
+          })}
+        </>
+      )}
     </div>
   );
 };
