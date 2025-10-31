@@ -31,10 +31,10 @@ type Liqueur = { beverage: string; amount: number };
 
 export default function AddFoodItemSection() {
   const dispatch = useDispatch<AppDispatch>();
-  const { categories: foodCategories, selectedFoodCategoryTitle, selectedCategoryId } = useSelector(
+  const { selectedFoodCategoryTitle, selectedCategoryId } = useSelector(
     (state: RootState) => state.foodCategory
   );
-  const { extraCategories: extraBeverageCategories, selectedBeverageCategoryTitle, selectedCategory } = useSelector(
+  const { selectedBeverageCategoryTitle, selectedCategory } = useSelector(
     (state: RootState) => state.beverageCategory
   );
   const { addFoodItemStatus } = useSelector(
@@ -45,14 +45,14 @@ export default function AddFoodItemSection() {
   );
 
 
-  const beverageCategories = Object.values(BeverageCategories);
+  // const beverageCategories = Object.values(BeverageCategories);
   const hardLiquors = beverages.filter(
     (b) => b.category === BeverageCategories.HARD_LIQUOR.value
   );
 
   // Form states
   const [itemType, setItemType] = useState<"food" | "beverage" | null>(null);
-  const [category, setCategory] = useState<string | null>(null);
+  //const [category, setCategory] = useState<string | null>(null);
   const [itemName, setItemName] = useState("");
   const [price, setPrice] = useState<number>(0);
 
@@ -64,7 +64,7 @@ export default function AddFoodItemSection() {
 
   const resetForm = () => {
     setItemType(null);
-    setCategory(null);
+    //setCategory(null);
     setItemName("");
     setPrice(0);
     setAddLiqueur(false);
