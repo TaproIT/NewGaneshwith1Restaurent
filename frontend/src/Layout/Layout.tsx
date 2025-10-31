@@ -3,7 +3,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Logo from '../assets/Images/Logos/main_logo.png';
 import { 
   Bell, CircleArrowRight, LogOut, Settings, 
-  ShieldCheck, User, UserRoundPlus, Users, Calendar,
+  ShieldCheck, User, UserRoundPlus, Users,
   RepeatIcon, BookText, House, Table2, NotepadText,
   PauseCircle, Newspaper, ChevronLeft, ChevronRight, Banknote
 } from 'lucide-react';
