@@ -64,6 +64,7 @@ const RoomConfig: React.FC = () => {
             onRoomClick={handleRoomClick} // only for viewing
             readOnly={true}
             onAddRoomClick={handleAddRoomClick}
+            roomConfigMode={true}
           />
         )}
       </div>

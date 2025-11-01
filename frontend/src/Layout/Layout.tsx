@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Logo from '../assets/Images/Logos/main_logo.png';
 import { 
-  Bell, CircleArrowRight, LogOut, Settings, 
+  Bell, CircleArrowRight, LogOut,
   ShieldCheck, User, UserRoundPlus, Users,
   RepeatIcon, BookText, House, Table2, NotepadText,
   PauseCircle, Newspaper, ChevronLeft, ChevronRight, Banknote
@@ -10,7 +10,7 @@ import {
 import CurrencyDropdown from '@/component/currencyDropdown';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '@/app/store';
-import type { UserRole } from '@/types/roleTypes';
+// import type { UserRole } from '@/types/roleTypes';
 import { api } from '@/api/axios';
 import { toast } from 'react-toastify';
 import { fetchUserRole } from '@/features/user/userSlice';
@@ -90,6 +90,22 @@ const pathTitles: Record<string, string> = {
   '/admin/room-config': 'Room Config',
 };
 
+const getSidebarFromPath = (path: string): string => {
+  if (path.startsWith('/onboarding') ||
+      path.startsWith('/room-availability') ||
+      path.startsWith('/switch-rooms') ||
+      path.startsWith('/checkouts') ||
+      path.startsWith('/invoice')
+  ) {
+    return 'Reception';
+  }
+  if (path.startsWith('/beverage-inventory')) {
+    return 'Beverage-Inventory';
+  }
+  // default admin "group"
+  return 'Admin';
+};
+
 const Layout: React.FC = () => {
   const location = useLocation();
   const userRole = useSelector((state: RootState) => state.user.role);
@@ -97,7 +113,26 @@ const Layout: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
 
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [selectedSidebar, setSelectedSidebar] = useState<UserRole | 'Beverage-Inventory' | 'Reception' | undefined>(undefined);
+
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      dispatch(fetchUserRole());
+    }
+  }, [dispatch]);
+
+  // activeSidebar is computed deterministically from path + role
+  const activeSidebar: string = useMemo(() => {
+    if (!userRole) return 'Admin'; // fallback while role loads
+    if (userRole === 'Admin' || userRole === 'Super-Admin') {
+      return getSidebarFromPath(location.pathname);
+    }
+    // other roles use their role key that matches navigationConfig
+    return userRole;
+  }, [userRole, location.pathname]);
+
+  // compute items to render (defensive fallback to Admin config)
+  const sidebarItems = navigationConfig[activeSidebar] ?? navigationConfig['Admin'];
 
   const getLinkClassName = (path: string) => {
     const baseClasses = "flex gap-2 p-3 rounded-lg";
@@ -113,9 +148,7 @@ const Layout: React.FC = () => {
       isActive = currentPath === path;
     }
 
-    return `${baseClasses} ${
-      isActive ? "bg-primary text-white" : "hover:bg-primary hover:text-white"
-    }`;
+    return `${baseClasses} ${isActive ? "bg-primary text-white" : "hover:bg-primary hover:text-white"}`;
   };
 
   const handleLogout = async () => {
@@ -125,17 +158,9 @@ const Layout: React.FC = () => {
         toast.error("No user logged in");
         return;
       }
-      const response = await api.post(
-        "/auth/logout",
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          withCredentials: true,
-        }
-      );
-
+      const response = await api.post("/auth/logout", {}, {
+        headers: { Authorization: `Bearer ${token}` }, withCredentials: true
+      });
       if (response.status === 200) {
         localStorage.removeItem("authToken");
         toast.success("Logout successful");
@@ -147,21 +172,6 @@ const Layout: React.FC = () => {
     }
   };
 
-  // 🔹 Fetch user role on mount
-  useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    if (token) {
-      dispatch(fetchUserRole());
-    }
-  }, [dispatch]);
-
-  // 🔹 Fix: update selectedSidebar after userRole is loaded
-  useEffect(() => {
-    if (userRole) {
-      setSelectedSidebar(userRole);
-    }
-  }, [userRole]);
-
   if (!userRole) {
     return (
       <div className="flex h-screen bg-bg p-5 gap-5">
@@ -170,27 +180,17 @@ const Layout: React.FC = () => {
     );
   }
 
-  // 🔹 Determine which sidebar to render
-  const sidebarItems =
-    userRole === 'Admin' || userRole === 'Super-Admin'
-      ? navigationConfig[selectedSidebar || 'Admin']
-      : navigationConfig[userRole];
+  // Debug: remove later. Check what sidebar is chosen on refresh.
+  console.debug("Layout activeSidebar:", activeSidebar, "pathname:", location.pathname, "userRole:", userRole);
 
   return (
     <div className="flex h-screen bg-bg p-5 gap-5">
       {/* Sidebar */}
-      <div
-        className={`bg-mainWhite ${
-          isCollapsed ? "w-20" : "w-[264px]"
-        } flex rounded-2xl flex-col justify-between shadow-lg p-4 transition-all duration-300`}
-      >
+      <div className={`bg-mainWhite ${isCollapsed ? "w-20" : "w-[264px]"} flex rounded-2xl flex-col justify-between shadow-lg p-4 transition-all duration-300`}>
         <div className="w-full">
           <div className="flex justify-between items-center mt-5">
             {!isCollapsed && <img src={Logo} alt="logo" className="w-32" />}
-            <button
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              className="p-2 rounded-lg hover:bg-gray-100"
-            >
+            <button onClick={() => setIsCollapsed(!isCollapsed)} className="p-2 rounded-lg hover:bg-gray-100">
               {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
             </button>
           </div>
@@ -198,32 +198,21 @@ const Layout: React.FC = () => {
           {/* Sidebar Navigation */}
           <nav className="mt-10 space-y-4 text-gray w-full">
             {sidebarItems.map((item) => {
+              // Admin-level custom handlers for sections (Reception / Beverage-Inventory)
               if ((userRole === "Admin" || userRole === "Super-Admin") && item.title === "Reception") {
                 return (
-                  <a
-                    key={item.title}
-                    onClick={() => {
-                      setSelectedSidebar("Reception");
-                      navigate("/onboarding");
-                    }}
-                    className={getLinkClassName(item.path)}
-                    style={{ cursor: "pointer" }}
-                  >
+                  <a key={item.title}
+                     onClick={() => { navigate("/onboarding"); }}
+                     className={getLinkClassName(item.path)} style={{ cursor: "pointer" }}>
                     {item.icon} {!isCollapsed && <p>{item.title}</p>}
                   </a>
                 );
               }
               if ((userRole === "Admin" || userRole === "Super-Admin") && item.title === "Beverage Inventory") {
                 return (
-                  <a
-                    key={item.title}
-                    onClick={() => {
-                      setSelectedSidebar("Beverage-Inventory");
-                      navigate("/beverage-inventory/dashboard");
-                    }}
-                    className={getLinkClassName(item.path)}
-                    style={{ cursor: "pointer" }}
-                  >
+                  <a key={item.title}
+                     onClick={() => { navigate("/beverage-inventory/dashboard"); }}
+                     className={getLinkClassName(item.path)} style={{ cursor: "pointer" }}>
                     {item.icon} {!isCollapsed && <p>{item.title}</p>}
                   </a>
                 );
@@ -234,32 +223,20 @@ const Layout: React.FC = () => {
                 </Link>
               );
             })}
-
-            {/* Back to Admin button */}
-            {(userRole === "Admin" || userRole === "Super-Admin") && selectedSidebar !== "Admin" && (
-              <button
-                onClick={() => {
-                  setSelectedSidebar("Admin");
-                  navigate("/admin/dashboard");
-                }}
-                className="flex items-center gap-2 p-3 rounded-lg w-full hover:bg-primary hover:text-white mt-4"
-              >
-                <House size={22} /> {!isCollapsed && <span>Back to Admin</span>}
-              </button>
-            )}
           </nav>
         </div>
 
         {/* Footer Navigation */}
         <div>
           <nav className="space-y-2 text-gray">
-            <Link to="/profile" className={getLinkClassName("/profile")}>
-              <Settings size={22} /> {!isCollapsed && <p>Settings</p>}
-            </Link>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 p-3 rounded-lg w-full hover:bg-danger hover:text-white"
-            >
+            {/* Back to Admin button: show when activeSidebar not 'Admin' and user is admin */}
+            {(userRole === "Admin" || userRole === "Super-Admin") && activeSidebar !== "Admin" && (
+              <button onClick={() => navigate("/admin/dashboard")}
+                      className="flex items-center gap-2 p-3 rounded-lg w-full hover:bg-primary hover:text-white mt-4">
+                <House size={22} /> {!isCollapsed && <span>Back to Admin</span>}
+              </button>
+            )}
+            <button onClick={handleLogout} className="flex items-center gap-2 p-3 rounded-lg w-full hover:bg-danger hover:text-white">
               <LogOut size={22} /> {!isCollapsed && <span>Logout</span>}
             </button>
           </nav>

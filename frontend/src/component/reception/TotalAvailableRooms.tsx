@@ -1,7 +1,12 @@
+import type { MonthlyReport } from "@/types/monthlySummary";
 import { LucideHouse } from "lucide-react";
 import React from "react";
 
-const TotalAvailableRooms: React.FC = () => {
+interface TotalAvailableRoomsProps {
+  monthlySummary?: MonthlyReport | null;
+}
+
+const TotalAvailableRooms: React.FC<TotalAvailableRoomsProps> = ({ monthlySummary }) => {
   return (
     <div className="p-4 bg-mainWhite rounded-2xl flex gap-4 flex-col">
       <div className="flex justify-between">
@@ -10,11 +15,11 @@ const TotalAvailableRooms: React.FC = () => {
         </div>
         <div className="flex flex-col gap-2">
           <div className="text-Primary_blue font-medium text-[16px]">Total Available Rooms</div>
-          <div className="text-Primary_orange font-bold text-2xl text-right">100</div>
+          <div className="text-Primary_orange font-bold text-2xl text-right">{monthlySummary?.totalAvailableRooms ?? 0}</div>
         </div>
       </div>
 
-      <div className="flex flex-col gap-1">
+      {/* <div className="flex flex-col gap-1">
         <div className="grid-cols-4 text-[#6F6868] text-[14px] font-medium grid">
           <div className="col-span-2">Hotel A</div>
           <div className="col-span-1">:</div>
@@ -25,7 +30,7 @@ const TotalAvailableRooms: React.FC = () => {
           <div className="col-span-1">:</div>
           <div className="col-span-1">100</div>
         </div>
-      </div>
+      </div> */}
     </div>
   )
 };

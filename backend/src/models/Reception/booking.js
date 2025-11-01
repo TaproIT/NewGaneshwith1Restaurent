@@ -47,6 +47,9 @@ const bookingSchema = new mongoose.Schema(
         // Total bill for the booking.
         finalAllRoomsTotalPrice: { type: Number },
         totalBill: { type: Number },
+        noteForSameDayCheckinAndCheckout:{ type: String },
+        totalOrdersBill:{type: Number },
+
 
         //QR Code
         payload: { type: Object },
