@@ -3,8 +3,9 @@ import mongoose from "mongoose";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc.js";
 import timezone from "dayjs/plugin/timezone.js";
-import Booking from "../../models/Reception/booking.js";
+import Booking, {PaymentMethods} from "../../models/Reception/booking.js";
 import Order from "../../models/order/order-model.js";
+import Room from "../../models/Room.js";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -228,204 +229,328 @@ export const getBookingBillingSummary = async (req, res) => {
     }
 };
 
-
+// Convert normal currency units to integer cents for precise comparison
 function toCents(n) {
     return Math.round(Number(n || 0) * 100);
 }
 
+// Normalize an array of additional prices (guard against bad payloads)
+function normalizeAdditionalItems(items = []) {
+    if (!Array.isArray(items)) return [];
+    return items
+        .filter(Boolean)
+        .map((x) => ({
+            name: String(x?.name || "").trim(),
+            price: Number(x?.price || 0),
+        }))
+        .filter((x) => x.name && x.price >= 0);
+}
 
-export const postBookingCheckout = async (req, res) => {
+/**
+ * Finalize/Update booking bill with validations
+ * Every failed validation returns a clear 400 message.
+ *
+ * Expected req.body:
+ * {
+ *   originalBillTotal,
+ *   totalRoomCharge,
+ *   totalOrdersPrice,
+ *   additionalPrice: [{ name, price }, ...],
+ *   subtotal,
+ *   tax,
+ *   serviceCharge,
+ *   discount,
+ *   totalBill,
+ *   paymentMethod   // "Cash" | "Card" | "Free-Bill"
+ * }
+ */
+export const finalizeBookingBill = async (req, res) => {
     const session = await mongoose.startSession();
+
     try {
         const { id } = req.params;
-        const {
-            clientTotalBill,
-            sameDayExtra = 0,
-            noteForSameDayCheckinAndCheckout = ""
-        } = req.body || {};
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ message: "Invalid booking id" });
         }
 
+        const {
+            originalBillTotal,
+            totalRoomCharge,
+            totalOrdersPrice,
+            additionalPrice = [],
+            subtotal,
+            tax,
+            serviceCharge,
+            discount,
+            totalBill,
+            paymentMethod,
+        } = req.body || {};
+
+        // Basic presence checks
+        if (originalBillTotal == null) {
+            return res.status(400).json({ message: "originalBillTotal is required" });
+        }
+        if (totalRoomCharge == null) {
+            return res.status(400).json({ message: "totalRoomCharge is required" });
+        }
+        if (totalOrdersPrice == null) {
+            return res.status(400).json({ message: "totalOrdersPrice is required" });
+        }
+        if (subtotal == null) {
+            return res.status(400).json({ message: "subtotal is required" });
+        }
+        if (tax == null) {
+            return res.status(400).json({ message: "tax is required" });
+        }
+        if (serviceCharge == null) {
+            return res.status(400).json({ message: "serviceCharge is required" });
+        }
+        if (discount == null) {
+            return res.status(400).json({ message: "discount is required" });
+        }
+        if (totalBill == null) {
+            return res.status(400).json({ message: "totalBill is required" });
+        }
+        if (!paymentMethod) {
+            return res.status(400).json({ message: "paymentMethod is required" });
+        }
+        if (!Object.values(PaymentMethods).map((p) => p.value).includes(paymentMethod)) {
+            return res.status(400).json({
+                message: `Invalid paymentMethod. Allowed: ${Object.values(PaymentMethods)
+                    .map((p) => p.value)
+                    .join(", ")}`,
+            });
+        }
+
+        // Start transaction
+        session.startTransaction();
+
+        // Load booking
+        const booking = await Booking.findById(id).session(session);
+        if (!booking) {
+            await session.abortTransaction();
+            return res.status(404).json({ message: "Booking not found" });
+
+        }
+
+        if( booking.isCheckOut){
+            return res.status(404).json({ message: `Guest name is ${booking.guestName}. Already check out at ${booking.checkOut}` });
+        }
+
+            // Normalize all comparisons to the same timezone @ start-of-day
         const todaySOD = dayjs().tz(TZ).startOf("day");
 
-        // 1) Load booking
-        const booking = await Booking.findById(id).lean();
-        if (!booking) return res.status(404).json({ message: "Booking not found" });
-        if (booking.isCheckOut === true)
-            return res.status(400).json({ message: "Booking already checked out" });
+        const checkInSOD = dayjs(booking.checkIn).tz(TZ).startOf("day");
+        const checkOutSOD = dayjs(booking.checkOut).tz(TZ).startOf("day");
 
-        // 2) Validate date rules
-        const rawCheckInSOD  = booking.checkIn  ? sodTZ(booking.checkIn)  : null;
-        const rawCheckOutSOD = booking.checkOut ? sodTZ(booking.checkOut) : null;
+                // Valid if check-in is today or earlier (local)
+        const isCheckInValid =
+            checkInSOD.isSame(todaySOD) || checkInSOD.isBefore(todaySOD);
 
-        if (rawCheckInSOD && rawCheckInSOD.isAfter(todaySOD)) {
-            return res.status(400).json({ message: "Check-in date cannot be in the future" });
-        }
-        if (rawCheckOutSOD && rawCheckOutSOD.isBefore(todaySOD)) {
-            return res.status(400).json({ message: "Check-out date must be today or in the future" });
-        }
+                // Valid if check-out is today or later (local)
+        const isCheckOutValid =
+            checkOutSOD.isSame(todaySOD) || checkOutSOD.isAfter(todaySOD);
 
-        // Effective “future -> today” for calculations
-        const requiresCutoff =
-            (rawCheckOutSOD ? rawCheckOutSOD.isAfter(todaySOD) : false) ||
-            ((booking.roomsHistory || []).some(
-                (rh) => rh.switchOutDate && sodTZ(rh.switchOutDate).isAfter(todaySOD)
-            ));
-
-        const effectiveCheckOut = booking.checkOut
-            ? (requiresCutoff ? todaySOD : clampToTodayTZ(booking.checkOut, todaySOD))
-            : null;
-        const effectiveCheckIn = booking.checkIn
-            ? clampToTodayTZ(booking.checkIn, todaySOD)
-            : null;
-
-        // 3) Orders total
-        const orderIds = (booking.orders || []).map((o) => o?.oderId).filter(Boolean);
-        const orders = orderIds.length
-            ? await Order.find({ _id: { $in: orderIds } }).lean()
-            : [];
-        const totalOrdersBill = orders.reduce((sum, o) => sum + (Number(o.totalBill) || 0), 0);
-
-        // 4) Calculate rooms total from history using effective dates
-        const roomsHistory = Array.isArray(booking.roomsHistory) ? booking.roomsHistory : [];
-        const computedRoomTotals = roomsHistory.map((rh) => {
-            const effIn = rh.switchInDate ? clampToTodayTZ(rh.switchInDate, todaySOD) : null;
-            const rawOut = rh.switchOutDate
-                ? rh.switchOutDate
-                : effectiveCheckOut
-                    ? effectiveCheckOut.toDate()
-                    : null;
-            const effOut = requiresCutoff
-                ? todaySOD
-                : rawOut
-                    ? clampToTodayTZ(rawOut, todaySOD)
-                    : null;
-            const perDayPrice = Number(rh.perDayPrice) || 0;
-            const nights = diffNightsTZ(effIn, effOut);
-            return nights * perDayPrice;
-        });
-        let finalAllRoomsTotalPrice = computedRoomTotals.reduce((s, v) => s + v, 0);
-
-        // 5) Same-day branch
-        const isSameDay =
-            effectiveCheckIn && effectiveCheckOut &&
-            effectiveCheckIn.isSame(effectiveCheckOut, "day");
-
-        if (isSameDay) {
-            // REQUIREMENTS
-            if (!noteForSameDayCheckinAndCheckout || !String(noteForSameDayCheckinAndCheckout).trim()) {
-                return res.status(400).json({
-                    message: "noteForSameDayCheckinAndCheckout is required for same-day check-in/out",
-                });
-            }
-            if (!sameDayExtra || Number(sameDayExtra) <= 0) {
-                return res.status(400).json({
-                    message: "A positive sameDayExtra is required for same-day check-in/out",
-                });
-            }
-
-            // RULES YOU ASKED:
-            // - sameDayExtra is the *room charge* for same-day (override computed rooms)
-            // - totalBill = finalAllRoomsTotalPrice + totalOrdersBill
-            finalAllRoomsTotalPrice = Number(sameDayExtra);
-        } else {
-            // Non-same-day: enforce client vs backend total verification
-            if (clientTotalBill == null) {
-                return res.status(400).json({ message: "clientTotalBill is required for non-same-day checkout" });
-            }
-        }
-
-        // backend total with the (possibly overridden) finalAllRoomsTotalPrice
-        const backendGrandTotal = Number(finalAllRoomsTotalPrice) + Number(totalOrdersBill);
-
-        // For non-same-day, verify client vs backend
-        if (!isSameDay) {
-            const equalTotals = toCents(clientTotalBill) === toCents(backendGrandTotal);
-            if (!equalTotals) {
-                return res.status(400).json({
-                    message: "clientTotalBill mismatch",
-                    backendGrandTotal,
-                    clientTotalBill,
-                });
-            }
-        }
-
-        // 6) Persist updates (including special-case future date -> today) inside a transaction
-        await session.withTransaction(async () => {
-            const bookingDoc = await Booking.findById(id).session(session);
-            if (!bookingDoc) throw new Error("Booking not found during checkout");
-
-            // Special-case: if future, set to today (these date updates happen on successful checkout)
-            const docCheckOutSOD = bookingDoc.checkOut ? sodTZ(bookingDoc.checkOut) : null;
-            if (docCheckOutSOD && docCheckOutSOD.isAfter(todaySOD)) {
-                bookingDoc.checkOut = todaySOD.toDate();
-            }
-            bookingDoc.roomsHistory = bookingDoc.roomsHistory.map((rh) => {
-                const rhSodOut = rh.switchOutDate ? sodTZ(rh.switchOutDate) : null;
-                if (rhSodOut && rhSodOut.isAfter(todaySOD)) {
-                    rh.switchOutDate = todaySOD.toDate();
-                }
-                // Recompute each room's finalRoomTotalPrice with clamped dates (kept consistent)
-                const effIn = rh.switchInDate ? clampToTodayTZ(rh.switchInDate, todaySOD) : null;
-                const effOut = rh.switchOutDate
-                    ? clampToTodayTZ(rh.switchOutDate, todaySOD)
-                    : todaySOD; // conservative fallback
-                const perDayPrice = Number(rh.perDayPrice) || 0;
-                const nights = diffNightsTZ(effIn, effOut);
-                rh.finalRoomTotalPrice = nights * perDayPrice;
-                return rh;
+        if (!isCheckInValid) {
+            await session.abortTransaction();
+            return res.status(400).json({
+                message:
+                    "Invalid check-in date. It must be today or a past date relative to the current local date.",
+                details: {
+                    checkInUTC: booking.checkIn,
+                    todayUTC: todaySOD.toDate().toISOString(),
+                    checkInLocal: checkInSOD.format("YYYY-MM-DD HH:mm z"),
+                    todayLocal: todaySOD.format("YYYY-MM-DD HH:mm z"),
+                    timezone: TZ
+                },
             });
+        }
 
-            // Aggregate per-room totals (after recompute)
-            const recomputedRoomsSum = bookingDoc.roomsHistory
-                .reduce((s, rh) => s + (Number(rh.finalRoomTotalPrice) || 0), 0);
+        if (!isCheckOutValid) {
+            await session.abortTransaction();
+            return res.status(400).json({
+                message:
+                    "Invalid check-out date. It must be today or a future date relative to the current local date.",
+                details: {
+                    checkOutUTC: booking.checkOut,
+                    todayUTC: todaySOD.toDate().toISOString(),
+                    checkOutLocal: checkOutSOD.format("YYYY-MM-DD HH:mm z"),
+                    todayLocal: todaySOD.format("YYYY-MM-DD HH:mm z"),
+                    timezone: TZ
+                },
+            });
+        }
 
-            // Persist the three totals you track, with same-day rule applied:
-            bookingDoc.totalOrdersBill = totalOrdersBill;
 
-            if (isSameDay) {
-                // sameDayExtra is the authoritative room total for same-day checkouts
-                bookingDoc.finalAllRoomsTotalPrice = Number(sameDayExtra);
-                bookingDoc.noteForSameDayCheckinAndCheckout = String(noteForSameDayCheckinAndCheckout);
-            } else {
-                // normal case: use recomputed sum from history
-                bookingDoc.finalAllRoomsTotalPrice = recomputedRoomsSum;
-            }
+        // Check originalBillTotal equals booking.totalBill
+        const matchOriginalTotal =
+            toCents(originalBillTotal) === toCents(booking.totalBill || 0);
 
-            // totalBill rule (both cases): rooms + orders
-            bookingDoc.totalBill =
-                Number(bookingDoc.finalAllRoomsTotalPrice) + Number(bookingDoc.totalOrdersBill);
+        if (!matchOriginalTotal) {
+            await session.abortTransaction();
+            return res.status(400).json({
+                message:
+                    "Mismatch: originalBillTotal does not match the current totalBill in the database.",
+                details: {
+                    sent: Number(originalBillTotal),
+                    db: Number(booking.totalBill || 0),
+                },
+            });
+        }
 
-            bookingDoc.isCheckOut = true;
+        // Validate total room charge & orders
+        const dbRoom = Number(booking.finalAllRoomsTotalPrice || 0);
+        const dbOrders = Number(booking.totalOrdersBill || 0);
 
-            await bookingDoc.save({ session });
+        if (toCents(totalRoomCharge) !== toCents(dbRoom)) {
+            await session.abortTransaction();
+            return res.status(400).json({
+                message: "Mismatch: totalRoomCharge does not match the database value.",
+                details: { sent: Number(totalRoomCharge), db: dbRoom },
+            });
+        }
+
+        if (toCents(totalOrdersPrice) !== toCents(dbOrders)) {
+            await session.abortTransaction();
+            return res.status(400).json({
+                message: "Mismatch: totalOrdersPrice does not match the database value.",
+                details: { sent: Number(totalOrdersPrice), db: dbOrders },
+            });
+        }
+
+        // Handle additional prices (sum and store)
+        const cleanedAdditional = normalizeAdditionalItems(additionalPrice);
+        const computedAdditionalTotal = cleanedAdditional.reduce(
+            (acc, x) => acc + Number(x.price || 0),
+            0
+        );
+
+        // Calculate subtotal = totalAdditionalPrice + totalRoomCharge + totalOrdersPrice
+        const computedSubtotal =
+            Number(computedAdditionalTotal) +
+            Number(totalRoomCharge) +
+            Number(totalOrdersPrice);
+
+        if (toCents(subtotal) !== toCents(computedSubtotal)) {
+            await session.abortTransaction();
+            return res.status(400).json({
+                message: "Mismatch: subtotal is incorrect.",
+                details: {
+                    sent: Number(subtotal),
+                    expected: Number(computedSubtotal),
+                    breakdown: {
+                        totalAdditionalPrice: Number(computedAdditionalTotal),
+                        totalRoomCharge: Number(totalRoomCharge),
+                        totalOrdersPrice: Number(totalOrdersPrice),
+                    },
+                },
+            });
+        }
+
+        // Validate totalBill = subtotal + tax + serviceCharge - discount
+        const computedTotalBill =
+            Number(subtotal) + Number(tax) + Number(serviceCharge) - Number(discount);
+
+        if (toCents(totalBill) !== toCents(computedTotalBill)) {
+            await session.abortTransaction();
+            return res.status(400).json({
+                message:
+                    "Mismatch: totalBill must equal subtotal + tax + serviceCharge - discount.",
+                details: {
+                    sent: Number(totalBill),
+                    expected: Number(computedTotalBill),
+                    breakdown: {
+                        subtotal: Number(subtotal),
+                        tax: Number(tax),
+                        serviceCharge: Number(serviceCharge),
+                        discount: Number(discount),
+                    },
+                },
+            });
+        }
+
+        // Persist fields
+        booking.additionalPriceItems = cleanedAdditional;
+        booking.totalAdditionalPrice = Number(computedAdditionalTotal);
+
+        booking.subtotal = Number(subtotal);
+        booking.tax = Number(tax);
+        booking.serviceCharge = Number(serviceCharge);
+        booking.discount = Number(discount);
+
+        // Final totalBill must be updated to the new value from frontend (already validated)
+        booking.totalBill = Number(totalBill);
+
+        booking.paymentMethod = paymentMethod;
+        booking.isCheckOut = true;
+
+        const newCheckoutDate = todaySOD.toDate();
+
+        // (Optional but recommended) preserve old date if it changes
+        if (!dayjs(booking.checkOut).isSame(newCheckoutDate)) {
+            booking.oldCheckOutDate = booking.checkOut;
+            booking.oldCheckOutDateStatus = true;
+        }
+
+        booking.checkOut = newCheckoutDate;
+                    // use local *midday* to avoid UTC previous-day rollover
+        const todayLocalNoon = dayjs().tz(TZ).hour(12).minute(0).second(0).millisecond(0);
+                // or use endOf('day'): const todayLocalEOD = dayjs().tz(TZ).endOf('day');
+
+        booking.checkOut = todayLocalNoon.toDate();
+
+        booking.roomsHistory = (booking.roomsHistory || []).map(rh => {
+            rh.switchOutDate = todayLocalNoon.toDate();
+            if (rh.status === "active") rh.status = "completed";
+            return rh;
         });
 
-        // 7) Respond success
+        if (Array.isArray(booking.currentRooms) && booking.currentRooms.length > 0) {
+            // Update currentRooms.isActive = false
+            booking.currentRooms = booking.currentRooms.map((room) => ({
+                ...room,
+                isActive: false,
+            }));
+
+            //  Update Room model: set isBooked = false for each roomId
+            const roomIds = booking.currentRooms.map((r) => r.roomId);
+
+            await Room.updateMany(
+                { _id: { $in: roomIds } },
+                { $set: { isBooked: false } },
+                { session }
+            );
+        }
+
+        await booking.save({ session });
+
+        await session.commitTransaction();
+
         return res.status(200).json({
-            message: "Checkout successful",
-            bookingId: id,
-            isCheckOut: true,
-            sameDayApplied: isSameDay,
-            totals: {
-                finalAllRoomsTotalPrice, // sameDayExtra if same-day, else computed rooms sum
-                totalOrdersBill,
-                totalBill: backendGrandTotal
+            message: "Booking bill updated successfully",
+            bookingId: booking._id,
+            data: {
+                totalAdditionalPrice: booking.totalAdditionalPrice,
+                subtotal: booking.subtotal,
+                tax: booking.tax,
+                serviceCharge: booking.serviceCharge,
+                discount: booking.discount,
+                totalBill: booking.totalBill,
+                paymentMethod: booking.paymentMethod,
+                additionalPriceItems: booking.additionalPriceItems,
             },
-            dates: {
-                effectiveCheckIn: effectiveCheckIn ? effectiveCheckIn.format("YYYY-MM-DD") : null,
-                effectiveCheckOut: effectiveCheckOut ? effectiveCheckOut.format("YYYY-MM-DD") : null,
-                specialCaseApplied: requiresCutoff
-            }
         });
-
     } catch (err) {
-        console.error("postBookingCheckout error:", err);
-        return res.status(500).json({ message: "Server error", error: err?.message || err });
+        try {
+            await session.abortTransaction();
+        } catch (_) {}
+        console.error("Finalize booking bill error:", err);
+        return res.status(500).json({
+            message: "Failed to finalize booking bill",
+            error: err?.message || String(err),
+        });
     } finally {
         session.endSession();
     }
 };
-
