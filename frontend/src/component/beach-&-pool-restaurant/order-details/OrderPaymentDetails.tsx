@@ -39,7 +39,7 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
   // Disable Token button only if BOTH foodOrders and beverageOrders are empty
   const isDisabled =
     (newOrderToken.foodOrders.length === 0 &&
-    newOrderToken.beverageOrders.length === 0) || (order.paymentMethod !== "");
+    newOrderToken.beverageOrders.length === 0);
 
   // Handler functions
   const handleTokenClick = useCallback(() => {
@@ -72,7 +72,7 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
 
   // Recalculate token subtotal and total bill when order tokens or charges change
   useEffect(() => {
-    if (order.paymentMethod !== "") return;
+    //if (order.paymentMethod !== "") return;
     const tokenSubTotal =
       newOrderToken.foodOrders.length > 0 ||
       newOrderToken.beverageOrders.length > 0

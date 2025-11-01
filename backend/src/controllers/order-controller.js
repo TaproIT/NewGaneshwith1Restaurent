@@ -458,8 +458,11 @@ export const getHoldOrders = async (req, res) => {
 
     // Find all orders where holdOrderToken is not null
     const holdOrders = await Order.find({
-      holdOrderToken: { $ne: null },
-      restaurantType
+      restaurantType,
+      $or: [
+        { holdOrderToken: { $ne: null } },
+        { orderStatus: { $ne: OrderStatuses.COMPLETED.value } },
+      ],
     }).select("_id serviceType orderNumber");
 
     if (!holdOrders || holdOrders.length === 0) {
