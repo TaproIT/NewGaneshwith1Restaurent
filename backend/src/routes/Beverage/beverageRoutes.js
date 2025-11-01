@@ -27,6 +27,7 @@ router.get(
     userRoles.BEACH_RESTAURANT_STAFF.value,
     userRoles.POOL_RESTAURANT_STAFF.value, 
     userRoles.ADMIN.value,
+    userRoles.SUPER_ADMIN.value
   ]),
   getAllBeverages
 );

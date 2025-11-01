@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useRates } from "@/context/RateContext";
 import { convertAndFormatPrice } from "@/util/priceConverter";
+import { useNavigate } from "react-router-dom";
 
 interface InvoiceFooterProps {
   readOnly?: boolean;
@@ -73,6 +74,7 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
   const invoiceData = useSelector(
     (state: RootState) => state.invoice.invoiceFormData
   );
+  const navigate = useNavigate();
 
   const { rates } = useRates();
   const { displayCurrency } = useCurrency();
@@ -207,7 +209,7 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
         </Button>
       )}
 
-      {checkout && !switchRoom && <Button className="w-full">Checkout</Button>}
+      {checkout && !switchRoom && <Button className="w-full" onClick={() =>navigate('/checkout-details')}>Checkout</Button>}
 
       {switchRoom && (
         <Button
