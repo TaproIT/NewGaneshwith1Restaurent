@@ -10,6 +10,10 @@ import {
     switchRoomsBulk,
     addOrderToBooking
 } from "../../controllers/Reception/booking-controller.js";
+import {
+    getBookingBillingSummary,
+    postBookingCheckout
+} from "../../controllers/Reception/total-bill-calculation-controller.js";
 
 const router = express.Router();
 
@@ -22,5 +26,9 @@ router.get("/details/all-rooms", getAllRoomsWithBookingDetails);
 router.get("/extended-today", getTodayExtendedRooms);
 router.get("/details/reserved-all-rooms", getAllReservedRoomsWithBookingDetails );
 router.patch("/:id/add-order", addOrderToBooking);
+
+// orders with booking
+router.get("/final-billing/:id/billing-summary", getBookingBillingSummary);
+router.post("/final-billing/:id/checkout",  postBookingCheckout);
 
 export { router as bookingRoutes };
