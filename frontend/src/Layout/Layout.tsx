@@ -88,6 +88,7 @@ const pathTitles: Record<string, string> = {
   '/admin/currency-config': 'Currency Config',
   '/admin/user-config': 'User Config',
   '/admin/room-config': 'Room Config',
+  '/checkout-details': 'Checkout Details',
 };
 
 const getSidebarFromPath = (path: string): string => {
@@ -265,7 +266,7 @@ const Layout: React.FC = () => {
               <div className="rounded-full bg-mainWhite p-2">
                 <User size={22} className="rounded-full" />
               </div>
-              {!isCollapsed && (
+              {(
                 <div className="flex flex-col">
                   <span className="text-sm font-medium">User</span>
                   <span className="text-xs text-primary">user@example.com</span>

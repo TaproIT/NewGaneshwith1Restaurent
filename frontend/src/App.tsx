@@ -22,6 +22,7 @@ import { CurrencyProvider } from "./context/CurrencyContext";
 import CurrencyConfig from "./pages/admin/CurrencyConfig";
 import UserConfig from "./pages/admin/UserConfig";
 import RoomConfig from "./pages/admin/RoomConfig";
+import CheckoutDetails from "./component/checkout/CheckoutDetails";
 
 function App() {
   return (
@@ -55,6 +56,7 @@ function App() {
               <Route path="/room-availability" element={<RoomAvailability />} />
               <Route path="/switch-rooms" element={<SwitchRooms />} />
               <Route path="/checkouts" element={<Checkouts />} />
+              <Route path="/checkout-details" element={<CheckoutDetails />} />
               <Route path="/invoice" element={<Invoice />} />
 
               <Route
