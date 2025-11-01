@@ -2,6 +2,9 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import type { Room } from "@/types/roomTypes";
+import { convertAndFormatPrice } from "@/util/priceConverter";
+import { useCurrency } from "@/context/CurrencyContext";
+import { useRates } from "@/context/RateContext";
 
 interface SelectedRoomsListProps {
   selectedRooms: Room[];
@@ -21,10 +24,18 @@ const SelectedRoomsList: React.FC<SelectedRoomsListProps> = ({
   onRemoveRoom,
 }) => {
   if (selectedRooms.length === 0) return null;
+  const {rates} = useRates()
+  const {displayCurrency} = useCurrency()
+
+  const lengthOfStay = guestDetails?.lengthOfStay || invoiceData?.lengthOfStay || totalDays;
 
   return (
     <ul className="flex flex-col gap-5">
-      {selectedRooms.map((room) => (
+      {selectedRooms.map((room) => {
+        const perDayPriceDisplay = convertAndFormatPrice(room.perDayPrice, rates, displayCurrency);
+        const totalPriceDisplay = convertAndFormatPrice(room.perDayPrice * lengthOfStay, rates, displayCurrency);
+
+        return (
         <li
           key={room._id}
           className={`border rounded-lg p-3 bg-gray-50 shadow-sm ${
@@ -33,7 +44,7 @@ const SelectedRoomsList: React.FC<SelectedRoomsListProps> = ({
         >
           <div className="flex items-center justify-between text-gray">
             <h2 className="text-lg font-medium">Room {room.no}</h2>
-            <div className="text-lg font-medium">LKR {room.perDayPrice}</div>
+            <div className="text-lg font-medium">{perDayPriceDisplay}</div>
           </div>
           <div className="text-sm text-right text-gray">Per Day</div>
 
@@ -56,9 +67,7 @@ const SelectedRoomsList: React.FC<SelectedRoomsListProps> = ({
             <span className="col-span-1">Total</span>
             <span className="col-span-1">:</span>
             <span className="col-span-1">
-              {(guestDetails?.lengthOfStay ||
-                invoiceData?.lengthOfStay ||
-                totalDays) * room.perDayPrice}
+              {totalPriceDisplay}
             </span>
           </div>
 
@@ -75,7 +84,7 @@ const SelectedRoomsList: React.FC<SelectedRoomsListProps> = ({
             </div>
           )}
         </li>
-      ))}
+      )})}
     </ul>
   );
 };

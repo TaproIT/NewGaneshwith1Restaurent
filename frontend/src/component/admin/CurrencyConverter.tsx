@@ -22,8 +22,7 @@ const CurrencyConverter = () => {
           const rate = response.data.data[0];
           setExchangeRate(rate.lkr);
           setLkrValue(rate.lkr.toString());
-          setExchangeRateId(rate._id); // store ID for PUT
-          console.log(rate._id)
+          setExchangeRateId(rate._id); // store ID for PU
         }
       } catch (error) {
         console.error("Failed to fetch exchange rate:", error);
