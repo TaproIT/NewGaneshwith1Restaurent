@@ -17,15 +17,21 @@ const GetStartedButton: React.FC = () => {
   
   const handleInitialOrderDetails = async () => {
     try {
-      const resultAction = await dispatch(
-        createOrderWithInitialData({
-          customerType: order.customerType,
-          serviceType: order.serviceType,
-          roomNumber: Number(order.roomNumber),
-          guestName: order.guestName,
-          guestId: order.guestId
-        })
-      );
+      // Build payload dynamically
+      const payload: any = {
+        customerType: order.customerType,
+        serviceType: order.serviceType,
+        roomNumber: Number(order.roomNumber),
+        guestName: order.guestName,
+        guestId: order.guestId,
+      };
+
+      // Only include bookingId if it exists
+      if (order.bookingId) {
+        payload.bookingId = order.bookingId;
+      }
+
+      const resultAction = await dispatch(createOrderWithInitialData(payload));
 
       if (createOrderWithInitialData.fulfilled.match(resultAction)) {
         const newOrder = resultAction.payload; // this contains order._id from API
@@ -35,12 +41,11 @@ const GetStartedButton: React.FC = () => {
           newOrder.serviceType === ServiceTypes.DINE_IN.value
             ? `/restaurant/tables/${newOrder._id}`
             : `/restaurant/menu/${newOrder._id}`;
-        
+
         // Navigate after toast shows for a short time
         setTimeout(() => {
           navigate(targetPath);
         }, 1200);
-
       } else {
         toast.error(error || "Failed to create order");
       }
@@ -49,6 +54,7 @@ const GetStartedButton: React.FC = () => {
       console.error(err);
     }
   };
+
 
   const isDisabled =
     order.customerType === CustomerTypes.CHECKED_IN.value

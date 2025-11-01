@@ -10,6 +10,7 @@ import { useParams } from 'react-router-dom';
 import AddFoodItemSection from '@/component/beach-&-pool-restaurant/menu/AddFoodItemSection';
 import AddCategorySection from '@/component/beach-&-pool-restaurant/menu/AddCategorySection';
 import OrderBillDetailsModal from '@/component/beach-&-pool-restaurant/order-details/OrderBillDetailsModal';
+import { setIsClickAddNewFoodItem } from '@/features/beach-restaurant/foodSlice';
 
 const BeachRestaurantMenuPage: React.FC = () => {
   const orderTokens = useSelector((state:RootState) => state.order.orderTokens);
@@ -24,6 +25,10 @@ const BeachRestaurantMenuPage: React.FC = () => {
     if (id === "0") return;
     dispatch(fetchOrderById(id));
   }, [id, orderTokens?.length]);
+
+  useEffect(() => {
+    dispatch(setIsClickAddNewFoodItem(true));
+  },[])
 
   return (
     <div className="grid grid-cols-7 gap-3">

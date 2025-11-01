@@ -61,9 +61,9 @@ const Login = () => {
         dispatch(setUserRole(data.userRole as UserRole));
 
         const roleRedirects: Record<string, string> = {
-          "Super-Admin": "/",
-          Admin: "/admin/dashboard",
-          Reception: "/onboarding",
+          "Super-Admin": "/admin/dashboard",
+          "Admin": "/admin/dashboard",
+          "Reception": "/onboarding",
           "Beach-Restaurant-Staff": "/restaurant/home",
           "Pool-Restaurant-Staff": "/restaurant/home",
         };

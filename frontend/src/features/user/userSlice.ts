@@ -5,7 +5,7 @@ import { api } from "@/api/axios";
 import { RestaurantTypes } from "@/lib/enums/order-related-enums";
 
 const initialState: RoleState = {
-    role: 'Beach-Restaurant-Staff',
+    role: null,
     restaurantType: RestaurantTypes.BEACH.value
 };
 

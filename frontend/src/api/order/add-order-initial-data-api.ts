@@ -11,6 +11,7 @@ interface CreateOrderRequest {
   roomNumber: number;
   guestName: string;
   guestId?: string;
+  bookingId?: string;
 }
 
 /**
@@ -23,6 +24,7 @@ interface CreateOrderResponse {
   serviceType: string;
   guestId?: string;
   restaurantType: string;
+  bookingId?: string;
 }
 
 export const createOrderWithInitialData = createAsyncThunk<

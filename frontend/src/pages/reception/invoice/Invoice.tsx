@@ -17,6 +17,7 @@ const Invoice = () => {
   const [viewedRoom, setViewedRoom] = useState<Room | null>(null);
   const [loadingRooms, setLoadingRooms] = useState(true);
   const [isFormComplete, setIsFormComplete] = useState(false);
+  const formRef = useRef<any>(null);
 
   const guestDetails = useSelector((state: RootState) => state.onboarding.step01Data);
 
@@ -51,10 +52,28 @@ const Invoice = () => {
       );
     });
 
+
     return () => {
       socketRef.current?.disconnect();
     };
   }, []);
+
+  const handleInvoiceSuccess = () => {
+  // ✅ Clear selected rooms and reset state
+  setSelectedRooms([]);
+  setViewedRoom(null);
+  setIsFormComplete(false);
+
+  // Optional: unlock all rooms
+  selectedRooms.forEach((room) => {
+    socketRef.current?.emit("unlockRoom", room.no);
+  });
+
+  // ✅ Notify InvoiceForm to reset
+  if (formRef.current) {
+    formRef.current.resetForm(); // we'll add this to InvoiceForm next
+  }
+};
 
   const handleRemoveRoom = (roomNo: string) => {
     setSelectedRooms((prev) => prev.filter((r) => r.no !== roomNo));
@@ -84,14 +103,13 @@ const Invoice = () => {
 
   const handleFormStatus = (status: boolean) => {
     setIsFormComplete(status);
-    console.log("Form complete:", status);
   };
 
 
   return (
     <div className="grid grid-cols-4 gap-5">
       <div className=" col-span-3 h-[calc(100vh-140px)] overflow-auto">
-        <InvoiceForm onFormStatus={handleFormStatus}/>
+        <InvoiceForm onFormStatus={handleFormStatus} ref={formRef}/>
         {loadingRooms ? <RoomGridSkeleton /> : (
           isFormComplete && <RoomGrid
             rooms={rooms}
@@ -118,6 +136,7 @@ const Invoice = () => {
           switchRoom={false}
           totalDays={0}
           whatsAppId=""
+          onInvoiceSuccess={handleInvoiceSuccess}
         />
       </div>
     </div>

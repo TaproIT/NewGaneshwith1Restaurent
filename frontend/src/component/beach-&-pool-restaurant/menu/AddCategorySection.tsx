@@ -1,3 +1,4 @@
+import { addNewExtraBeverageCategory } from '@/api/order/add-bevetage-category-api';
 import { addNewFoodCategory } from '@/api/order/add-food-category-api';
 import type { AppDispatch, RootState } from '@/app/store';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,8 @@ import { toast } from 'react-toastify';
 const AddCategorySection = () => {
   const dispatch = useDispatch<AppDispatch>();
   
-  const { isClickedAddFoodCategory, addFoodCategoryStatus} = useSelector((state:RootState) => state.foodCategory);
+  const { isClickedAddFoodCategory, isFoodCategory, addFoodCategoryStatus} = useSelector((state:RootState) => state.foodCategory);
+  const { addNewExtraBeverageCategoryStatus } = useSelector((state:RootState) => state.beverageCategory);
 
   const [categoryName, setCategoryName] = useState<string>("");
   
@@ -18,20 +20,31 @@ const AddCategorySection = () => {
 
   const handleAddCategory = async() => {
     try{
-        if (isClickedAddFoodCategory) {
+        if (isFoodCategory) {
           await dispatch(addNewFoodCategory({ categoryName })).unwrap();
-          toast.success("Food item added successfully!");
+          toast.success("Food category added successfully!");
           setCategoryName("");
           return;
         }
+
+        await dispatch(addNewExtraBeverageCategory({ name:categoryName })).unwrap();
+        toast.success("Beverage category added successfully!");
+        setCategoryName("");
+        return;
     }catch(error) {
          if (isClickedAddFoodCategory) {
-          toast.error(addFoodCategoryStatus.error || "Failed to add food category");
-          return;
-      }
-    } 
+           toast.error(
+             addFoodCategoryStatus.error || "Failed to add food category"
+           );
+           return;
+         }
 
+         toast.error(
+            addNewExtraBeverageCategoryStatus.error || "Failed to add beverage category"
+         );
+         return;
   }
+}
 
   return (
      <div className="max-w-sm h-full text-[#444444] mx-auto p-4 flex flex-col items-center justify-between bg-mainWhite rounded-l-2xl">
@@ -39,7 +52,7 @@ const AddCategorySection = () => {
         <p className="text-[1rem] font-[500] mb-4">Add Category</p>
 
         <FormRow label="Category Type :">
-          {isClickedAddFoodCategory ? "Food" : "Beverage"}
+          {isFoodCategory ? "Food" : "Beverage"}
         </FormRow>
 
         <FormRow label="Category Name :">
@@ -58,7 +71,7 @@ const AddCategorySection = () => {
         disabled={isDisabled}
         onClick={handleAddCategory}
       >
-       {addFoodCategoryStatus.loading ? (
+       {addFoodCategoryStatus.loading || addNewExtraBeverageCategoryStatus.loading ? (
           <>
             <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
             Processing

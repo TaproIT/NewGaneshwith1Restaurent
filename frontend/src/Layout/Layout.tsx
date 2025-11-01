@@ -1,26 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Logo from '../assets/Images/Logos/main_logo.png';
 import { 
-  Bell, CircleArrowRight, LogOut, Settings, 
-  ShieldCheck, User, UserRoundPlus, Users, Calendar,
-  RepeatIcon,
-  BookText,
-  House,
-  Table2,
-  NotepadText,
-  PauseCircle,
-  Newspaper,
-  ChevronLeft,
-  ChevronRight
+  Bell, CircleArrowRight, LogOut,
+  ShieldCheck, User, UserRoundPlus, Users,
+  RepeatIcon, BookText, House, Table2, NotepadText,
+  PauseCircle, Newspaper, ChevronLeft, ChevronRight, Banknote
 } from 'lucide-react';
 import CurrencyDropdown from '@/component/currencyDropdown';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '@/app/store';
-import type { UserRole } from '@/types/roleTypes';
+// import type { UserRole } from '@/types/roleTypes';
 import { api } from '@/api/axios';
 import { toast } from 'react-toastify';
 import { fetchUserRole } from '@/features/user/userSlice';
+import SidebarSkeleton from '@/component/skeleton/SidebarSkeleton';
 
 interface NavItem {
   path: string;
@@ -30,15 +24,20 @@ interface NavItem {
 
 const navigationConfig: Record<string, NavItem[]> = {
   'Super-Admin': [
-    { path: '/', title: 'Dashboard', icon: <UserRoundPlus size={22} /> },
-    { path: '/users', title: 'User Management', icon: <Users size={22} /> },
-    { path: '/bookings', title: 'All Bookings', icon: <Calendar size={22} /> },
-    { path: '/settings', title: 'System Settings', icon: <Settings size={22} /> }
+    { path: '/admin/dashboard', title: 'Dashboard', icon: <House size={22} /> },
+    { path: '/admin/reception', title: 'Reception', icon: <Users size={22} /> },
+    { path: '/admin/beverage-inventory', title: 'Beverage Inventory', icon: <Table2 size={22} /> },
+    { path: '/admin/currency-config', title: 'Currency Config', icon: <Banknote size={22} /> },
+    { path: '/admin/user-config', title: 'User Config', icon: <User size={22} /> },
+    { path: '/admin/room-config', title: 'Room Config', icon: <User size={22} /> },
   ],
   'Admin': [
     { path: '/admin/dashboard', title: 'Dashboard', icon: <House size={22} /> },
     { path: '/admin/reception', title: 'Reception', icon: <Users size={22} /> },
     { path: '/admin/beverage-inventory', title: 'Beverage Inventory', icon: <Table2 size={22} /> },
+    { path: '/admin/currency-config', title: 'Currency Config', icon: <Banknote size={22} /> },
+    { path: '/admin/user-config', title: 'User Config', icon: <User size={22} /> },
+    { path: '/admin/room-config', title: 'Room Config', icon: <User size={22} /> },
   ],
   'Reception': [
     { path: '/onboarding', title: 'Onboarding', icon: <UserRoundPlus size={22} /> },
@@ -86,6 +85,25 @@ const pathTitles: Record<string, string> = {
   '/restaurant/menu/0': 'Menu',
   '/restaurant/hold': 'Hold',
   '/restaurant/daily-summary': 'Daily Summary',
+  '/admin/currency-config': 'Currency Config',
+  '/admin/user-config': 'User Config',
+  '/admin/room-config': 'Room Config',
+};
+
+const getSidebarFromPath = (path: string): string => {
+  if (path.startsWith('/onboarding') ||
+      path.startsWith('/room-availability') ||
+      path.startsWith('/switch-rooms') ||
+      path.startsWith('/checkouts') ||
+      path.startsWith('/invoice')
+  ) {
+    return 'Reception';
+  }
+  if (path.startsWith('/beverage-inventory')) {
+    return 'Beverage-Inventory';
+  }
+  // default admin "group"
+  return 'Admin';
 };
 
 const Layout: React.FC = () => {
@@ -94,62 +112,7 @@ const Layout: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
 
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [selectedSidebar, setSelectedSidebar] = useState<UserRole | 'Beverage-Inventory' | 'Reception'>(userRole);
-
- const getLinkClassName = (path: string) => {
-   const baseClasses = "flex gap-2 p-3 rounded-lg";
-   const currentPath = location.pathname;
-
-   let isActive = false;
-
-   // Handle dynamic "tables" and "menu" paths
-   if (path.startsWith("/restaurant/tables")) {
-     isActive = currentPath.startsWith("/restaurant/tables");
-   } else if (path.startsWith("/restaurant/menu")) {
-     isActive = currentPath.startsWith("/restaurant/menu");
-   } else {
-     isActive = currentPath === path;
-   }
-
-   return `${baseClasses} ${
-     isActive ? "bg-primary text-white" : "hover:bg-primary hover:text-white"
-   }`;
- };
-
-  const handleLogout = async () => {
-    try {
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        toast.error("No user logged in");
-        return;
-      }
-      const response = await api.post(
-        "/auth/logout",
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          withCredentials: true,
-        }
-      );
-
-      if (response.status === 200) {
-        localStorage.removeItem("authToken");
-        toast.success("Logout successful");
-        navigate('/')
-      }
-    } catch (error: any) {
-      console.error(error);
-      toast.error(error.response?.data?.message || "Logout failed");
-    }
-  }
-
-  // Determine which sidebar to show
-  const sidebarItems = userRole === 'Admin'
-    ? navigationConfig[selectedSidebar]
-    : navigationConfig[userRole];
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
@@ -158,17 +121,76 @@ const Layout: React.FC = () => {
     }
   }, [dispatch]);
 
+  // activeSidebar is computed deterministically from path + role
+  const activeSidebar: string = useMemo(() => {
+    if (!userRole) return 'Admin'; // fallback while role loads
+    if (userRole === 'Admin' || userRole === 'Super-Admin') {
+      return getSidebarFromPath(location.pathname);
+    }
+    // other roles use their role key that matches navigationConfig
+    return userRole;
+  }, [userRole, location.pathname]);
+
+  // compute items to render (defensive fallback to Admin config)
+  const sidebarItems = navigationConfig[activeSidebar] ?? navigationConfig['Admin'];
+
+  const getLinkClassName = (path: string) => {
+    const baseClasses = "flex gap-2 p-3 rounded-lg";
+    const currentPath = location.pathname;
+
+    let isActive = false;
+
+    if (path.startsWith("/restaurant/tables")) {
+      isActive = currentPath.startsWith("/restaurant/tables");
+    } else if (path.startsWith("/restaurant/menu")) {
+      isActive = currentPath.startsWith("/restaurant/menu");
+    } else {
+      isActive = currentPath === path;
+    }
+
+    return `${baseClasses} ${isActive ? "bg-primary text-white" : "hover:bg-primary hover:text-white"}`;
+  };
+
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        toast.error("No user logged in");
+        return;
+      }
+      const response = await api.post("/auth/logout", {}, {
+        headers: { Authorization: `Bearer ${token}` }, withCredentials: true
+      });
+      if (response.status === 200) {
+        localStorage.removeItem("authToken");
+        toast.success("Logout successful");
+        navigate('/');
+      }
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Logout failed");
+    }
+  };
+
+  if (!userRole) {
+    return (
+      <div className="flex h-screen bg-bg p-5 gap-5">
+        <SidebarSkeleton />
+      </div>
+    );
+  }
+
+  // Debug: remove later. Check what sidebar is chosen on refresh.
+  console.debug("Layout activeSidebar:", activeSidebar, "pathname:", location.pathname, "userRole:", userRole);
+
   return (
     <div className="flex h-screen bg-bg p-5 gap-5">
       {/* Sidebar */}
-      <div className={`bg-mainWhite ${isCollapsed ? 'w-20' : 'w-[264px]'} flex rounded-2xl flex-col justify-between shadow-lg p-4 transition-all duration-300`}>
+      <div className={`bg-mainWhite ${isCollapsed ? "w-20" : "w-[264px]"} flex rounded-2xl flex-col justify-between shadow-lg p-4 transition-all duration-300`}>
         <div className="w-full">
-          <div className='flex justify-between items-center mt-5'>
+          <div className="flex justify-between items-center mt-5">
             {!isCollapsed && <img src={Logo} alt="logo" className="w-32" />}
-            <button
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              className="p-2 rounded-lg hover:bg-gray-100"
-            >
+            <button onClick={() => setIsCollapsed(!isCollapsed)} className="p-2 rounded-lg hover:bg-gray-100">
               {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
             </button>
           </div>
@@ -176,70 +198,46 @@ const Layout: React.FC = () => {
           {/* Sidebar Navigation */}
           <nav className="mt-10 space-y-4 text-gray w-full">
             {sidebarItems.map((item) => {
-              if (userRole === "Admin" && item.title === "Reception") {
+              // Admin-level custom handlers for sections (Reception / Beverage-Inventory)
+              if ((userRole === "Admin" || userRole === "Super-Admin") && item.title === "Reception") {
                 return (
-                  <a
-                    key={item.title}
-                    onClick={() => {
-                      setSelectedSidebar("Reception")
-                      navigate("/onboarding");
-                    }}
-                    
-                    className={getLinkClassName(item.path)}
-                    style={{cursor: 'pointer'}}
-                  >
+                  <a key={item.title}
+                     onClick={() => { navigate("/onboarding"); }}
+                     className={getLinkClassName(item.path)} style={{ cursor: "pointer" }}>
                     {item.icon} {!isCollapsed && <p>{item.title}</p>}
                   </a>
                 );
               }
-              if (userRole === "Admin" && item.title === "Beverage Inventory") {
+              if ((userRole === "Admin" || userRole === "Super-Admin") && item.title === "Beverage Inventory") {
                 return (
-                  <a
-                    key={item.title}
-                    onClick={() => {
-                      setSelectedSidebar("Beverage-Inventory")
-                      navigate("/beverage-inventory/dashboard");
-                    }}
-                    className={getLinkClassName(item.path)}
-                    style={{cursor: 'pointer'}}
-                  >
+                  <a key={item.title}
+                     onClick={() => { navigate("/beverage-inventory/dashboard"); }}
+                     className={getLinkClassName(item.path)} style={{ cursor: "pointer" }}>
                     {item.icon} {!isCollapsed && <p>{item.title}</p>}
                   </a>
                 );
               }
               return (
-                <Link key={item.path} to={item.path} className={getLinkClassName(item.path)}>
+                <Link key={item.path} to={item.path} className={getLinkClassName(item.path)} title={isCollapsed ? item.title : undefined}>
                   {item.icon} {!isCollapsed && <p>{item.title}</p>}
                 </Link>
               );
             })}
-
-            {/* Back to Admin button */}
-            {userRole === "Admin" && selectedSidebar !== "Admin" && (
-              <button
-                onClick={() => {
-                  setSelectedSidebar("Admin")
-                  navigate("/admin/dashboard")
-                }}
-                className="flex items-center gap-2 p-3 rounded-lg w-full hover:bg-primary hover:text-white mt-4"
-              >
-                <House size={22}/> {!isCollapsed && <span>Back to Admin</span>}
-              </button>
-            )}
           </nav>
         </div>
 
         {/* Footer Navigation */}
         <div>
           <nav className="space-y-2 text-gray">
-            <Link to="/profile" className={getLinkClassName('/profile')}>
-              <Settings size={22}/> {!isCollapsed && <p>Settings</p>}
-            </Link>
-            <button 
-              onClick={handleLogout} 
-              className="flex items-center gap-2 p-3 rounded-lg w-full hover:bg-danger hover:text-white"
-            >
-              <LogOut size={22}/> {!isCollapsed && <span>Logout</span>}
+            {/* Back to Admin button: show when activeSidebar not 'Admin' and user is admin */}
+            {(userRole === "Admin" || userRole === "Super-Admin") && activeSidebar !== "Admin" && (
+              <button onClick={() => navigate("/admin/dashboard")}
+                      className="flex items-center gap-2 p-3 rounded-lg w-full hover:bg-primary hover:text-white mt-4">
+                <House size={22} /> {!isCollapsed && <span>Back to Admin</span>}
+              </button>
+            )}
+            <button onClick={handleLogout} className="flex items-center gap-2 p-3 rounded-lg w-full hover:bg-danger hover:text-white">
+              <LogOut size={22} /> {!isCollapsed && <span>Logout</span>}
             </button>
           </nav>
         </div>
@@ -249,19 +247,28 @@ const Layout: React.FC = () => {
       <div className="flex-1 overflow-hidden">
         <header className="p-4 bg-mainWhite rounded-2xl flex justify-between items-center">
           <h1 className="text-sm text-gray">
-            {pathTitles[location.pathname] || 'Page Not Found'}
+            {(() => {
+              const currentPath = location.pathname;
+              if (currentPath.startsWith("/restaurant/tables")) {
+                return "Tables";
+              } else if (currentPath.startsWith("/restaurant/menu")) {
+                return "Menu";
+              } else {
+                return pathTitles[currentPath] || "Page Not Found";
+              }
+            })()}
           </h1>
-          <div className='flex justify-center items-center gap-4'>
-            <Bell size={24} className='text-gray cursor-pointer hover:text-primary'/>
+          <div className="flex justify-center items-center gap-4">
+            <Bell size={24} className="text-gray cursor-pointer hover:text-primary" />
             <CurrencyDropdown />
-            <div className='flex justify-center items-center gap-2 text-gray p-2 rounded-lg bg-bg'>
-              <div className='rounded-full bg-mainWhite p-2'>
-                <User size={22} className='rounded-full' />
+            <div className="flex justify-center items-center gap-2 text-gray p-2 rounded-lg bg-bg">
+              <div className="rounded-full bg-mainWhite p-2">
+                <User size={22} className="rounded-full" />
               </div>
               {!isCollapsed && (
-                <div className='flex flex-col'>
-                  <span className='text-sm font-medium'>User</span>
-                  <span className='text-xs text-primary'>user@example.com</span>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">User</span>
+                  <span className="text-xs text-primary">user@example.com</span>
                 </div>
               )}
             </div>

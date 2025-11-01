@@ -38,8 +38,8 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
 
   // Disable Token button only if BOTH foodOrders and beverageOrders are empty
   const isDisabled =
-    newOrderToken.foodOrders.length === 0 &&
-    newOrderToken.beverageOrders.length === 0;
+    (newOrderToken.foodOrders.length === 0 &&
+    newOrderToken.beverageOrders.length === 0);
 
   // Handler functions
   const handleTokenClick = useCallback(() => {
@@ -54,6 +54,7 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
      await dispatch(fetchOrderById(order._id)).unwrap();
 
      toast.success("Order token held successfully");
+     navigate(`/restaurant/home`);
    } catch (err: any) {
      toast.error(
        err?.message || "Error holding order token. Please try again."
@@ -71,6 +72,7 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
 
   // Recalculate token subtotal and total bill when order tokens or charges change
   useEffect(() => {
+    if (order.paymentMethod !== "") return;
     const tokenSubTotal =
       newOrderToken.foodOrders.length > 0 ||
       newOrderToken.beverageOrders.length > 0
@@ -84,8 +86,7 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
     const tokenTotalBill =
       tokenSubTotal +
       newOrderToken.tokenTax +
-      newOrderToken.tokenDiscount +
-      newOrderToken.tokenServiceCharge;
+      newOrderToken.tokenServiceCharge - newOrderToken.tokenDiscount ;
 
     dispatch(setTokenTotalBill(tokenTotalBill));
 
@@ -223,7 +224,7 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
                      
                      <Button
                        className="col-span-2 !w-full !h-8 cursor-pointer"
-                       disabled={isDisabled}
+                       disabled={(order.orderTokens.length === 0) || (order.newOrderToken.beverageOrders.length > 0 || order.newOrderToken.foodOrders.length > 0)}
                        onClick={handleProceedPayment}
                      >
                        Proceed To Payment

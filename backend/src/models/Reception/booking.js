@@ -47,6 +47,9 @@ const bookingSchema = new mongoose.Schema(
         // Total bill for the booking.
         finalAllRoomsTotalPrice: { type: Number },
         totalBill: { type: Number },
+        noteForSameDayCheckinAndCheckout:{ type: String },
+        totalOrdersBill:{type: Number },
+
 
         //QR Code
         payload: { type: Object },
@@ -60,6 +63,15 @@ const bookingSchema = new mongoose.Schema(
         // CRON JOB
         oldCheckOutDateStatus:{ type: Boolean, default: false },
         lastExtendedOn: { type: Date }, // set to start-of-day when extension happens
+        orders: [
+            {
+              oderId:{
+                 type: mongoose.Schema.Types.ObjectId,
+                 ref: "Order",
+              },
+              date: {type: Date}  
+            }
+        ]
     },
     { timestamps: true }
 );

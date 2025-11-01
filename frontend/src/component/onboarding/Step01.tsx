@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useEffect } from "react";
 
 // shadcn components
@@ -43,29 +43,35 @@ export default function Step01() {
 
   const dispatch = useDispatch();
 
+  const checkIn = useWatch({ control: form.control, name: "checkIn" });
+const checkOut = useWatch({ control: form.control, name: "checkOut" });
+
   // auto-calculate length of stay
   useEffect(() => {
-    const subscription = form.watch((value) => {
-      const { checkIn, checkOut } = value;
-      if (checkIn && checkOut) {
-        const start = new Date(checkIn);
-        const end = new Date(checkOut);
-        const diffTime = Math.max(end.getTime() - start.getTime(), 0);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        form.setValue("lengthOfStay", diffDays);
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [form]);
+  if (checkIn && checkOut) {
+    const start = new Date(checkIn);
+    const end = new Date(checkOut);
+    const diff = Math.max(end.getTime() - start.getTime(), 0);
+    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    const current = form.getValues("lengthOfStay");
+    if (days !== current) {
+      form.setValue("lengthOfStay", days);
+    }
+  }
+}, [checkIn, checkOut, form]);
+
 
   // auto-calculate total guests
   useEffect(() => {
   const subscription = form.watch((values) => {
     const total = (values.adults ?? 0) + (values.kids ?? 0);
-    form.setValue("totalGuests", total);
+    if (total !== values.totalGuests) {
+      form.setValue("totalGuests", total);
+    }
   });
   return () => subscription.unsubscribe();
 }, [form]);
+
 
 
   const onSubmit = (data: Step01FormData) => {
