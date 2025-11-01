@@ -17,6 +17,7 @@ import SelectedRoomsList from "./room_details/SelectedRoomsList";
 import RoomDetailsPanel from "./room_details/RoomDetailsPanel";
 import { toast } from "react-toastify";
 import { setSelectedRooms } from "@/features/rooms/selectedRoomsSlice";
+import { set } from "zod";
 
 interface RoomDetailsProps {
   viewedRoom: Room | null;
@@ -70,6 +71,7 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
     { roomNo: string; discountPrice: number; finalRoomTotalPrice: number }[]
   >([]);
   const [daysStayed, setDaysStayed] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   const roomNumbers = useSelector((state: RootState) =>
     state.rooms.roomNumbers.join(", ")
@@ -174,7 +176,7 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
 
       if (res.data?.whatsappLink) {
         // Redirect to WhatsApp link
-        window.location.href = res.data.whatsappLink;
+        window.open(res.data.whatsappLink, "_blank");
       }
     } catch (error) {
       const errMsg =
@@ -186,6 +188,7 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
 
   const handleEmail = async () => {
     const message = `This is your room number(s): ${roomNumbers}`;
+    setLoading(true);
 
     try {
       // const res = await api.post(`/booking/${whatsAppId}/send-email`, {
@@ -202,6 +205,7 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
       toast.error(errMsg || "Error sending email");
     } finally {
       onCloseModal();
+      setLoading(false);
     }
   };
 
@@ -265,6 +269,7 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
         selectedRooms={selectedRooms}
         loadingBooking={loadingBooking}
         onInvoiceSuccess={onInvoiceSuccess}
+        loading={loading}
       />
     </div>
   );

@@ -66,7 +66,7 @@ const SelectedRoomsList: React.FC<SelectedRoomsListProps> = ({
           <div className="mt-5 grid grid-cols-3 text-gray">
             <span className="col-span-1">Total</span>
             <span className="col-span-1">:</span>
-            <span className="col-span-1">
+            <span className="col-span-1 text-left truncate max-w-[120px] text-sm cursor-pointer" title={totalPriceDisplay}>
               {totalPriceDisplay}
             </span>
           </div>

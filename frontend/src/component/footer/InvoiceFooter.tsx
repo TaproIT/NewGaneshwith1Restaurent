@@ -28,6 +28,7 @@ interface InvoiceFooterProps {
   grandTotal: number;
   loadingBooking?: boolean;
   onInvoiceSuccess?: () => void;
+  loading?: boolean;
 
   // modal
   isModalOpen: boolean;
@@ -64,6 +65,7 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
   selectedRooms,
   loadingBooking,
   onInvoiceSuccess,
+  loading,
 }) => {
   const [loadingBook, setLoadingBook] = useState(false);
   const [loadingSwitch, setLoadingSwitch] = useState(false);
@@ -154,10 +156,10 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
         </div>
       )}
 
-      <div className="mt-2 grid grid-cols-3 text-gray whitespace-nowrap">
+      <div className="mt-2 grid grid-cols-3 text-gray whitespace-nowrap text-sm">
         <div>Total Bill</div>
         <div>:</div>
-        <div>
+        <div className="text-left">
           {checkout
             ? convertAmount(totalBill)
             : invoice
@@ -174,6 +176,7 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
         onClose={onCloseModal}
         onWhatsApp={handleWhatsApp}
         onEmail={handleEmail}
+        loading={loading}
       />
 
       {invoice && (
