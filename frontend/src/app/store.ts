@@ -11,7 +11,7 @@ import holdOrderReducer from "../features/beach-restaurant/holdOrderSlice";
 import dailyOrderSummaryReducer from "../features/beach-restaurant/dailySummarySlice";
 import beverageCategoryReducer from "../features/beach-restaurant/beverageCategorySlice";
 import beverageReducer from "../features/beach-restaurant/beverageSlice";
-
+import selectedRoomsReducer from "../features/rooms/selectedRoomsSlice";
 
 export const store = configureStore({
     reducer: {
@@ -26,7 +26,8 @@ export const store = configureStore({
         holdOrder: holdOrderReducer,
         dailyOrderSummary: dailyOrderSummaryReducer,
         beverageCategory: beverageCategoryReducer,
-        beverage: beverageReducer
+        beverage: beverageReducer,
+        rooms: selectedRoomsReducer,
     }
 })
 

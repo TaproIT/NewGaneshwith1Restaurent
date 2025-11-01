@@ -23,11 +23,14 @@ interface InvoiceFooterProps {
   invoiceDiscount: number;
   invoiceFinalBill: number;
   grandTotal: number;
+  loadingBooking?: boolean;
+  onInvoiceSuccess?: () => void;
 
   // modal
   isModalOpen: boolean;
   onCloseModal: () => void;
   handleWhatsApp: () => void;
+  handleEmail: () => void;
 
   // handlers
   setDiscountPercent: (value: number) => void;
@@ -51,10 +54,13 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
   isModalOpen,
   onCloseModal,
   handleWhatsApp,
+  handleEmail,
   setDiscountPercent,
   handleBookRooms,
   handleSwitchRoom,
   selectedRooms,
+  loadingBooking,
+  onInvoiceSuccess,
 }) => {
   const [loadingBook, setLoadingBook] = useState(false);
   const [loadingSwitch, setLoadingSwitch] = useState(false);
@@ -66,33 +72,34 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
 
   // Wrapper for Book button
   const handleBookClick = async () => {
-  setLoadingBook(true);
-  try {
-    const payload = {
-      checkInDate: new Date(invoiceData.checkIn).toISOString(),
-      checkOutDate: new Date(invoiceData.checkOut).toISOString(),
-      customerName: invoiceData.name,
-      numberOfMembers: invoiceData.totalGuests,
-      roomIds: selectedRooms.map((room) => room._id),
-      subTotal: invoiceSubTotal,
-      tax: 0, // or your tax value
-      discount: invoiceDiscount,
-      total: invoiceFinalBill,
-    };
+    setLoadingBook(true);
+    try {
+      const payload = {
+        checkInDate: new Date(invoiceData.checkIn).toISOString(), 
+        checkOutDate: new Date(invoiceData.checkOut).toISOString(),
+        customerName: invoiceData.name,
+        numberOfMembers: invoiceData.totalGuests,
+        roomIds: selectedRooms.map((room) => room._id),
+        subTotal: invoiceSubTotal,
+        tax: 0, // or your tax value
+        discount: invoiceDiscount,
+        total: invoiceFinalBill,
+      };
 
-    await api.post("/invoice", payload);
-    // await axios.post("http://localhost:4000/api/v1/invoice", payload);
-    toast.success("Rooms booked successfully!");
-  } catch (error) {
-    toast.error("Failed to book rooms.");
-    console.error("Failed to book rooms:", error);
-  } finally {
-    setTimeout(() => {
-      handleBookRooms();
-      setLoadingBook(false);
-    }, 1500);
-  }
-};
+      await api.post("/invoice", payload);
+      toast.success("Invoice generated & rooms booked successfully!");
+      if (onInvoiceSuccess) {
+      onInvoiceSuccess();
+    }
+    } catch (error) {
+      toast.error("Failed to generate invoice. Please try again later.");
+      console.error("Failed to generate invoice:", error);
+    } finally {
+      setTimeout(() => {
+        setLoadingBook(false);
+      }, 1500);
+    }
+  };
 
 
   // Wrapper for Switch Room button
@@ -159,11 +166,18 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
         isOpen={isModalOpen}
         onClose={onCloseModal}
         onWhatsApp={handleWhatsApp}
+        onEmail={handleEmail}
       />
 
-      {!checkout && (
+      { invoice && (
         <Button className="w-full" onClick={handleBookClick} disabled={loadingBook}>
-          {loadingBook ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> : "Book"}
+          {loadingBook ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> : "Generate invoice"}
+        </Button>
+      )}
+
+      { !invoice && !checkout && (
+        <Button className="w-full" onClick={handleBookRooms} disabled={loadingBook}>
+          {loadingBooking ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> : "Book"}
         </Button>
       )}
 

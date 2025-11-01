@@ -16,6 +16,7 @@ import InvoiceFooter from "../footer/InvoiceFooter";
 import SelectedRoomsList from "./room_details/SelectedRoomsList";
 import RoomDetailsPanel from "./room_details/RoomDetailsPanel";
 import { toast } from "react-toastify";
+import { setSelectedRooms } from "@/features/rooms/selectedRoomsSlice";
 
 interface RoomDetailsProps {
   viewedRoom: Room | null;
@@ -32,6 +33,8 @@ interface RoomDetailsProps {
   switchRoom: boolean;
   totalDays: number;
   whatsAppId: string;
+  loadingBooking?: boolean;
+  onInvoiceSuccess?: () => void;
 }
 
 const RoomDetails: React.FC<RoomDetailsProps> = ({
@@ -49,6 +52,8 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
   switchRoom,
   totalDays,
   whatsAppId,
+  loadingBooking,
+  onInvoiceSuccess,
 }) => {
   const invoiceData = useSelector(
     (state: RootState) => state.invoice.invoiceFormData
@@ -65,6 +70,10 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
     { roomNo: string; discountPrice: number; finalRoomTotalPrice: number }[]
   >([]);
   const [daysStayed, setDaysStayed] = useState(0);
+
+  const roomNumbers = useSelector((state: RootState) =>
+    state.rooms.roomNumbers.join(", ")
+  );
 
   useEffect(() => {
     if (viewedRoom?.no && !invoice) {
@@ -118,26 +127,32 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
     setRemovedRooms((prev) => [...prev, removedRoom]);
   };
 
-const handleSwitchRoom = () => {
-  if (removedRooms.length === 0) {
-    toast.error("No rooms to switch.");
-    return;
-  }
+  const handleSwitchRoom = () => {
+    if (removedRooms.length === 0) {
+      toast.error("No rooms to switch.");
+      return;
+    }
 
-  // Add rooms to Redux slice
-  removedRooms.forEach((room) => dispatch(addOldRoom(room)));
+    // Add rooms to Redux slice
+    removedRooms.forEach((room) => dispatch(addOldRoom(room)));
 
-  // Navigate and pass data
-  navigate("/onboarding", {
-    state: {
-      daysStayed,
-      oldRooms: removedRooms, // pass the array directly
-    },
-  });
+    // Navigate and pass data
+    navigate("/onboarding", {
+      state: {
+        daysStayed,
+        oldRooms: removedRooms, // pass the array directly
+      },
+    });
 
-  dispatch(nextStep());
-};
+    dispatch(nextStep());
+  };
 
+  useEffect(() => {
+    if (selectedRooms.length > 0) {
+      const roomNos = selectedRooms.map((room) => room.no).filter(Boolean);
+      dispatch(setSelectedRooms(roomNos));
+    }
+  }, [selectedRooms, dispatch]);
 
   const handleBookRooms = () => {
     if (selectedRooms.length === 0) return;
@@ -150,9 +165,6 @@ const handleSwitchRoom = () => {
   };
 
   const handleWhatsApp = async () => {
-    // Assuming each room has a `no` field (like in your Room schema)
-    const roomNumbers = selectedRooms.map((room) => room.no).join(", ");
-
     const message = `This is your room number(s): ${roomNumbers}`;
 
     try {
@@ -165,10 +177,32 @@ const handleSwitchRoom = () => {
         window.location.href = res.data.whatsappLink;
       }
     } catch (error) {
-      console.error("Error sending WhatsApp:", error);
+      const errMsg =
+        (error as any)?.response?.data?.message ||
+        (error instanceof Error ? error.message : String(error));
+      toast.error(errMsg || "Error sending WhatsApp");
     }
+  };
 
-    console.log(whatsAppId);
+  const handleEmail = async () => {
+    const message = `This is your room number(s): ${roomNumbers}`;
+
+    try {
+      // const res = await api.post(`/booking/${whatsAppId}/send-email`, {
+      //   message,
+      // });
+      await api.post(`/booking/${whatsAppId}/send-email`, {
+        message,
+      });
+      toast.success("Email sent successfully!");
+    } catch (error) {
+      const errMsg =
+        (error as any)?.response?.data?.message ||
+        (error instanceof Error ? error.message : String(error));
+      toast.error(errMsg || "Error sending email");
+    } finally {
+      onCloseModal();
+    }
   };
 
   return (
@@ -224,10 +258,13 @@ const handleSwitchRoom = () => {
         isModalOpen={isModalOpen}
         onCloseModal={onCloseModal}
         handleWhatsApp={handleWhatsApp}
+        handleEmail={handleEmail}
         setDiscountPercent={setDiscountPercent}
         handleBookRooms={handleBookRooms}
         handleSwitchRoom={handleSwitchRoom}
         selectedRooms={selectedRooms}
+        loadingBooking={loadingBooking}
+        onInvoiceSuccess={onInvoiceSuccess}
       />
     </div>
   );

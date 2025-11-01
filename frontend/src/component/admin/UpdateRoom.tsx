@@ -69,14 +69,13 @@ const UpdateRoom: React.FC<UpdateRoomProps> = ({ viewedRoom, onClose }) => {
       setLoading(true);
 
       const payload = {
-        no: formData.no,
         type: formData.type,
         perDayPrice: Number(formData.perDayPrice),
         facilities: formData.facilities.filter((f) => f.trim() !== ""),
         isMaintenance: formData.isMaintenance,
       };
 
-      const response = await api.put(`/room/${viewedRoom._id}`, payload); // check api
+      const response = await api.put(`/room/update/${viewedRoom._id}`, payload); // check api
 
       if (response.status === 200) {
         toast.success("Room updated successfully!");
@@ -112,7 +111,7 @@ const UpdateRoom: React.FC<UpdateRoomProps> = ({ viewedRoom, onClose }) => {
           <div className="col-span-1">:</div>
           <Input
             className="col-span-3"
-            disabled={!editable}
+            disabled
             value={formData.no}
             onChange={(e) => handleChange("no", e.target.value)}
           />
