@@ -4,27 +4,84 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { cn } from "@/lib/utils";
 import type { Booking } from "@/types/booking";
 import { PaymentMethods } from "@/lib/enums/order-related-enums";
+import { api } from "@/api/axios";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 interface PaymentModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   booking: Booking;
+  originalBillTotal: number;
+  totalRoomCharge: number;
+  totalOrdersPrice: number;
+  subtotal: number;
+  tax: number;
+  serviceCharge: number;
+  discount: number;
+  totalBill: number;
+  additionalPrice: { name: string; price: number }[];
 }
 
-const PaymentModal: React.FC<PaymentModalProps> = ({ open, onOpenChange, booking }) => {
+const PaymentModal: React.FC<PaymentModalProps> = ({
+  open,
+  onOpenChange,
+  booking,
+  originalBillTotal,
+  totalRoomCharge,
+  totalOrdersPrice,
+  subtotal,
+  tax,
+  serviceCharge,
+  discount,
+  totalBill,
+  additionalPrice,
+}) => {
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const paymentMethods = Object.values(PaymentMethods).filter(
-  (method) => method.value !== "Room"
-);
+    (method) => method.value !== "Room"
+  );
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!selectedPayment) {
-      alert("Please select a payment method.");
+      toast.error("Please select a payment method.");
       return;
     }
-    console.log("Selected Payment Method:", selectedPayment);
-    onOpenChange(false);
+
+    const payload = {
+      originalBillTotal,
+      totalRoomCharge,
+      totalOrdersPrice,
+      additionalPrice,
+      subtotal,
+      tax,
+      serviceCharge,
+      discount,
+      totalBill,
+      paymentMethod: selectedPayment,
+    };
+
+    try {
+      setLoading(true);
+
+      const response = await api.post(`booking/final-billing/${booking.bookingId}/checkout`, payload);
+
+      if (response.status === 200) {
+        toast.success("Payment processed successfully!");
+        onOpenChange(false);
+        navigate("/checkouts");
+      } else {
+        toast.error("Something went wrong. Please try again.");
+      }
+    } catch (error: any) {
+      console.error("Payment Error:", error);
+      toast.error(error.response?.data?.message || "Payment failed. Try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -59,8 +116,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ open, onOpenChange, booking
         </div>
 
         <div className="flex justify-end mt-6">
-          <Button onClick={handleConfirm} className="w-full cursor-pointer">
-            Confirm
+          <Button
+            onClick={handleConfirm}
+            className="w-full cursor-pointer"
+            disabled={loading}
+          >
+            {loading ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> : "Confirm"}
           </Button>
         </div>
       </DialogContent>
