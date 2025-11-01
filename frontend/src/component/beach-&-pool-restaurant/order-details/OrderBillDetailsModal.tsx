@@ -206,7 +206,7 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
             {/* Step 2: Payment Method Selection */}
             <div className="space-y-3 mt-6">
               {paymentMethods
-                .filter((method, index) => {
+                .filter((_,index) => {
                   // Show all methods except the 4th one unless order has bookingId
                   if (index === 3 && !order?.bookingId) return false;
                   return true;
