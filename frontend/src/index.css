@@ -21,6 +21,9 @@ body {
   --color-gray: #444444;
   --color-mainWhite: #FEFEFE;
   --color-bg: #F4F4F4;
+  --color-Primary_blue: #0A869D;
+  --color-Primary_orange: #B24E0E;
+  --color-Ash: #CECECE;
 }
 
 @theme inline {

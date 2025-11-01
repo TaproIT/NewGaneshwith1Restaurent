@@ -10,10 +10,12 @@ import { setIsClickAddNewFoodItem } from "@/features/beach-restaurant/foodSlice"
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { fetchAllExtraBeverageItems } from "@/api/order/get-extra-beverage-list-api";
 
 const BeverageList: React.FC = () => {
   const {
     beverageItems: beverages,
+    extrabeverageItems: extraBeverages,
     isAddedBeverageItem,
     fetchAllBeverageItemsStatus,
   } = useSelector((state: RootState) => state.beverage);
@@ -24,9 +26,14 @@ const BeverageList: React.FC = () => {
 
   const dispatch = useDispatch<AppDispatch>();
 
-  const categoryBeverages = beverages.filter(
+ const categoryBeverages = [
+  ...beverages.filter(
     (beverage) => beverage.category === selectedCategoryId
-  );
+  ),
+  ...extraBeverages.filter(
+    (beverage) => beverage.extraBeverageCategory?._id === selectedCategoryId
+  ),
+];
 
   const navigate = useNavigate();
 
@@ -34,11 +41,12 @@ const BeverageList: React.FC = () => {
 
   const handleAddNewFoodItem = () => {
     dispatch(setIsClickAddNewFoodItem(true));
-    navigate("/beach-restaurant/menu/0");
+    navigate("/restaurant/menu/0");
   };
 
   useEffect(() => {
     dispatch(fetchAllBeverageItems());
+    dispatch(fetchAllExtraBeverageItems());
   }, [dispatch, isAddedBeverageItem]);
 
   // Show error toast if error exists

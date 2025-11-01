@@ -8,10 +8,10 @@ import { validateUserLogin, validateUserRegistration } from "../validations/auth
 
 export const registerNewUser = async (req, res) => {
   try {
-    const { email, password, userRole } = req.body;
+    const { name, contactNumber, email, password, userRole } = req.body;
 
     // Validate input data
-    const validationErrors = validateUserRegistration(req.body);
+    const validationErrors = validateUserRegistration(req.body); 
     if (validationErrors.length > 0) {
       return sendErrorResponse(res, 400, "Validation errors", validationErrors);
     }
@@ -26,6 +26,8 @@ export const registerNewUser = async (req, res) => {
     const encryptedPassword = await hashPassword(password);
     const newUser = await User.create({
       userRole,
+      name,
+      contactNumber,
       email,
       password: encryptedPassword
     });
@@ -52,7 +54,8 @@ export const registerNewUser = async (req, res) => {
       userRole: newUser.userRole,
       name: newUser.name,
       email: newUser.email,
-      contactNumber: newUser.contactNumber
+      contactNumber: newUser.contactNumber,
+      isActive: newUser.isActive
     };
 
     // Send success response

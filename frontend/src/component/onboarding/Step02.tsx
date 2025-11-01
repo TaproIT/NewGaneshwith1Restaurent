@@ -26,6 +26,7 @@ const Step02 = () => {
   const location = useLocation();
   const daysStayed = location.state?.daysStayed;
   const removedRooms = location.state?.oldRooms
+  const [loadingBooking, setLoadingBooking] = useState(false);
 const guestDetails = useSelector(
     (state: RootState) => state.onboarding.step01Data
   );
@@ -120,6 +121,7 @@ const guestDetails = useSelector(
   // Booking / switch rooms
   const handleBook = async () => {
     if (selectedRooms.length === 0) return;
+    setLoadingBooking(true);
 
     try {
       // Update local room state
@@ -165,6 +167,10 @@ const guestDetails = useSelector(
     } catch (err) {
       console.error("Failed to book rooms:", err);
       toast.error("Booking failed!");
+    } finally {
+      setTimeout(() => {
+        setLoadingBooking(false);
+      }, 1500);
     }
   };
 
@@ -215,6 +221,7 @@ const guestDetails = useSelector(
           switchRoom={false}
           totalDays={daysStayed}
           whatsAppId={whatsAppBookingId}
+          loadingBooking={loadingBooking}
         />
       </div>
     </div>

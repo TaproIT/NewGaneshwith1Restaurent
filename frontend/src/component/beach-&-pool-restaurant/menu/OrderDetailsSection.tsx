@@ -42,7 +42,7 @@ const OrderDetailsSection: React.FC = () => {
           <OrderInitialDetails />
         </div>
 
-        <ScrollArea className="w-full h-[calc(100vh-480px)]">
+        <ScrollArea className="w-full h-[calc(100vh-530px)]">
           {
             order.orderTokens.length > 0 ? (
               <div className="px-1.5">

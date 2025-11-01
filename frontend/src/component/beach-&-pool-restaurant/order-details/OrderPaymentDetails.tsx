@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
+  openOrderBillDetailsModal,
   openOrderTokenModal,
   setIsPrintedForNewOrderToken,
+  setServiceCharge,
   setSubTotal,
   setTokenSubTotal,
   setTokenTotalBill,
@@ -36,8 +38,8 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
 
   // Disable Token button only if BOTH foodOrders and beverageOrders are empty
   const isDisabled =
-    newOrderToken.foodOrders.length === 0 &&
-    newOrderToken.beverageOrders.length === 0;
+    (newOrderToken.foodOrders.length === 0 &&
+    newOrderToken.beverageOrders.length === 0);
 
   // Handler functions
   const handleTokenClick = useCallback(() => {
@@ -52,6 +54,7 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
      await dispatch(fetchOrderById(order._id)).unwrap();
 
      toast.success("Order token held successfully");
+     navigate(`/restaurant/home`);
    } catch (err: any) {
      toast.error(
        err?.message || "Error holding order token. Please try again."
@@ -63,8 +66,13 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
     navigate(`/restaurant/menu/${id}`);
   };
 
+   const handleProceedPayment = () => {
+     dispatch(openOrderBillDetailsModal());
+  };
+
   // Recalculate token subtotal and total bill when order tokens or charges change
   useEffect(() => {
+    if (order.paymentMethod !== "") return;
     const tokenSubTotal =
       newOrderToken.foodOrders.length > 0 ||
       newOrderToken.beverageOrders.length > 0
@@ -73,11 +81,12 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
 
     dispatch(setTokenSubTotal(tokenSubTotal));
 
+    dispatch(setServiceCharge(tokenSubTotal*0.1));
+
     const tokenTotalBill =
       tokenSubTotal +
       newOrderToken.tokenTax +
-      newOrderToken.tokenDiscount +
-      newOrderToken.tokenServiceCharge;
+      newOrderToken.tokenServiceCharge - newOrderToken.tokenDiscount ;
 
     dispatch(setTokenTotalBill(tokenTotalBill));
 
@@ -110,7 +119,7 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
      <ScrollArea
        className={`w-full ${
          !isHoldOrder
-           ? "h-[calc(100vh-470px)] 2xl:h-[calc(100vh-670px)]"
+           ? "h-[calc(100vh-400px)] 2xl:h-[calc(100vh-670px)]"
            : "h-[calc(100vh-510px)] 2xl:h-[calc(100vh-670px)]"
        }`}
      >
@@ -194,23 +203,33 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
                      Proceed to payment
                    </Button>
                  ) : (
-                   <>
-                     <Button
+                   <div className="grid grid-cols-2 gap-1">
+                      <Button
                        variant="outline"
-                       className="!w-full !h-8 border-[#0A869D] cursor-pointer"
+                       className="col-span-1 !w-full !h-8 border-[#0A869D] cursor-pointer"
                        disabled={isDisabled}
                        onClick={handleTokenClick}
                      >
                        Token
                      </Button>
+
                      <Button
-                       className="!w-full !h-8 cursor-pointer"
+                       variant="outline"
+                       className="col-span-1 !w-full !h-8 border-[#0A869D] cursor-pointer"
                        disabled={isDisabled}
                        onClick={handleHoldClick}
                      >
                        Hold
                      </Button>
-                   </>
+                     
+                     <Button
+                       className="col-span-2 !w-full !h-8 cursor-pointer"
+                       disabled={(order.orderTokens.length === 0) || (order.newOrderToken.beverageOrders.length > 0 || order.newOrderToken.foodOrders.length > 0)}
+                       onClick={handleProceedPayment}
+                     >
+                       Proceed To Payment
+                     </Button>
+                   </div>
                  )}
                </div>
              )}

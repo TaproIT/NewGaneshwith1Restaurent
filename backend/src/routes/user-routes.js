@@ -1,5 +1,5 @@
 import express from "express";
-import { getAllUsers, getUserRole } from "../controllers/user-controller.js";
+import { getAllUsers, getUserById, getUserRole } from "../controllers/user-controller.js";
 import { authenticateToken } from "../middleware/verify-token.js";
 import { authorizeRoles } from "../middleware/role-authorize.js";
 import { userRoles } from "../utils/enums/user-role.js";
@@ -21,6 +21,13 @@ router.get(
   verifyTokenNotBlacklisted,
   authenticateToken,
   getUserRole
+);
+
+router.get(
+  "/details",
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  getUserById
 );
 
 export { router as userRoutes }

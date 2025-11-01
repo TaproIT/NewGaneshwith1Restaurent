@@ -125,7 +125,7 @@ const OrderToken: React.FC<OrderTokenProps> = ({ token, isHoldOrder }) => {
           </div>
 
           {/* Food Orders */}
-          {token.foodOrders.length > 0 && (
+          {token?.foodOrders?.length > 0 && (
             <div className="flex flex-col gap-3">
               {token.foodOrders
                 .slice()
@@ -188,7 +188,7 @@ const OrderToken: React.FC<OrderTokenProps> = ({ token, isHoldOrder }) => {
           )}
 
           {/* Beverage Orders */}
-          {token.beverageOrders.length > 0 && (
+          {token?.beverageOrders?.length > 0 && (
             <div className="flex flex-col gap-3">
               {token.beverageOrders
                 .slice()

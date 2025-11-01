@@ -4,12 +4,13 @@ import {
   setSelectedCategory,
   setIsBeverageItemsList,
 } from "@/features/beach-restaurant/beverageCategorySlice";
-import { setSelectedCategoryId } from "@/features/beach-restaurant/foodCategorySlice";
+import { setIsClickedAddFoodCategory, setIsFoodCategory, setSelectedCategoryId, setSelectedFoodCategoryTitle } from "@/features/beach-restaurant/foodCategorySlice";
 import { setIsClickAddNewFoodItem } from "@/features/beach-restaurant/foodSlice";
 import React, { useRef, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "react-toastify";
+import { Plus } from "lucide-react";
 
 const FoodCategorySelector: React.FC = () => {
   const dispatch = useDispatch();
@@ -38,13 +39,19 @@ const FoodCategorySelector: React.FC = () => {
     dispatch(fetchAllFoodCategories() as any);
   }, [dispatch]);
 
+  // Set first category title when categories are loaded
+useEffect(() => {
+  if (categories.length > 0) {
+    dispatch(setSelectedFoodCategoryTitle(categories[0]._id));
+  }
+}, [categories, dispatch]);
+
   // toast error handling
   useEffect(() => {
     if (error) {
       toast.error("Failed to load food categories. Please try again.");
     }
   }, [error]);
-  console.log(selectedCategoryId);
   // Auto select first category if none selected
   // useEffect(() => {
   //   if (!selectedCategoryId && !selectedCategory && categories.length > 0) {
@@ -67,7 +74,8 @@ const FoodCategorySelector: React.FC = () => {
     dispatch(setSelectedCategory(""));
     dispatch(setSelectedCategoryId(categories[index]._id));
     dispatch(setIsBeverageItemsList(false));
-    dispatch(setIsClickAddNewFoodItem(false));
+    dispatch(setSelectedFoodCategoryTitle(categories[index]._id))
+    //dispatch(setIsClickAddNewFoodItem(false));
   };
 
   // Drag handlers
@@ -90,15 +98,21 @@ const FoodCategorySelector: React.FC = () => {
     }
   };
 
+  const handleAddNewFoodCategory = () => {
+    dispatch(setIsClickedAddFoodCategory(true));
+    dispatch(setIsFoodCategory(true));
+    dispatch(setIsClickAddNewFoodItem(false));
+  }
+
   return (
-    <div className="flex flex-col items-center w-full">
+    <div className="relative flex flex-col items-start w-full">
       <div
         ref={scrollContainerRef}
         onMouseDown={handleMouseDown}
         onMouseLeave={handleMouseLeave}
         onMouseUp={handleMouseUp}
         onMouseMove={handleMouseMove}
-        className="flex gap-2 overflow-x-auto cursor-grab active:cursor-grabbing no-scrollbar w-full"
+        className="flex gap-2.5 overflow-x-auto cursor-grab active:cursor-grabbing no-scrollbar w-[81.5%]"
       >
         {loading
           ? // Show skeletons while loading
@@ -117,7 +131,7 @@ const FoodCategorySelector: React.FC = () => {
                     itemRefs.current[index] = el;
                   }}
                   onClick={() => handleClick(index)}
-                  className={`px-4 py-6 w-[135px] 2xl:w-[163px] flex-shrink-0 flex items-center justify-center text-[0.75rem] font-medium cursor-pointer rounded-md
+                  className={`px-4 py-4 w-[135px] 2xl:w-[163px] max-h-[72px] flex-shrink-0 flex items-center justify-center text-[0.75rem] font-medium cursor-pointer rounded-md
                 ${
                   isSelected
                     ? "bg-[#B24E0E] text-white"
@@ -128,6 +142,15 @@ const FoodCategorySelector: React.FC = () => {
                 </div>
               );
             })}
+      </div>
+      {/* Add New Category Button (fixed to right) */}
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 pr-1 bg-white">
+        <div
+          className="py-5 px-12 flex items-center justify-center border rounded-sm cursor-pointer"
+          onClick={handleAddNewFoodCategory}
+        >
+          <Plus size={24} className="text-[#0A869D]" />
+        </div>
       </div>
     </div>
   );

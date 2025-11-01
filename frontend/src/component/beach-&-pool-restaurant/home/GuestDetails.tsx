@@ -3,7 +3,7 @@
 import React, { useState, useRef, useLayoutEffect, useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/app/store";
-import { setGuestName, setRoomNumber } from "@/features/beach-restaurant/orderSlice";
+import { setBookingId, setGuestName, setRoomNumber } from "@/features/beach-restaurant/orderSlice";
 import { CustomerTypes } from "@/lib/enums/order-related-enums";
 
 import { Label } from "@/components/ui/label";
@@ -28,6 +28,8 @@ const GuestDetails: React.FC = () => {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const [contentWidth, setContentWidth] = useState<number | null>(null);
+
+  const [selectedRoomId, setSelectedRoomId] = useState<string>("");
   
   useEffect(() => {
     dispatch(fetchAllAvailableRooms());
@@ -61,11 +63,13 @@ const GuestDetails: React.FC = () => {
   };
 
   const handleSelectRoom = (selectedRoom: string) => {
-    const room = rooms.find((r) => r.no === selectedRoom);
+    const room = rooms.find((r) => r._id === selectedRoom);
     if (room) {
       dispatch(setRoomNumber(room.no));
-      dispatch(setGuestName(room.guest));
+      dispatch(setGuestName(room.guestName));
+      dispatch(setBookingId(room.bookingId));
     }
+    setSelectedRoomId(selectedRoom);
     setOpen(false);
   };
 
@@ -75,7 +79,10 @@ const GuestDetails: React.FC = () => {
         {/* Room Selection */}
         {customerType === CustomerTypes.CHECKED_IN.value && (
           <div className="col-span-1 flex items-center gap-4">
-            <Label htmlFor="roomNumber" className="text-sm font-medium text-[#444444]">
+            <Label
+              htmlFor="roomNumber"
+              className="text-sm font-medium text-[#444444]"
+            >
               Room Number
             </Label>
 
@@ -89,7 +96,7 @@ const GuestDetails: React.FC = () => {
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
-                    className="w-4/6 justify-between py-5.5"
+                    className="w-4/6 justify-between py-5.5 cursor-pointer"
                   >
                     {roomNumber ? `Room ${roomNumber}` : "Select a room"}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -99,27 +106,36 @@ const GuestDetails: React.FC = () => {
                 <PopoverContent
                   className="p-0"
                   align="start"
-                  style={contentWidth ? { width: `${contentWidth}px` } : undefined}
+                  style={
+                    contentWidth ? { width: `${contentWidth}px` } : undefined
+                  }
                 >
                   <Command className="w-full">
                     <CommandInput placeholder="Search room..." />
                     <CommandEmpty>No room found.</CommandEmpty>
                     <CommandGroup>
-                      {rooms.map((room) => (
-                        <CommandItem
-                          key={room._id}
-                          value={room.no}
-                          onSelect={() => handleSelectRoom(room.no)}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              room.no === room.no ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          Room {room.no} — {room.guest}
-                        </CommandItem>
-                      ))}
+                      {rooms.map((room) =>
+                        room.guestName !== null ? (
+                          <CommandItem
+                            key={room._id}
+                            value={room.no}
+                            onSelect={() => handleSelectRoom(room._id)}
+                            className="cursor-pointer"
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                room._id === selectedRoomId
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              )}
+                            />
+                            Room {room.no} — {room.guestName}
+                          </CommandItem>
+                        ) : (
+                          <></>
+                        )
+                      )}
                     </CommandGroup>
                   </Command>
                 </PopoverContent>
@@ -130,7 +146,10 @@ const GuestDetails: React.FC = () => {
 
         {/* Guest Name */}
         <div className="col-span-1 flex items-center gap-4">
-          <Label htmlFor="guestName" className="text-sm font-medium text-[#444444]">
+          <Label
+            htmlFor="guestName"
+            className="text-sm font-medium text-[#444444]"
+          >
             Guest Name
           </Label>
 

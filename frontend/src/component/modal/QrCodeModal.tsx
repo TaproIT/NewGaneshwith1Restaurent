@@ -7,9 +7,11 @@ interface QrCodeModalProps {
   isOpen: boolean;
   onClose: () => void;
   onWhatsApp: () => void;
+  onEmail: () => void;
+  loading?: boolean;
 }
 
-const QrCodeModal: React.FC<QrCodeModalProps> = ({ isOpen, onClose, onWhatsApp }) => {
+const QrCodeModal: React.FC<QrCodeModalProps> = ({ isOpen, onClose, onWhatsApp, onEmail, loading }) => {
   if (!isOpen) return null;
 
   return (
@@ -36,10 +38,10 @@ const QrCodeModal: React.FC<QrCodeModalProps> = ({ isOpen, onClose, onWhatsApp }
 
         {/* Action Buttons */}
         <div className="flex gap-5 justify-center mb-6">
-          <Button variant="outline" className="w-25">
-            Email
+          <Button variant="outline" className="w-25 cursor-pointer" onClick={onEmail}>
+            {loading ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> : "Email"}
           </Button>
-          <Button className="w-25" onClick={onWhatsApp}>
+          <Button className="w-25 cursor-pointer" onClick={onWhatsApp}>
             WhatsApp
           </Button>
         </div>

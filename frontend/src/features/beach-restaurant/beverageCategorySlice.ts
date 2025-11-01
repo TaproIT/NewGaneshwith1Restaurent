@@ -1,5 +1,8 @@
+import { addNewExtraBeverageCategory } from "@/api/order/add-bevetage-category-api";
 import { fetchAllBeverageCategories } from "@/api/order/get-beverage-categories-api";
+import { fetchAllExtraBeverageCategories } from "@/api/order/get-extra-beverge-categories-api";
 import type { BeverageCategory, BeverageCategoryState } from "@/component/beach-&-pool-restaurant/beverage-category-model";
+import { BeverageCategories } from "@/lib/enums/order-related-enums";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 
@@ -7,8 +10,18 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 // Initial State
 const initialState: BeverageCategoryState = {
   categories: [],
+  extraCategories: [],
   selectedCategory: null,
+  selectedBeverageCategoryTitle: null,
   fetchAllBeverageCategoriesStatus: {
+     loading: false,
+     error: null
+  },
+  fetchAllExtraBeverageCategoriesStatus: {
+     loading: false,
+     error: null
+  },
+  addNewExtraBeverageCategoryStatus: {
      loading: false,
      error: null
   },
@@ -23,6 +36,22 @@ const beverageCategorySlice = createSlice({
     reducers: {
         setSelectedCategory: (state, action: PayloadAction<string>) => {
             state.selectedCategory = action.payload;
+        },
+         setSelectedBeverageCategoryTitle: (state, action: PayloadAction<string>) => {
+           if (action.payload === "" ) {
+              state.selectedBeverageCategoryTitle = null;
+           } 
+           const selectedCategory = Object.values(BeverageCategories).find((cat) => cat.value === action.payload)
+           const extraCategory = state.extraCategories.find((cat) => cat._id === action.payload) 
+           if (selectedCategory){
+            state.selectedBeverageCategoryTitle = selectedCategory.label;
+            return;
+           }
+           if (extraCategory){
+            state.selectedBeverageCategoryTitle = extraCategory.name;
+            return;
+           }
+
         },
         setCategories: (state, action: PayloadAction<BeverageCategory[]>) => {
             state.categories = action.payload;
@@ -50,6 +79,46 @@ const beverageCategorySlice = createSlice({
                 state.fetchAllBeverageCategoriesStatus.error = action.payload as string;
             })
 
+
+            .addCase(fetchAllExtraBeverageCategories.pending, (state) => {
+                state.fetchAllExtraBeverageCategoriesStatus.loading = true;
+                state.fetchAllExtraBeverageCategoriesStatus.error = null;
+            })
+            .addCase(fetchAllExtraBeverageCategories.fulfilled, (state, action) => {
+                state.fetchAllExtraBeverageCategoriesStatus.loading = false;
+                if (state.extraCategories) {
+                    state.extraCategories = [];
+                }
+                state.extraCategories = [...state.categories, ...action.payload];
+            })
+            .addCase(fetchAllExtraBeverageCategories.rejected, (state, action) => {
+                state.fetchAllExtraBeverageCategoriesStatus.loading = false;
+                state.fetchAllExtraBeverageCategoriesStatus.error = action.payload as string;
+            }) 
+
+
+            // add extra beverage category
+            .addCase(addNewExtraBeverageCategory.pending, (state) => {
+                state.addNewExtraBeverageCategoryStatus = {
+                    loading: true,
+                    error: null,
+                };
+            })
+            .addCase(addNewExtraBeverageCategory.fulfilled, (state) => {
+                state.addNewExtraBeverageCategoryStatus = {
+                    loading: false,
+                    error: null,
+                };
+            })
+            .addCase(addNewExtraBeverageCategory.rejected, (state, action) => {
+                state.addNewExtraBeverageCategoryStatus = {
+                    loading: false,
+                    error: action.payload as string,
+                };
+            })
+
+
+
         //   // add
         //   .addCase(addCategory.fulfilled, (state, action: PayloadAction<FoodCategory>) => {
         //     state.categories.push(action.payload);
@@ -70,5 +139,5 @@ const beverageCategorySlice = createSlice({
     },
 });
 
-export const { setSelectedCategory, setIsBeverageItemsList } = beverageCategorySlice.actions;
+export const { setSelectedCategory, setIsBeverageItemsList, setSelectedBeverageCategoryTitle } = beverageCategorySlice.actions;
 export default beverageCategorySlice.reducer;

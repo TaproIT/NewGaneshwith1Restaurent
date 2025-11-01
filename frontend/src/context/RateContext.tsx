@@ -1,39 +1,40 @@
 // src/context/RateContext.tsx
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import type { ExchangeRates, RateContextType} from '../types/currency';
+import type { ExchangeRates, RateContextType } from '../types/currency';
+import { api } from '@/api/axios'; // your axios instance
 
-const defaultRates: ExchangeRates = { 'LKR_LKR': 1.00 };
+const defaultRates: ExchangeRates = { 'LKR_LKR': 1.0 };
 
-// Initializing Context with the defined type
 const RateContext = createContext<RateContextType>({
   rates: defaultRates,
   loading: true,
 });
-
-// --- SIMULATED BACKEND FETCH (MOCK) ---
-const mockFetchRates = (): Promise<ExchangeRates> => {
-  return new Promise(resolve => {
-    setTimeout(() => {
-      resolve({
-        "LKR_USD": 0.0033, 
-        "LKR_EUR": 0.0031,
-        "LKR_LKR": 1.00,
-        "USD_LKR": 303.03, // (303.03 LKR = 1 USD)
-      });
-    }, 500);
-  });
-};
-// ------------------------------------
 
 export const RateProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [rates, setRates] = useState<ExchangeRates>(defaultRates);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    mockFetchRates().then(data => {
-      setRates(data);
-      setLoading(false);
-    });
+    const fetchRates = async () => {
+      try {
+        const response = await api.get('/currency-values'); // GET backend
+        if (response.data.data.length > 0) {
+          const rateObj = response.data.data[0]; // assuming array with single object
+          const exchangeRates: ExchangeRates = {
+            'LKR_LKR': 1,
+            'USD_LKR': rateObj.lkr / rateObj.usd, // convert USD → LKR
+            'LKR_USD': rateObj.usd / rateObj.lkr, // convert LKR → USD
+          };
+          setRates(exchangeRates);
+        }
+      } catch (error) {
+        console.error('Failed to fetch rates:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRates();
   }, []);
 
   return (
@@ -43,5 +44,5 @@ export const RateProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
-// Custom hook to consume the context
+// Hook
 export const useRates = () => useContext(RateContext);

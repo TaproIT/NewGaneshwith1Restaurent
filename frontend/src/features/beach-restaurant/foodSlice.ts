@@ -6,7 +6,7 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 const initialState: FoodItems = {
    isAddedNewFoodItem: false,
    foodItems: [],
-   isClickAddNewFoodItem:false,
+   isClickAddNewFoodItem: true,
    fetchAllFoodItemsStatus: {
      loading: false,
      error: null
