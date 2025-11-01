@@ -131,7 +131,7 @@ useEffect(() => {
                     itemRefs.current[index] = el;
                   }}
                   onClick={() => handleClick(index)}
-                  className={`px-4 py-6 w-[135px] 2xl:w-[163px] flex-shrink-0 flex items-center justify-center text-[0.75rem] font-medium cursor-pointer rounded-md
+                  className={`px-4 py-4 w-[135px] 2xl:w-[163px] max-h-[72px] flex-shrink-0 flex items-center justify-center text-[0.75rem] font-medium cursor-pointer rounded-md
                 ${
                   isSelected
                     ? "bg-[#B24E0E] text-white"

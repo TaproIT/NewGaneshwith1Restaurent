@@ -205,20 +205,26 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
           <>
             {/* Step 2: Payment Method Selection */}
             <div className="space-y-3 mt-6">
-              {paymentMethods.map((method) => (
-                <div
-                  key={method.value}
-                  onClick={() => setSelectedPayment(method.value as any)}
-                  className={cn(
-                    "border rounded-md py-3 px-4 cursor-pointer text-center font-medium transition",
-                    selectedPayment === method.value
-                      ? "bg-[#0A869D] text-white border-[#0A869D]"
-                      : "border-gray-300 text-gray-700 hover:bg-gray-100"
-                  )}
-                >
-                  {method.label}
-                </div>
-              ))}
+              {paymentMethods
+                .filter((_,index) => {
+                  // Show all methods except the 4th one unless order has bookingId
+                  if (index === 3 && !order?.bookingId) return false;
+                  return true;
+                })
+                .map((method) => (
+                  <div
+                    key={method.value}
+                    onClick={() => setSelectedPayment(method.value as any)}
+                    className={cn(
+                      "border rounded-md py-3 px-4 cursor-pointer text-center font-medium transition",
+                      selectedPayment === method.value
+                        ? "bg-[#0A869D] text-white border-[#0A869D]"
+                        : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                    )}
+                  >
+                    {method.label}
+                  </div>
+                ))}
             </div>
 
             <div className="flex justify-between mt-6">

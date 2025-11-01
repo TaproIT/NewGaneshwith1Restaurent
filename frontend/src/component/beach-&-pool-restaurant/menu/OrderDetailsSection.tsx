@@ -42,7 +42,7 @@ const OrderDetailsSection: React.FC = () => {
           <OrderInitialDetails />
         </div>
 
-        <ScrollArea className="w-full h-[calc(100vh-520px)]">
+        <ScrollArea className="w-full h-[calc(100vh-530px)]">
           {
             order.orderTokens.length > 0 ? (
               <div className="px-1.5">
@@ -63,7 +63,7 @@ const OrderDetailsSection: React.FC = () => {
           }
         </ScrollArea>
          {
-            (order.orderTokens.length > 0 && !order.isAddNewOrderToken && !order.holdOrderToken && order.paymentMethod === "") && (
+            (order.orderTokens.length > 0 && !order.isAddNewOrderToken && !order.holdOrderToken) && (
               <div className="pb-1 flex items-center justify-center">
                 <Button
                   variant="outline"
