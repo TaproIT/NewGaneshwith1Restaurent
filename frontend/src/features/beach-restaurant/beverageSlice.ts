@@ -1,19 +1,30 @@
 import { addNewBeverage } from "@/api/order/add-beverage-api";
+import { addNewExtraBeverage } from "@/api/order/add-extra-beverage-api";
 import { fetchAllBeverageItems } from "@/api/order/get-beverage-list-api";
+import { fetchAllExtraBeverageItems } from "@/api/order/get-extra-beverage-list-api";
 import type { BeverageItems } from "@/component/beach-&-pool-restaurant/beverage-model";
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState: BeverageItems = {
    beverageItems: [],
+   extrabeverageItems: [],
    fetchAllBeverageItemsStatus: {
      loading: false,
      error: null
    },
-   isAddedBeverageItem: false,
-   addBeverageItemStatus: {
-     loading: false,
-     error: null
-   },
+  fetchAllExtraBeverageItemsStatus: {
+    loading: false,
+    error: null
+  },
+  isAddedBeverageItem: false,
+  addBeverageItemStatus: {
+    loading: false,
+    error: null
+  },
+  addExtraBeverageItemStatus: {
+    loading: false,
+    error: null
+  },
 };
 
 const beverageSlice = createSlice({
@@ -36,10 +47,29 @@ const beverageSlice = createSlice({
             state.beverageItems = [];
         }
         state.beverageItems = [...state.beverageItems, ...action.payload];
+        state.isAddedBeverageItem = false;
       })
       .addCase(fetchAllBeverageItems.rejected, (state, action) => {
         state.fetchAllBeverageItemsStatus.loading = false;
         state.fetchAllBeverageItemsStatus.error = action.payload as string;
+      })
+
+
+      .addCase(fetchAllExtraBeverageItems.pending, (state) => {
+        state.fetchAllExtraBeverageItemsStatus.loading = true;
+        state.fetchAllExtraBeverageItemsStatus.error = null;
+      })
+      .addCase(fetchAllExtraBeverageItems.fulfilled, (state, action) => {
+        state.fetchAllExtraBeverageItemsStatus.loading = false;
+        if (state.extrabeverageItems) {
+          state.extrabeverageItems = [];
+        }
+        state.extrabeverageItems = [...state.extrabeverageItems, ...action.payload];
+        state.isAddedBeverageItem = false;
+      })
+      .addCase(fetchAllExtraBeverageItems.rejected, (state, action) => {
+        state.fetchAllExtraBeverageItemsStatus.loading = false;
+        state.fetchAllExtraBeverageItemsStatus.error = action.payload as string;
       })
 
       // add new beverage item
@@ -55,6 +85,22 @@ const beverageSlice = createSlice({
       .addCase(addNewBeverage.rejected, (state, action) => {
         state.addBeverageItemStatus.loading = true;
         state.addBeverageItemStatus.error = action.payload as string;
+      })
+
+
+      // add new extra beverage item
+      .addCase(addNewExtraBeverage.pending, (state) => {
+        state.addExtraBeverageItemStatus.loading = true;
+        state.addExtraBeverageItemStatus.error = null;
+      })
+
+      .addCase(addNewExtraBeverage.fulfilled, (state) => {
+        state.isAddedBeverageItem = true;
+      })
+
+      .addCase(addNewExtraBeverage.rejected, (state, action) => {
+        state.addExtraBeverageItemStatus.loading = true;
+        state.addExtraBeverageItemStatus.error = action.payload as string;
       });
   },
   

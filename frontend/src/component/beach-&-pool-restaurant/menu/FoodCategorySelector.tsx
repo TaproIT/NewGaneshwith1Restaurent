@@ -4,7 +4,7 @@ import {
   setSelectedCategory,
   setIsBeverageItemsList,
 } from "@/features/beach-restaurant/beverageCategorySlice";
-import { setIsClickedAddFoodCategory, setSelectedCategoryId } from "@/features/beach-restaurant/foodCategorySlice";
+import { setIsClickedAddFoodCategory, setIsFoodCategory, setSelectedCategoryId, setSelectedFoodCategoryTitle } from "@/features/beach-restaurant/foodCategorySlice";
 import { setIsClickAddNewFoodItem } from "@/features/beach-restaurant/foodSlice";
 import React, { useRef, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -39,6 +39,13 @@ const FoodCategorySelector: React.FC = () => {
     dispatch(fetchAllFoodCategories() as any);
   }, [dispatch]);
 
+  // Set first category title when categories are loaded
+useEffect(() => {
+  if (categories.length > 0) {
+    dispatch(setSelectedFoodCategoryTitle(categories[0]._id));
+  }
+}, [categories, dispatch]);
+
   // toast error handling
   useEffect(() => {
     if (error) {
@@ -67,6 +74,7 @@ const FoodCategorySelector: React.FC = () => {
     dispatch(setSelectedCategory(""));
     dispatch(setSelectedCategoryId(categories[index]._id));
     dispatch(setIsBeverageItemsList(false));
+    dispatch(setSelectedFoodCategoryTitle(categories[index]._id))
     //dispatch(setIsClickAddNewFoodItem(false));
   };
 
@@ -92,6 +100,7 @@ const FoodCategorySelector: React.FC = () => {
 
   const handleAddNewFoodCategory = () => {
     dispatch(setIsClickedAddFoodCategory(true));
+    dispatch(setIsFoodCategory(true));
     dispatch(setIsClickAddNewFoodItem(false));
   }
 

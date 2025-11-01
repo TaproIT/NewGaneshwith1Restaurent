@@ -9,6 +9,7 @@ interface RoomGridProps {
   onRoomClick?: (room: Room) => void;
   readOnly: boolean;
   onAddRoomClick?: () => void;
+  roomConfigMode?: boolean;
 }
 
 const RoomGrid: React.FC<RoomGridProps> = ({
@@ -17,6 +18,7 @@ const RoomGrid: React.FC<RoomGridProps> = ({
   onRoomClick,
   readOnly,
   onAddRoomClick,
+  roomConfigMode,
 }) => {
   // Determine visual status from room data
   const getStatus = (
@@ -93,7 +95,7 @@ const RoomGrid: React.FC<RoomGridProps> = ({
 
       {/* Rooms */}
       <div className="grid grid-cols-4 gap-4 overflow-auto">
-        {(userRole === "Admin" || userRole === "Super-Admin") && (
+        {(userRole === "Admin" || userRole === "Super-Admin") && roomConfigMode && (
           <div
             className="p-4 rounded-xl text-center h-22 cursor-pointer bg-gray-100 flex flex-col items-center justify-center hover:bg-gray-200 transition border-Primary_blue border-1"
             onClick={onAddRoomClick}

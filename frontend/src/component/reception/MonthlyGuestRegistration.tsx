@@ -10,6 +10,11 @@ import {
   Legend,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
+import type { HotelMonthlyStats } from "@/types/hotelMonthlyStats";
+
+interface MonthlyGuestRegistrationProps {
+  monthlyGuestsSummary?: HotelMonthlyStats[] | null;
+}
 
 // Register chart components
 ChartJS.register(
@@ -22,7 +27,9 @@ ChartJS.register(
   Legend
 );
 
-const MonthlyGuestRegistration: React.FC = () => {
+const MonthlyGuestRegistration: React.FC<MonthlyGuestRegistrationProps> = ({
+  monthlyGuestsSummary,
+}) => {
   // Labels for 12 months
   const labels = [
     "Jan",
@@ -39,13 +46,28 @@ const MonthlyGuestRegistration: React.FC = () => {
     "Dec",
   ];
 
+  // Prepare data for Hotel A and Hotel B dynamically from the prop
+  const hotelAData = labels.map((_, index) => {
+    const monthData = monthlyGuestsSummary?.find(
+      (item) => item.monthNumber === index + 1
+    );
+    return monthData?.hotelA ?? 0;
+  });
+
+  const hotelBData = labels.map((_, index) => {
+    const monthData = monthlyGuestsSummary?.find(
+      (item) => item.monthNumber === index + 1
+    );
+    return monthData?.hotelB ?? 0;
+  });
+
   // Chart data
   const data = {
     labels,
     datasets: [
       {
         label: "Hotel A",
-        data: [120, 140, 180, 160, 200, 250, 220, 260, 240, 300, 320, 280],
+        data: hotelAData,
         borderColor: "rgba(91, 155, 213, 1)",
         backgroundColor: "rgba(91, 155, 213, 0.2)",
         tension: 0.3,
@@ -53,7 +75,7 @@ const MonthlyGuestRegistration: React.FC = () => {
       },
       {
         label: "Hotel B",
-        data: [100, 130, 150, 170, 190, 230, 210, 250, 270, 290, 310, 330],
+        data: hotelBData,
         borderColor: "rgba(234, 62, 47, 1)",
         backgroundColor: "rgba(234, 62, 47, 0.2)",
         tension: 0.3,

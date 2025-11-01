@@ -1,6 +1,5 @@
-import React, { useEffect } from "react";
+import { useEffect, useImperativeHandle, forwardRef } from "react";
 import { useForm } from "react-hook-form";
-
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -11,34 +10,49 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { setInvoiceData, type invoiceData } from "@/features/invoice/invoiceSlice";
 
 interface InvoiceFormProps {
-  onFormStatus: (status: boolean) => void; // parent callback
+  onFormStatus: (status: boolean) => void;
+  onInvoiceSuccess?: () => void;
 }
-
-const InvoiceForm: React.FC<InvoiceFormProps> = ({ onFormStatus }) => {
+// #TODO:
+const InvoiceForm = forwardRef(({ onFormStatus, /*onInvoiceSuccess*/ }: InvoiceFormProps, ref) => {
   const dispatch = useDispatch();
   const invoiceFormData = useSelector(
     (state: RootState) => state.invoice.invoiceFormData
   );
 
-  // ✅ Initialize form with validation rules
   const form = useForm<invoiceData>({
     defaultValues: invoiceFormData,
     mode: "onSubmit",
   });
 
-  const { control, handleSubmit, watch, setValue, formState } = form;
+  const { control, handleSubmit, watch, setValue, formState, reset } = form;
   const { errors } = formState;
 
   const checkIn = watch("checkIn");
   const checkOut = watch("checkOut");
   const adults = watch("adults");
   const kids = watch("kids");
+
+  // ✅ Expose resetForm to parent
+  useImperativeHandle(ref, () => ({
+    resetForm() {
+      reset({
+        name: "",
+        checkIn: "",
+        checkOut: "",
+        adults: 0,
+        kids: 0,
+        totalGuests: 0,
+        lengthOfStay: 0,
+      });
+      onFormStatus(false);
+    },
+  }));
 
   // ✅ Calculate length of stay
   useEffect(() => {
@@ -56,9 +70,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onFormStatus }) => {
     setValue("totalGuests", (adults || 0) + (kids || 0));
   }, [adults, kids, setValue]);
 
-  // ✅ Handle form submit
   const onSubmit = (data: invoiceData) => {
-    // Check if required fields are filled
     const requiredFields = ["name", "checkIn", "checkOut", "adults", "kids"];
     const allRequiredFilled = requiredFields.every(
       (field) =>
@@ -67,10 +79,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onFormStatus }) => {
         data[field as keyof invoiceData] !== null
     );
 
-    // Send validation status to parent
     onFormStatus(allRequiredFilled);
-
-    // Dispatch data to redux
     dispatch(setInvoiceData(data));
   };
 
@@ -257,6 +266,6 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onFormStatus }) => {
       </Form>
     </div>
   );
-};
+});
 
 export default InvoiceForm;
