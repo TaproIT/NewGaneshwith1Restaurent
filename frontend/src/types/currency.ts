@@ -4,7 +4,7 @@
 export type BaseCurrency = 'LKR'; 
 
 // All currencies your app supports for display
-export type SupportedCurrency = 'LKR' | 'USD' | 'EUR'; 
+export type SupportedCurrency = 'LKR' | 'USD'; 
 
 // Structure for the rates object (e.g., { "LKR_USD": 0.0033 })
 export interface ExchangeRates {

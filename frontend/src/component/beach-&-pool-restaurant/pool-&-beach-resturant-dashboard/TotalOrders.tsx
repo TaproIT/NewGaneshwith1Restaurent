@@ -22,7 +22,7 @@ const TotalOrders: React.FC<Props> = ({ summary, range }) => {
 
   const roomServiceCount =
     summary.byServiceType.find(
-      (t) => t.serviceType.toLowerCase() === "room-service"
+      (t) => t.serviceType.toLowerCase() === "save-to-room"
     )?.count ?? 0;
 
     const formatDate = (dateString: string): string => {

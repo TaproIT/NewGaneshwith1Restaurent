@@ -7,6 +7,9 @@ import type { AppDispatch, RootState } from '@/app/store';
 import type { OrderFoodItem } from '../order-model';
 import { addFoodItemToOrderToken } from '@/features/beach-restaurant/orderSlice';
 import { useParams } from 'react-router-dom';
+import { convertAndFormatPrice } from '@/util/priceConverter';
+import { useRates } from '@/context/RateContext';
+import { useCurrency } from '@/context/CurrencyContext';
 
 interface FoodItemSelectorProps {
   foodItem: FoodItem;
@@ -15,6 +18,8 @@ interface FoodItemSelectorProps {
 const FoodItemSelector: React.FC<FoodItemSelectorProps> = ({ foodItem }) => {
   const dispatch = useDispatch<AppDispatch>();
   const order = useSelector((state: RootState) => state.order);
+  const { rates } = useRates();
+  const { displayCurrency } = useCurrency();
 
   const param = useParams();
   const id = param?.id as string;
@@ -38,6 +43,12 @@ const FoodItemSelector: React.FC<FoodItemSelectorProps> = ({ foodItem }) => {
     dispatch(addFoodItemToOrderToken(orderFoodItem));
   }, [dispatch, foodItem]);
 
+  const displayPrice = convertAndFormatPrice(
+    foodItem.price, 
+    rates, 
+    displayCurrency
+  );
+
   return (
     <div className="p-1 flex flex-col gap-1 border rounded-sm">
       {/* Food item name */}
@@ -48,7 +59,7 @@ const FoodItemSelector: React.FC<FoodItemSelectorProps> = ({ foodItem }) => {
       {/* Price and Add button */}
       <div className="grid grid-cols-7 gap-1">
         <div className="py-1.5 col-span-5 bg-[#F4F4F4] flex items-center justify-center rounded-sm">
-          <p className="text-[#0A869D] text-[0.75rem]">LKR {foodItem.price}</p>
+          <p className="text-[#0A869D] text-[0.75rem]">{displayPrice}</p>
         </div>
         <Button
           className="col-span-2 !w-full !h-full flex items-center justify-center rounded-sm cursor-pointer"
