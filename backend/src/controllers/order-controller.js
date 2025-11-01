@@ -171,7 +171,7 @@ export const selectTableForOrder = async (req, res) => {
     // Check if the table is already assigned to another active order
     const existingOrderWithTable = await Order.findOne({
       restaurantTable: tableId,
-      orderStatus: { $ne: OrderStatuses.CLOSED.value }, // table is free only if previous order is completed
+      orderStatus: { $ne: OrderStatuses.COMPLETED.value }, // table is free only if previous order is completed
     });
 
     if (existingOrderWithTable) {
@@ -349,7 +349,7 @@ export const updateOrderBillDetails = async (req, res) => {
         PaymentMethods.CASH.value,
         PaymentMethods.CARD.value,
         PaymentMethods.FREE_BILL.value,
-        PaymentMethods.ROOM.value
+        PaymentMethods.ROOM.value,
       ].includes(paymentMethod)
     ) {
       return sendErrorResponse(res, 400, "Invalid payment method");
@@ -365,6 +365,7 @@ export const updateOrderBillDetails = async (req, res) => {
         serviceCharge,
         totalBill,
         paymentMethod,
+        orderStatus: OrderStatuses.COMPLETED.value
       },
       { new: true, runValidators: true }
     );
@@ -373,7 +374,21 @@ export const updateOrderBillDetails = async (req, res) => {
       return sendErrorResponse(res, 404, "Order not found");
     }
 
-    return sendSuccessResponse(res, 200, "Order billing details updated successfully", { order });
+    // If order has a restaurant table, update that table’s status to EMPTY
+    if (order.restaurantTable) {
+      await RestaurantTable.findByIdAndUpdate(
+        order.restaurantTable,
+        { status: TableStatuses.EMPTY.value },
+        { new: true }
+      );
+    }
+
+    return sendSuccessResponse(
+      res,
+      200,
+      "Order billing details updated successfully",
+      { order }
+    );
   } catch (error) {
     console.error("Error updating order bill:", error);
     return sendErrorResponse(res, 500, "Internal Server Error", error.message);
