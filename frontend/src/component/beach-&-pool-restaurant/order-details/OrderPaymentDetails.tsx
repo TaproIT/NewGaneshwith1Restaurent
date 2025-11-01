@@ -72,7 +72,7 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
 
   // Recalculate token subtotal and total bill when order tokens or charges change
   useEffect(() => {
-    //if (order.paymentMethod !== "") return;
+    if (order.paymentMethod !== "") return;
     const tokenSubTotal =
       newOrderToken.foodOrders.length > 0 ||
       newOrderToken.beverageOrders.length > 0
@@ -224,7 +224,7 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
                      
                      <Button
                        className="col-span-2 !w-full !h-8 cursor-pointer"
-                       disabled={order.orderTokens.length === 0}
+                       disabled={(order.orderTokens.length === 0) || (order.newOrderToken.beverageOrders.length > 0 || order.newOrderToken.foodOrders.length > 0)}
                        onClick={handleProceedPayment}
                      >
                        Proceed To Payment
