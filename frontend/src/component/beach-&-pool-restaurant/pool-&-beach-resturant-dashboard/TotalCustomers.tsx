@@ -11,12 +11,12 @@ interface Props {
 const TotalCustomers: React.FC<Props> = ({ summary, range }) => {
   // Normalize data: ensure both "Checked-In" and "Walk-In" exist
   const checkedInCount =
-    summary.byCustomerType.find(
+    summary?.byCustomerType.find(
       (t) => t.customerType.toLowerCase() === "checked-in"
     )?.count ?? 0;
 
   const walkInCount =
-    summary.byCustomerType.find(
+    summary?.byCustomerType.find(
       (t) => t.customerType.toLowerCase() === "walk-in"
     )?.count ?? 0;
 
@@ -58,7 +58,7 @@ const TotalCustomers: React.FC<Props> = ({ summary, range }) => {
             Total Customers Arrived
           </div>
           <div className="text-Primary_orange font-bold text-2xl text-right">
-            {summary.totalCustomers}
+            {summary?.totalCustomers}
           </div>
         </div>
       </div>

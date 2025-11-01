@@ -36,8 +36,8 @@ const BeachResturantDashboard: React.FC = () => {
         <StatGridSkeleton />
       ) : (
         <div className="grid grid-cols-3 gap-5">
-          {range && <TotalOrders summary={orderSummary.orderSummary} range={range} />}
-          {range && <TotalCustomers summary={orderSummary.customerSummary} range={range} />}
+          {range && <TotalOrders summary={orderSummary?.orderSummary} range={range} />}
+          {range && <TotalCustomers summary={orderSummary?.customerSummary} range={range} />}
           <SoldLiqueurAmount />
         </div>
       )}

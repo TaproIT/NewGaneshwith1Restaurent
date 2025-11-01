@@ -11,17 +11,17 @@ interface Props {
 const TotalOrders: React.FC<Props> = ({ summary, range }) => {
 
     const dineInCount =
-    summary.byServiceType.find(
+    summary?.byServiceType.find(
       (t) => t.serviceType.toLowerCase() === "dine-in"
     )?.count ?? 0;
 
   const takeAwayCount =
-    summary.byServiceType.find(
+    summary?.byServiceType.find(
       (t) => t.serviceType.toLowerCase() === "take-away"
     )?.count ?? 0;
 
   const roomServiceCount =
-    summary.byServiceType.find(
+    summary?.byServiceType.find(
       (t) => t.serviceType.toLowerCase() === "save-to-room"
     )?.count ?? 0;
 
@@ -59,7 +59,7 @@ const TotalOrders: React.FC<Props> = ({ summary, range }) => {
         </div>
         <div className="flex flex-col gap-2">
           <div className="text-Primary_blue font-medium text-[16px]">Total Orders</div>
-          <div className="text-Primary_orange font-bold text-2xl text-right">{summary.totalOrders}</div>
+          <div className="text-Primary_orange font-bold text-2xl text-right">{summary?.totalOrders}</div>
         </div>
       </div>
 
