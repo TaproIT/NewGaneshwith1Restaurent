@@ -17,7 +17,6 @@ import SelectedRoomsList from "./room_details/SelectedRoomsList";
 import RoomDetailsPanel from "./room_details/RoomDetailsPanel";
 import { toast } from "react-toastify";
 import { setSelectedRooms } from "@/features/rooms/selectedRoomsSlice";
-import { set } from "zod";
 
 interface RoomDetailsProps {
   viewedRoom: Room | null;

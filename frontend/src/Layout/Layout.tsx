@@ -218,7 +218,7 @@ const Layout: React.FC = () => {
                 );
               }
               return (
-                <Link key={item.path} to={item.path} className={getLinkClassName(item.path)}>
+                <Link key={item.path} to={item.path} className={getLinkClassName(item.path)} title={isCollapsed ? item.title : undefined}>
                   {item.icon} {!isCollapsed && <p>{item.title}</p>}
                 </Link>
               );
