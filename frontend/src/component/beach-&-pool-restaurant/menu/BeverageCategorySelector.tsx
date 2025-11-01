@@ -77,7 +77,7 @@ const BeverageCategorySelector: React.FC = () => {
     <div className="relative flex flex-col items-start w-[135px] 2xl:w-[163px] rounded-md">
       {loading ? (
         Array.from({ length: 4 }).map((_, index) => (
-          <Skeleton key={index} className="h-[60px] w-full mb-2 rounded-md" />
+          <Skeleton key={index} className="h-[72px] w-full mb-2 rounded-md" />
         ))
       ) : (
         <div className="w-full h-[calc(100vh-300px)] overflow-y-auto no-scrollbar">
@@ -90,7 +90,7 @@ const BeverageCategorySelector: React.FC = () => {
                   itemRefs.current[index] = el;
                 }}
                 onClick={() => handleClick(cat.value)}
-                className={`px-4 py-6 mb-2 w-full flex items-center justify-center text-[0.75rem] font-medium cursor-pointer rounded-md
+                className={`px-4 py-6 mb-2 w-full max-h-[72px] flex items-center justify-center text-[0.75rem] font-medium cursor-pointer rounded-md
                   ${
                     isSelected
                       ? "bg-[#B24E0E] text-white"
@@ -111,7 +111,7 @@ const BeverageCategorySelector: React.FC = () => {
                   itemRefs.current[index] = el;
                 }}
                 onClick={() => handleClick(cat._id)}
-                className={`px-4 py-6 mb-2 w-full flex items-center justify-center text-[0.75rem] font-medium cursor-pointer rounded-md
+                className={`px-4 py-6 mb-2 w-full max-h-[72px] flex items-center justify-center text-[0.75rem] font-medium cursor-pointer rounded-md
                   ${
                     isSelected
                       ? "bg-[#B24E0E] text-white"

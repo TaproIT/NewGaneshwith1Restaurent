@@ -39,7 +39,7 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
   // Disable Token button only if BOTH foodOrders and beverageOrders are empty
   const isDisabled =
     (newOrderToken.foodOrders.length === 0 &&
-    newOrderToken.beverageOrders.length === 0) || (order.paymentMethod !== "");
+    newOrderToken.beverageOrders.length === 0);
 
   // Handler functions
   const handleTokenClick = useCallback(() => {
@@ -224,7 +224,7 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
                      
                      <Button
                        className="col-span-2 !w-full !h-8 cursor-pointer"
-                       disabled={order.orderTokens.length === 0}
+                       disabled={(order.orderTokens.length === 0) || (order.newOrderToken.beverageOrders.length > 0 || order.newOrderToken.foodOrders.length > 0)}
                        onClick={handleProceedPayment}
                      >
                        Proceed To Payment
