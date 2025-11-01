@@ -74,7 +74,6 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
   const invoiceData = useSelector(
     (state: RootState) => state.invoice.invoiceFormData
   );
-  const bookingId = useSelector((state: RootState) => state.booking.roomData?.bookingId)
   const navigate = useNavigate();
 
   const { rates } = useRates();
