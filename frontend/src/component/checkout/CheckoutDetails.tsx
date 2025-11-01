@@ -82,6 +82,15 @@ const CheckoutDetails: React.FC = () => {
         open={isPaymentModalOpen}
         onOpenChange={setIsPaymentModalOpen}
         booking={booking}
+        originalBillTotal={booking.totalBill}
+        totalRoomCharge={booking.totalRoomsCharges}
+        totalOrdersPrice={booking.totalOrdersBill}
+        subtotal={subtotal}
+        tax={tax}
+        serviceCharge={serviceCharge}
+        discount={discount}
+        totalBill={total}
+        additionalPrice={charges}
       />
     </div>
   );
