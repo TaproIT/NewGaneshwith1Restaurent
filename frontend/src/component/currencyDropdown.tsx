@@ -5,7 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ChevronDown } from "lucide-react"; 
 
 // Define the available currencies for the dropdown
-const availableCurrencies: SupportedCurrency[] = ['LKR', 'USD', 'EUR'];
+const availableCurrencies: SupportedCurrency[] = ['LKR', 'USD'];
 
 export default function CurrencyDropdown() {
   const { displayCurrency, setDisplayCurrency } = useCurrency();

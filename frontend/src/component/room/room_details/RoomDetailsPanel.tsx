@@ -5,6 +5,9 @@ import RoomDetailsSkeleton from "@/component/skeleton/RoomDetailsSkeleton";
 import GuestDetailsCard from "./GuestDetailsCard";
 import RoomsDetailsCard from "./RoomsDetailsCard";
 import type { Room } from "@/types/roomTypes";
+import { convertAndFormatPrice } from "@/util/priceConverter";
+import { useRates } from "@/context/RateContext";
+import { useCurrency } from "@/context/CurrencyContext";
 
 interface RoomDetailsPanelProps {
   viewedRoom: Room | null;
@@ -29,6 +32,15 @@ const RoomDetailsPanel: React.FC<RoomDetailsPanelProps> = ({
     ) : null;
   }
 
+  const {rates} = useRates()
+  const {displayCurrency} = useCurrency()
+
+  const displayPrice = convertAndFormatPrice(
+    viewedRoom.perDayPrice, 
+    rates, 
+    displayCurrency
+  );
+
   return (
     <>
       {!checkout && <HeaderBadge viewedRoom={viewedRoom} />}
@@ -48,7 +60,7 @@ const RoomDetailsPanel: React.FC<RoomDetailsPanelProps> = ({
 
       <div className="absolute bottom-5 left-[25%] text-gray font-medium text-lg">
         <div className="flex justify-center items-center">
-          LKR {viewedRoom.perDayPrice}
+          {displayPrice}
           <span className="px-2 font-normal text-sm">Per Day</span>
         </div>
       </div>
