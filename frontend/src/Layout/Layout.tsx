@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Logo from '../assets/Images/Logos/main_logo.png';
 import { 
-  Bell, CircleArrowRight, LogOut, Settings, 
+  Bell, CircleArrowRight, LogOut,
   ShieldCheck, User, UserRoundPlus, Users,
   RepeatIcon, BookText, House, Table2, NotepadText,
   PauseCircle, Newspaper, ChevronLeft, ChevronRight, Banknote
@@ -10,7 +10,7 @@ import {
 import CurrencyDropdown from '@/component/currencyDropdown';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '@/app/store';
-import type { UserRole } from '@/types/roleTypes';
+// import type { UserRole } from '@/types/roleTypes';
 import { api } from '@/api/axios';
 import { toast } from 'react-toastify';
 import { fetchUserRole } from '@/features/user/userSlice';

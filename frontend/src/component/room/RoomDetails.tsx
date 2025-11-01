@@ -188,7 +188,10 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
     const message = `This is your room number(s): ${roomNumbers}`;
 
     try {
-      const res = await api.post(`/booking/${whatsAppId}/send-email`, {
+      // const res = await api.post(`/booking/${whatsAppId}/send-email`, {
+      //   message,
+      // });
+      await api.post(`/booking/${whatsAppId}/send-email`, {
         message,
       });
       toast.success("Email sent successfully!");
