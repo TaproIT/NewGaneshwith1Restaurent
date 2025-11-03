@@ -16,12 +16,14 @@ interface SwitchRoomCollectionProps {
   guestDetails: Booking | null;
   onTotalChange?: (total: number) => void; // callback for total
   onRemoveRoom?: (oldRoom: OldRoom) => void; // callback for deleted room
+  switchRoom?: boolean;
 }
 
 const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
   guestDetails,
   onTotalChange,
   onRemoveRoom,
+  switchRoom,
 }) => {
   const { rates, loading } = useRates();
   const { displayCurrency } = useCurrency();
@@ -144,12 +146,13 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
               </div>
 
               {/* Discount input */}
-              <div className="mt-3 flex items-center gap-2">
-                <label className="text-sm font-medium text-gray">Discount:</label>
-                <input
-                  type="number"
-                  min={0}
-                  max={
+              {switchRoom && (
+                <div className="mt-3 flex items-center gap-2">
+                  <label className="text-sm font-medium text-gray">Discount:</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={
                     displayCurrency === "USD"
                       ? room.roomTotalPrice * (rates["LKR_USD"] || 1)
                       : room.roomTotalPrice
@@ -158,7 +161,7 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
                   onChange={(e) => handleDiscountChange(room.roomNo, Number(e.target.value))}
                   className="border rounded px-2 py-1 w-30"
                 />
-              </div>
+              </div>)}
 
               {/* Final total */}
               <div className="flex gap-2 text-gray-800 mt-2">
@@ -167,7 +170,7 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
               </div>
 
               {/* Delete button */}
-              <div className="flex justify-end mt-3">
+              {switchRoom && <div className="flex justify-end mt-3">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -175,7 +178,7 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
                 >
                   <Trash2 color="red" />
                 </Button>
-              </div>
+              </div>}
             </li>
           );
         })}

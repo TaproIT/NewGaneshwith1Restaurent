@@ -240,6 +240,7 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
             guestDetails={bookingDetails.roomData}
             onTotalChange={setTotalPrice}
             onRemoveRoom={handleRemoveRoom}
+            switchRoom={switchRoom}
           />
         )}
       </div>

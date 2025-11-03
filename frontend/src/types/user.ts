@@ -5,5 +5,5 @@ export interface User {
   updatedAt: string;
   isActive: boolean;
   email: string;
-  contact: string;
+  contactNumber: string;
 }
