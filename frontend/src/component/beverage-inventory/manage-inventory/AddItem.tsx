@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import React, { use, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import UpdateBeverageModal from "./UpdateBeverageModal";
 import { api } from "@/api/axios";
 import type { BeverageItem } from "@/types/BeverageItem";

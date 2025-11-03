@@ -372,7 +372,6 @@ export default function Step01() {
                   validate: (value) => {
                     if (!value) return "Check-out date is required";
                     const selected = new Date(value);
-                    const today = new Date();
                     if (selected < new Date(todayDate))
                       return "Check-out date cannot be before today";
                     return true;
