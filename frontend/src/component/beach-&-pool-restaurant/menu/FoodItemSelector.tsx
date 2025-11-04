@@ -12,6 +12,7 @@ import { useRates } from '@/context/RateContext';
 import { useCurrency } from '@/context/CurrencyContext';
 import { setIsClickAddNewFoodItem, setIsSelectedFoodItem, setSelectedFoodItem } from '@/features/beach-restaurant/foodSlice';
 import { setIsClickedAddFoodCategory } from '@/features/beach-restaurant/foodCategorySlice';
+import { setIsSelectedBeverageItem, setIsSelectedExtraBeverageItem, setSelectedBeverageItem, setSelectedExtraBeverageItem } from '@/features/beach-restaurant/beverageSlice';
 
 interface FoodItemSelectorProps {
   foodItem: FoodItem;
@@ -42,6 +43,11 @@ const FoodItemSelector: React.FC<FoodItemSelectorProps> = ({ foodItem }) => {
     dispatch(setSelectedFoodItem(foodItem._id));
     dispatch(setIsClickAddNewFoodItem(false));
     dispatch(setIsClickedAddFoodCategory(false));
+
+    dispatch(setIsSelectedBeverageItem(false));
+    dispatch(setSelectedBeverageItem(""));
+    dispatch(setIsSelectedExtraBeverageItem(false));
+    dispatch(setSelectedExtraBeverageItem(""));
   }
 
   // Handler to add food item to new order token

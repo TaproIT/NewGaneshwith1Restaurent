@@ -5,12 +5,13 @@ import {
   setIsBeverageItemsList,
 } from "@/features/beach-restaurant/beverageCategorySlice";
 import { setIsClickedAddFoodCategory, setIsFoodCategory, setSelectedCategoryId, setSelectedFoodCategoryTitle } from "@/features/beach-restaurant/foodCategorySlice";
-import { setIsClickAddNewFoodItem } from "@/features/beach-restaurant/foodSlice";
+import { setIsClickAddNewFoodItem, setSelectedFoodItem } from "@/features/beach-restaurant/foodSlice";
 import React, { useRef, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "react-toastify";
 import { Plus } from "lucide-react";
+import { setSelectedBeverageItem, setSelectedExtraBeverageItem } from "@/features/beach-restaurant/beverageSlice";
 
 const FoodCategorySelector: React.FC<{id:string}> = ({id}) => {
   const dispatch = useDispatch();
@@ -77,7 +78,11 @@ useEffect(() => {
     dispatch(setSelectedCategoryId(categories[index]._id));
     dispatch(setIsBeverageItemsList(false));
     dispatch(setSelectedFoodCategoryTitle(categories[index]._id))
-    //dispatch(setIsClickAddNewFoodItem(false));
+    dispatch(setIsClickAddNewFoodItem(true));
+
+    dispatch(setSelectedBeverageItem(""));
+    dispatch(setSelectedExtraBeverageItem(""));
+    dispatch(setSelectedFoodItem(""));
   };
 
   // Drag handlers

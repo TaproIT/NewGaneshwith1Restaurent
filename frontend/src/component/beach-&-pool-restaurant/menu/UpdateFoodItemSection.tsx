@@ -45,7 +45,7 @@ export default function UpdateItemSection() {
    const { selectedCategory, selectedBeverageCategoryTitle } = useSelector(
     (state: RootState) => state.beverageCategory
   );
-  const { beverageItems: beverages } = useSelector(
+  const { beverageItems: beverages, selectedBeverageItem, selectedExtraBeverageItem } = useSelector(
     (state: RootState) => state.beverage
   );
   const hardLiquors = beverages.filter(
@@ -57,10 +57,10 @@ export default function UpdateItemSection() {
           selectedCategory !== BeverageCategories.SOFT_DRINKS.value;
 
   // States
-  const [itemName, setItemName] = useState(selectedFoodItem?.itemName || "");
-  const [price, setPrice] = useState<number>(selectedFoodItem?.price || 0);
-  const [addLiqueur, setAddLiqueur] = useState(selectedFoodItem?.isEnableBeverage || false);
-  const [liqueurs, setLiqueurs] = useState<Liqueur[]>(selectedFoodItem?.liquor ?? []);
+  const [itemName, setItemName] = useState("");
+  const [price, setPrice] = useState<number>(0);
+  const [addLiqueur, setAddLiqueur] = useState(false);
+  const [liqueurs, setLiqueurs] = useState<Liqueur[]>([]);
 
   const isDisabled = !itemName.trim() || price <= 0;
 
@@ -120,13 +120,28 @@ export default function UpdateItemSection() {
   }, [dispatch]);
   
   useEffect(() => {
-  if (selectedFoodItem) {
+  if (selectedFoodItem !== null) {
     setItemName(selectedFoodItem.itemName || "");
     setPrice(selectedFoodItem.price || 0);
     setAddLiqueur(selectedFoodItem.isEnableBeverage || false);
     setLiqueurs(selectedFoodItem.liquor ?? []);
+    return;
   }
-}, [selectedFoodItem]);
+
+  if (selectedBeverageItem !== null) {
+    setItemName(selectedBeverageItem.beverageName || "");
+    setPrice(selectedBeverageItem.price || 0);
+    return;
+  }
+
+   if (selectedExtraBeverageItem !== null) {
+    setItemName(selectedExtraBeverageItem.beverageName || "");
+    setPrice(selectedExtraBeverageItem.price || 0);
+    setAddLiqueur(selectedExtraBeverageItem.isEnableBeverage || false);
+    setLiqueurs(selectedExtraBeverageItem.liquor ?? []);
+    return;
+  }
+}, [selectedFoodItem, selectedBeverageItem, selectedExtraBeverageItem]);
 
   return (
     <div className="max-w-sm h-full text-[#444444] mx-auto p-4 flex flex-col items-center justify-between bg-mainWhite rounded-l-2xl">

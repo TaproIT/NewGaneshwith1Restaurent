@@ -5,7 +5,7 @@ import {
   setSelectedBeverageCategoryTitle,
 } from "@/features/beach-restaurant/beverageCategorySlice";
 import { setIsClickedAddFoodCategory, setIsFoodCategory, setSelectedCategoryId, setSelectedFoodCategoryTitle } from "@/features/beach-restaurant/foodCategorySlice";
-import { setIsClickAddNewFoodItem } from "@/features/beach-restaurant/foodSlice";
+import { setIsClickAddNewFoodItem, setSelectedFoodItem } from "@/features/beach-restaurant/foodSlice";
 import { BeverageCategories } from "@/lib/enums/order-related-enums";
 import React, { useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "react-toastify";
 import { fetchAllExtraBeverageCategories } from "@/api/order/get-extra-beverge-categories-api";
 import { Plus } from "lucide-react";
+import { setSelectedBeverageItem, setSelectedExtraBeverageItem } from "@/features/beach-restaurant/beverageSlice";
 
 
 const BeverageCategorySelector: React.FC<{id:string}> = ({id}) => {
@@ -67,7 +68,11 @@ const BeverageCategorySelector: React.FC<{id:string}> = ({id}) => {
     dispatch(setSelectedFoodCategoryTitle(""));
     dispatch(setSelectedBeverageCategoryTitle(category));
     dispatch(setIsFoodCategory(false));
-    //dispatch(setIsClickAddNewFoodItem(false));
+    dispatch(setIsClickAddNewFoodItem(true));
+
+    dispatch(setSelectedBeverageItem(""));
+    dispatch(setSelectedExtraBeverageItem(""));
+    dispatch(setSelectedFoodItem(""));
   };
 
   const handleAddNewBeverageCategory = () => {

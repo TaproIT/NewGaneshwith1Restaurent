@@ -34,6 +34,8 @@ const foodSlice = createSlice({
     //     state.selectedFoodItemId = action.payload;
     //  },
      setSelectedFoodItem: (state, action:PayloadAction<string>) => {
+       if (action.payload === "") state.selectedFoodItem = null; 
+
        state.selectedFoodItemId = action.payload;
 
        const selectedFoodItem = state.foodItems.find((item) => item._id === action.payload);
