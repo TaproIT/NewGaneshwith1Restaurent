@@ -316,7 +316,6 @@ function FormRow({
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { updateExtraBeverage } from "@/api/order/update-extra-beverage-item-api";
-import { fetchAllExtraBeverageItems } from "@/api/order/get-extra-beverage-list-api";
 
 function UpdateItemSkeleton() {
   return (
