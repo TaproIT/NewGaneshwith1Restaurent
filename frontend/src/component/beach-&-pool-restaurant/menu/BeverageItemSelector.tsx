@@ -12,7 +12,7 @@ import { useCurrency } from '@/context/CurrencyContext';
 import { useRates } from '@/context/RateContext'; 
 import { convertAndFormatPrice } from '@/util/priceConverter'; 
 import { BeverageCategories } from '@/lib/enums/order-related-enums';
-import { setIsSelectedBeverageItem, setIsSelectedExtraBeverageItem, setSelectedBeverageItem, setSelectedExtraBeverageItem } from '@/features/beach-restaurant/beverageSlice';
+import { setIsSelectedExtraBeverageItem, setSelectedBeverageItem, setSelectedExtraBeverageItem } from '@/features/beach-restaurant/beverageSlice';
 import { setIsClickAddNewFoodItem, setIsSelectedFoodItem, setSelectedFoodItem } from '@/features/beach-restaurant/foodSlice';
 import { setIsClickedAddFoodCategory } from '@/features/beach-restaurant/foodCategorySlice';
 interface BeverageItemSelectorProps {

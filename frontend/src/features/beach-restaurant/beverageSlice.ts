@@ -149,6 +149,8 @@ const beverageSlice = createSlice({
 
       .addCase(addNewExtraBeverage.fulfilled, (state) => {
         state.isAddedBeverageItem = true;
+        state.addExtraBeverageItemStatus.loading = false;
+        state.addExtraBeverageItemStatus.error = null;
       })
 
       .addCase(addNewExtraBeverage.rejected, (state, action) => {
