@@ -41,6 +41,7 @@ const BeverageSchema = new mongoose.Schema(
       enum: ["hard liquor", "soft drinks"],
       required: true,
     },
+      volume: {type:Number,default:0},
     //restaurantType: { type: String, required: true, enums: [RestaurantTypes.BEACH.value, RestaurantTypes.POOL.value] },
     isVisible: { type: Boolean, default: true },
 

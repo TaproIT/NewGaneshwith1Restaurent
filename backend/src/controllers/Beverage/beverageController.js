@@ -147,24 +147,25 @@ export const createBeverage = async (req, res) => {
   }
 };
 
-export const updateBeverage = async (req, res) => {
+// ADD QUANTITY
+export const addBeverageQuantity = async (req, res) => {
   try {
     const { id } = req.params;
-    const { price, runningStock, note } = req.body;
+    const { quantity, note } = req.body;
 
-    if (!runningStock || runningStock <= 0) {
+    if (quantity === undefined || quantity <= 0) {
       return res.status(400).json({
         success: false,
-        message: "runningStock must be greater than 0.",
+        message: "Quantity must be greater than 0.",
       });
     }
 
-    // Find existing beverage
+
     const beverage = await Beverage.findById(id);
     if (!beverage || beverage.status === "deleted") {
       return res.status(404).json({
         success: false,
-        message: "Beverage not found or has been deleted.",
+        message: "Beverage not found or deleted.",
       });
     }
 
@@ -172,40 +173,167 @@ export const updateBeverage = async (req, res) => {
     const year = now.year();
     const month = now.month() + 1;
 
-    // Prepare new history entry
-    const newHistory = {
+    const oldStock = beverage.runningStock || 0;
+    const newStock = oldStock + quantity;
+
+    const historyEntry = {
       year,
       month,
       lastUpdateAt: now.toDate(),
-      oldStock: beverage.runningStock || 0, // before update
+      oldStock,
       purchasedStock: 0,
       isPurchased: false,
-      newStock: runningStock, // new stock value
+      newStock,
       date: now.toDate(),
-      note: note || "",
+      note: `${now.format("YYYY-MM-DD HH:mm:ss")} - ${note || "Added stock"}`,
     };
 
-    // Update beverage fields
-    beverage.price = price !== undefined ? price : beverage.price;
-    beverage.runningStock = runningStock;
+    beverage.runningStock = newStock;
+    beverage.lastUpdateAt = now.toDate();
+    beverage.historyQuantity.push(historyEntry);
+
+    const updated = await beverage.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Beverage stock increased successfully.",
+      data: updated,
+    });
+  } catch (error) {
+    console.error("Error adding beverage quantity:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to add beverage quantity.",
+      error: error.message,
+    });
+  }
+};
+
+// REDUCE QUANTITY
+export const reduceBeverageQuantity = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {  quantity, note } = req.body;
+
+    if (quantity === undefined || quantity <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Quantity must be greater than 0.",
+      });
+    }
+
+
+    const beverage = await Beverage.findById(id);
+    if (!beverage || beverage.status === "deleted") {
+      return res.status(404).json({
+        success: false,
+        message: "Beverage not found or deleted.",
+      });
+    }
+
+    const now = dayjs();
+    const year = now.year();
+    const month = now.month() + 1;
+
+    const oldStock = beverage.runningStock || 0;
+    if (oldStock < quantity) {
+      return res.status(400).json({
+        success: false,
+        message: "Insufficient stock to reduce.",
+      });
+    }
+
+    const newStock = oldStock - quantity;
+
+    const historyEntry = {
+      year,
+      month,
+      lastUpdateAt: now.toDate(),
+      oldStock,
+      purchasedStock: 0,
+      isPurchased: false,
+      newStock,
+      date: now.toDate(),
+      note: `${now.format("YYYY-MM-DD HH:mm:ss")} - ${note || "Reduced stock"}`,
+    };
+
+
+    beverage.runningStock = newStock;
+    beverage.lastUpdateAt = now.toDate();
+    beverage.historyQuantity.push(historyEntry);
+
+    const updated = await beverage.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Beverage stock reduced successfully.",
+      data: updated,
+    });
+  } catch (error) {
+    console.error("Error reducing beverage quantity:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to reduce beverage quantity.",
+      error: error.message,
+    });
+  }
+};
+
+export const updateBeveragePriceAndVolume = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { price, volume } = req.body;
+
+    // Find existing beverage
+    const beverage = await Beverage.findById(id);
+    if (!beverage || beverage.status === "deleted") {
+      return res.status(404).json({
+        success: false,
+        message: "Beverage not found or deleted.",
+      });
+    }
+
+    const now = dayjs();
+    const year = now.year();
+    const month = now.month() + 1;
+    const formattedDate = now.format("YYYY-MM-DD HH:mm:ss");
+
+    if (price !== undefined && price !== null && price < 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Price cannot be negative.",
+      });
+    }
+
+    if (volume !== undefined && volume !== null && volume < 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Volume cannot be negative.",
+      });
+    }
+
+    // Keep existing price/volume if null or undefined
+    const newPrice =
+        price !== undefined && price !== null ? price : beverage.price;
+    const newVolume =
+        volume !== undefined && volume !== null ? volume : beverage.volume;
+
+    beverage.price = newPrice;
+    beverage.volume = newVolume;
     beverage.lastUpdateAt = now.toDate();
 
-    // Append to historyQuantity
-    beverage.historyQuantity.push(newHistory);
-
-    // Save
     const updatedBeverage = await beverage.save();
 
     res.status(200).json({
       success: true,
-      message: "Beverage updated successfully.",
+      message: "Beverage price/volume updated successfully.",
       data: updatedBeverage,
     });
   } catch (error) {
-    console.error("Error updating beverage:", error);
+    console.error("Error updating price/volume:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to update beverage.",
+      message: "Failed to update beverage price/volume.",
       error: error.message,
     });
   }
