@@ -120,6 +120,7 @@ export default function AddFoodItemSection() {
           beverageName: itemName,
           price,
           isVisible: true,
+          isEnableBeverage: addLiqueur,
           liquor: liqueurs || []
         };
 

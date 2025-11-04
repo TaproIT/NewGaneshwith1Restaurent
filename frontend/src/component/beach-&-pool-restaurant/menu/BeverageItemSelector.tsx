@@ -58,6 +58,7 @@ const BeverageItemSelector: React.FC<BeverageItemSelectorProps> = ({ beverageIte
       dispatch(setIsSelectedExtraBeverageItem(true));
       dispatch(setSelectedExtraBeverageItem(beverageItem._id));
       dispatch(setSelectedBeverageItem(""));
+       dispatch(setIsClickAddNewFoodItem(false));
       return;
     }
     //dispatch(setIsSelectedBeverageItem(true));

@@ -35,7 +35,7 @@ export default function UpdateItemSection() {
    const { selectedCategory, selectedBeverageCategoryTitle } = useSelector(
     (state: RootState) => state.beverageCategory
   );
-  const { beverageItems: beverages, selectedBeverageItem, selectedExtraBeverageItem } = useSelector(
+  const { beverageItems: beverages, selectedBeverageItem, selectedExtraBeverageItem, fetchAllExtraBeverageItemsStatus } = useSelector(
     (state: RootState) => state.beverage
   );
   const hardLiquors = beverages.filter(
@@ -46,7 +46,9 @@ export default function UpdateItemSection() {
           selectedCategory !== BeverageCategories.HARD_LIQUOR.value &&
           selectedCategory !== BeverageCategories.SOFT_DRINKS.value;
 
-  const updateFoodItemLoading = fetchAllFoodItemsStatus.loading
+  const updateFoodItemLoading = fetchAllFoodItemsStatus.loading;
+
+  const updateExtraBeverageItemLoading = fetchAllExtraBeverageItemsStatus.loading;
 
   // States
   const [itemName, setItemName] = useState("");
@@ -69,7 +71,7 @@ export default function UpdateItemSection() {
 
   const handleUpdateItem = async () => {
     try {
-      if (selectedFoodItem !== null ){
+      if (selectedFoodItem !== null) {
         const updatedItem = {
           foodId: selectedFoodItem._id,
           itemName,
@@ -84,7 +86,25 @@ export default function UpdateItemSection() {
             : [],
         };
 
-        dispatch(updateFoodItem(updatedItem))
+        dispatch(updateFoodItem(updatedItem));
+      }
+
+      if (selectedExtraBeverageItem !== null) {
+        const updatedItem = {
+          beverageId: selectedExtraBeverageItem._id,
+          beverageName: itemName,
+          price,
+          extraBeverageCategory: selectedExtraBeverageItem?.category,
+          isEnableBeverage: addLiqueur,
+          liquor: addLiqueur
+            ? liqueurs.map((l) => ({
+                beverage: l.beverage,
+                amount: l.amount ?? 0,
+              }))
+            : [],
+        };
+
+        dispatch(updateExtraBeverage(updatedItem));
       }
 
       toast.success("Item updated successfully!");
@@ -108,11 +128,11 @@ export default function UpdateItemSection() {
     return;
   }
 
-  if (selectedBeverageItem !== null) {
-    setItemName(selectedBeverageItem.beverageName || "");
-    setPrice(selectedBeverageItem.price || 0);
-    return;
-  }
+  // if (selectedBeverageItem !== null) {
+  //   setItemName(selectedBeverageItem.beverageName || "");
+  //   setPrice(selectedBeverageItem.price || 0);
+  //   return;
+  // }
 
    if (selectedExtraBeverageItem !== null) {
     setItemName(selectedExtraBeverageItem.beverageName || "");
@@ -123,7 +143,7 @@ export default function UpdateItemSection() {
   }
 }, [selectedFoodItem, selectedBeverageItem, selectedExtraBeverageItem, isUpdatedFoodItem]);
 
-  if ( updateFoodItemLoading ) {
+  if ( updateFoodItemLoading || updateExtraBeverageItemLoading ) {
     return (
       <UpdateItemSkeleton />
     )
@@ -295,6 +315,8 @@ function FormRow({
 }
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { updateExtraBeverage } from "@/api/order/update-extra-beverage-item-api";
+import { fetchAllExtraBeverageItems } from "@/api/order/get-extra-beverage-list-api";
 
 function UpdateItemSkeleton() {
   return (

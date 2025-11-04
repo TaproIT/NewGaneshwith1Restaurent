@@ -92,7 +92,7 @@ export const toggleExtraBeverageCategoryVisibility = async (req, res) => {
 // Create Beverage
 export const createExtraBeverage = async (req, res) => {
     try {
-        const { beverageName, extraBeverageCategory, price, isVisible, liquor } = req.body;
+        const { beverageName, extraBeverageCategory, price, isVisible, isEnableBeverage, liquor } = req.body;
 
         const exists = await ExtraBeverageCategory.exists({ _id: extraBeverageCategory });
         if (!exists) return res.status(400).json({ error: "Invalid category" });
@@ -105,6 +105,7 @@ export const createExtraBeverage = async (req, res) => {
             extraBeverageCategory,
             price,
             isVisible,
+            isEnableBeverage,
             liquor: liquor || [],
         });
 
@@ -156,7 +157,7 @@ export const getExtraBeverage = async (req, res) => {
 
 export const updateExtraBeverage = async (req, res) => {
     try {
-        const { beverageName, extraBeverageCategory, price, isVisible, liquor } = req.body;
+        const { beverageName, extraBeverageCategory, price, isEnableBeverage, isVisible, liquor } = req.body;
 
         if (extraBeverageCategory) {
             const exists = await ExtraBeverageCategory.exists({ _id: extraBeverageCategory });
@@ -172,6 +173,7 @@ export const updateExtraBeverage = async (req, res) => {
             ...(extraBeverageCategory && { extraBeverageCategory }),
             ...(price !== undefined && { price }),
             ...(isVisible !== undefined && { isVisible }),
+            ...(isEnableBeverage !== undefined && { isEnableBeverage }),
             ...(liquor && { liquor }), 
         };
 
