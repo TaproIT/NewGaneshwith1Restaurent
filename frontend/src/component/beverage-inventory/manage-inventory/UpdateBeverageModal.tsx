@@ -29,6 +29,7 @@ const UpdateBeverageModal: React.FC<UpdateBeverageModalProps> = ({
     action: action,
     price: 0,
     quantity: 0,
+    volume: 0,
     note: "",
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -37,7 +38,7 @@ const UpdateBeverageModal: React.FC<UpdateBeverageModalProps> = ({
     const { name, value } = e.target;
 
     // Prevent negative values
-    if ((name === "price" || name === "quantity") && Number(value) < 0) return;
+    if ((name === "price" || name === "quantity" || name === "volume") && Number(value) < 0) return;
 
     setForm((prev) => ({
       ...prev,
@@ -57,15 +58,19 @@ const UpdateBeverageModal: React.FC<UpdateBeverageModalProps> = ({
 
     try {
       // Step 1: Update beverage quantity / note
-      if (form.quantity > 0 || form.note) {
-      await api.patch(`/beverages/${selectedBeverage}`, payload);
+      if ((form.quantity > 0 || form.note) && action === "restock") {
+      await api.put(`/beverages/add-beverage-quantity/${selectedBeverage}`, payload);
       }
 
-      // Step 2: Only update price if greater than zero
-      if (form.price > 0) {
-        await api.put(`/beverages/${selectedBeverage}/price`, {
-          price: form.price,
-        });
+      if ((form.price > 0 || form.volume > 0) && action === "restock") {
+  await api.put(`/beverages/price-and-volume/${selectedBeverage}`, {
+    ...(form.price > 0 && { price: form.price }),
+    ...(form.volume > 0 && { volume: form.volume }),
+  });
+}
+
+      if (form.quantity > 0 && action === "remove") {
+        await api.patch(`/beverages/reduce-beverage-quantity/${selectedBeverage}`, payload);
       }
 
       toast.success(
@@ -75,7 +80,7 @@ const UpdateBeverageModal: React.FC<UpdateBeverageModalProps> = ({
       );
 
       onOpenChange(false);
-      setForm({ action: "", quantity: 0, note: "", price: 0 });
+      setForm({ action: "", quantity: 0, note: "", price: 0, volume: 0 });
     } catch (error: any) {
       const message =
         error.response?.data?.message || "Failed to update beverage";
@@ -96,7 +101,7 @@ const UpdateBeverageModal: React.FC<UpdateBeverageModalProps> = ({
         </DialogHeader>
 
         <div className="flex flex-col gap-4 mt-4">
-          <div className="grid grid-cols-3 items-center gap-2">
+          {action === "restock" && <div className="grid grid-cols-3 items-center gap-2">
             <label className="col-span-1">Price</label>
             <Input
               type="number"
@@ -107,7 +112,20 @@ const UpdateBeverageModal: React.FC<UpdateBeverageModalProps> = ({
               className="col-span-2"
               min={0}
             />
-          </div>
+          </div>}
+
+          {action === "restock" && <div className="grid grid-cols-3 items-center gap-2">
+            <label className="col-span-1">Volume</label>
+            <Input
+              type="number"
+              name="volume"
+              placeholder="Volume in ML"
+              value={form.volume || ""}
+              onChange={handleChange}
+              className="col-span-2"
+              min={0}
+            />
+          </div>}
 
           <div className="grid grid-cols-3 items-center gap-2">
             <label className="col-span-1">Quantity</label>

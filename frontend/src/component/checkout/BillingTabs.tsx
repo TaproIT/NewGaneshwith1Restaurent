@@ -61,37 +61,44 @@ const BillingTabs: React.FC<Props> = ({ booking }) => {
         <div className="space-y-4 text-sm">
           <div>
             <div className="font-medium mb-2">Rooms</div>
-            {booking.roomDetails.map((room) => (
-                
-              <div key={room.roomId} className="flex justify-between">
-                <span>
-                  Room {room.roomNo} ({room.nights} nights)
-                </span>
-                <span>
-                  {convertAndFormatPrice(
-                    room.finalRoomTotalPrice,
-                    rates,
-                    displayCurrency
-                  )}
-                </span>
-              </div>
-            ))}
+            {booking.roomDetails && booking.roomDetails.length > 0 ? (
+              booking.roomDetails.map((room) => (
+                <div key={room.roomId} className="flex justify-between">
+                  <span>
+                    Room {room.roomNo} ({room.nights} nights)
+                  </span>
+                  <span>
+                    {convertAndFormatPrice(
+                      room.finalRoomTotalPrice,
+                      rates,
+                      displayCurrency
+                    )}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className="text-gray-500 italic">No rooms available</div>
+            )}
           </div>
 
           <div>
             <div className="font-medium mb-2">Orders</div>
-            {booking.orderDetails.map((order) => (
-              <div key={order.orderId} className="flex justify-between">
-                <span>Order #{order.orderNumber}</span>
-                <span>
-                  {convertAndFormatPrice(
-                    order.totalBill,
-                    rates,
-                    displayCurrency
-                  )}
-                </span>
-              </div>
-            ))}
+            {booking.orderDetails && booking.orderDetails.length > 0 ? (
+              booking.orderDetails.map((order) => (
+                <div key={order.orderId} className="flex justify-between">
+                  <span>Order #{order.orderNumber}</span>
+                  <span>
+                    {convertAndFormatPrice(
+                      order.totalBill,
+                      rates,
+                      displayCurrency
+                    )}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className="text-gray-500 italic">No orders available</div>
+            )}
           </div>
         </div>
       )}
