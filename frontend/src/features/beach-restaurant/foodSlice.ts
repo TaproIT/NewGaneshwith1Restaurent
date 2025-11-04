@@ -1,12 +1,15 @@
 import { addNewFoodItem } from "@/api/order/add-food-item-api";
 import { fetchAllFoodItems } from "@/api/order/get-food-list-api";
-import type { FoodItems } from "@/component/beach-&-pool-restaurant/food-model";
+import type { FoodItem, FoodItems } from "@/component/beach-&-pool-restaurant/food-model";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 const initialState: FoodItems = {
    isAddedNewFoodItem: false,
    foodItems: [],
    isClickAddNewFoodItem: true,
+   selectedFoodItemId: null,
+   selectedFoodItem: null,
+   isSelectedFoodItem: false,
    fetchAllFoodItemsStatus: {
      loading: false,
      error: null
@@ -23,6 +26,30 @@ const foodSlice = createSlice({
   reducers: {
      setIsClickAddNewFoodItem: (state, action:PayloadAction<boolean>) => {
         state.isClickAddNewFoodItem = action.payload;
+     },
+     setIsSelectedFoodItem: (state, action:PayloadAction<boolean>) => {
+        state.isSelectedFoodItem = action.payload;
+     },
+    //  setSelectedFoodItemId: (state, action:PayloadAction<string>) => {
+    //     state.selectedFoodItemId = action.payload;
+    //  },
+     setSelectedFoodItem: (state, action:PayloadAction<string>) => {
+       state.selectedFoodItemId = action.payload;
+
+       const selectedFoodItem = state.foodItems.find((item) => item._id === action.payload);
+
+       if (selectedFoodItem) {
+          state.selectedFoodItem = {
+            _id: selectedFoodItem._id,
+            itemName: selectedFoodItem.itemName,
+            category: selectedFoodItem.category?.categoryName ?? "",
+            price: selectedFoodItem.price,
+            isEnableBeverage: selectedFoodItem.isEnableBeverage,
+            liquor: selectedFoodItem.liquor ?? []
+          }
+       }
+
+       //state.selectedFoodItem = action.payload;
      }
   },
   
@@ -67,5 +94,5 @@ const foodSlice = createSlice({
   
 });
 
-export const { setIsClickAddNewFoodItem } = foodSlice.actions;
+export const { setIsClickAddNewFoodItem, setIsSelectedFoodItem, setSelectedFoodItem } = foodSlice.actions;
 export default foodSlice.reducer;

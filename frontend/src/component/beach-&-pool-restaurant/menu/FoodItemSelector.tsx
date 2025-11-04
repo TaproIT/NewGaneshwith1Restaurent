@@ -10,6 +10,8 @@ import { useParams } from 'react-router-dom';
 import { convertAndFormatPrice } from '@/util/priceConverter';
 import { useRates } from '@/context/RateContext';
 import { useCurrency } from '@/context/CurrencyContext';
+import { setIsClickAddNewFoodItem, setIsSelectedFoodItem, setSelectedFoodItem } from '@/features/beach-restaurant/foodSlice';
+import { setIsClickedAddFoodCategory } from '@/features/beach-restaurant/foodCategorySlice';
 
 interface FoodItemSelectorProps {
   foodItem: FoodItem;
@@ -18,6 +20,7 @@ interface FoodItemSelectorProps {
 const FoodItemSelector: React.FC<FoodItemSelectorProps> = ({ foodItem }) => {
   const dispatch = useDispatch<AppDispatch>();
   const order = useSelector((state: RootState) => state.order);
+  const { selectedFoodItemId, selectedFoodItem } = useSelector((state: RootState) => state.food);
   const { rates } = useRates();
   const { displayCurrency } = useCurrency();
 
@@ -31,6 +34,15 @@ const FoodItemSelector: React.FC<FoodItemSelectorProps> = ({ foodItem }) => {
 
   // Determine whether the Add button should be disabled
   const isDisabled = existFoodItem || (order.orderTokens.length > 0 && !order.isAddNewOrderToken && !order.holdOrderToken) || id==="0" ;
+
+  const isSelectedItem = selectedFoodItemId === foodItem._id;
+  
+  const handleSelection = () => {
+    dispatch(setIsSelectedFoodItem(true));
+    dispatch(setSelectedFoodItem(foodItem._id));
+    dispatch(setIsClickAddNewFoodItem(false));
+    dispatch(setIsClickedAddFoodCategory(false));
+  }
 
   // Handler to add food item to new order token
   const handleAddClick = useCallback(() => {
@@ -50,7 +62,10 @@ const FoodItemSelector: React.FC<FoodItemSelectorProps> = ({ foodItem }) => {
   );
 
   return (
-    <div className="p-1 flex flex-col gap-1 border rounded-sm">
+    <div 
+     className={`p-1 flex flex-col gap-1 rounded-sm cursor-pointer ${isSelectedItem ? "border-1 border-Primary_blue":"border"}`}
+     onClick={handleSelection}
+    >
       {/* Food item name */}
       <div className="py-6 flex items-center justify-center text-[#444444] text-[0.625rem] capitalize bg-[#F4F4F4] rounded-sm">
         {foodItem.itemName}
