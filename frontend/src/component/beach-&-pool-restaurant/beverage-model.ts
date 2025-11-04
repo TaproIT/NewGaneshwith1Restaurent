@@ -18,6 +18,11 @@ export interface AddExtraBeverageItemStatus {
      error: string | null
 }
 
+export interface UpdateExtraBeverageItemStatus {
+     loading: boolean,
+     error: string | null
+}
+
 export interface BeverageItem {
   _id: string;
   beverageName: string;
@@ -83,4 +88,5 @@ export interface BeverageItems {
   isAddedBeverageItem: boolean;
   addBeverageItemStatus: AddBeverageItemStatus;
   addExtraBeverageItemStatus: AddExtraBeverageItemStatus;
+  updateExtraBeverageItemStatus: UpdateExtraBeverageItemStatus;
 }

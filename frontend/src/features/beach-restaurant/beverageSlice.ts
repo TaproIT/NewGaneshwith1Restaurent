@@ -2,6 +2,7 @@ import { addNewBeverage } from "@/api/order/add-beverage-api";
 import { addNewExtraBeverage } from "@/api/order/add-extra-beverage-api";
 import { fetchAllBeverageItems } from "@/api/order/get-beverage-list-api";
 import { fetchAllExtraBeverageItems } from "@/api/order/get-extra-beverage-list-api";
+import { updateExtraBeverage } from "@/api/order/update-extra-beverage-item-api";
 import type { BeverageItems } from "@/component/beach-&-pool-restaurant/beverage-model";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
@@ -28,6 +29,10 @@ const initialState: BeverageItems = {
     error: null
   },
   addExtraBeverageItemStatus: {
+    loading: false,
+    error: null
+  },
+  updateExtraBeverageItemStatus: {
     loading: false,
     error: null
   },
@@ -149,11 +154,31 @@ const beverageSlice = createSlice({
 
       .addCase(addNewExtraBeverage.fulfilled, (state) => {
         state.isAddedBeverageItem = true;
+        state.addExtraBeverageItemStatus.loading = false;
+        state.addExtraBeverageItemStatus.error = null;
       })
 
       .addCase(addNewExtraBeverage.rejected, (state, action) => {
         state.addExtraBeverageItemStatus.loading = true;
         state.addExtraBeverageItemStatus.error = action.payload as string;
+      })
+
+
+      // update extra beverage item
+      .addCase(updateExtraBeverage.pending, (state) => {
+        state.updateExtraBeverageItemStatus.loading = true;
+        state.updateExtraBeverageItemStatus.error = null;
+      })
+
+      .addCase(updateExtraBeverage.fulfilled, (state) => {
+        state.isAddedBeverageItem = true;
+        state.updateExtraBeverageItemStatus.loading = false;
+        state.updateExtraBeverageItemStatus.error = null;
+      })
+
+      .addCase(updateExtraBeverage.rejected, (state, action) => {
+        state.updateExtraBeverageItemStatus.loading = true;
+        state.updateExtraBeverageItemStatus.error = action.payload as string;
       });
   },
   

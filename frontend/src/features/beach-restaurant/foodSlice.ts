@@ -1,10 +1,12 @@
 import { addNewFoodItem } from "@/api/order/add-food-item-api";
 import { fetchAllFoodItems } from "@/api/order/get-food-list-api";
+import { updateFoodItem } from "@/api/order/update-food-item-api";
 import type { FoodItems } from "@/component/beach-&-pool-restaurant/food-model";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 const initialState: FoodItems = {
    isAddedNewFoodItem: false,
+   isUpdatedFoodItem: false,
    foodItems: [],
    isClickAddNewFoodItem: true,
    selectedFoodItemId: null,
@@ -15,6 +17,10 @@ const initialState: FoodItems = {
      error: null
    },
     addFoodItemStatus: {
+     loading: false,
+     error: null
+   },
+   updateFoodItemStatus:{
      loading: false,
      error: null
    }
@@ -44,7 +50,7 @@ const foodSlice = createSlice({
           state.selectedFoodItem = {
             _id: selectedFoodItem._id,
             itemName: selectedFoodItem.itemName,
-            category: selectedFoodItem.category?.categoryName ?? "",
+            category: selectedFoodItem.category?._id ?? "",
             price: selectedFoodItem.price,
             isEnableBeverage: selectedFoodItem.isEnableBeverage,
             liquor: selectedFoodItem.liquor ?? []
@@ -89,6 +95,28 @@ const foodSlice = createSlice({
 
       
       .addCase(addNewFoodItem.rejected, (state, action) => {
+        state.addFoodItemStatus.loading = false;
+        state.addFoodItemStatus.error = action.payload as string;
+      })
+
+
+      // update new food item
+      .addCase(updateFoodItem.pending, (state) => {
+        state.isUpdatedFoodItem = false;
+        state.addFoodItemStatus.loading = true;
+        state.addFoodItemStatus.error = null;
+      })
+
+      
+      .addCase(updateFoodItem.fulfilled, (state) => {
+        state.isUpdatedFoodItem = true;
+        state.addFoodItemStatus.loading = false;
+        state.addFoodItemStatus.error = null;
+      })
+
+      
+      .addCase(updateFoodItem.rejected, (state, action) => {
+        state.isUpdatedFoodItem = false;
         state.addFoodItemStatus.loading = false;
         state.addFoodItemStatus.error = action.payload as string;
       });
