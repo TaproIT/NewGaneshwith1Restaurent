@@ -13,4 +13,5 @@ export interface BeverageItem {
   lastUpdateAt: string;
   runningStock: number;
   history: any[]; // can type later if needed
+  volume: number;
 }

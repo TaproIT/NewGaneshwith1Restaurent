@@ -20,7 +20,6 @@ const SwitchRooms = () => {
         const fetchRooms = async () => {
           try {
             const res = await api.get("/room")
-            console.log(res)
             setRooms(res.data)
           } catch (err) {
             console.error("Failed to fetch rooms:", err);
