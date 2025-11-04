@@ -1,12 +1,12 @@
 // routes/beverageRoutes.js
 import express from "express";
 import {
-  createBeverage,
-  getAllBeverages,
-  getOneBeverage,
-  updateBeverage,
-  deleteBeverage,
-  getCategorySummary,
+    createBeverage,
+    getAllBeverages,
+    getOneBeverage,
+    updateBeverage,
+    deleteBeverage,
+    getCategorySummary, updateBeveragePrice,
 } from "../../controllers/Beverage/beverageController.js";
 import { verifyTokenNotBlacklisted } from "../../middleware/check-black-list-token.js";
 import { authenticateToken } from "../../middleware/verify-token.js";
@@ -25,7 +25,7 @@ router.get(
   authenticateToken,
   authorizeRoles([
     userRoles.BEACH_RESTAURANT_STAFF.value,
-    userRoles.POOL_RESTAURANT_STAFF.value, 
+    userRoles.POOL_RESTAURANT_STAFF.value,
     userRoles.ADMIN.value,
     userRoles.SUPER_ADMIN.value
   ]),
@@ -40,5 +40,8 @@ router.patch("/:id", updateBeverage);
 
 // Soft delete
 router.delete("/:id", deleteBeverage);
+
+router.put("/:id/price", updateBeveragePrice);
+
 
 export { router as beverageRoutes }
