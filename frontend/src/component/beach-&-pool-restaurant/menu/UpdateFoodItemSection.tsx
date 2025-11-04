@@ -113,6 +113,22 @@ export default function UpdateItemSection() {
     }
   };
 
+  const handleDeleteItem = async () => {
+    try {
+      if (selectedFoodItem !== null) {
+         dispatch(deleteFoodItem({foodId:selectedFoodItem._id}));
+      }
+
+      if (selectedExtraBeverageItem !== null) {
+       
+      }
+
+      toast.success("Item deleted successfully!");
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to delete item");
+    }
+  }
+
   // Fetch data once
   useEffect(() => {
     dispatch(fetchAllBeverageItems());
@@ -193,7 +209,7 @@ export default function UpdateItemSection() {
 
         {/* Add Liqueur */}
         {(isFoodCategory || isExtraBeverageCategory) && (
-          <div className="mt-10 flex items-center mb-3">
+          <div className="mt-5 flex items-center mb-3">
             <Label className="w-24 text-[0.75rem]">Add Liqueur</Label>
             <Switch
               checked={addLiqueur}
@@ -206,7 +222,7 @@ export default function UpdateItemSection() {
         {/* Liqueur Section */}
         {addLiqueur && (
           <ScrollArea className="w-full h-[calc(100vh-500px)]">
-            <Card className="mb-3">
+            <Card className="mb-2">
               <CardContent className="p-3 space-y-3">
                 {liqueurs.map((liq, index) => (
                   <div key={index} className="relative border-b pb-6 mb-3">
@@ -287,13 +303,24 @@ export default function UpdateItemSection() {
       </div>
 
       {/* Update Button */}
-      <Button
-        className="w-full bg-primary hover:bg-primary cursor-pointer"
-        disabled={isDisabled}
-        onClick={handleUpdateItem}
-      >
-        Update
-      </Button>
+      <div className="mb-2 w-full flex flex-col justify-end gap-2">
+        <Button
+          className="w-full bg-primary hover:bg-primary cursor-pointer"
+          disabled={isDisabled}
+          onClick={handleUpdateItem}
+        >
+          Update
+        </Button>
+
+        <Button
+          className="w-full cursor-pointer border-Primary_blue"
+          disabled={isDisabled}
+          variant="outline"
+          onClick={handleDeleteItem}
+        >
+          Remove
+        </Button>
+      </div>
     </div>
   );
 }
@@ -316,6 +343,7 @@ function FormRow({
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { updateExtraBeverage } from "@/api/order/update-extra-beverage-item-api";
+import { deleteFoodItem } from "@/api/order/delete-food-item-api";
 
 function UpdateItemSkeleton() {
   return (

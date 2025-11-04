@@ -15,6 +15,11 @@ export interface UpdateFoodItemStatus {
      error: string | null
 }
 
+export interface DeleteFoodItemStatus {
+     loading: boolean,
+     error: string | null
+}
+
 export interface FoodItem {
   _id: string;
   itemName: string;
@@ -47,4 +52,5 @@ export interface FoodItems {
   fetchAllFoodItemsStatus: FetchAllFoodItemsStatus;
   addFoodItemStatus: AddFoodItemStatus;
   updateFoodItemStatus: UpdateFoodItemStatus;
+  deleteFoodItemStatus: DeleteFoodItemStatus;
 }
