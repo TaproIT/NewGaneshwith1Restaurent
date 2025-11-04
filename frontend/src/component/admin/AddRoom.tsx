@@ -103,6 +103,7 @@ const AddRoom: React.FC<CreateRoomProps> = ({ onClose }) => {
           <Label className="col-span-2">Room No</Label>
           <div className="col-span-1">:</div>
           <Input
+            type="number"
             className="col-span-3 truncate text-ellipsis overflow-hidden w-full max-w-xs"
             placeholder="Enter Room Number"
             title="Enter Room Number"

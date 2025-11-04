@@ -11,33 +11,6 @@ interface Props {
 }
 
 const BookingInfo: React.FC<Props> = ({ booking, discount, setDiscount }) => {
-  const { displayCurrency } = useCurrency();
-  const { rates, loading } = useRates();
-  const [displayDiscount, setDisplayDiscount] = useState(discount);
-
-  useEffect(() => {
-    if (loading || !rates) return;
-
-    // convert internal discount (LKR) to current currency for display
-    if (displayCurrency === "USD") {
-      const rate = rates["LKR_USD"] || 1;
-      setDisplayDiscount(discount * rate);
-    } else {
-      setDisplayDiscount(discount);
-    }
-  }, [displayCurrency, discount, rates, loading]);
-
-  const handleDiscountChange = (value: number) => {
-    setDisplayDiscount(value);
-
-    // Convert back to LKR for internal storage
-    if (displayCurrency === "USD") {
-      const rate = rates["LKR_USD"] || 1;
-      setDiscount(value / rate);
-    } else {
-      setDiscount(value);
-    }
-  };
 
   return (
     <>
@@ -67,14 +40,20 @@ const BookingInfo: React.FC<Props> = ({ booking, discount, setDiscount }) => {
       </div>
 
       <div className="my-5 flex items-center justify-between">
-        <Label>Discount ({displayCurrency})</Label>
+        <Label>Discount %</Label>
         <input
-          type="number"
-          min={0}
-          value={displayDiscount}
-          onChange={(e) => handleDiscountChange(Number(e.target.value))}
-          className="border px-2 py-1 rounded w-24 text-right"
-        />
+  type="number"
+  min={0}
+  max={100}
+  value={discount}
+  onChange={(e) => {
+    const value = Number(e.target.value);
+    if (value >= 0 && value <= 100) {
+      setDiscount(value);
+    }
+  }}
+  className="border px-2 py-1 rounded w-24 text-right"
+/>
       </div>
     </>
   );

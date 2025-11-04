@@ -33,7 +33,6 @@ const guestDetails = useSelector(
   // const removedRooms = useSelector(
   //   (state: RootState) => state.removedRooms.oldRooms
   // );
-  console.log(removedRooms)
 
   const socketRef = useRef<Socket | null>(null);
 
@@ -119,60 +118,52 @@ const guestDetails = useSelector(
   };
 
   // Booking / switch rooms
-  const handleBook = async () => {
-    if (selectedRooms.length === 0) return;
-    setLoadingBooking(true);
+  const handleBook = async (roomIds: string[]) => {
+  if (loadingBooking || roomIds.length === 0) return;
+  setLoadingBooking(true);
 
-    try {
-      // Update local room state
-      setRooms((prev) =>
-        prev.map((r) =>
-          selectedRooms.some((s) => s.no === r.no)
-            ? { ...r, isBooked: true }
-            : r
-        )
-      );
+  try {
+    const selectedRoomsData = rooms.filter((room) => roomIds.includes(room._id || ""));
 
-      // Update Redux slice
-      selectedRooms.forEach((room) => dispatch(addRoom(room.no)));
+    setRooms((prev) =>
+      prev.map((r) =>
+        roomIds.includes(r._id || "") ? { ...r, isBooked: true } : r
+      )
+    );
 
-      // Prepare booking data
-      const bookingData = {
-        ...guestDetails,
-        currentRooms: selectedRooms.map((r) => r.no),
-        bookingDate: new Date().toISOString(),
+    selectedRoomsData.forEach((room) => dispatch(addRoom(room.no)));
+
+    const bookingData = {
+      ...guestDetails,
+      currentRooms: selectedRoomsData.map((r) => r.no),
+      bookingDate: new Date().toISOString(),
+    };
+
+    if (!bookingId) {
+      const booking = await api.post("/booking", bookingData);
+      setWhatsAppBookingId(booking.data.bookingId);
+    } else {
+      const payload = {
+        oldRooms: removedRooms,
+        newRooms: selectedRoomsData.map((room) => room.no),
       };
-
-      // Decide whether to create new booking or switch rooms
-      if (!bookingId) {
-        // New booking
-        const booking = await api.post("/booking", bookingData);
-        setWhatsAppBookingId(booking.data.bookingId);
-      } else {
-        // Switch rooms
-        const payload = {
-          oldRooms: removedRooms,
-          newRooms: selectedRooms.map((room) => room.no),
-        };
-        await api.put(`/booking/${bookingId}/switch-rooms`, payload);
-      }
-
-      // Emit unlock after booking
-      selectedRooms.forEach((r) => socketRef.current?.emit("unlockRoom", r.no));
-
-      setSelectedRooms([]);
-      setViewedRoom(null);
-      toast.success("Rooms booked successfully!");
-      setIsModalOpen(true);
-    } catch (err) {
-      console.error("Failed to book rooms:", err);
-      toast.error("Booking failed!");
-    } finally {
-      setTimeout(() => {
-        setLoadingBooking(false);
-      }, 1500);
+      await api.put(`/booking/${bookingId}/switch-rooms`, payload);
     }
-  };
+
+    roomIds.forEach((id) => socketRef.current?.emit("unlockRoom", id));
+
+    setSelectedRooms([]);
+    setViewedRoom(null);
+    toast.success("Rooms booked successfully!");
+    setIsModalOpen(true);
+  } catch (err) {
+    console.error("Failed to book rooms:", err);
+    toast.error("Booking failed!");
+  } finally {
+    setTimeout(() => setLoadingBooking(false), 1500);
+  }
+};
+
 
   const grandTotal = selectedRooms.reduce(
     (sum, room) =>
