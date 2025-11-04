@@ -41,7 +41,4 @@ router.patch("/:id", updateBeverage);
 // Soft delete
 router.delete("/:id", deleteBeverage);
 
-router.put("/:id/price", updateBeveragePrice);
-
-
 export { router as beverageRoutes }
