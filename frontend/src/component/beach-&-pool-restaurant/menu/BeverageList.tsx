@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { fetchAllExtraBeverageItems } from "@/api/order/get-extra-beverage-list-api";
+import { BeverageCategories } from "@/lib/enums/order-related-enums";
 
 const BeverageList: React.FC<{id:string}> = ({id}) => {
   const {
@@ -27,6 +28,11 @@ const BeverageList: React.FC<{id:string}> = ({id}) => {
   const dispatch = useDispatch<AppDispatch>();
 
   const isMenuHandlingPage = (id === "0");
+
+  const isExtraBeverageCategory =
+            selectedCategoryId !== BeverageCategories.HARD_LIQUOR.value &&
+            selectedCategoryId !== BeverageCategories.SOFT_DRINKS.value;
+  
 
  const categoryBeverages = [
   ...beverages.filter(
@@ -62,7 +68,7 @@ const BeverageList: React.FC<{id:string}> = ({id}) => {
     <ScrollArea className="w-full h-[calc(100vh-250px)]">
       <div className="grid grid-cols-3 gap-1">
         {/* Add new beverage item */}
-        {isMenuHandlingPage && (
+        { (isMenuHandlingPage &&  isExtraBeverageCategory) && (
           <div
             className="py-8 flex items-center justify-center border rounded-sm cursor-pointer"
             onClick={handleAddNewFoodItem}
