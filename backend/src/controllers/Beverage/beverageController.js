@@ -3,85 +3,6 @@ import Beverage from "../../models/Beverage/beverage.js";
 
 import dayjs from "dayjs";
 
-
-// helpers
-const yyyymmFromDate = (d = new Date()) => ({
-  year: d.getFullYear(),
-  month: d.getMonth() + 1,
-});
-
-const samePeriod = (a, b) => a.year === b.year && a.month === b.month;
-
-const findHistoryIndex = (bev, year, month) =>
-  bev.history.findIndex((h) => h.year === year && h.month === month);
-
-const getPrevClosing = (bev, year, month) => {
-  const key = year * 100 + month;
-  let carry = 0;
-  let latestKey = -1;
-  for (const h of bev.history) {
-    const k = h.year * 100 + h.month;
-    if (k < key && k > latestKey) {
-      latestKey = k;
-      carry = h.availableAfterPurchases ?? 0;
-    }
-  }
-  return carry;
-};
-
-const recomputeMonthlyTotals = (bev, hist) => {
-  if (hist.openingStock === undefined || hist.openingStock === null) {
-    hist.openingStock = getPrevClosing(bev, hist.year, hist.month) || 0;
-  }
-
-  hist.totalRestocked = (hist.restockEvents || []).reduce(
-    (s, e) => s + (e.quantity || 0),
-    0
-  );
-  hist.totalRemoved = (hist.removalEvents || []).reduce(
-    (s, e) => s + (e.quantity || 0),
-    0
-  );
-  hist.totalPurchased = (hist.purchaseEvents || []).reduce(
-    (s, e) => s + (e.quantity || 0),
-    0
-  );
-
-  hist.totalInStock = Math.max(
-    0,
-    (hist.openingStock || 0) + hist.totalRestocked - hist.totalRemoved
-  );
-  hist.availableAfterPurchases = Math.max(
-    0,
-    hist.totalInStock - hist.totalPurchased
-  );
-  hist.lastUpdateAt = new Date();
-};
-
-// ensure the current month history entry exists, return the doc reference
-const ensureMonthEntry = (bev, year, month) => {
-  let idx = findHistoryIndex(bev, year, month);
-  if (idx === -1) {
-    const opening = getPrevClosing(bev, year, month) || 0;
-    bev.history.push({
-      year,
-      month,
-      openingStock: opening,
-      totalRestocked: 0,
-      totalRemoved: 0,
-      totalPurchased: 0,
-      totalInStock: opening,
-      availableAfterPurchases: opening,
-      restockEvents: [],
-      removalEvents: [],
-      purchaseEvents: [],
-      lastUpdateAt: new Date(),
-    });
-    idx = bev.history.length - 1;
-  }
-  return bev.history[idx];
-};
-
 export const createBeverage = async (req, res) => {
   try {
     const {
@@ -90,6 +11,7 @@ export const createBeverage = async (req, res) => {
       category,
       runningStock, // frontend sends this as new stock quantity
       note,
+      volume,
       isVisible = true,
     } = req.body;
 
@@ -122,6 +44,7 @@ export const createBeverage = async (req, res) => {
     const newBeverage = new Beverage({
       beverageName,
       price,
+      volume,
       category,
       runningStock,
       isVisible,
