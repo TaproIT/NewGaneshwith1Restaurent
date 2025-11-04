@@ -11,7 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/app/store";
 import { BeverageCategories } from "@/lib/enums/order-related-enums";
-//import { toast } from "react-toastify";
+import { toast } from "react-toastify";
 
 // import { updateFoodItem } from "@/api/order/update-food-item-api";
 // import { updateBeverageItem } from "@/api/order/update-beverage-api";
@@ -19,6 +19,7 @@ import { BeverageCategories } from "@/lib/enums/order-related-enums";
 import { fetchAllBeverageItems } from "@/api/order/get-beverage-list-api";
 import { fetchAllExtraBeverageCategories } from "@/api/order/get-extra-beverge-categories-api";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { updateFoodItem } from "@/api/order/update-food-item-api";
 
 type Liqueur = { beverage: string; amount: number };
 
@@ -28,7 +29,7 @@ export default function UpdateItemSection() {
   const { isFoodCategory, selectedFoodCategoryTitle } = useSelector(
     (state: RootState) => state.foodCategory
   );
-  const { selectedFoodItem } = useSelector(
+  const { selectedFoodItem, isUpdatedFoodItem, fetchAllFoodItemsStatus } = useSelector(
     (state: RootState) => state.food
   );
    const { selectedCategory, selectedBeverageCategoryTitle } = useSelector(
@@ -44,6 +45,8 @@ export default function UpdateItemSection() {
   const isExtraBeverageCategory =
           selectedCategory !== BeverageCategories.HARD_LIQUOR.value &&
           selectedCategory !== BeverageCategories.SOFT_DRINKS.value;
+
+  const updateFoodItemLoading = fetchAllFoodItemsStatus.loading
 
   // States
   const [itemName, setItemName] = useState("");
@@ -65,41 +68,29 @@ export default function UpdateItemSection() {
     setLiqueurs((prev) => prev.filter((_, i) => i !== index));
 
   const handleUpdateItem = async () => {
-    // try {
-    //   if (itemType === "food") {
-    //     await dispatch(
-    //       updateFoodItem({
-    //         id: itemId,
-    //         itemName,
-    //         price,
-    //         isEnableBeverage: addLiqueur,
-    //         liquor: liqueurs,
-    //       })
-    //     ).unwrap();
-    //   } else if (itemType === "beverage") {
-    //     await dispatch(
-    //       updateBeverageItem({
-    //         id: itemId,
-    //         beverageName: itemName,
-    //         price,
-    //         isVisible: true,
-    //       })
-    //     ).unwrap();
-    //   } else {
-    //     await dispatch(
-    //       updateExtraBeverageItem({
-    //         id: itemId,
-    //         beverageName: itemName,
-    //         price,
-    //         liquor: liqueurs,
-    //       })
-    //     ).unwrap();
-    //   }
+    try {
+      if (selectedFoodItem !== null ){
+        const updatedItem = {
+          foodId: selectedFoodItem._id,
+          itemName,
+          price,
+          category: selectedFoodItem?.category,
+          isEnableBeverage: addLiqueur,
+          liquor: addLiqueur
+            ? liqueurs.map((l) => ({
+                beverage: l.beverage,
+                amount: l.amount ?? 0,
+              }))
+            : [],
+        };
 
-    //   toast.success("Item updated successfully!");
-    // } catch (err: any) {
-    //   toast.error(err?.message || "Failed to update item");
-    // }
+        dispatch(updateFoodItem(updatedItem))
+      }
+
+      toast.success("Item updated successfully!");
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to update item");
+    }
   };
 
   // Fetch data once
@@ -130,7 +121,13 @@ export default function UpdateItemSection() {
     setLiqueurs(selectedExtraBeverageItem.liquor ?? []);
     return;
   }
-}, [selectedFoodItem, selectedBeverageItem, selectedExtraBeverageItem]);
+}, [selectedFoodItem, selectedBeverageItem, selectedExtraBeverageItem, isUpdatedFoodItem]);
+
+  if ( updateFoodItemLoading ) {
+    return (
+      <UpdateItemSkeleton />
+    )
+  }
 
   return (
     <div className="max-w-sm h-full text-[#444444] mx-auto p-4 flex flex-col items-center justify-between bg-mainWhite rounded-l-2xl">
@@ -296,3 +293,72 @@ function FormRow({
     </div>
   );
 }
+
+import { Skeleton } from "@/components/ui/skeleton";
+
+function UpdateItemSkeleton() {
+  return (
+    <div className="max-w-sm h-full text-[#444444] mx-auto p-4 flex flex-col items-center justify-between bg-mainWhite rounded-l-2xl">
+      <div className="w-full space-y-4">
+        {/* Header */}
+        <Skeleton className="h-5 w-32" />
+
+        {/* Item Type */}
+        <div className="grid grid-cols-3 items-center mb-2">
+          <Skeleton className="h-4 w-20 col-span-1" />
+          <Skeleton className="h-4 w-24 col-span-2" />
+        </div>
+
+        {/* Category */}
+        <div className="grid grid-cols-3 items-center mb-2">
+          <Skeleton className="h-4 w-20 col-span-1" />
+          <Skeleton className="h-4 w-28 col-span-2" />
+        </div>
+
+        {/* Item Name */}
+        <div className="grid grid-cols-3 items-center mb-2">
+          <Skeleton className="h-4 w-20 col-span-1" />
+          <Skeleton className="h-8 w-full col-span-2" />
+        </div>
+
+        {/* Price */}
+        <div className="grid grid-cols-3 items-center mb-2">
+          <Skeleton className="h-4 w-20 col-span-1" />
+          <Skeleton className="h-8 w-full col-span-2" />
+        </div>
+
+        {/* Add Liqueur Toggle */}
+        <div className="mt-8 flex items-center mb-3">
+          <Skeleton className="h-4 w-20 mr-2" />
+          <Skeleton className="h-6 w-12 rounded-full" />
+        </div>
+
+        {/* Liqueur Section (Simulated) */}
+        <Card className="mb-3">
+          <CardContent className="p-3 space-y-4">
+            {[1, 2].map((_, index) => (
+              <div key={index} className="relative border-b pb-4 mb-2">
+                <div className="grid grid-cols-3 items-center mb-2">
+                  <Skeleton className="h-4 w-20 col-span-1" />
+                  <Skeleton className="h-8 w-full col-span-2" />
+                </div>
+                <div className="grid grid-cols-3 items-center mb-2">
+                  <Skeleton className="h-4 w-20 col-span-1" />
+                  <Skeleton className="h-8 w-full col-span-2" />
+                </div>
+              </div>
+            ))}
+
+            <div className="flex justify-center">
+              <Skeleton className="h-8 w-8 rounded-full" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Update Button */}
+      <Skeleton className="h-10 w-full mt-4 rounded-md" />
+    </div>
+  );
+}
+

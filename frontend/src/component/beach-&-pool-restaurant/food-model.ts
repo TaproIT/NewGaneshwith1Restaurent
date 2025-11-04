@@ -10,6 +10,11 @@ export interface AddFoodItemStatus {
      error: string | null
 }
 
+export interface UpdateFoodItemStatus {
+     loading: boolean,
+     error: string | null
+}
+
 export interface FoodItem {
   _id: string;
   itemName: string;
@@ -33,11 +38,13 @@ export interface SelectedFoodItem {
 
 export interface FoodItems {
   isAddedNewFoodItem: boolean;
+  isUpdatedFoodItem: boolean;
   foodItems: FoodItem[];
   selectedFoodItemId: string | null;
   selectedFoodItem: SelectedFoodItem | null;
   isSelectedFoodItem: boolean;
   isClickAddNewFoodItem: boolean;
-  fetchAllFoodItemsStatus: FetchAllFoodItemsStatus
-  addFoodItemStatus: AddFoodItemStatus
+  fetchAllFoodItemsStatus: FetchAllFoodItemsStatus;
+  addFoodItemStatus: AddFoodItemStatus;
+  updateFoodItemStatus: UpdateFoodItemStatus;
 }
