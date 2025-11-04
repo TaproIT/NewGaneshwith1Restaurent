@@ -12,7 +12,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { fetchAllExtraBeverageItems } from "@/api/order/get-extra-beverage-list-api";
 
-const BeverageList: React.FC = () => {
+const BeverageList: React.FC<{id:string}> = ({id}) => {
   const {
     beverageItems: beverages,
     extrabeverageItems: extraBeverages,
@@ -25,6 +25,8 @@ const BeverageList: React.FC = () => {
   );
 
   const dispatch = useDispatch<AppDispatch>();
+
+  const isMenuHandlingPage = (id === "0");
 
  const categoryBeverages = [
   ...beverages.filter(
@@ -60,12 +62,14 @@ const BeverageList: React.FC = () => {
     <ScrollArea className="w-full h-[calc(100vh-250px)]">
       <div className="grid grid-cols-3 gap-1">
         {/* Add new beverage item */}
-        <div
-          className="py-8 flex items-center justify-center border rounded-sm cursor-pointer"
-          onClick={handleAddNewFoodItem}
-        >
-          <Plus size={24} className="text-[#0A869D]" />
-        </div>
+        {isMenuHandlingPage && (
+          <div
+            className="py-8 flex items-center justify-center border rounded-sm cursor-pointer"
+            onClick={handleAddNewFoodItem}
+          >
+            <Plus size={24} className="text-[#0A869D]" />
+          </div>
+        )}
 
         {/* Loading skeletons */}
         {loading

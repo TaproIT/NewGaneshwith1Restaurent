@@ -3,7 +3,7 @@ import { Plus } from 'lucide-react';
 import React, { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from '@/app/store';
-import type { BeverageItem } from '../beverage-model';
+import type { ExtraBeverageItem } from '../beverage-model';
 import type { OrderBeverageItem } from '../order-model';
 import { addBeverageItemToOrderToken } from '@/features/beach-restaurant/orderSlice';
 import { useParams } from 'react-router-dom';
@@ -11,14 +11,22 @@ import { useParams } from 'react-router-dom';
 import { useCurrency } from '@/context/CurrencyContext'; 
 import { useRates } from '@/context/RateContext'; 
 import { convertAndFormatPrice } from '@/util/priceConverter'; 
+import { BeverageCategories } from '@/lib/enums/order-related-enums';
+import { setIsSelectedBeverageItem, setIsSelectedExtraBeverageItem, setSelectedBeverageItem, setSelectedExtraBeverageItem } from '@/features/beach-restaurant/beverageSlice';
+import { setIsClickAddNewFoodItem, setIsSelectedFoodItem, setSelectedFoodItem } from '@/features/beach-restaurant/foodSlice';
+import { setIsClickedAddFoodCategory } from '@/features/beach-restaurant/foodCategorySlice';
 interface BeverageItemSelectorProps {
-  beverageItem: BeverageItem;
+  beverageItem: ExtraBeverageItem;
 }
 
 const BeverageItemSelector: React.FC<BeverageItemSelectorProps> = ({ beverageItem }) => {
   const dispatch = useDispatch<AppDispatch>();
   const order = useSelector((state: RootState) => state.order);
   
+  const { selectedBeverageItemId, selectedExtraBeverageItemId } = useSelector((state: RootState) => state.beverage);
+
+  const { selectedCategory } = useSelector((state: RootState) => state.beverageCategory);
+
   const { displayCurrency } = useCurrency();
   const { rates } = useRates(); 
 
@@ -33,11 +41,33 @@ const BeverageItemSelector: React.FC<BeverageItemSelectorProps> = ({ beverageIte
   // Determine whether the Add button should be disabled
   const isDisabled = existBeverageItem || (order.orderTokens.length > 0 && !order.isAddNewOrderToken && !order.holdOrderToken) || id==="0";
 
+  const isExtraBeverageCategory =
+            selectedCategory !== BeverageCategories.HARD_LIQUOR.value &&
+            selectedCategory !== BeverageCategories.SOFT_DRINKS.value;
+
+  const isSelectedItem = ( selectedBeverageItemId === beverageItem._id ) || ( selectedExtraBeverageItemId === beverageItem._id )
+
   const displayPrice = convertAndFormatPrice(
     beverageItem.price, 
     rates, 
     displayCurrency
   );
+
+  const handleSelection = () => {
+    if (isExtraBeverageCategory) {
+      dispatch(setIsSelectedExtraBeverageItem(true));
+      dispatch(setSelectedExtraBeverageItem(beverageItem._id));
+      dispatch(setSelectedBeverageItem(""));
+      return;
+    }
+    dispatch(setIsSelectedBeverageItem(true));
+    dispatch(setSelectedBeverageItem(beverageItem._id));
+    dispatch(setSelectedExtraBeverageItem(""));
+    dispatch(setIsSelectedFoodItem(false));
+    dispatch(setSelectedFoodItem(""));
+    dispatch(setIsClickAddNewFoodItem(false));
+    dispatch(setIsClickedAddFoodCategory(false));
+  }
 
   // Handler to add food item to new order token
   const handleAddClick = useCallback(() => {
@@ -46,12 +76,17 @@ const BeverageItemSelector: React.FC<BeverageItemSelectorProps> = ({ beverageIte
       title: beverageItem.beverageName,
       price: beverageItem.price, 
       quantity: 1,
+      isEnableBeverage: beverageItem.isEnableBeverage ?? false,
+      liquor: beverageItem.liquor ?? []
     };
     dispatch(addBeverageItemToOrderToken(orderBeverageItem));
   }, [dispatch, beverageItem]);
   
   return (
-    <div className="p-1 flex flex-col gap-1 border rounded-sm">
+    <div  
+     className={`p-1 flex flex-col gap-1 rounded-sm cursor-pointer ${isSelectedItem ? "border-1 border-Primary_blue":"border"}`}
+     onClick={handleSelection}
+     >
       {/* Beverage item name */}
       <div className="py-6 flex items-center justify-center text-[#444444] text-[0.625rem] capitalize bg-[#F4F4F4] rounded-sm">
         {beverageItem.beverageName}

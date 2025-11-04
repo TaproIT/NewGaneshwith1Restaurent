@@ -18,13 +18,25 @@ export interface FoodItem {
   isVisible: boolean;
   category: FoodCategory | null;
   isEnableBeverage: boolean;
-  liquor: string[] | null; // array of Beverage ObjectIds
+  liquor?: [{beverage:string, amount:number}] | []; // array of Beverage ObjectIds
   fetchAllFoodItemsStatus: FetchAllFoodItemsStatus
+}
+
+export interface SelectedFoodItem {
+  _id: string;
+  itemName: string;
+  category: string;
+  price: number;
+  isEnableBeverage:boolean;
+  liquor?: [{beverage:string, amount:number}] | []; 
 }
 
 export interface FoodItems {
   isAddedNewFoodItem: boolean;
   foodItems: FoodItem[];
+  selectedFoodItemId: string | null;
+  selectedFoodItem: SelectedFoodItem | null;
+  isSelectedFoodItem: boolean;
   isClickAddNewFoodItem: boolean;
   fetchAllFoodItemsStatus: FetchAllFoodItemsStatus
   addFoodItemStatus: AddFoodItemStatus

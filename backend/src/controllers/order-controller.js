@@ -8,6 +8,7 @@ import { generateOrderNumber, generateTokenId } from "../utils/order-util.js";
 import { sendErrorResponse, sendSuccessResponse } from "../utils/response-util.js";
 import mongoose from "mongoose";
 import { getRestaurantTypeByUserRole } from "../utils/user-util.js";
+import { updateBeverageQuantityManually, updateBeverageVolumeManually } from "../utils/beverageStock.js";
 
 export const setInitialOrderDetails = async (req, res) => {
     try{
@@ -222,8 +223,22 @@ export const addOrderToken = async (req, res) => {
 
       const foodOrderIds = [];
       if (newOrderToken.foodOrders?.length) {
+
         for (const food of newOrderToken.foodOrders) {
           const { _id, ...foodData } = food; // strip old _id
+
+           if (newOrderToken.isPrinted) {
+            const liquors = food.liquor;
+
+            if (liquors.length > 0) {
+              for (const liquor of liquors)
+                updateBeverageVolumeManually(
+                  liquor.beverage,
+                  liquor.amount * food.quantity
+                );
+            }
+          }
+
           const foodItem = new FoodOrderItem(foodData);
           await foodItem.save({ session });
           foodOrderIds.push(foodItem._id);
@@ -234,6 +249,23 @@ export const addOrderToken = async (req, res) => {
       if (newOrderToken.beverageOrders?.length) {
         for (const beverage of newOrderToken.beverageOrders) {
           const { _id, ...foodData } = beverage; // strip old _id
+
+          if (newOrderToken.isPrinted) {
+            updateBeverageQuantityManually(
+              beverage.beverageId,
+              beverage.quantity
+            );
+
+            const liquors = beverage.liquor;
+            if (liquors.length > 0) {
+              for (const liquor of liquors)
+                updateBeverageVolumeManually(
+                  liquor.beverage,
+                  liquor.amount * beverage.quantity
+                );
+            }
+          }
+
           const beverageItem = new BeverageOrderItem(foodData);
           await beverageItem.save({ session });
           beverageOrderIds.push(beverageItem._id);
@@ -264,10 +296,23 @@ export const addOrderToken = async (req, res) => {
     // Creating a brand new token
     else {
       const foodOrderIds = [];
-
+      
       if (newOrderToken.foodOrders?.length) {
         for (const food of newOrderToken.foodOrders) {
           const { _id, ...foodData } = food;
+          
+          if (newOrderToken.isPrinted) {
+            const liquors = food.liquor;
+
+            if (liquors.length > 0) {
+              for (const liquor of liquors)
+                updateBeverageVolumeManually(
+                  liquor.beverage,
+                  liquor.amount * food.quantity
+                );
+            }
+          }
+
           const foodItem = new FoodOrderItem(foodData);
           await foodItem.save({ session });
           foodOrderIds.push(foodItem._id);
@@ -278,6 +323,23 @@ export const addOrderToken = async (req, res) => {
       if (newOrderToken.beverageOrders?.length) {
         for (const beverage of newOrderToken.beverageOrders) {
           const { _id, ...beverageData } = beverage; // strip old _id
+
+          if (newOrderToken.isPrinted) {
+            updateBeverageQuantityManually(
+              beverage.beverageId,
+              beverage.quantity
+            );
+
+            const liquors = beverage.liquor;
+            if (liquors.length > 0) {
+              for (const liquor of liquors)
+                updateBeverageVolumeManually(
+                  liquor.beverage,
+                  liquor.amount * beverage.quantity
+                );
+            }
+          }
+
           const beverageItem = new BeverageOrderItem(beverageData);
           await beverageItem.save({ session });
           beverageOrderIds.push(beverageItem._id);

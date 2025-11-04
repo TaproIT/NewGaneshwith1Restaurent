@@ -11,6 +11,7 @@ import AddFoodItemSection from '@/component/beach-&-pool-restaurant/menu/AddFood
 import AddCategorySection from '@/component/beach-&-pool-restaurant/menu/AddCategorySection';
 import OrderBillDetailsModal from '@/component/beach-&-pool-restaurant/order-details/OrderBillDetailsModal';
 import { setIsClickAddNewFoodItem } from '@/features/beach-restaurant/foodSlice';
+import UpdateItemSection from '@/component/beach-&-pool-restaurant/menu/UpdateFoodItemSection';
 
 const BeachRestaurantMenuPage: React.FC = () => {
   const orderTokens = useSelector((state:RootState) => state.order.orderTokens);
@@ -33,14 +34,14 @@ const BeachRestaurantMenuPage: React.FC = () => {
   return (
     <div className="grid grid-cols-7 gap-3">
       <div className="col-span-5">
-        <FoodMenuDetailsSection />
+        <FoodMenuDetailsSection id={id} />
       </div>
       <div className="col-span-2">
         {
           id==="0" ? (
             isClickAddNewFoodItem ? (<AddFoodItemSection/>)
              : isClickedAddFoodCategory ? (<AddCategorySection />) 
-               :(<></>)
+               :(<UpdateItemSection />)
           ): (
             <OrderDetailsSection />
           )
