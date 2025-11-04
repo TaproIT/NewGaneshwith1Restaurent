@@ -44,7 +44,7 @@ const MonthlyBeverageSales = () => {
   };
 
   return (
-    <div className="p-4 bg-mainWhite rounded-2xl w-full h-[400px]">
+    <div className="p-4 bg-mainWhite rounded-2xl w-full h-[375px]">
       <Bar data={data} options={options} />
     </div>
   );

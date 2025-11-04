@@ -319,6 +319,40 @@ export const updateBeverage = async (req, res) => {
 //   }
 // };
 
+
+// Update price of a beverage
+export const updateBeveragePrice = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { price } = req.body;
+
+    // Basic validation
+    if (price === undefined || price < 0) {
+      return res.status(400).json({ message: "Invalid price value" });
+    }
+
+    const beverage = await Beverage.findById(id);
+    if (!beverage) {
+      return res.status(404).json({ message: "Beverage not found" });
+    }
+
+    // Update and save
+    beverage.price = price;
+    beverage.lastUpdateAt = new Date();
+
+    await beverage.save();
+
+    return res.status(200).json({
+      message: "Beverage price updated successfully",
+      beverage,
+    });
+  } catch (error) {
+    console.error("Error updating beverage price:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+
 // Soft delete
 export const deleteBeverage = async (req, res) => {
   try {
