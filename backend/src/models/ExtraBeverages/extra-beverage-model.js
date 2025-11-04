@@ -10,6 +10,12 @@ const extraBeverageSchema = new mongoose.Schema(
         },
         price: { type: Number, required: true, min: 0 },
         isVisible: { type: Boolean, default: true },
+        liquor: [
+            {
+                beverage: { type: mongoose.Schema.Types.ObjectId, ref: "Beverage", required: true },
+                amount: { type: Number, default: 0 },
+            },
+        ],
     },
     { timestamps: true, collection: "extrabeverages" }
 );
