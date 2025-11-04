@@ -21,14 +21,14 @@ router.post("/", createBeverage);
 // Read
 router.get(
   "/",
-  verifyTokenNotBlacklisted,
-  authenticateToken,
-  authorizeRoles([
-    userRoles.BEACH_RESTAURANT_STAFF.value,
-    userRoles.POOL_RESTAURANT_STAFF.value, 
-    userRoles.ADMIN.value,
-    userRoles.SUPER_ADMIN.value
-  ]),
+  // verifyTokenNotBlacklisted,
+  // authenticateToken,
+  // authorizeRoles([
+  //   userRoles.BEACH_RESTAURANT_STAFF.value,
+  //   userRoles.POOL_RESTAURANT_STAFF.value,
+  //   userRoles.ADMIN.value,
+  //   userRoles.SUPER_ADMIN.value
+  // ]),
   getAllBeverages
 );
 

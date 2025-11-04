@@ -2,35 +2,31 @@
 import mongoose from "mongoose";
 import { RestaurantTypes } from "../../utils/enums/order-related-enums.js";
 
-const EventSchema = new mongoose.Schema(
+const MonthlyFoodVolumeHistorySchema = new mongoose.Schema(
   {
-    quantity: { type: Number, required: true, min: 0 },
+    volume: { type: Number, required: true, min: 0 },
+    year: { type: Number, required: true },
+    month: { type: Number, required: true, min: 1, max: 12 },
     date: { type: Date, default: Date.now },
     note: { type: String },
   },
   { _id: false }
 );
 
-const MonthlyHistorySchema = new mongoose.Schema(
+const MonthlyQuantityHistorySchema = new mongoose.Schema(
   {
-    year: { type: Number, required: true },            // e.g., 2025
+    year: { type: Number, required: true },
     month: { type: Number, required: true, min: 1, max: 12 }, // 1..12
     lastUpdateAt: { type: Date, default: Date.now },
 
-    // rollup numbers for the month
-    openingStock: { type: Number, default: 0 },
-    totalRestocked: { type: Number, default: 0 },
-    totalRemoved: { type: Number, default: 0 },        // non-sale removals (waste, lost, etc.)
-    totalPurchased: { type: Number, default: 0 },      // sold/used for purchases
+    oldStock: { type: Number, default: 0 },
+    purchasedStock: { type: Number, default: 0 },
+    isPurchased: { type: Boolean, default: false },
+    newStock: { type: Number, default: 0 },
 
-    // computed balances
-    totalInStock: { type: Number, default: 0 },        // opening + restocked - removed
-    availableAfterPurchases: { type: Number, default: 0 }, // totalInStock - purchased
+    date: { type: Date, default: Date.now },
+    note: { type: String },
 
-    // detailed events
-    restockEvents: [EventSchema],   
-    removalEvents: [EventSchema],   
-    purchaseEvents: [EventSchema],  
   },
   { _id: false }
 );
@@ -39,6 +35,7 @@ const BeverageSchema = new mongoose.Schema(
   {
     beverageName: { type: String, required: true },
     price: { type: Number, required: true },
+    runningStock: { type: Number, default: 0 },
     category: {
       type: String,
       enum: ["hard liquor", "soft drinks"],
@@ -55,15 +52,11 @@ const BeverageSchema = new mongoose.Schema(
       index: true,
     },
     deletedAt: { type: Date },
-
-    // NEW: running/derived fields
-    runningStock: { type: Number, default: 0 },             // current absolute stock
-    currentMonthStock: { type: Number, default: 0 },        // this month's totalInStock
-    currentMonthAvailable: { type: Number, default: 0 },    // this month's availableAfterPurchases
     lastUpdateAt: { type: Date },
 
     // NEW: month-by-month history
-    history: [MonthlyHistorySchema],
+    historyQuantity: [MonthlyQuantityHistorySchema],
+    historyVolumeForPBFoodNet: [MonthlyFoodVolumeHistorySchema],
   },
   { timestamps: true }
 );

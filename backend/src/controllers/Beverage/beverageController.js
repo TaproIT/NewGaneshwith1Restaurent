@@ -1,6 +1,7 @@
 // controllers/beverageController.js
 import Beverage from "../../models/Beverage/beverage.js";
-import { getRestaurantTypeByUserRole } from "../../utils/user-util.js";
+
+import dayjs from "dayjs";
 
 
 // helpers
@@ -83,56 +84,133 @@ const ensureMonthEntry = (bev, year, month) => {
 
 export const createBeverage = async (req, res) => {
   try {
-    const { beverageName, price, category, isVisible, initialStock = 0, note, restaurantType } =
-      req.body;
-    
-    //const { userId } = req.user;
-
-    //const defaultRestaurantType = await getRestaurantTypeByUserRole(userId);
-
-    //const resolvedRestaurantType = restaurantType || defaultRestaurantType;
-
-    const existingBeverage = await Beverage.findOne({
-      beverageName: beverageName.trim(),
-      category: category.trim().toLowerCase(),
-      //restaurantType: resolvedRestaurantType
-    });
-
-    if (existingBeverage) {
-      return res.status(400).json({
-        message: `Beverage "${beverageName}" already exists in category "${category}"`,
-      });
-    }
-
-    const bev = new Beverage({
+    const {
       beverageName,
       price,
       category,
-      //restaurantType: resolvedRestaurantType,
-      isVisible: isVisible ?? true,
-      runningStock: Math.max(0, Number(initialStock) || 0),
-      lastUpdateAt: new Date(),
-      status: "active",
-    });
+      runningStock, // frontend sends this as new stock quantity
+      note,
+      isVisible = true,
+    } = req.body;
 
-    if (bev.runningStock > 0) {
-      const { year, month } = yyyymmFromDate();
-      const hist = ensureMonthEntry(bev, year, month);
-      hist.restockEvents.push({ quantity: bev.runningStock, note });
-      recomputeMonthlyTotals(bev, hist);
-
-      // reflect current month rollups
-      bev.currentMonthStock = hist.totalInStock;
-      bev.currentMonthAvailable = hist.availableAfterPurchases;
+    if (!beverageName || !price || !category || runningStock === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "beverageName, price, category, and runningStock are required.",
+      });
     }
 
-    await bev.save();
-    return res.status(201).json({ success: true, data: bev });
-  } catch (err) {
-    console.error(err);
-    return res.status(400).json({ success: false, message: err.message });
+    const now = dayjs();
+    const year = now.year();
+    const month = now.month() + 1; // month() returns 0–11, so +1
+
+    // history entry — oldStock always 0 for creation
+    const historyQuantity = [
+      {
+        year,
+        month,
+        lastUpdateAt: now.toDate(),
+        oldStock: 0,
+        purchasedStock: 0,
+        isPurchased: false,
+        newStock: runningStock, // frontend sent value
+        date: now.toDate(),
+        note: note || "",
+      },
+    ];
+
+    const newBeverage = new Beverage({
+      beverageName,
+      price,
+      category,
+      runningStock,
+      isVisible,
+      status: "active",
+      lastUpdateAt: now.toDate(),
+      historyQuantity,
+    });
+
+    const savedBeverage = await newBeverage.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Beverage created successfully.",
+      data: savedBeverage,
+    });
+  } catch (error) {
+    console.error("Error creating beverage:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to create beverage.",
+      error: error.message,
+    });
   }
 };
+
+export const updateBeverage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { price, runningStock, note } = req.body;
+
+    if (!runningStock || runningStock <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "runningStock must be greater than 0.",
+      });
+    }
+
+    // Find existing beverage
+    const beverage = await Beverage.findById(id);
+    if (!beverage || beverage.status === "deleted") {
+      return res.status(404).json({
+        success: false,
+        message: "Beverage not found or has been deleted.",
+      });
+    }
+
+    const now = dayjs();
+    const year = now.year();
+    const month = now.month() + 1;
+
+    // Prepare new history entry
+    const newHistory = {
+      year,
+      month,
+      lastUpdateAt: now.toDate(),
+      oldStock: beverage.runningStock || 0, // before update
+      purchasedStock: 0,
+      isPurchased: false,
+      newStock: runningStock, // new stock value
+      date: now.toDate(),
+      note: note || "",
+    };
+
+    // Update beverage fields
+    beverage.price = price !== undefined ? price : beverage.price;
+    beverage.runningStock = runningStock;
+    beverage.lastUpdateAt = now.toDate();
+
+    // Append to historyQuantity
+    beverage.historyQuantity.push(newHistory);
+
+    // Save
+    const updatedBeverage = await beverage.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Beverage updated successfully.",
+      data: updatedBeverage,
+    });
+  } catch (error) {
+    console.error("Error updating beverage:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update beverage.",
+      error: error.message,
+    });
+  }
+};
+
 
 // Code Explanation for understand
 
@@ -148,98 +226,98 @@ export const createBeverage = async (req, res) => {
 //  { action: "purchase", quantity: 5, note: "order #123" }
 //  { action: "edit", beverageName, price, category, isVisible }
 
-export const updateBeverage = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const {
-      action = "edit",
-      quantity,
-      note,
-      beverageName,
-      price,
-      category,
-      isVisible,
-    } = req.body;
-
-    const bev = await Beverage.findById(id);
-    if (!bev || bev.status === "deleted") {
-      return res
-        .status(404)
-        .json({ success: false, message: "Beverage not found" });
-    }
-
-    const q = Number(quantity) || 0;
-    const now = new Date();
-    const { year, month } = yyyymmFromDate(now);
-
-    if (action === "edit") {
-      if (beverageName !== undefined) bev.beverageName = beverageName;
-      if (price !== undefined) bev.price = price;
-      if (category !== undefined) bev.category = category;
-      if (isVisible !== undefined) bev.isVisible = isVisible;
-      bev.lastUpdateAt = now;
-      await bev.save();
-      return res.json({ success: true, data: bev });
-    }
-
-    const hist = ensureMonthEntry(bev, year, month);
-
-    if (action === "restock") {
-      if (q <= 0) {
-        return res
-          .status(400)
-          .json({ success: false, message: "quantity must be > 0" });
-      }
-      bev.runningStock += q;
-      hist.restockEvents.push({ quantity: q, date: now, note });
-    } else if (action === "remove") {
-      if (q <= 0) {
-        return res
-          .status(400)
-          .json({ success: false, message: "quantity must be > 0" });
-      }
-      if (bev.runningStock - q < 0) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Insufficient stock to remove" });
-      }
-      bev.runningStock -= q;
-      hist.removalEvents.push({ quantity: q, date: now, note });
-    } else if (action === "purchase") {
-      if (q <= 0) {
-        return res
-          .status(400)
-          .json({ success: false, message: "quantity must be > 0" });
-      }
-      if (bev.runningStock - q < 0) {
-        return res.status(400).json({
-          success: false,
-          message: "Insufficient stock to record purchase",
-        });
-      }
-      bev.runningStock -= q;
-      hist.purchaseEvents.push({ quantity: q, date: now, note });
-    } else {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid action. Use edit|restock|remove|purchase",
-      });
-    }
-
-    recomputeMonthlyTotals(bev, hist);
-    if (samePeriod({ year, month }, yyyymmFromDate(now))) {
-      bev.currentMonthStock = hist.totalInStock;
-      bev.currentMonthAvailable = hist.availableAfterPurchases;
-    }
-    bev.lastUpdateAt = now;
-
-    await bev.save();
-    return res.json({ success: true, data: bev });
-  } catch (err) {
-    console.error(err);
-    return res.status(400).json({ success: false, message: err.message });
-  }
-};
+// export const updateBeverage = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const {
+//       action = "edit",
+//       quantity,
+//       note,
+//       beverageName,
+//       price,
+//       category,
+//       isVisible,
+//     } = req.body;
+//
+//     const bev = await Beverage.findById(id);
+//     if (!bev || bev.status === "deleted") {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "Beverage not found" });
+//     }
+//
+//     const q = Number(quantity) || 0;
+//     const now = new Date();
+//     const { year, month } = yyyymmFromDate(now);
+//
+//     if (action === "edit") {
+//       if (beverageName !== undefined) bev.beverageName = beverageName;
+//       if (price !== undefined) bev.price = price;
+//       if (category !== undefined) bev.category = category;
+//       if (isVisible !== undefined) bev.isVisible = isVisible;
+//       bev.lastUpdateAt = now;
+//       await bev.save();
+//       return res.json({ success: true, data: bev });
+//     }
+//
+//     const hist = ensureMonthEntry(bev, year, month);
+//
+//     if (action === "restock") {
+//       if (q <= 0) {
+//         return res
+//           .status(400)
+//           .json({ success: false, message: "quantity must be > 0" });
+//       }
+//       bev.runningStock += q;
+//       hist.restockEvents.push({ quantity: q, date: now, note });
+//     } else if (action === "remove") {
+//       if (q <= 0) {
+//         return res
+//           .status(400)
+//           .json({ success: false, message: "quantity must be > 0" });
+//       }
+//       if (bev.runningStock - q < 0) {
+//         return res
+//           .status(400)
+//           .json({ success: false, message: "Insufficient stock to remove" });
+//       }
+//       bev.runningStock -= q;
+//       hist.removalEvents.push({ quantity: q, date: now, note });
+//     } else if (action === "purchase") {
+//       if (q <= 0) {
+//         return res
+//           .status(400)
+//           .json({ success: false, message: "quantity must be > 0" });
+//       }
+//       if (bev.runningStock - q < 0) {
+//         return res.status(400).json({
+//           success: false,
+//           message: "Insufficient stock to record purchase",
+//         });
+//       }
+//       bev.runningStock -= q;
+//       hist.purchaseEvents.push({ quantity: q, date: now, note });
+//     } else {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid action. Use edit|restock|remove|purchase",
+//       });
+//     }
+//
+//     recomputeMonthlyTotals(bev, hist);
+//     if (samePeriod({ year, month }, yyyymmFromDate(now))) {
+//       bev.currentMonthStock = hist.totalInStock;
+//       bev.currentMonthAvailable = hist.availableAfterPurchases;
+//     }
+//     bev.lastUpdateAt = now;
+//
+//     await bev.save();
+//     return res.json({ success: true, data: bev });
+//   } catch (err) {
+//     console.error(err);
+//     return res.status(400).json({ success: false, message: err.message });
+//   }
+// };
 
 // Soft delete
 export const deleteBeverage = async (req, res) => {
