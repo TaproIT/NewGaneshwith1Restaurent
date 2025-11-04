@@ -15,11 +15,13 @@ import { fetchAllExtraBeverageCategories } from "@/api/order/get-extra-beverge-c
 import { Plus } from "lucide-react";
 
 
-const BeverageCategorySelector: React.FC = () => {
+const BeverageCategorySelector: React.FC<{id:string}> = ({id}) => {
   const dispatch = useDispatch<AppDispatch>();
   const beverageCategory = useSelector(
     (state: RootState) => state.beverageCategory
   );
+
+  const isMenuHandlingPage = (id === "0");
 
   const selectedCategory = beverageCategory.selectedCategory;
   
@@ -64,6 +66,7 @@ const BeverageCategorySelector: React.FC = () => {
     dispatch(setIsBeverageItemsList(true));
     dispatch(setSelectedFoodCategoryTitle(""));
     dispatch(setSelectedBeverageCategoryTitle(category));
+    dispatch(setIsFoodCategory(false));
     //dispatch(setIsClickAddNewFoodItem(false));
   };
 
@@ -74,7 +77,7 @@ const BeverageCategorySelector: React.FC = () => {
   }
 
   return (
-    <div className="relative flex flex-col items-start w-[135px] 2xl:w-[163px] rounded-md">
+    <div className="relative flex flex-col items-start w-11/12 rounded-md">
       {loading ? (
         Array.from({ length: 4 }).map((_, index) => (
           <Skeleton key={index} className="h-[72px] w-full mb-2 rounded-md" />
@@ -124,14 +127,16 @@ const BeverageCategorySelector: React.FC = () => {
           })}
         </div>
       )}
-       <div className="sticky left-0 bottom-5 pr-1 bg-white">
-        <div
-          className="py-5 px-14 flex items-center justify-center border rounded-sm cursor-pointer"
-          onClick={handleAddNewBeverageCategory}
-        >
-          <Plus size={24} className="text-[#0A869D]" />
+      {isMenuHandlingPage && (
+        <div className="sticky left-0 bottom-5 w-full pr-1 bg-white">
+          <div
+            className="py-5 w-full flex items-center justify-center border rounded-sm cursor-pointer"
+            onClick={handleAddNewBeverageCategory}
+          >
+            <Plus size={24} className="text-[#0A869D]" />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

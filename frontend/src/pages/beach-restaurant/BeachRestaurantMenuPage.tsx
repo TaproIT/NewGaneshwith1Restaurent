@@ -33,7 +33,7 @@ const BeachRestaurantMenuPage: React.FC = () => {
   return (
     <div className="grid grid-cols-7 gap-3">
       <div className="col-span-5">
-        <FoodMenuDetailsSection />
+        <FoodMenuDetailsSection id={id} />
       </div>
       <div className="col-span-2">
         {
