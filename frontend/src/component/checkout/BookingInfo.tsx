@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Label } from "@/components/ui/label";
 import type { Booking } from "@/types/booking";
-import { useCurrency } from "@/context/CurrencyContext";
-import { useRates } from "@/context/RateContext";
+// import { useCurrency } from "@/context/CurrencyContext";
+// import { useRates } from "@/context/RateContext";
 
 interface Props {
   booking: Booking;
