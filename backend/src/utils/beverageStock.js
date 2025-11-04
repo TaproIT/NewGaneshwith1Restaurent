@@ -1,88 +1,68 @@
-// utils/beverageStock.js
+// services/beverageService.js
+import dayjs from "dayjs";
 import Beverage from "../models/Beverage/beverage.js";
 
-const yyyymmFromDate = (d = new Date()) => ({
-    year: d.getFullYear(),
-    month: d.getMonth() + 1,
-});
-
-const findHistoryIndex = (bev, year, month) =>
-    (bev.history || []).findIndex((h) => h.year === year && h.month === month);
-
-const getPrevClosing = (bev, year, month) => {
-    const key = year * 100 + month;
-    let carry = 0;
-    let latestKey = -1;
-    for (const h of bev.history || []) {
-        const k = h.year * 100 + h.month;
-        if (k < key && k > latestKey) {
-            latestKey = k;
-            carry = h.availableAfterPurchases ?? 0;
-        }
+export const updateBeverageQuantityManually = async (id, quantity, note = "") => {
+    if (!quantity || quantity <= 0) {
+        throw new Error("Quantity must be greater than 0.");
     }
-    return carry;
+
+    const beverage = await Beverage.findById(id);
+    if (!beverage || beverage.status === "deleted") {
+        throw new Error("Beverage not found or deleted.");
+    }
+
+    if (beverage.runningStock < quantity) {
+        throw new Error("Not enough stock to reduce.");
+    }
+
+    const now = dayjs();
+    const formattedNote = `${now.format("YYYY-MM-DD HH:mm:ss")} - ${note || "Manual reduction"}`;
+
+    const oldStock = beverage.runningStock;
+    const newStock = oldStock - quantity;
+
+    const historyEntry = {
+        year: now.year(),
+        month: now.month() + 1,
+        lastUpdateAt: now.toDate(),
+        oldStock,
+        purchasedStock: quantity,
+        isPurchased: true,
+        newStock,
+        date: now.toDate(),
+        note: formattedNote,
+    };
+
+    beverage.runningStock = newStock;
+    beverage.lastUpdateAt = now.toDate();
+    beverage.historyQuantity.push(historyEntry);
+
+    return await beverage.save();
 };
 
-const ensureMonthEntry = (bev, year, month) => {
-    let idx = findHistoryIndex(bev, year, month);
-    if (idx === -1) {
-        const opening = getPrevClosing(bev, year, month) || 0;
-        bev.history.push({
-            year,
-            month,
-            lastUpdateAt: new Date(),
-            openingStock: opening,
-            totalRestocked: 0,
-            totalRemoved: 0,
-            totalPurchased: 0,
-            totalInStock: opening,
-            availableAfterPurchases: opening,
-            restockEvents: [],
-            removalEvents: [],
-            purchaseEvents: [],
-        });
-        idx = bev.history.length - 1;
+
+export const updateBeverageVolumeManually = async (id, volume, note = "") => {
+    if (!volume || volume <= 0) {
+        throw new Error("Volume must be greater than 0.");
     }
-    return bev.history[idx];
-};
 
-const recomputeMonthlyTotals = (bev, hist) => {
-    if (hist.openingStock === undefined || hist.openingStock === null) {
-        hist.openingStock = getPrevClosing(bev, hist.year, hist.month) || 0;
+    const beverage = await Beverage.findById(id);
+    if (!beverage || beverage.status === "deleted") {
+        throw new Error("Beverage not found or deleted.");
     }
-    hist.totalRestocked = (hist.restockEvents || []).reduce((s, e) => s + (e.quantity || 0), 0);
-    hist.totalRemoved = (hist.removalEvents || []).reduce((s, e) => s + (e.quantity || 0), 0);
-    hist.totalPurchased = (hist.purchaseEvents || []).reduce((s, e) => s + (e.quantity || 0), 0);
 
-    hist.totalInStock = Math.max(0, (hist.openingStock || 0) + hist.totalRestocked - hist.totalRemoved);
-    hist.availableAfterPurchases = Math.max(0, hist.totalInStock - hist.totalPurchased);
-    hist.lastUpdateAt = new Date();
+    const now = dayjs();
+    const formattedNote = `${now.format("YYYY-MM-DD HH:mm:ss")} - ${note || "Manual volume update"}`;
+
+    const volumeEntry = {
+        volume,
+        year: now.year(),
+        month: now.month() + 1,
+        date: now.toDate(),
+        note: formattedNote,
+    };
+
+    beverage.historyVolumeForPBFoodNet.push(volumeEntry);
+    return await beverage.save();
 };
-
-// const beverage = await purchaseBeverageById(id, quantity, note);
-export async function purchaseBeverageById(id, quantity, note) {
-    const q = Number(quantity) || 0;
-    if (q <= 0) throw new Error("quantity must be > 0");
-
-    const bev = await Beverage.findById(id);
-    if (!bev || bev.status === "deleted") throw new Error("Beverage not found");
-
-    const current = Number(bev.runningStock || 0);
-    if (current - q < 0) throw new Error("Insufficient stock to record purchase");
-
-    const now = new Date();
-    const { year, month } = yyyymmFromDate(now);
-
-    const hist = ensureMonthEntry(bev, year, month);
-
-    bev.runningStock = current - q;
-    hist.purchaseEvents.push({ quantity: q, date: now, note });
-
-    recomputeMonthlyTotals(bev, hist);
-    bev.currentMonthStock = hist.totalInStock;
-    bev.currentMonthAvailable = hist.availableAfterPurchases;
-    bev.lastUpdateAt = now;
-
-    await bev.save();
-    return bev;
-}
