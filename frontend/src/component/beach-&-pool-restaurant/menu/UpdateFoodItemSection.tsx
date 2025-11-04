@@ -11,7 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/app/store";
 import { BeverageCategories } from "@/lib/enums/order-related-enums";
-import { toast } from "react-toastify";
+//import { toast } from "react-toastify";
 
 // import { updateFoodItem } from "@/api/order/update-food-item-api";
 // import { updateBeverageItem } from "@/api/order/update-beverage-api";
@@ -22,17 +22,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 type Liqueur = { beverage: string; amount: number };
 
-interface UpdateItemSectionProps {
-  itemId: string;
-  itemType: "food" | "beverage" | "extraBeverage";
-  initialData: {
-    name: string;
-    price: number;
-    category: string;
-    liqueurs?: Liqueur[];
-    isEnableBeverage?: boolean;
-  };
-}
 
 export default function UpdateItemSection() {
   const dispatch = useDispatch<AppDispatch>();

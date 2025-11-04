@@ -29,7 +29,8 @@ export interface BeverageItem {
     _id: string;
     name: string;
   }
-  //isEnableBeverage: boolean;
+  isEnableBeverage: boolean;
+  liquor?: [{beverage:string, amount:number}] | []; 
   initialStock: number;
   note: string;
 }

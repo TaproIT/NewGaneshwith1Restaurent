@@ -3,7 +3,7 @@ import { Plus } from 'lucide-react';
 import React, { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from '@/app/store';
-import type { BeverageItem } from '../beverage-model';
+import type { ExtraBeverageItem } from '../beverage-model';
 import type { OrderBeverageItem } from '../order-model';
 import { addBeverageItemToOrderToken } from '@/features/beach-restaurant/orderSlice';
 import { useParams } from 'react-router-dom';
@@ -16,7 +16,7 @@ import { setIsSelectedBeverageItem, setIsSelectedExtraBeverageItem, setSelectedB
 import { setIsClickAddNewFoodItem, setIsSelectedFoodItem, setSelectedFoodItem } from '@/features/beach-restaurant/foodSlice';
 import { setIsClickedAddFoodCategory } from '@/features/beach-restaurant/foodCategorySlice';
 interface BeverageItemSelectorProps {
-  beverageItem: BeverageItem;
+  beverageItem: ExtraBeverageItem;
 }
 
 const BeverageItemSelector: React.FC<BeverageItemSelectorProps> = ({ beverageItem }) => {
@@ -76,6 +76,8 @@ const BeverageItemSelector: React.FC<BeverageItemSelectorProps> = ({ beverageIte
       title: beverageItem.beverageName,
       price: beverageItem.price, 
       quantity: 1,
+      isEnableBeverage: beverageItem.isEnableBeverage ?? false,
+      liquor: beverageItem.liquor ?? []
     };
     dispatch(addBeverageItemToOrderToken(orderBeverageItem));
   }, [dispatch, beverageItem]);

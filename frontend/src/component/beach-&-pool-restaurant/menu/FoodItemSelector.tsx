@@ -21,7 +21,7 @@ interface FoodItemSelectorProps {
 const FoodItemSelector: React.FC<FoodItemSelectorProps> = ({ foodItem }) => {
   const dispatch = useDispatch<AppDispatch>();
   const order = useSelector((state: RootState) => state.order);
-  const { selectedFoodItemId, selectedFoodItem } = useSelector((state: RootState) => state.food);
+  const { selectedFoodItemId } = useSelector((state: RootState) => state.food);
   const { rates } = useRates();
   const { displayCurrency } = useCurrency();
 
@@ -57,6 +57,8 @@ const FoodItemSelector: React.FC<FoodItemSelectorProps> = ({ foodItem }) => {
       title: foodItem.itemName,
       price: foodItem.price,
       quantity: 1,
+      isEnableBeverage: foodItem.isEnableBeverage ?? false,
+      liquor: foodItem.liquor ?? []
     };
     dispatch(addFoodItemToOrderToken(orderFoodItem));
   }, [dispatch, foodItem]);

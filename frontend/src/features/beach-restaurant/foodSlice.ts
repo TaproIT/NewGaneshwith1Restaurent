@@ -1,6 +1,6 @@
 import { addNewFoodItem } from "@/api/order/add-food-item-api";
 import { fetchAllFoodItems } from "@/api/order/get-food-list-api";
-import type { FoodItem, FoodItems } from "@/component/beach-&-pool-restaurant/food-model";
+import type { FoodItems } from "@/component/beach-&-pool-restaurant/food-model";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 const initialState: FoodItems = {

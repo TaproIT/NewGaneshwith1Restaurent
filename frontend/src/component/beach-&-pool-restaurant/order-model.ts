@@ -3,6 +3,8 @@ export interface OrderFoodItem {
    title: string;
    price: number;
    quantity: number;
+   isEnableBeverage?:Boolean;
+   liquor?: [{beverage:string, amount:number}] | []; 
 }
 
 export interface OrderBeverageItem {
@@ -10,6 +12,8 @@ export interface OrderBeverageItem {
    title: string;
    price: number;
    quantity: number;
+   isEnableBeverage?:Boolean;
+   liquor?: [{beverage:string, amount:number}] | [];
 }
 
 export interface OrderTokenType {
