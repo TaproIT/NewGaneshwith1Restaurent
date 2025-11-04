@@ -1,29 +1,31 @@
+import { useEffect, useRef, useState } from "react";
+import { useSelector } from "react-redux";
+import { io, type Socket } from "socket.io-client";
+import { Button } from "@/components/ui/button";
 import { api } from "@/api/axios";
 import type { RootState } from "@/app/store";
+import type { Room } from "@/types/roomTypes";
 import InvoiceForm from "@/component/invoice/InvoiceForm";
 import RoomDetails from "@/component/room/RoomDetails";
 import RoomGrid from "@/component/room/RoomGrid";
 import RoomGridSkeleton from "@/component/skeleton/RoomGridSkeleton";
-import type { Room } from "@/types/roomTypes";
-import { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
-import { io, type Socket } from "socket.io-client";
+import InvoiceList from "@/component/invoice/InvoiceList";
 
 const SOCKET_URL = import.meta.env.SOCKET_URL;
 
 const Invoice = () => {
+  const [view, setView] = useState<"create" | "list">("create");
   const [rooms, setRooms] = useState<Room[]>([]);
   const [selectedRooms, setSelectedRooms] = useState<Room[]>([]);
   const [viewedRoom, setViewedRoom] = useState<Room | null>(null);
   const [loadingRooms, setLoadingRooms] = useState(true);
   const [isFormComplete, setIsFormComplete] = useState(false);
   const formRef = useRef<any>(null);
+  const socketRef = useRef<Socket | null>(null);
 
   const guestDetails = useSelector((state: RootState) => state.onboarding.step01Data);
 
-  const socketRef = useRef<Socket | null>(null);
-
-  // Fetch all rooms on mount
+  // Fetch rooms and init socket
   useEffect(() => {
     const fetchRooms = async () => {
       try {
@@ -37,7 +39,6 @@ const Invoice = () => {
     };
     fetchRooms();
 
-    // Initialize socket
     socketRef.current = io(SOCKET_URL, { transports: ["websocket"] });
 
     socketRef.current.on("roomLocked", (roomNo: string) => {
@@ -52,28 +53,23 @@ const Invoice = () => {
       );
     });
 
-
     return () => {
       socketRef.current?.disconnect();
     };
   }, []);
 
+  // Handlers
   const handleInvoiceSuccess = () => {
-  // ✅ Clear selected rooms and reset state
-  setSelectedRooms([]);
-  setViewedRoom(null);
-  setIsFormComplete(false);
+    setSelectedRooms([]);
+    setViewedRoom(null);
+    setIsFormComplete(false);
 
-  // Optional: unlock all rooms
-  selectedRooms.forEach((room) => {
-    socketRef.current?.emit("unlockRoom", room.no);
-  });
+    selectedRooms.forEach((room) => {
+      socketRef.current?.emit("unlockRoom", room.no);
+    });
 
-  // ✅ Notify InvoiceForm to reset
-  if (formRef.current) {
-    formRef.current.resetForm(); // we'll add this to InvoiceForm next
-  }
-};
+    formRef.current?.resetForm?.();
+  };
 
   const handleRemoveRoom = (roomNo: string) => {
     setSelectedRooms((prev) => prev.filter((r) => r.no !== roomNo));
@@ -81,19 +77,16 @@ const Invoice = () => {
     socketRef.current?.emit("unlockRoom", roomNo);
   };
 
-  // Handle selecting/unselecting rooms
   const handleRoomClick = (room: Room) => {
     if (room.isBooked || room.isMaintenance) return;
 
     setViewedRoom(room);
-
     setSelectedRooms((prev) =>
       prev.find((r) => r.no === room.no)
         ? prev.filter((r) => r.no !== room.no)
         : [...prev, room]
     );
 
-    // Lock/unlock room via socket
     if (selectedRooms.find((r) => r.no === room.no)) {
       socketRef.current?.emit("unlockRoom", room.no);
     } else {
@@ -105,40 +98,74 @@ const Invoice = () => {
     setIsFormComplete(status);
   };
 
-
   return (
-    <div className="grid grid-cols-4 gap-5">
-      <div className=" col-span-3 h-[calc(100vh-140px)] overflow-auto">
-        <InvoiceForm onFormStatus={handleFormStatus} ref={formRef}/>
-        {loadingRooms ? <RoomGridSkeleton /> : (
-          isFormComplete && <RoomGrid
-            rooms={rooms}
-            selectedRooms={selectedRooms}
-            onRoomClick={handleRoomClick}
-            readOnly={false}
-          />
+    <div className={`grid gap-5 ${view === "create" ? "grid-cols-4" : "grid-cols-1"}`}>
+      {/* Left side */}
+      <div
+        className={`${
+          view === "create" ? "col-span-3" : "col-span-1"
+        } h-[calc(100vh-140px)] overflow-auto`}
+      >
+        {/* Toggle Buttons */}
+        <div className="flex items-center gap-3 mb-5 ml-2">
+          <Button
+            variant={view === "create" ? "default" : "outline"}
+            onClick={() => setView("create")}
+          >
+            Create Invoice
+          </Button>
+          <Button
+            variant={view === "list" ? "default" : "outline"}
+            onClick={() => setView("list")}
+          >
+            Invoice List
+          </Button>
+        </div>
+
+        {/* Content */}
+        {view === "create" ? (
+          <>
+            <InvoiceForm onFormStatus={handleFormStatus} ref={formRef} />
+            {loadingRooms ? (
+              <RoomGridSkeleton />
+            ) : (
+              isFormComplete && (
+                <RoomGrid
+                  rooms={rooms}
+                  selectedRooms={selectedRooms}
+                  onRoomClick={handleRoomClick}
+                  readOnly={false}
+                />
+              )
+            )}
+          </>
+        ) : (
+          <InvoiceList />
         )}
       </div>
 
-      <div className="col-span-1 h-screen overflow-hidden">
-        <RoomDetails
-          viewedRoom={viewedRoom}
-          selectedRooms={selectedRooms}
-          guestDetails={guestDetails}
-          grandTotal={0} // not used
-          isModalOpen={false} // no modal
-          onRemoveRoom={handleRemoveRoom}
-          onBookRoom={() => {}} // do nothing
-          onCloseModal={() => {}} // do nothing
-          readOnly={false}
-          checkout={false}
-          invoice={true}
-          switchRoom={false}
-          totalDays={0}
-          whatsAppId=""
-          onInvoiceSuccess={handleInvoiceSuccess}
-        />
-      </div>
+      {/* Right side (only show when creating invoice) */}
+      {view === "create" && (
+        <div className="col-span-1 h-screen overflow-hidden">
+          <RoomDetails
+            viewedRoom={viewedRoom}
+            selectedRooms={selectedRooms}
+            guestDetails={guestDetails}
+            grandTotal={0}
+            isModalOpen={false}
+            onRemoveRoom={handleRemoveRoom}
+            onBookRoom={() => {}}
+            onCloseModal={() => {}}
+            readOnly={false}
+            checkout={false}
+            invoice={true}
+            switchRoom={false}
+            totalDays={0}
+            whatsAppId=""
+            onInvoiceSuccess={handleInvoiceSuccess}
+          />
+        </div>
+      )}
     </div>
   );
 };

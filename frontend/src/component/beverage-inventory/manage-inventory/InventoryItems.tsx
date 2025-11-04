@@ -58,10 +58,10 @@ const InventoryItems: React.FC<InventoryItemsProps> = ({
               {bev.beverageName}
             </div>
             <div className="font-medium text-[10px] text-center text-gray">
-              375 ml
+              {bev.volume || 0} ml
             </div>
             <div className="font-medium text-[10px] text-center text-[#B24E0E]">
-              {bev.currentMonthAvailable} In Stock
+              {bev.runningStock} In Stock
             </div>
           </div>
           <div className="bg-bg flex gap-5 p-1 justify-center items-center">
