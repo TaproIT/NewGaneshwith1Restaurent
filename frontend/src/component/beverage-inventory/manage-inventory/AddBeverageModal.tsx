@@ -29,11 +29,14 @@ const AddBeverageModal: React.FC<AddBeverageModalProps> = ({
     beverageName: "",
     price: 0,
     category: "",
-    isVisible: true,
+    note: "",
+    runningStock: 0,
+    volume: 0,
   });
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if ((e.target.name === "price" || e.target.name === "runningStock" || e.target.name === "volume") && Number(e.target.value) < 0) return;
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -51,7 +54,7 @@ const AddBeverageModal: React.FC<AddBeverageModalProps> = ({
       toast.success("Beverage added successfully");
 
       onOpenChange(false); // close modal
-      setForm({ beverageName: "", price: 0, category: "", isVisible: true }); // reset form
+      setForm({ beverageName: "", price: 0, category: "", note: "", runningStock: 0, volume: 0 }); // reset form
       setIsLoading(false);
     } catch (error: any) {
       if (error.response && error.response.data) {
@@ -68,7 +71,7 @@ const AddBeverageModal: React.FC<AddBeverageModalProps> = ({
     }
 
     onOpenChange(false); // close modal
-    setForm({ beverageName: "", price: 0, category: "", isVisible: true }); // reset form
+    setForm({ beverageName: "", price: 0, category: "", note: "", runningStock: 0, volume: 0 }); // reset form
   };
 
   return (
@@ -92,6 +95,31 @@ const AddBeverageModal: React.FC<AddBeverageModalProps> = ({
             name="price"
             placeholder="Price"
             value={form.price || ""}
+            onChange={handleChange}
+            min={0}
+          />
+
+          <Input
+            type="number"
+            name="volume"
+            placeholder="Volume in ML"
+            value={form.volume || ""}
+            onChange={handleChange}
+            min={0}
+          />
+
+          <Input
+            type="number"
+            name="runningStock"
+            placeholder="Running Stock"
+            value={form.runningStock || ""}
+            onChange={handleChange}
+          />
+
+          <Input
+            name="note"
+            placeholder="Note (optional)"
+            value={form.note || ""}
             onChange={handleChange}
           />
         </div>

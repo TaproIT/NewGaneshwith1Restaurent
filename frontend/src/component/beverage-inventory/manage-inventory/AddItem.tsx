@@ -85,6 +85,13 @@ const AddItem: React.FC<AddItemProps> = ({ selectedBeverage, onModalChange }) =>
               {beverage?.runningStock}
             </div>
           </div>
+          <div className="grid grid-cols-3 text-sm text-gray">
+            <div className="col-span-1">Volume</div>
+            <div className="col-span-1">:</div>
+            <div className="col-span-1">
+              {beverage?.volume} ml
+            </div>
+          </div>
         </div>
       </div>
 

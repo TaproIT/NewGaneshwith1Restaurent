@@ -3,4 +3,5 @@ export interface UpdateBeverage {
   quantity: number;
   price: number;
   note: string;
+  volume: number;
 }
