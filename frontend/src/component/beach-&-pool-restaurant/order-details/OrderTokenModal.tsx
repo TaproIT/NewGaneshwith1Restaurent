@@ -47,7 +47,7 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
     >
       <DialogTrigger asChild></DialogTrigger>
 
-      <DialogContent className="!p-4 w-[325px] text-[#444444]">
+      <DialogContent className="!p-4 w-[325px] text-[#444444] printable-modal">
         <DialogHeader>
           <DialogTitle className="!px-2">Order {order.orderNumber}</DialogTitle>
         </DialogHeader>
@@ -120,7 +120,7 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
 
           {/* Print Button */}
           <div className="my-3 px-3 flex">
-            <Button onClick={handlePrint} className="!w-full cursor-pointer">
+            <Button onClick={handlePrint} className="!w-full cursor-pointer no-print">
               Print
             </Button>
           </div>
