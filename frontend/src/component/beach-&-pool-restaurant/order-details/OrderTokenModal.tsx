@@ -20,23 +20,36 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
 
   // Handle print button click
   const handlePrint = async () => {
-    try {
-      // Mark the current token as printed (local state)
-      dispatch(setIsPrintedForNewOrderToken(true));
+  try {
+    // Trigger native browser print first
+    window.print();
 
-      // Add the new order token to the backend order
-      await dispatch(addNewOrderTokenToOrder({ orderId: id })).unwrap();
+    // After printing, run backend updates asynchronously
+    setTimeout(async () => {
+      try {
+        // Mark local state
+        dispatch(setIsPrintedForNewOrderToken(true));
 
-      // Refresh the order data
-      await dispatch(fetchOrderById(id)).unwrap();
+        // Add the new order token to backend
+        await dispatch(addNewOrderTokenToOrder({ orderId: id })).unwrap();
 
-      toast.success("Order token printed successfully");
-    } catch (err: any) {
-      toast.error(
-        err?.message || "Failed to print order token. Please try again."
-      );
-    }
-  };
+        // Refresh order data
+        await dispatch(fetchOrderById(id)).unwrap();
+
+        toast.success("Order token updated successfully after print");
+      } catch (err: any) {
+        toast.error(
+          err?.message || "Printed, but failed to update order in database."
+        );
+      }
+    }, 300); // slight delay lets print dialog open smoothly
+
+  } catch (err: any) {
+    toast.error("Failed to open print dialog. Please try again.");
+  }
+};
+
+
 
   return (
     <Dialog
