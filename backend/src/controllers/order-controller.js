@@ -570,14 +570,20 @@ export const getDailyOrdersSummary = async (req, res) => {
     // Query orders within date range 
     const orders = await Order.find({
       createdAt: { $gte: start, $lt: end },
-      restaurantType
+      restaurantType,
     })
       .populate({
         path: "orderTokens",
-        populate: {
-          path: "foodOrders",
-          model: "FoodOrderItem",
-        },
+        populate: [
+          {
+            path: "foodOrders",
+            model: "FoodOrderItem",
+          },
+          {
+            path: "beverageOrders",
+            model: "BeverageOrderItem",
+          },
+        ],
       })
       .lean();
 
@@ -603,7 +609,7 @@ export const getDailyOrdersSummary = async (req, res) => {
       orderTokens: order.orderTokens.map((token) => ({
         tokenNumber: token.tokenNumber,
         orderedTime: token.createdAt?.toISOString() ?? "",
-        orderItems: token.foodOrders?.map((item) => item.title) ?? [],
+        orderItems: [...token.foodOrders?.map((item) => item.title), ...token.beverageOrders?.map((item) => item.title)] ?? [],
       })),
     }));
 
