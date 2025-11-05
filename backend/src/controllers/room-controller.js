@@ -1,5 +1,5 @@
 import Room from "../models/Room.js";
-import RoomCategory from "../models/user/roomCategory.js";
+import RoomCategory from "../models/roomCategory.js";
 
 // Add new Room
 export const addRoom = async (req, res) => {
@@ -93,30 +93,33 @@ export const updateRoom = async (req, res) => {
     }
 };
 
-
-
 // Get all rooms
 export const getAllRooms = async (req, res) => {
     try {
-        const rooms = await Room.find();
+        const rooms = await Room.find()
+            .populate("type", "_id type") // populate category name & ID
+            .sort({ createdAt: -1 });
         res.status(200).json(rooms);
     } catch (err) {
+        console.error("Error fetching rooms:", err);
         res.status(500).json({ message: "Server Error" });
     }
 };
 
-//Get Available Rooms
+// Get all available rooms
 export const getAvailableAllRooms = async (req, res) => {
     try {
-        const rooms = await Room.find({
-            isBooked: false,
-        }).lean();
+        const rooms = await Room.find({ isBooked: false })
+            .populate("type", "_id type") // include category info
+            .lean()
+            .sort({ createdAt: -1 });
         res.status(200).json(rooms);
     } catch (err) {
-        console.error(err);
+        console.error("Error fetching available rooms:", err);
         res.status(500).json({ message: "Server Error" });
     }
 };
+
 
 
 // Room Category
