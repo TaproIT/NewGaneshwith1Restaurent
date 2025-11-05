@@ -57,7 +57,7 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
         window.qz.security.setCertificatePromise(() =>
           Promise.resolve("unsigned")
         );
-        window.qz.security.setSignaturePromise((toSign: string) =>
+        window.qz.security.setSignaturePromise(() =>
           Promise.resolve("unsigned")
         );
         clearInterval(interval);
