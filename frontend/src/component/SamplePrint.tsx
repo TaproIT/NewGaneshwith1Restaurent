@@ -27,7 +27,7 @@ export default function PrintButton() {
       }
 
       // ✅ Set your printer name exactly as shown in QZ Tray’s printer list
-      const printerName = "ET PT 30 Standard Printer";
+      const printerName = "POS80";
 
       // Create printer config
       const config = qz.configs.create(printerName);
