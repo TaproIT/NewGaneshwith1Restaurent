@@ -27,74 +27,118 @@ const UpdateBeverageModal: React.FC<UpdateBeverageModalProps> = ({
 }) => {
   const [form, setForm] = React.useState<UpdateBeverage>({
     action: action,
+    price: 0,
     quantity: 0,
+    volume: 0,
     note: "",
   });
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+
+    // Prevent negative values
+    if ((name === "price" || name === "quantity" || name === "volume") && Number(value) < 0) return;
+
     setForm((prev) => ({
       ...prev,
-      [name]: name === "quantity" ? Number(value) : value, // ensure quantity is number
+      [name]:
+        name === "quantity" || name === "price" ? Number(value) : value,
     }));
   };
 
   const handleSubmit = async () => {
+
     const payload = {
       ...form,
       action,
     };
+
     setIsLoading(true);
 
     try {
-      await api.patch(`/beverages/${selectedBeverage}`, payload); // adjust endpoint if needed
-      {
-        action === "restock"
-          ? toast.success("Beverage updated successfully")
-          : toast.success("Beverage removed successfully");
+      // Step 1: Update beverage quantity / note
+      if ((form.quantity > 0 || form.note) && action === "restock") {
+      await api.put(`/beverages/add-beverage-quantity/${selectedBeverage}`, payload);
       }
 
-      onOpenChange(false); // close modal
-      setForm({ action: "", quantity: 0, note: "" }); // reset
-      setIsLoading(false);
-    } catch (error: any) {
-      if (error.response?.data) {
-        const message =
-          error.response.data.message || "Failed to update beverage";
-        toast.error(message);
-        setForm({ action: "", quantity: 0, note: "" });
-        setIsLoading(false);
-      } else {
-        toast.error("Something went wrong. Please try again.");
-        setForm({ action: "", quantity: 0, note: "" });
-        setIsLoading(false);
+      if ((form.price > 0 || form.volume > 0) && action === "restock") {
+  await api.put(`/beverages/price-and-volume/${selectedBeverage}`, {
+    ...(form.price > 0 && { price: form.price }),
+    ...(form.volume > 0 && { volume: form.volume }),
+  });
+}
+
+      if (form.quantity > 0 && action === "remove") {
+        await api.patch(`/beverages/reduce-beverage-quantity/${selectedBeverage}`, payload);
       }
+
+      toast.success(
+        action === "restock"
+          ? "Beverage updated successfully"
+          : "Beverage removed successfully"
+      );
+
+      onOpenChange(false);
+      setForm({ action: "", quantity: 0, note: "", price: 0, volume: 0 });
+    } catch (error: any) {
+      const message =
+        error.response?.data?.message || "Failed to update beverage";
+      toast.error(message);
       console.error("Backend error:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
-
-  console.log(action);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          {action === "restock" ? (
-            <DialogTitle>Restock Beverage</DialogTitle>
-          ) : (
-            <DialogTitle>Remove Beverage</DialogTitle>
-          )}
+          <DialogTitle>
+            {action === "restock" ? "Restock Beverage" : "Remove Beverage"}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col gap-4 mt-4">
-          <Input
-            type="number"
-            name="quantity"
-            placeholder="Quantity"
-            value={form.quantity || ""}
-            onChange={handleChange}
-          />
+          {action === "restock" && <div className="grid grid-cols-3 items-center gap-2">
+            <label className="col-span-1">Price</label>
+            <Input
+              type="number"
+              name="price"
+              placeholder="Price"
+              value={form.price || ""}
+              onChange={handleChange}
+              className="col-span-2"
+              min={0}
+            />
+          </div>}
+
+          {action === "restock" && <div className="grid grid-cols-3 items-center gap-2">
+            <label className="col-span-1">Volume</label>
+            <Input
+              type="number"
+              name="volume"
+              placeholder="Volume in ML"
+              value={form.volume || ""}
+              onChange={handleChange}
+              className="col-span-2"
+              min={0}
+            />
+          </div>}
+
+          <div className="grid grid-cols-3 items-center gap-2">
+            <label className="col-span-1">Quantity</label>
+            <Input
+              type="number"
+              name="quantity"
+              placeholder="Quantity"
+              value={form.quantity || ""}
+              onChange={handleChange}
+              className="col-span-2"
+              min={1}
+            />
+          </div>
 
           <Input
             type="text"
@@ -106,7 +150,7 @@ const UpdateBeverageModal: React.FC<UpdateBeverageModalProps> = ({
         </div>
 
         <DialogFooter className="mt-4">
-          <Button onClick={handleSubmit}>
+          <Button onClick={handleSubmit} disabled={isLoading}>
             {isLoading ? (
               <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
             ) : (

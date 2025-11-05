@@ -34,23 +34,43 @@ const server = http.createServer(app);
 
 // Allowed origins
 const allowedSocketOrigins = process.env.SOCKET_IO_ORIGINS.split(',');
-const allowedApiOrigins = process.env.API_ORIGINS
+const allowedApiOrigins = process.env.API_ORIGINS.split(',');
 
 // --- Middleware ---
+
 app.use(cors({
     origin: function (origin, callback) {
         // Allow requests with no origin (like mobile apps or curl)
         if (!origin) return callback(null, true);
+        
+        // Now allowedApiOrigins is an ARRAY, so .includes() works correctly
         if (allowedApiOrigins.includes(origin)) {
             return callback(null, true);
         } else {
-            return callback(new Error('Not allowed by CORS'));
+            // This now safely blocks the request instead of crashing
+            console.log("Not allowed by CORS");
+            return callback(null, false);
         }
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
+// app.use(cors({
+//     origin: function (origin, callback) {
+//         // Allow requests with no origin (like mobile apps or curl)
+//         if (!origin) return callback(null, true);
+//         if (allowedApiOrigins.includes(origin)) {
+//             return callback(null, true);
+//         } else {
+//             return callback(new Error('Not allowed by CORS'));
+//         }
+//     },
+//     credentials: true,
+//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+//     allowedHeaders: ["Content-Type", "Authorization"]
+// }));
 app.use(bodyParser.json());
 app.use(express.json());
 app.use(cookieParser());

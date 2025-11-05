@@ -41,7 +41,7 @@ const UserDetails: React.FC<UserDetailsProps> = ({ user, onClose }) => {
         <div className="grid grid-cols-6 items-center">
           <p className="col-span-2">Contact</p>
           <p className="col-span-1">:</p>
-          <p className="col-span-3">{user.contact}</p>
+          <p className="col-span-3">{user.contactNumber}</p>
         </div>
         <div className="grid grid-cols-6 items-center">
           <p className="col-span-2">Created Date</p>

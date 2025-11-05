@@ -46,7 +46,8 @@ const CheckoutDetails: React.FC = () => {
 
   const tax = 0;
   const serviceCharge = subtotal * 0.1;
-  const total = subtotal + tax + serviceCharge - discount;
+  const discountAmount = (subtotal + tax + serviceCharge) * (discount / 100);
+  const total = subtotal + tax + serviceCharge - discountAmount;
 
   return (
     <div className="h-[calc(100vh-140px)] bg-white p-8 overflow-y-auto">
@@ -65,7 +66,7 @@ const CheckoutDetails: React.FC = () => {
               subtotal={subtotal}
               tax={tax}
               serviceCharge={serviceCharge}
-              discount={discount}
+              discount={discountAmount}
               total={total}
             />
           </div>

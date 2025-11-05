@@ -2,12 +2,19 @@ import { addNewBeverage } from "@/api/order/add-beverage-api";
 import { addNewExtraBeverage } from "@/api/order/add-extra-beverage-api";
 import { fetchAllBeverageItems } from "@/api/order/get-beverage-list-api";
 import { fetchAllExtraBeverageItems } from "@/api/order/get-extra-beverage-list-api";
+import { updateExtraBeverage } from "@/api/order/update-extra-beverage-item-api";
 import type { BeverageItems } from "@/component/beach-&-pool-restaurant/beverage-model";
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 const initialState: BeverageItems = {
    beverageItems: [],
    extrabeverageItems: [],
+   selectedBeverageItemId: null,
+   selectedBeverageItem: null,
+   isSelectedBeverageItem: false,
+   selectedExtraBeverageItemId: null,
+   selectedExtraBeverageItem: null,
+   isSelectedExtraBeverageItem: false,
    fetchAllBeverageItemsStatus: {
      loading: false,
      error: null
@@ -25,13 +32,64 @@ const initialState: BeverageItems = {
     loading: false,
     error: null
   },
+  updateExtraBeverageItemStatus: {
+    loading: false,
+    error: null
+  },
 };
 
 const beverageSlice = createSlice({
   name: "beverage",
   initialState,
   reducers: {
-   
+    setIsSelectedBeverageItem: (state, action:PayloadAction<boolean>) => {
+        state.isSelectedBeverageItem = action.payload;
+    },
+
+    setSelectedBeverageItem: (state, action: PayloadAction<string>) => {
+      if (action.payload === "") state.selectedBeverageItem = null;
+
+      state.selectedBeverageItemId = action.payload;
+
+      const item = state.beverageItems.find((item) => item._id === action.payload);
+
+      if (item) {
+        state.selectedBeverageItem = {
+          _id: item._id,
+          beverageName: item.beverageName,
+          category: item.category ?? "",
+          price: item.price
+        }
+      }
+
+      //state.selectedFoodItem = action.payload;
+    },
+
+    setIsSelectedExtraBeverageItem: (state, action:PayloadAction<boolean>) => {
+        state.isSelectedExtraBeverageItem = action.payload;
+    },
+
+    setSelectedExtraBeverageItem: (state, action: PayloadAction<string>) => {
+      if (action.payload === "") state.selectedExtraBeverageItem = null;
+
+      state.selectedExtraBeverageItemId = action.payload;
+
+      const item = state.extrabeverageItems.find((item) => item._id === action.payload);
+
+      if (item) {
+        state.selectedExtraBeverageItem = {
+          _id: item._id,
+          beverageName: item.beverageName,
+          category: item.category ?? "",
+          price: item.price,
+          isEnableBeverage: item.isEnableBeverage,
+          liquor: item.liquor ?? []
+        }
+      }
+
+      //state.selectedFoodItem = action.payload;
+    },
+
   },
   
   extraReducers: (builder) => {
@@ -96,15 +154,35 @@ const beverageSlice = createSlice({
 
       .addCase(addNewExtraBeverage.fulfilled, (state) => {
         state.isAddedBeverageItem = true;
+        state.addExtraBeverageItemStatus.loading = false;
+        state.addExtraBeverageItemStatus.error = null;
       })
 
       .addCase(addNewExtraBeverage.rejected, (state, action) => {
         state.addExtraBeverageItemStatus.loading = true;
         state.addExtraBeverageItemStatus.error = action.payload as string;
+      })
+
+
+      // update extra beverage item
+      .addCase(updateExtraBeverage.pending, (state) => {
+        state.updateExtraBeverageItemStatus.loading = true;
+        state.updateExtraBeverageItemStatus.error = null;
+      })
+
+      .addCase(updateExtraBeverage.fulfilled, (state) => {
+        state.isAddedBeverageItem = true;
+        state.updateExtraBeverageItemStatus.loading = false;
+        state.updateExtraBeverageItemStatus.error = null;
+      })
+
+      .addCase(updateExtraBeverage.rejected, (state, action) => {
+        state.updateExtraBeverageItemStatus.loading = true;
+        state.updateExtraBeverageItemStatus.error = action.payload as string;
       });
   },
   
 });
 
-export const { } = beverageSlice.actions;
+export const { setIsSelectedBeverageItem, setSelectedBeverageItem, setIsSelectedExtraBeverageItem, setSelectedExtraBeverageItem } = beverageSlice.actions;
 export default beverageSlice.reducer;

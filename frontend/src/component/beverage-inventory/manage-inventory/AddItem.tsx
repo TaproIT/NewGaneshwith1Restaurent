@@ -4,6 +4,9 @@ import UpdateBeverageModal from "./UpdateBeverageModal";
 import { api } from "@/api/axios";
 import type { BeverageItem } from "@/types/BeverageItem";
 import AddItemSkeleton from "@/component/skeleton/AddItemSkeleton";
+import { useCurrency } from "@/context/CurrencyContext";
+import { useRates } from "@/context/RateContext";
+import { convertAndFormatPrice } from "@/util/priceConverter";
 
 interface AddItemProps {
   selectedBeverage: string;
@@ -28,14 +31,24 @@ const AddItem: React.FC<AddItemProps> = ({ selectedBeverage, onModalChange }) =>
     setAction("remove")
   };
 
+  const { rates } = useRates();
+  const { displayCurrency } = useCurrency();
+
+  const displayPrice = convertAndFormatPrice(
+    beverage ? beverage.price : 0, 
+    rates, 
+    displayCurrency
+  );
+
   useEffect(() => {
   const fetchBeverage = async () => {
+    setLoading(true);
     try {
       const response = await api.get(`/beverages/${selectedBeverage}`);
       setBeverage(response.data.data);
-      setLoading(false);
     } catch (error) {
       console.error("Error fetching beverages:", error);
+    } finally {
       setLoading(false);
     }
   }
@@ -62,7 +75,7 @@ const AddItem: React.FC<AddItemProps> = ({ selectedBeverage, onModalChange }) =>
             <div className="col-span-1">Price per 1</div>
             <div className="col-span-1">:</div>
             <div className="col-span-1">
-              {beverage?.price}
+              {displayPrice}
             </div>
           </div>
           <div className="grid grid-cols-3 text-sm text-gray">
@@ -70,6 +83,13 @@ const AddItem: React.FC<AddItemProps> = ({ selectedBeverage, onModalChange }) =>
             <div className="col-span-1">:</div>
             <div className="col-span-1">
               {beverage?.runningStock}
+            </div>
+          </div>
+          <div className="grid grid-cols-3 text-sm text-gray">
+            <div className="col-span-1">Volume</div>
+            <div className="col-span-1">:</div>
+            <div className="col-span-1">
+              {beverage?.volume} ml
             </div>
           </div>
         </div>
@@ -80,7 +100,7 @@ const AddItem: React.FC<AddItemProps> = ({ selectedBeverage, onModalChange }) =>
         <Button variant="outline" className="border-1 border-primary text-primary" onClick={() => handleRemoveModalChange(true)}>
           Remove
         </Button>
-        <Button onClick={() => handleModalChange(true)}>Add</Button>
+        <Button onClick={() => handleModalChange(true)}>Update</Button>
       </div>
 
       <UpdateBeverageModal

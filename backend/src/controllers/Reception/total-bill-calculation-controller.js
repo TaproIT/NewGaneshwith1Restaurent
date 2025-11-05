@@ -246,24 +246,15 @@ function normalizeAdditionalItems(items = []) {
         .filter((x) => x.name && x.price >= 0);
 }
 
-/**
- * Finalize/Update booking bill with validations
- * Every failed validation returns a clear 400 message.
- *
- * Expected req.body:
- * {
- *   originalBillTotal,
- *   totalRoomCharge,
- *   totalOrdersPrice,
- *   additionalPrice: [{ name, price }, ...],
- *   subtotal,
- *   tax,
- *   serviceCharge,
- *   discount,
- *   totalBill,
- *   paymentMethod   // "Cash" | "Card" | "Free-Bill"
- * }
- */
+// Accept 0–1 or 0–100 and normalize to 0–1
+function normalizeDiscountRate(discount) {
+    const d = Number(discount);
+    if (!Number.isFinite(d) || d < 0) return null;
+    if (d <= 1) return d;           // already a rate (e.g., 0.15)
+    if (d <= 100) return d / 100;   // percentage (e.g., 15)
+    return null;
+}
+
 export const finalizeBookingBill = async (req, res) => {
     const session = await mongoose.startSession();
 
@@ -323,6 +314,16 @@ export const finalizeBookingBill = async (req, res) => {
             });
         }
 
+        // Normalize discount to 0–1
+        const discountRate = normalizeDiscountRate(discount);
+        if (discountRate == null || discountRate < 0 || discountRate > 1) {
+            return res.status(400).json({
+                message:
+                    "Invalid discount. Provide a percentage as 0–1 (e.g., 0.15) or 0–100 (e.g., 15).",
+                details: { received: discount },
+            });
+        }
+
         // Start transaction
         session.startTransaction();
 
@@ -331,26 +332,25 @@ export const finalizeBookingBill = async (req, res) => {
         if (!booking) {
             await session.abortTransaction();
             return res.status(404).json({ message: "Booking not found" });
-
         }
 
-        if( booking.isCheckOut){
-            return res.status(404).json({ message: `Guest name is ${booking.guestName}. Already check out at ${booking.checkOut}` });
+        if (booking.isCheckOut) {
+            await session.abortTransaction();
+            return res.status(409).json({
+                message: `Guest name is ${booking.guestName}. Already checked out at ${booking.checkOut}`,
+            });
         }
 
-            // Normalize all comparisons to the same timezone @ start-of-day
+        // Normalize all comparisons to the same timezone @ start-of-day
         const todaySOD = dayjs().tz(TZ).startOf("day");
-
         const checkInSOD = dayjs(booking.checkIn).tz(TZ).startOf("day");
         const checkOutSOD = dayjs(booking.checkOut).tz(TZ).startOf("day");
 
-                // Valid if check-in is today or earlier (local)
-        const isCheckInValid =
-            checkInSOD.isSame(todaySOD) || checkInSOD.isBefore(todaySOD);
+        // Valid if check-in is today or earlier (local)
+        const isCheckInValid = checkInSOD.isSame(todaySOD) || checkInSOD.isBefore(todaySOD);
 
-                // Valid if check-out is today or later (local)
-        const isCheckOutValid =
-            checkOutSOD.isSame(todaySOD) || checkOutSOD.isAfter(todaySOD);
+        // Valid if check-out is today or later (local)
+        const isCheckOutValid = checkOutSOD.isSame(todaySOD) || checkOutSOD.isAfter(todaySOD);
 
         if (!isCheckInValid) {
             await session.abortTransaction();
@@ -362,7 +362,7 @@ export const finalizeBookingBill = async (req, res) => {
                     todayUTC: todaySOD.toDate().toISOString(),
                     checkInLocal: checkInSOD.format("YYYY-MM-DD HH:mm z"),
                     todayLocal: todaySOD.format("YYYY-MM-DD HH:mm z"),
-                    timezone: TZ
+                    timezone: TZ,
                 },
             });
         }
@@ -377,13 +377,12 @@ export const finalizeBookingBill = async (req, res) => {
                     todayUTC: todaySOD.toDate().toISOString(),
                     checkOutLocal: checkOutSOD.format("YYYY-MM-DD HH:mm z"),
                     todayLocal: todaySOD.format("YYYY-MM-DD HH:mm z"),
-                    timezone: TZ
+                    timezone: TZ,
                 },
             });
         }
 
-
-        // Check originalBillTotal equals booking.totalBill
+        // 1) Check originalBillTotal equals booking.totalBill
         const matchOriginalTotal =
             toCents(originalBillTotal) === toCents(booking.totalBill || 0);
 
@@ -399,7 +398,7 @@ export const finalizeBookingBill = async (req, res) => {
             });
         }
 
-        // Validate total room charge & orders
+        // 2) Validate total room charge & orders
         const dbRoom = Number(booking.finalAllRoomsTotalPrice || 0);
         const dbOrders = Number(booking.totalOrdersBill || 0);
 
@@ -419,14 +418,14 @@ export const finalizeBookingBill = async (req, res) => {
             });
         }
 
-        // Handle additional prices (sum and store)
+        // 3) Handle additional prices (sum and store)
         const cleanedAdditional = normalizeAdditionalItems(additionalPrice);
         const computedAdditionalTotal = cleanedAdditional.reduce(
             (acc, x) => acc + Number(x.price || 0),
             0
         );
 
-        // Calculate subtotal = totalAdditionalPrice + totalRoomCharge + totalOrdersPrice
+        // 4) Calculate subtotal = totalAdditionalPrice + totalRoomCharge + totalOrdersPrice
         const computedSubtotal =
             Number(computedAdditionalTotal) +
             Number(totalRoomCharge) +
@@ -448,15 +447,16 @@ export const finalizeBookingBill = async (req, res) => {
             });
         }
 
-        // Validate totalBill = subtotal + tax + serviceCharge - discount
+        // 5) Validate totalBill = subtotal + tax + serviceCharge - (subtotal * discountRate)
+        const discountAmount = Number(subtotal) * discountRate;
         const computedTotalBill =
-            Number(subtotal) + Number(tax) + Number(serviceCharge) - Number(discount);
+            Number(subtotal) + Number(tax) + Number(serviceCharge) - discountAmount;
 
         if (toCents(totalBill) !== toCents(computedTotalBill)) {
             await session.abortTransaction();
             return res.status(400).json({
                 message:
-                    "Mismatch: totalBill must equal subtotal + tax + serviceCharge - discount.",
+                    "Mismatch: totalBill must equal subtotal + tax + serviceCharge - (subtotal * discount%).",
                 details: {
                     sent: Number(totalBill),
                     expected: Number(computedTotalBill),
@@ -464,13 +464,14 @@ export const finalizeBookingBill = async (req, res) => {
                         subtotal: Number(subtotal),
                         tax: Number(tax),
                         serviceCharge: Number(serviceCharge),
-                        discount: Number(discount),
+                        discountPercent: discountRate * 100,
+                        discountAmount: Number(discountAmount.toFixed(2)),
                     },
                 },
             });
         }
 
-        // Persist fields
+        // 6) Persist fields
         booking.additionalPriceItems = cleanedAdditional;
         booking.totalAdditionalPrice = Number(computedAdditionalTotal);
 
@@ -479,43 +480,40 @@ export const finalizeBookingBill = async (req, res) => {
         booking.serviceCharge = Number(serviceCharge);
         booking.discount = Number(discount);
 
-        // Final totalBill must be updated to the new value from frontend (already validated)
         booking.totalBill = Number(totalBill);
-
         booking.paymentMethod = paymentMethod;
         booking.isCheckOut = true;
 
-        const newCheckoutDate = todaySOD.toDate();
+        // --- Checkout date + rooms history updates ---
+        const todayLocalNoon = dayjs()
+            .tz(TZ)
+            .hour(12)
+            .minute(0)
+            .second(0)
+            .millisecond(0);
 
-        // (Optional but recommended) preserve old date if it changes
+        const newCheckoutDate = todayLocalNoon.toDate();
+
         if (!dayjs(booking.checkOut).isSame(newCheckoutDate)) {
             booking.oldCheckOutDate = booking.checkOut;
             booking.oldCheckOutDateStatus = true;
         }
 
         booking.checkOut = newCheckoutDate;
-                    // use local *midday* to avoid UTC previous-day rollover
-        const todayLocalNoon = dayjs().tz(TZ).hour(12).minute(0).second(0).millisecond(0);
-                // or use endOf('day'): const todayLocalEOD = dayjs().tz(TZ).endOf('day');
 
-        booking.checkOut = todayLocalNoon.toDate();
-
-        booking.roomsHistory = (booking.roomsHistory || []).map(rh => {
-            rh.switchOutDate = todayLocalNoon.toDate();
+        booking.roomsHistory = (booking.roomsHistory || []).map((rh) => {
+            rh.switchOutDate = newCheckoutDate;
             if (rh.status === "active") rh.status = "completed";
             return rh;
         });
 
         if (Array.isArray(booking.currentRooms) && booking.currentRooms.length > 0) {
-            // Update currentRooms.isActive = false
             booking.currentRooms = booking.currentRooms.map((room) => ({
                 ...room,
                 isActive: false,
             }));
 
-            //  Update Room model: set isBooked = false for each roomId
             const roomIds = booking.currentRooms.map((r) => r.roomId);
-
             await Room.updateMany(
                 { _id: { $in: roomIds } },
                 { $set: { isBooked: false } },
@@ -524,7 +522,6 @@ export const finalizeBookingBill = async (req, res) => {
         }
 
         await booking.save({ session });
-
         await session.commitTransaction();
 
         return res.status(200).json({
@@ -539,6 +536,7 @@ export const finalizeBookingBill = async (req, res) => {
                 totalBill: booking.totalBill,
                 paymentMethod: booking.paymentMethod,
                 additionalPriceItems: booking.additionalPriceItems,
+                checkOut: booking.checkOut,
             },
         });
     } catch (err) {
@@ -554,3 +552,330 @@ export const finalizeBookingBill = async (req, res) => {
         session.endSession();
     }
 };
+
+
+// // Convert normal currency units to integer cents for precise comparison
+// function toCents(n) {
+//     return Math.round(Number(n || 0) * 100);
+// }
+//
+// // Normalize an array of additional prices (guard against bad payloads)
+// function normalizeAdditionalItems(items = []) {
+//     if (!Array.isArray(items)) return [];
+//     return items
+//         .filter(Boolean)
+//         .map((x) => ({
+//             name: String(x?.name || "").trim(),
+//             price: Number(x?.price || 0),
+//         }))
+//         .filter((x) => x.name && x.price >= 0);
+// }
+//
+// /**
+//  * Finalize/Update booking bill with validations
+//  * Every failed validation returns a clear 400 message.
+//  *
+//  * Expected req.body:
+//  * {
+//  *   originalBillTotal,
+//  *   totalRoomCharge,
+//  *   totalOrdersPrice,
+//  *   additionalPrice: [{ name, price }, ...],
+//  *   subtotal,
+//  *   tax,
+//  *   serviceCharge,
+//  *   discount,
+//  *   totalBill,
+//  *   paymentMethod   // "Cash" | "Card" | "Free-Bill"
+//  * }
+//  */
+// export const finalizeBookingBill = async (req, res) => {
+//     const session = await mongoose.startSession();
+//
+//     try {
+//         const { id } = req.params;
+//
+//         if (!mongoose.Types.ObjectId.isValid(id)) {
+//             return res.status(400).json({ message: "Invalid booking id" });
+//         }
+//
+//         const {
+//             originalBillTotal,
+//             totalRoomCharge,
+//             totalOrdersPrice,
+//             additionalPrice = [],
+//             subtotal,
+//             tax,
+//             serviceCharge,
+//             discount,
+//             totalBill,
+//             paymentMethod,
+//         } = req.body || {};
+//
+//         // Basic presence checks
+//         if (originalBillTotal == null) {
+//             return res.status(400).json({ message: "originalBillTotal is required" });
+//         }
+//         if (totalRoomCharge == null) {
+//             return res.status(400).json({ message: "totalRoomCharge is required" });
+//         }
+//         if (totalOrdersPrice == null) {
+//             return res.status(400).json({ message: "totalOrdersPrice is required" });
+//         }
+//         if (subtotal == null) {
+//             return res.status(400).json({ message: "subtotal is required" });
+//         }
+//         if (tax == null) {
+//             return res.status(400).json({ message: "tax is required" });
+//         }
+//         if (serviceCharge == null) {
+//             return res.status(400).json({ message: "serviceCharge is required" });
+//         }
+//         if (discount == null) {
+//             return res.status(400).json({ message: "discount is required" });
+//         }
+//         if (totalBill == null) {
+//             return res.status(400).json({ message: "totalBill is required" });
+//         }
+//         if (!paymentMethod) {
+//             return res.status(400).json({ message: "paymentMethod is required" });
+//         }
+//         if (!Object.values(PaymentMethods).map((p) => p.value).includes(paymentMethod)) {
+//             return res.status(400).json({
+//                 message: `Invalid paymentMethod. Allowed: ${Object.values(PaymentMethods)
+//                     .map((p) => p.value)
+//                     .join(", ")}`,
+//             });
+//         }
+//
+//         // Start transaction
+//         session.startTransaction();
+//
+//         // Load booking
+//         const booking = await Booking.findById(id).session(session);
+//         if (!booking) {
+//             await session.abortTransaction();
+//             return res.status(404).json({ message: "Booking not found" });
+//
+//         }
+//
+//         if( booking.isCheckOut){
+//             return res.status(404).json({ message: `Guest name is ${booking.guestName}. Already check out at ${booking.checkOut}` });
+//         }
+//
+//             // Normalize all comparisons to the same timezone @ start-of-day
+//         const todaySOD = dayjs().tz(TZ).startOf("day");
+//
+//         const checkInSOD = dayjs(booking.checkIn).tz(TZ).startOf("day");
+//         const checkOutSOD = dayjs(booking.checkOut).tz(TZ).startOf("day");
+//
+//                 // Valid if check-in is today or earlier (local)
+//         const isCheckInValid =
+//             checkInSOD.isSame(todaySOD) || checkInSOD.isBefore(todaySOD);
+//
+//                 // Valid if check-out is today or later (local)
+//         const isCheckOutValid =
+//             checkOutSOD.isSame(todaySOD) || checkOutSOD.isAfter(todaySOD);
+//
+//         if (!isCheckInValid) {
+//             await session.abortTransaction();
+//             return res.status(400).json({
+//                 message:
+//                     "Invalid check-in date. It must be today or a past date relative to the current local date.",
+//                 details: {
+//                     checkInUTC: booking.checkIn,
+//                     todayUTC: todaySOD.toDate().toISOString(),
+//                     checkInLocal: checkInSOD.format("YYYY-MM-DD HH:mm z"),
+//                     todayLocal: todaySOD.format("YYYY-MM-DD HH:mm z"),
+//                     timezone: TZ
+//                 },
+//             });
+//         }
+//
+//         if (!isCheckOutValid) {
+//             await session.abortTransaction();
+//             return res.status(400).json({
+//                 message:
+//                     "Invalid check-out date. It must be today or a future date relative to the current local date.",
+//                 details: {
+//                     checkOutUTC: booking.checkOut,
+//                     todayUTC: todaySOD.toDate().toISOString(),
+//                     checkOutLocal: checkOutSOD.format("YYYY-MM-DD HH:mm z"),
+//                     todayLocal: todaySOD.format("YYYY-MM-DD HH:mm z"),
+//                     timezone: TZ
+//                 },
+//             });
+//         }
+//
+//
+//         // Check originalBillTotal equals booking.totalBill
+//         const matchOriginalTotal =
+//             toCents(originalBillTotal) === toCents(booking.totalBill || 0);
+//
+//         if (!matchOriginalTotal) {
+//             await session.abortTransaction();
+//             return res.status(400).json({
+//                 message:
+//                     "Mismatch: originalBillTotal does not match the current totalBill in the database.",
+//                 details: {
+//                     sent: Number(originalBillTotal),
+//                     db: Number(booking.totalBill || 0),
+//                 },
+//             });
+//         }
+//
+//         // Validate total room charge & orders
+//         const dbRoom = Number(booking.finalAllRoomsTotalPrice || 0);
+//         const dbOrders = Number(booking.totalOrdersBill || 0);
+//
+//         if (toCents(totalRoomCharge) !== toCents(dbRoom)) {
+//             await session.abortTransaction();
+//             return res.status(400).json({
+//                 message: "Mismatch: totalRoomCharge does not match the database value.",
+//                 details: { sent: Number(totalRoomCharge), db: dbRoom },
+//             });
+//         }
+//
+//         if (toCents(totalOrdersPrice) !== toCents(dbOrders)) {
+//             await session.abortTransaction();
+//             return res.status(400).json({
+//                 message: "Mismatch: totalOrdersPrice does not match the database value.",
+//                 details: { sent: Number(totalOrdersPrice), db: dbOrders },
+//             });
+//         }
+//
+//         // Handle additional prices (sum and store)
+//         const cleanedAdditional = normalizeAdditionalItems(additionalPrice);
+//         const computedAdditionalTotal = cleanedAdditional.reduce(
+//             (acc, x) => acc + Number(x.price || 0),
+//             0
+//         );
+//
+//         // Calculate subtotal = totalAdditionalPrice + totalRoomCharge + totalOrdersPrice
+//         const computedSubtotal =
+//             Number(computedAdditionalTotal) +
+//             Number(totalRoomCharge) +
+//             Number(totalOrdersPrice);
+//
+//         if (toCents(subtotal) !== toCents(computedSubtotal)) {
+//             await session.abortTransaction();
+//             return res.status(400).json({
+//                 message: "Mismatch: subtotal is incorrect.",
+//                 details: {
+//                     sent: Number(subtotal),
+//                     expected: Number(computedSubtotal),
+//                     breakdown: {
+//                         totalAdditionalPrice: Number(computedAdditionalTotal),
+//                         totalRoomCharge: Number(totalRoomCharge),
+//                         totalOrdersPrice: Number(totalOrdersPrice),
+//                     },
+//                 },
+//             });
+//         }
+//
+//         // Validate totalBill = subtotal + tax + serviceCharge - discount
+//         const computedTotalBill =
+//             Number(subtotal) + Number(tax) + Number(serviceCharge) - Number(discount);
+//
+//         if (toCents(totalBill) !== toCents(computedTotalBill)) {
+//             await session.abortTransaction();
+//             return res.status(400).json({
+//                 message:
+//                     "Mismatch: totalBill must equal subtotal + tax + serviceCharge - discount.",
+//                 details: {
+//                     sent: Number(totalBill),
+//                     expected: Number(computedTotalBill),
+//                     breakdown: {
+//                         subtotal: Number(subtotal),
+//                         tax: Number(tax),
+//                         serviceCharge: Number(serviceCharge),
+//                         discount: Number(discount),
+//                     },
+//                 },
+//             });
+//         }
+//
+//         // Persist fields
+//         booking.additionalPriceItems = cleanedAdditional;
+//         booking.totalAdditionalPrice = Number(computedAdditionalTotal);
+//
+//         booking.subtotal = Number(subtotal);
+//         booking.tax = Number(tax);
+//         booking.serviceCharge = Number(serviceCharge);
+//         booking.discount = Number(discount);
+//
+//         // Final totalBill must be updated to the new value from frontend (already validated)
+//         booking.totalBill = Number(totalBill);
+//
+//         booking.paymentMethod = paymentMethod;
+//         booking.isCheckOut = true;
+//
+//         const newCheckoutDate = todaySOD.toDate();
+//
+//         // (Optional but recommended) preserve old date if it changes
+//         if (!dayjs(booking.checkOut).isSame(newCheckoutDate)) {
+//             booking.oldCheckOutDate = booking.checkOut;
+//             booking.oldCheckOutDateStatus = true;
+//         }
+//
+//         booking.checkOut = newCheckoutDate;
+//                     // use local *midday* to avoid UTC previous-day rollover
+//         const todayLocalNoon = dayjs().tz(TZ).hour(12).minute(0).second(0).millisecond(0);
+//                 // or use endOf('day'): const todayLocalEOD = dayjs().tz(TZ).endOf('day');
+//
+//         booking.checkOut = todayLocalNoon.toDate();
+//
+//         booking.roomsHistory = (booking.roomsHistory || []).map(rh => {
+//             rh.switchOutDate = todayLocalNoon.toDate();
+//             if (rh.status === "active") rh.status = "completed";
+//             return rh;
+//         });
+//
+//         if (Array.isArray(booking.currentRooms) && booking.currentRooms.length > 0) {
+//             // Update currentRooms.isActive = false
+//             booking.currentRooms = booking.currentRooms.map((room) => ({
+//                 ...room,
+//                 isActive: false,
+//             }));
+//
+//             //  Update Room model: set isBooked = false for each roomId
+//             const roomIds = booking.currentRooms.map((r) => r.roomId);
+//
+//             await Room.updateMany(
+//                 { _id: { $in: roomIds } },
+//                 { $set: { isBooked: false } },
+//                 { session }
+//             );
+//         }
+//
+//         await booking.save({ session });
+//
+//         await session.commitTransaction();
+//
+//         return res.status(200).json({
+//             message: "Booking bill updated successfully",
+//             bookingId: booking._id,
+//             data: {
+//                 totalAdditionalPrice: booking.totalAdditionalPrice,
+//                 subtotal: booking.subtotal,
+//                 tax: booking.tax,
+//                 serviceCharge: booking.serviceCharge,
+//                 discount: booking.discount,
+//                 totalBill: booking.totalBill,
+//                 paymentMethod: booking.paymentMethod,
+//                 additionalPriceItems: booking.additionalPriceItems,
+//             },
+//         });
+//     } catch (err) {
+//         try {
+//             await session.abortTransaction();
+//         } catch (_) {}
+//         console.error("Finalize booking bill error:", err);
+//         return res.status(500).json({
+//             message: "Failed to finalize booking bill",
+//             error: err?.message || String(err),
+//         });
+//     } finally {
+//         session.endSession();
+//     }
+// };

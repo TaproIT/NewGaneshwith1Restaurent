@@ -1,12 +1,11 @@
 // routes/beverageRoutes.js
 import express from "express";
 import {
-  createBeverage,
-  getAllBeverages,
-  getOneBeverage,
-  updateBeverage,
-  deleteBeverage,
-  getCategorySummary,
+    createBeverage,
+    getAllBeverages,
+    getOneBeverage,
+    deleteBeverage,
+    getCategorySummary,  updateBeveragePriceAndVolume, reduceBeverageQuantity, addBeverageQuantity,
 } from "../../controllers/Beverage/beverageController.js";
 import { verifyTokenNotBlacklisted } from "../../middleware/check-black-list-token.js";
 import { authenticateToken } from "../../middleware/verify-token.js";
@@ -21,22 +20,25 @@ router.post("/", createBeverage);
 // Read
 router.get(
   "/",
-  verifyTokenNotBlacklisted,
-  authenticateToken,
-  authorizeRoles([
-    userRoles.BEACH_RESTAURANT_STAFF.value,
-    userRoles.POOL_RESTAURANT_STAFF.value, 
-    userRoles.ADMIN.value,
-    userRoles.SUPER_ADMIN.value
-  ]),
+  // verifyTokenNotBlacklisted,
+  // authenticateToken,
+  // authorizeRoles([
+  //   userRoles.BEACH_RESTAURANT_STAFF.value,
+  //   userRoles.POOL_RESTAURANT_STAFF.value,
+  //   userRoles.ADMIN.value,
+  //   userRoles.SUPER_ADMIN.value
+  // ]),
   getAllBeverages
 );
 
 router.get("/categories/summary", getCategorySummary);
 router.get("/:id", getOneBeverage);
 
-// Update (supports modes: edit | restock | remove | purchase)
-router.patch("/:id", updateBeverage);
+router.put("/price-and-volume/:id", updateBeveragePriceAndVolume);
+
+router.put("/reduce-beverage-quantity/:id", reduceBeverageQuantity);
+
+router.put("/add-beverage-quantity/:id", addBeverageQuantity);
 
 // Soft delete
 router.delete("/:id", deleteBeverage);
