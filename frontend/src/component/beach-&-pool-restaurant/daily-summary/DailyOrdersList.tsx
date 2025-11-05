@@ -90,6 +90,7 @@ export const DailyOrdersList: React.FC<{ orders: DailyOrder[] }> = ({
           ) : (
             orders.map((order) => {
               const isSelected = selectedOrderId === order._id;
+              console.log(order)
               return (
                 <div
                   key={order._id}

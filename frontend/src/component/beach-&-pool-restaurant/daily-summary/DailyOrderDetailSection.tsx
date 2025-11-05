@@ -53,12 +53,12 @@ const DailyOrderDetailsSection: React.FC = () => {
                   ))
                 }
                 {
-                  <OrderToken token={order.newOrderToken} />
+                  // <OrderToken token={order.newOrderToken} />
                 }
               </div>
             ) : (
                <div className="px-1.5">
-                   <OrderToken token={order.newOrderToken} />
+                   {/* <OrderToken token={order.newOrderToken} /> */}
                </div>
             )
                               

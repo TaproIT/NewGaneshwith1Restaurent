@@ -1,4 +1,5 @@
 import { addNewFoodItem } from "@/api/order/add-food-item-api";
+import { deleteFoodItem } from "@/api/order/delete-food-item-api";
 import { fetchAllFoodItems } from "@/api/order/get-food-list-api";
 import { updateFoodItem } from "@/api/order/update-food-item-api";
 import type { FoodItems } from "@/component/beach-&-pool-restaurant/food-model";
@@ -21,6 +22,10 @@ const initialState: FoodItems = {
      error: null
    },
    updateFoodItemStatus:{
+     loading: false,
+     error: null
+   },
+   deleteFoodItemStatus:{
      loading: false,
      error: null
    }
@@ -119,6 +124,24 @@ const foodSlice = createSlice({
         state.isUpdatedFoodItem = false;
         state.addFoodItemStatus.loading = false;
         state.addFoodItemStatus.error = action.payload as string;
+      })
+
+       // update new food item
+      .addCase(deleteFoodItem.pending, (state) => {
+        state.deleteFoodItemStatus.loading = true;
+        state.deleteFoodItemStatus.error = null;
+      })
+
+      
+      .addCase(deleteFoodItem.fulfilled, (state) => {
+        state.deleteFoodItemStatus.loading = false;
+        state.deleteFoodItemStatus.error = null;
+      })
+
+      
+      .addCase(deleteFoodItem.rejected, (state, action) => {
+        state.deleteFoodItemStatus.loading = false;
+        state.deleteFoodItemStatus.error = action.payload as string;
       });
   },
   
