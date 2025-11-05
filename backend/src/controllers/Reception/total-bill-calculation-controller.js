@@ -155,12 +155,14 @@ export const getBookingBillingSummary = async (req, res) => {
 
             if (match) {
                 rh.finalRoomTotalPrice = match.finalRoomTotalPrice;
+                rh.night = match.nights;
             } else {
                 const effIn = rh.switchInDate ? clampToTodayTZ(rh.switchInDate, todaySOD) : null;
                 const rawOut = rh.switchOutDate ? rh.switchOutDate : (effectiveCheckOut ? effectiveCheckOut.toDate() : null);
                 const effOut = rawOut ? clampToTodayTZ(rawOut, todaySOD) : null;
                 const nights = diffNightsTZ(effIn, effOut);
                 rh.finalRoomTotalPrice = (Number(rh.perDayPrice) || 0) * nights;
+                rh.night = nights;
             }
             return rh;
         });
@@ -483,6 +485,14 @@ export const finalizeBookingBill = async (req, res) => {
         booking.totalBill = Number(totalBill);
         booking.paymentMethod = paymentMethod;
         booking.isCheckOut = true;
+
+        booking.oldLengthOfStay = booking.lengthOfStay;
+
+        // Calculate new lengthOfStay = difference between checkIn and today (in nights)
+        const checkInDay = dayjs(booking.checkIn).tz(TZ).startOf("day");
+        const todayDay = dayjs().tz(TZ).startOf("day");
+        const diffNights = Math.max(todayDay.diff(checkInDay, "day"), 1);
+        booking.lengthOfStay = diffNights;
 
         // --- Checkout date + rooms history updates ---
         const todayLocalNoon = dayjs()

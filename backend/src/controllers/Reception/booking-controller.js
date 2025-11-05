@@ -576,7 +576,7 @@ export const createBooking = async (req, res) => {
         // Extract data from the request body
         const {
             guestName, country, passportId, totalGuests, lengthOfStay, email, whatsapp,
-            checkIn, checkOut, hotel, currentRooms, payload, adults, kids,
+            checkIn, checkOut, hotel, currentRooms, payload, adults, kids
         } = req.body;
 
         const trimmedGuestName = guestName.trim();
@@ -671,8 +671,8 @@ export const createBooking = async (req, res) => {
                     newBooking[0].roomsHistory.push({
                         roomId: room._id,
                         roomNo: room.no,
-                        perDayPrice: room.perDayPrice,
-                        roomTotalPrice: room.perDayPrice * lengthOfStay,
+                        perDayPrice: perDayPrice ?? room.perDayPrice,
+                        roomTotalPrice: (perDayPrice ?? room.perDayPrice) * lengthOfStay,
                         switchInDate: checkIn,
                         switchOutDate: checkOut, // planned checkout
                         isSwitched: false,
