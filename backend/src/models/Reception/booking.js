@@ -8,6 +8,9 @@ export const PaymentMethods = Object.freeze({
     FREE_BILL: { value: "Free-Bill", label: "Free Bill" },
 });
 
+const CUSTOMER_VALUES = ["Booking.com", "Open Booking"];
+const BREAKFAST_VALUES = ["Included", "Not-Included", "Full Board"];
+
 const additionalPriceItemSchema = new mongoose.Schema(
     {
         name: { type: String, required: true, trim: true },
@@ -87,6 +90,18 @@ const bookingSchema = new mongoose.Schema(
         paymentMethod: {
             type: String,
             enum: PAYMENT_METHOD_VALUES,
+        },
+
+        customerType: {
+            type: String,
+            enum: CUSTOMER_VALUES,
+            required: true,
+        },
+
+        breakfast: {
+            type: String,
+            enum: BREAKFAST_VALUES,
+            required: true,
         },
 
         //QR Code
