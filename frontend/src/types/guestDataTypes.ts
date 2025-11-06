@@ -22,6 +22,8 @@ export type Step01FormData = {
     specialRequests?: string;
   };
   bookingDate: string;  // ✅ ISO string from backend
+  customerType: string;
+  breakfast: string;
 };
 
 export interface OnboardingState {

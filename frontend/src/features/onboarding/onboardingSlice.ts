@@ -22,6 +22,8 @@ const initialStep01Data: Step01FormData = {
     specialRequests: "",
   },
   bookingDate: "",
+  customerType: "",
+  breakfast: "",
 };
 
 const initialState: OnboardingState = {
