@@ -7,10 +7,20 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useDispatch, useSelector } from "react-redux";
 import { type AppDispatch, type RootState } from "@/app/store";
-import { closeOrderTokenModal, setIsPrintedForNewOrderToken } from "@/features/beach-restaurant/orderSlice";
+import {
+  closeOrderTokenModal,
+  setIsPrintedForNewOrderToken,
+} from "@/features/beach-restaurant/orderSlice";
 import { addNewOrderTokenToOrder } from "@/api/order/add-new-order-token-to-order-api";
 import { fetchOrderById } from "@/api/order/get-order-data-api";
 import { toast } from "react-toastify";
@@ -31,33 +41,39 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
     document.body.appendChild(script);
   }, []);
 
-  /** ✅ Improved line formatter for full 80mm width **/
+  /**
+   * ✅ Improved formatter — perfectly aligns columns for 80mm (42-char) printer
+   */
   function formatItemLine(name: string, qty: number, price: number) {
-    const totalWidth = 42; // for 80mm printer width
-    const qtyWidth = 4;
-    const priceWidth = 8;
+    const totalWidth = 42; // 80mm printer paper
+    const qtyWidth = 5; // column for quantity
+    const priceWidth = 9; // column for price
     const maxNameLength = totalWidth - qtyWidth - priceWidth;
 
     const lines: string[] = [];
+
+    // Split long names into multiple lines
     while (name.length > maxNameLength) {
       lines.push(name.substring(0, maxNameLength));
       name = name.substring(maxNameLength);
     }
     lines.push(name);
 
-    // First line has name, qty, price
+    // First line with columns
     const firstLine =
       lines[0].padEnd(maxNameLength, " ") +
       qty.toString().padStart(qtyWidth, " ") +
       price.toFixed(2).padStart(priceWidth, " ");
 
-    // Remaining lines are just the leftover name text
-    const otherLines = lines.slice(1).map((l) => l.padEnd(totalWidth, " "));
+    // Additional lines only for name overflow
+    const otherLines = lines
+      .slice(1)
+      .map((l) => l.padEnd(totalWidth, " "));
 
     return [firstLine, ...otherLines].join("\n");
   }
 
-  /** ✅ Receipt Printing Logic **/
+  /** ✅ Print formatted receipt via QZ Tray **/
   const printReceipt = async () => {
     if (!window.qz) {
       alert("QZ Tray not loaded yet!");
@@ -67,7 +83,7 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
     const qz = window.qz;
 
     try {
-      // Connect to QZ Tray if not already connected
+      // Connect to QZ Tray
       if (!qz.websocket.isActive()) {
         await qz.websocket.connect();
         console.log("Connected to QZ Tray");
@@ -78,46 +94,51 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
       const ESC = "\x1B";
       const GS = "\x1D";
 
-      // Combine food + beverage items
+      // Combine all items
       const allItems = [
         ...(order.newOrderToken.foodOrders || []),
         ...(order.newOrderToken.beverageOrders || []),
       ];
 
       const formattedItems = allItems
-        .map((item) => formatItemLine(item.title, item.quantity, item.price))
+        .map((item) =>
+          formatItemLine(
+            item.title,
+            item.quantity,
+            item.price * item.quantity
+          )
+        )
         .join("\n");
 
-      // Format total lines
-      const totalLine = `TOTAL:`.padEnd(30, " ") + `${order.newOrderToken.tokenTotalBill.toFixed(2)} LKR`;
+      // Format header and totals
+      const totalLine =
+        "TOTAL".padEnd(30, " ") +
+        `${order.newOrderToken.tokenTotalBill.toFixed(2)} LKR`;
 
-      const data = [
-        {
-          type: "raw",
-          format: "plain",
-          data:
-            ESC + "@"
-            + ESC + "a" + "\x01" +
-            "==========================================\n" +
-            "        GANESH GARDEN BEACH HOTEL\n" +
-            `         ${order.restaurantType.toUpperCase()} RESTAURANT BILL\n` +
-            "==========================================\n" +
-            ESC + "a" + "\x00" +
-            `Order Token : ${order.orderTokens.length + 1}\n` +
-            `Date        : ${new Date().toLocaleString()}\n` +
-            "------------------------------------------\n" +
-            "Item                              Qty   Price\n" +
-            "------------------------------------------\n" +
-            formattedItems + "\n" +
-            "------------------------------------------\n" +
-            totalLine + "\n" +
-            "==========================================\n" +
-            ESC + "a" + "\x01" +
-            "       Thank you! Come again!       \n\n\n" +
-             "              \n\n\n" +
-            GS + "V" + "\x00", // Cut paper
-        },
-      ];
+      const printData =
+        ESC +
+        "@"
+        + ESC + "a" + "\x01" +
+        "==========================================\n" +
+        "        GANESH GARDEN BEACH HOTEL\n" +
+        `         ${order.restaurantType.toUpperCase()} RESTAURANT BILL\n` +
+        "==========================================\n" +
+        ESC + "a" + "\x00" +
+        `Order Token : ${order.orderTokens.length + 1}\n` +
+        `Date        : ${new Date().toLocaleString()}\n` +
+        "------------------------------------------\n" +
+        "Item                            Qty     Price\n" +
+        "------------------------------------------\n" +
+        formattedItems + "\n" +
+        "------------------------------------------\n" +
+        totalLine + "\n" +
+        "==========================================\n" +
+        ESC + "a" + "\x01" +
+        "       Thank you! Come again!       \n\n\n" +
+        "              \n\n\n" +
+        GS + "V" + "\x00"; // Paper cut
+
+      const data = [{ type: "raw", format: "plain", data: printData }];
 
       await qz.print(config, data);
       console.log("✅ Print job sent successfully to POS80!");
@@ -127,7 +148,7 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
     }
   };
 
-  /** ✅ Handle print and update **/
+  /** ✅ Handle Print, Save & Refresh **/
   const handlePrint = async () => {
     try {
       await printReceipt();
@@ -164,10 +185,13 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
 
           {order.restaurantTable?._id && (
             <div className="my-5 px-3 flex justify-between text-[0.75rem]">
-              <span className="font-medium">Table : {order.restaurantTable.name}</span>
+              <span className="font-medium">
+                Table : {order.restaurantTable.name}
+              </span>
             </div>
           )}
 
+          {/* UI Table Preview */}
           <Table className="mt-5 border border-gray-300">
             <TableHeader>
               <TableRow className="border-b border-gray-300">
