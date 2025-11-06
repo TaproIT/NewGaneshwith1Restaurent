@@ -5,7 +5,11 @@ import {
     getAllBeverages,
     getOneBeverage,
     deleteBeverage,
-    getCategorySummary,  updateBeveragePriceAndVolume, reduceBeverageQuantity, addBeverageQuantity,
+    getCategorySummary,
+    updateBeveragePriceAndVolume,
+    reduceBeverageQuantity,
+    addBeverageQuantity,
+    getAllBeveragesWithMinimalDetails,
 } from "../../controllers/Beverage/beverageController.js";
 import { verifyTokenNotBlacklisted } from "../../middleware/check-black-list-token.js";
 import { authenticateToken } from "../../middleware/verify-token.js";
@@ -30,9 +34,10 @@ router.get(
   // ]),
   getAllBeverages
 );
-
+router.get("/special/details",getAllBeveragesWithMinimalDetails);
 router.get("/categories/summary", getCategorySummary);
 router.get("/:id", getOneBeverage);
+
 
 router.put("/price-and-volume/:id", updateBeveragePriceAndVolume);
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
@@ -7,6 +7,7 @@ import { PaymentMethods } from "@/lib/enums/order-related-enums";
 import { api } from "@/api/axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { printFinalBill } from "@/util/printCheckout"; // adjust path if different
 
 interface PaymentModalProps {
   open: boolean;
@@ -41,6 +42,14 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+   useEffect(() => {
+      // Dynamically load QZ Tray
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/qz-tray/qz-tray.js";
+      script.onload = () => console.log("QZ Tray script loaded");
+      document.body.appendChild(script);
+    }, []);
+
   const paymentMethods = Object.values(PaymentMethods).filter(
     (method) => method.value !== "Room"
   );
@@ -71,6 +80,18 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
       if (response.status === 200) {
         toast.success("Payment processed successfully!");
+        await printFinalBill({
+        booking,
+        subtotal,
+        tax,
+        serviceCharge,
+        discount,
+        totalBill,
+        additionalPrice,
+        selectedPayment,
+        totalRoomCharge,
+        totalOrdersPrice,
+      });
         onOpenChange(false);
         navigate("/checkouts");
       } else {

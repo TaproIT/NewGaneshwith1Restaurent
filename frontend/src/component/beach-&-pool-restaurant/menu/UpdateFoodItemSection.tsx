@@ -120,7 +120,7 @@ export default function UpdateItemSection() {
       }
 
       if (selectedExtraBeverageItem !== null) {
-       
+        dispatch(deleteExtraBeverageItem({beverageId:selectedExtraBeverageItem._id}))
       }
 
       toast.success("Item deleted successfully!");
@@ -344,6 +344,7 @@ function FormRow({
 import { Skeleton } from "@/components/ui/skeleton";
 import { updateExtraBeverage } from "@/api/order/update-extra-beverage-item-api";
 import { deleteFoodItem } from "@/api/order/delete-food-item-api";
+import { deleteExtraBeverageItem } from "@/api/order/delete-extra-beverage-api";
 
 function UpdateItemSkeleton() {
   return (
