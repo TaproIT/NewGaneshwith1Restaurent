@@ -61,7 +61,8 @@ export const createBooking = async (req, res) => {
             breakfast,
         } = req.body;
 
-        const createdById = req.user?.id || req.user?._id;
+        const createdById = req.user?.userId || req.user?._id;
+
         // 🕓 Convert to Sri Lankan date/time (force to Colombo timezone)
         const todaySL = dayjs().tz(TZ).startOf("day");
         const checkInSL = checkIn
@@ -93,6 +94,7 @@ export const createBooking = async (req, res) => {
         if (!trimmedCreatedById) {
             return res.status(400).json({ error: "ID is required. unauthorized creation" });
         }
+        console.log(trimmedCreatedById);
 
         const checkInDate = dayjs(checkInSL).tz(TZ).startOf("day");
         const checkOutDate = dayjs(checkOutSL).tz(TZ).startOf("day");
@@ -1040,7 +1042,7 @@ export const updateBooking = async (req, res) => {
             updatedRooms
         } = req.body;
 
-        const updateUserId = req.user?.id || req.user?._id;
+        const updateUserId = req.user?.userId || req.user?._id;
 
         if (!updateUserId) {
             return res.status(400).json({ error: "Unauthorized creation. ID is required." });
