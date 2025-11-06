@@ -29,33 +29,121 @@ export async function printInvoice(invoice: any) {
 
     const html = `
       <html>
-      <body style="font-family: monospace; width: 80mm; font-size: 14px;">
-        <div style="text-align:center;">
-          <h3 style="margin:0;">Invoice</h3>
-          <p style="margin:0;">${new Date(invoice.createdAt).toLocaleString()}</p>
-          <hr/>
-        </div>
+<head>
+<meta charset="UTF-8" />
+<title>Payment Invoice</title>
+<style>
+  body {
+    font-family: "Times New Roman", serif;
+    width: 210mm;
+    margin: 0;
+    padding: 20mm;
+    font-size: 14px;
+  }
 
-        <table style="width:100%;">
-          <tr><td>Invoice No:</td><td style="text-align:right;">${invoice.invoiceNumber}</td></tr>
-          <tr><td>Customer:</td><td style="text-align:right;">${invoice.customerName || "-"}</td></tr>
-          <tr><td>Members:</td><td style="text-align:right;">${invoice.numberOfMembers || "-"}</td></tr>
-        </table>
+  .header {
+    text-align: center;
+    border-bottom: 1px solid black;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+  }
 
-        <hr/>
+  .header img {
+    height: 60px;
+    margin-bottom: 5px;
+  }
 
-        <table style="width:100%; font-size:14px;">
-          <tr>
-            <td><b>Total</b></td>
-            <td style="text-align:right;"><b>${invoice.total?.$numberDecimal}</b></td>
-          </tr>
-        </table>
+  .title {
+    text-align: center;
+    font-weight: bold;
+    text-decoration: underline;
+    margin-bottom: 20px;
+  }
 
-        <div style="text-align:center;margin-top:10px;">
-          <p>Thank You!</p>
-        </div>
-      </body>
-      </html>
+  .row {
+    display: flex;
+    line-height: 1.6;
+  }
+  .col {
+    flex: 1;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    margin-bottom: 20px;
+  }
+  table th, table td {
+    padding: 6px;
+    border-bottom: 1px solid #444;
+  }
+
+  .footer-note {
+    margin-top: 20px;
+    font-size: 12px;
+    opacity: 0.7;
+  }
+
+  @media print {
+    body {
+      margin: 0;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <img src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAJoAAAA1CAIAAAA212V7AAAACXBIWXMAAC4jAAA...EtvUhUIIFJCi4AUkSYqIQkQSoghodkVUcERRUUEG8igiAOOjoCMFVEsDIoK2Afk" />
+  <div><strong>Ganesh Garden Beach Cabanas & Restaurant</strong></div>
+  <div>Marakolliya Beach, Tangalle, Sri Lanka</div>
+  <div>Tel: +94 47 2242529</div>
+</div>
+
+<div class="title">PAYMENT INVOICE</div>
+
+<div class="row">
+  <div class="col"><strong>RECEIPT #:</strong> {{receiptNo}}</div>
+  <div class="col"><strong>Date:</strong> {{invoiceDate}}</div>
+</div>
+
+<div class="row">
+  <div class="col"><strong>Name:</strong> {{guestName}}</div>
+  <div class="col"><strong>Contact:</strong> {{guestContact}}</div>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Description</th>
+      <th>Unit Cost (USD)</th>
+      <th>Total (USD)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>{{roomDescription}}</td>
+      <td>{{unitCost}}</td>
+      <td>{{totalCost}}</td>
+    </tr>
+  </tbody>
+</table>
+
+<div><strong>Total Nights:</strong> {{nights}}</div>
+<div><strong>Check-in:</strong> {{checkIn}}</div>
+<div><strong>Check-out:</strong> {{checkOut}}</div>
+
+<div style="margin-top: 15px;">
+  <strong>Advance Payment:</strong> {{advanceAmount}} USD <br>
+  <strong>Balance Due:</strong> {{balanceAmount}} USD
+</div>
+
+<div class="footer-note">
+  Additional Information: Check-in & check-out time, house rules etc.
+</div>
+</body>
+</html>
     `;
 
     await qz.print(config, [
