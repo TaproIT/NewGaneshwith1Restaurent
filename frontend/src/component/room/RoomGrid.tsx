@@ -10,6 +10,7 @@ interface RoomGridProps {
   readOnly: boolean;
   onAddRoomClick?: () => void;
   roomConfigMode?: boolean;
+  onAddRoomTypeClick?: () => void;
 }
 
 const RoomGrid: React.FC<RoomGridProps> = ({
@@ -62,7 +63,7 @@ const RoomGrid: React.FC<RoomGridProps> = ({
   };
 
   return (
-    <div className="p-6 rounded-2xl bg-mainWhite h-[calc(100vh-140px)] overflow-y-auto">
+    <div className={`p-6 rounded-2xl bg-mainWhite ${roomConfigMode ? "h-[calc(100vh-200px)]" : "h-[calc(100vh-140px)]"} overflow-y-auto`}>
       {/* Legend */}
       <div className="flex justify-end gap-3 mb-3 text-sm">
         <div className="flex gap-1 items-center">
