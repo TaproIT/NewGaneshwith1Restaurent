@@ -24,6 +24,8 @@ import UserConfig from "./pages/admin/UserConfig";
 import RoomConfig from "./pages/admin/RoomConfig";
 import CheckoutDetails from "./component/checkout/CheckoutDetails";
 
+//import PrintButton from "./component/SamplePrint";
+
 function App() {
   return (
     <Router>
@@ -58,6 +60,7 @@ function App() {
               <Route path="/checkouts" element={<Checkouts />} />
               <Route path="/checkout-details" element={<CheckoutDetails />} />
               <Route path="/invoice" element={<Invoice />} />
+              <Route path="/room-config" element={<RoomConfig />} />
 
               <Route
                 path="/restaurant/home"
@@ -98,6 +101,7 @@ function App() {
         </CurrencyProvider>
       </RateProvider>
     </Router>
+    // <PrintButton />
   );
 }
 

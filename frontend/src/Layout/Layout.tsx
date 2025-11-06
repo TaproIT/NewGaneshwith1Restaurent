@@ -11,7 +11,8 @@ import {
   CircleArrowRight,
   ShieldCheck, User, UserRoundPlus, Users,
   RepeatIcon, BookText, House, Table2, NotepadText,
-  PauseCircle, Newspaper, Banknote
+  PauseCircle, Newspaper, Banknote,
+  Warehouse
 } from "lucide-react";
 
 const navigationConfig = {
@@ -29,7 +30,7 @@ const navigationConfig = {
     { path: "/admin/beverage-inventory", title: "Beverage Inventory", icon: <Table2 size={22} /> },
     { path: "/admin/currency-config", title: "Currency Config", icon: <Banknote size={22} /> },
     { path: "/admin/user-config", title: "User Config", icon: <User size={22} /> },
-    { path: "/admin/room-config", title: "Room Config", icon: <User size={22} /> },
+    { path: "/admin/room-config", title: "Room Config", icon: <Warehouse size={22} /> },
   ],
   "Reception": [
     { path: "/onboarding", title: "Onboarding", icon: <UserRoundPlus size={22} /> },
@@ -37,6 +38,7 @@ const navigationConfig = {
     { path: "/switch-rooms", title: "Switch Rooms", icon: <RepeatIcon size={22} /> },
     { path: "/checkouts", title: "Checkouts", icon: <CircleArrowRight size={22} /> },
     { path: "/invoice", title: "Invoice", icon: <BookText size={22} /> },
+    { path: "/room-config", title: "Room Config", icon: <Warehouse size={22} /> },
   ],
   "Beach-Restaurant-Staff": [
     { path: "/restaurant/home", title: "Home", icon: <House size={22} /> },
