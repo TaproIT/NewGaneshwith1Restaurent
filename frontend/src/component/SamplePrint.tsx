@@ -7,7 +7,7 @@ export default function PrintButton() {
     // Dynamically load QZ Tray
     const script = document.createElement("script");
     script.src = "https://cdn.jsdelivr.net/npm/qz-tray/qz-tray.js";
-    script.onload = () => console.log("QZ Tray script loaded");
+    script.onload = () => console.log("✅ QZ Tray script loaded");
     document.body.appendChild(script);
   }, []);
 
@@ -23,7 +23,7 @@ export default function PrintButton() {
       // Connect if not connected
       if (!qz.websocket.isActive()) {
         await qz.websocket.connect();
-        console.log("Connected to QZ Tray");
+        console.log("✅ Connected to QZ Tray");
       }
 
       // ✅ Set your printer name exactly as shown in QZ Tray’s printer list
@@ -32,35 +32,48 @@ export default function PrintButton() {
       // Create printer config
       const config = qz.configs.create(printerName);
 
-      // ✅ Use RAW ESC/POS text
+      // ESC/POS Commands
+      const ESC = "\x1B";
+      const GS = "\x1D";
+
+      // ✅ Use RAW ESC/POS text with center alignment
       const data = [
         {
           type: "raw",
           format: "plain",
           data:
-            "\x1B\x40" + // Initialize printer
+            ESC + "@"+                       // Initialize printer
+            ESC + "a" + "\x01" +              // Align center
             "============================\n" +
-            "       POOL RESTAURANT BILL      \n" +
+             "     GANESH GARDEN BEACH HOTEL\n" +
+            "     POOL RESTAURANT BILL\n" +
             "============================\n" +
+            ESC + "a" + "\x00" +              // Align left
             "Order Token: 165\n" +
             "Date: " + new Date().toLocaleString() + "\n" +
             "----------------------------\n" +
-            "Item           Qty   Price\n" +
-            "Coffee          2     800\n" +
-            "Sandwich        1     450\n" +
+            "Item                Qty  Price\n" +
             "----------------------------\n" +
-            "TOTAL:                1250 LKR\n" +
+            "Coffee               2   800\n" +
+            "Sandwich             1   450\n" +
+            "Pasta                1   950\n" +
+            "Orange Juice         3   900\n" +
+            "Cheese Burger        2  1600\n" +
+            "French Fries         1   550\n" +
+            "----------------------------\n" +
+            "TOTAL:                   5250 LKR\n" +
             "============================\n" +
-            "  Thank you! Come again!  \n\n\n" +
-            "\x1D\x56\x00", // Cut paper (ESC/POS command)
+            ESC + "a" + "\x01" +              // Align center
+            "   Thank you! Come again!   \n\n\n" +
+            GS + "V" + "\x00",               // Cut paper
         },
       ];
 
       await qz.print(config, data);
-      console.log("✅ Print job sent to ET PT 30 successfully!");
+      console.log("✅ Print job sent successfully to POS80!");
     } catch (err) {
       console.error("❌ Printing error:", err);
-      alert("Print failed! Check the console for details.");
+      alert("Print failed! Check console for details.");
     }
   };
 
