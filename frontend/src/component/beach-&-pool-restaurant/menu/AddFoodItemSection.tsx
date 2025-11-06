@@ -31,7 +31,7 @@ type Liqueur = { beverage: string; amount: number };
 
 export default function AddFoodItemSection() {
   const dispatch = useDispatch<AppDispatch>();
-  const { selectedFoodCategoryTitle, selectedCategoryId } = useSelector(
+  const { selectedFoodCategoryTitle, selectedCategoryId, isFoodCategory } = useSelector(
     (state: RootState) => state.foodCategory
   );
   const { selectedBeverageCategoryTitle, selectedCategory } = useSelector(
@@ -51,7 +51,7 @@ export default function AddFoodItemSection() {
   );
 
   // Form states
-  const [itemType, setItemType] = useState<"food" | "beverage" | null>(null);
+  //const [itemType, setItemType] = useState<"food" | "beverage" | null>(null);
   //const [category, setCategory] = useState<string | null>(null);
   const [itemName, setItemName] = useState("");
   const [price, setPrice] = useState<number>(0);
@@ -62,8 +62,12 @@ export default function AddFoodItemSection() {
 
   const isDisabled = !itemName.trim() || price <= 0;
 
+  const isExtraBeverageCategory =
+          selectedCategory !== BeverageCategories.HARD_LIQUOR.value &&
+          selectedCategory !== BeverageCategories.SOFT_DRINKS.value;
+
   const resetForm = () => {
-    setItemType(null);
+    //setItemType(null);
     //setCategory(null);
     setItemName("");
     setPrice(0);
@@ -102,10 +106,6 @@ export default function AddFoodItemSection() {
         dispatch(setSelectedCategoryId(selectedCategoryId ?? ""));
         dispatch(setSelectedCategory(""));
       } else {
-        const isExtraBeverageItem =
-          selectedCategory !== BeverageCategories.HARD_LIQUOR.value &&
-          selectedCategory !== BeverageCategories.SOFT_DRINKS.value;
-
         const beverageItem = {
           category:selectedCategory,
           beverageName: itemName,
@@ -115,14 +115,16 @@ export default function AddFoodItemSection() {
           note: "",
         };
 
-         const extraBeverageItem = {
+        const extraBeverageItem = {
           extraBeverageCategory: selectedCategory,
           beverageName: itemName,
           price,
           isVisible: true,
+          isEnableBeverage: addLiqueur,
+          liquor: liqueurs || []
         };
 
-        if( isExtraBeverageItem ) {
+        if( isExtraBeverageCategory ) {
           await dispatch(addNewExtraBeverage(extraBeverageItem)).unwrap();
         }else {
           await dispatch(addNewBeverage(beverageItem)).unwrap();
@@ -152,6 +154,15 @@ export default function AddFoodItemSection() {
     dispatch(fetchAllExtraBeverageCategories());
     dispatch(fetchAllBeverageItems());
   }, [dispatch]);
+
+  useEffect(() => {
+    if(addLiqueur || itemName || price || liqueurs) {
+      setItemName("");
+      setPrice(0);
+      setAddLiqueur(false);
+      setLiqueurs([]);
+    }
+  },[selectedCategoryId, selectedCategory])
 
 
   return (
@@ -260,7 +271,7 @@ export default function AddFoodItemSection() {
 
         {/* Add Liqueur Switch */}
         {
-          itemType === "food" && (
+          ( isFoodCategory || isExtraBeverageCategory ) && (
             <div className="mt-10 flex items-center mb-3">
               <Label className="w-24 text-[0.75rem]">Add Liqueur</Label>
               <Switch checked={addLiqueur} onCheckedChange={handleToggleLiqueur} className="cursor-pointer" />
