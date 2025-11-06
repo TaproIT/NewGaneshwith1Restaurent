@@ -414,7 +414,6 @@ export const deleteBeverage = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Beverage not found" });
     }
-    bev.status = "deleted";
     bev.isVisible = false;
     bev.deletedAt = new Date();
     await bev.save();
@@ -436,7 +435,6 @@ export const deleteBeverage = async (req, res) => {
 export const getAllBeverages = async (req, res) => {
   try {
     const {
-      includeDeleted = "false",
       category,
       year,
       month,
@@ -446,7 +444,6 @@ export const getAllBeverages = async (req, res) => {
     // Base filter: only visible beverages
     const filter = {
       isVisible: true, // ✅ Only include visible beverages
-      ...(includeDeleted !== "true" ? { status: "active" } : {}),
       ...(category ? { category } : {}),
     };
 
@@ -528,6 +525,29 @@ export const getAllBeverages = async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(400).json({ success: false, message: err.message });
+  }
+};
+
+export const getAllBeveragesWithMinimalDetails = async (req, res) => {
+  try {
+    const beverages = await Beverage.find({ isVisible: true })
+        .select("beverageName price runningStock category volume isVisible") // ✅ Only these fields
+        .lean();
+
+    if (!beverages || beverages.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No visible beverages found",
+      });
+    }
+
+    return res.json({ success: true, data: beverages });
+  } catch (err) {
+    console.error("Error fetching beverages:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching beverages",
+    });
   }
 };
 
@@ -613,7 +633,7 @@ export const getOneBeverage = async (req, res) => {
   try {
     const { id } = req.params;
     const bev = await Beverage.findById(id);
-    if (!bev || bev.status === "deleted") {
+    if (!bev) {
       return res
         .status(404)
         .json({ success: false, message: "Beverage not found" });

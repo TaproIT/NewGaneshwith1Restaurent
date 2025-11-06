@@ -42,16 +42,9 @@ const BeverageSchema = new mongoose.Schema(
       required: true,
     },
       volume: {type:Number,default:0},
-    //restaurantType: { type: String, required: true, enums: [RestaurantTypes.BEACH.value, RestaurantTypes.POOL.value] },
+      // NEW: soft-delete and lifecycle
     isVisible: { type: Boolean, default: true },
 
-    // NEW: soft-delete and lifecycle
-    status: {
-      type: String,
-      enum: ["active", "deleted"],
-      default: "active",
-      index: true,
-    },
     deletedAt: { type: Date },
     lastUpdateAt: { type: Date },
 
