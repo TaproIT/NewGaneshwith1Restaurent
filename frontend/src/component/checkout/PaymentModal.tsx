@@ -7,6 +7,7 @@ import { PaymentMethods } from "@/lib/enums/order-related-enums";
 import { api } from "@/api/axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { printFinalBill } from "@/util/printCheckout"; // adjust path if different
 
 interface PaymentModalProps {
   open: boolean;
@@ -71,6 +72,18 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
       if (response.status === 200) {
         toast.success("Payment processed successfully!");
+        await printFinalBill({
+        booking,
+        subtotal,
+        tax,
+        serviceCharge,
+        discount,
+        totalBill,
+        additionalPrice,
+        selectedPayment,
+        totalRoomCharge,
+        totalOrdersPrice,
+      });
         onOpenChange(false);
         navigate("/checkouts");
       } else {

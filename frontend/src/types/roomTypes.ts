@@ -1,13 +1,18 @@
 export type RoomStatus = "reserved" | "empty" | "maintain" | "selected";
 
-export interface Room {
-  _id?: string; // MongoDB automatically generates this
-  no: string;
+export interface RoomTypeRef {
+  _id: string;
   type: string;
+}
+
+export interface Room {
+  _id?: string;
+  no: string;
+  type?: RoomTypeRef | null;   // <---- UPDATED
   perDayPrice: number;
   facilities: string[];
-  isBooked?: boolean; // optional since default is false
-  isMaintenance?: boolean; // optional since default is false
+  isBooked?: boolean;
+  isMaintenance?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }

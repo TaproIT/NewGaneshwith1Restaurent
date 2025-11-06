@@ -254,32 +254,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useDispatch, useSelector } from "react-redux";
 import { type AppDispatch, type RootState } from "@/app/store";
-import {
-  closeOrderTokenModal,
-  setIsPrintedForNewOrderToken,
-} from "@/features/beach-restaurant/orderSlice";
+import { closeOrderTokenModal, setIsPrintedForNewOrderToken } from "@/features/beach-restaurant/orderSlice";
 import { addNewOrderTokenToOrder } from "@/api/order/add-new-order-token-to-order-api";
 import { fetchOrderById } from "@/api/order/get-order-data-api";
 import { toast } from "react-toastify";
 
 interface OrderTokenDialogProps {
   id: string;
-}
-
-declare global {
-  interface Window {
-    qz: any;
-  }
 }
 
 export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
@@ -424,24 +408,18 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
 
       <DialogContent className="!p-4 w-[325px] text-[#444444] printable-modal">
         <DialogHeader>
-          <DialogTitle className="!px-2">
-            Order {order.orderNumber}
-          </DialogTitle>
+          <DialogTitle className="!px-2">Order {order.orderNumber}</DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col">
           <div className="px-3 flex justify-between text-[0.875rem] text-[#444444] font-[500]">
-            <span className="font-medium">
-              Token {order.orderTokens.length + 1}
-            </span>
+            <span className="font-medium">Token {order.orderTokens.length + 1}</span>
             <span>{order.serviceType}</span>
           </div>
 
           {order.restaurantTable?._id && (
             <div className="my-5 px-3 flex justify-between text-[0.75rem]">
-              <span className="font-medium">
-                Table : {order.restaurantTable.name}
-              </span>
+              <span className="font-medium">Table : {order.restaurantTable.name}</span>
             </div>
           )}
 
@@ -462,26 +440,26 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
             <TableBody>
               {order.newOrderToken.foodOrders.map((item: any) => (
                 <TableRow key={item.foodId}>
-                  <TableCell className="text-[0.75rem] border-r border-gray-300">
+                  <TableCell className="text-[0.75rem] whitespace-normal break-words border-r border-gray-300">
                     {item.title}
                   </TableCell>
-                  <TableCell className="text-[0.75rem] text-center border-r border-gray-300">
+                  <TableCell className="text-[0.75rem] text-[#444444] font-normal text-center border-r border-gray-300">
                     {item.quantity}
                   </TableCell>
-                  <TableCell className="text-[0.75rem] text-right">
+                  <TableCell className="text-[0.75rem] text-[#444444] font-normal text-right">
                     {(item.quantity * item.price).toLocaleString()} LKR
                   </TableCell>
                 </TableRow>
               ))}
               {order.newOrderToken.beverageOrders.map((item: any) => (
                 <TableRow key={item.beverageId}>
-                  <TableCell className="text-[0.75rem] border-r border-gray-300">
+                  <TableCell className="text-[0.75rem] whitespace-normal break-words text-wrap border-r border-gray-300">
                     {item.title}
                   </TableCell>
-                  <TableCell className="text-[0.75rem] text-center border-r border-gray-300">
+                  <TableCell className="text-[0.75rem] text-[#444444] font-normal text-center border-r border-gray-300">
                     {item.quantity}
                   </TableCell>
-                  <TableCell className="text-[0.75rem] text-right">
+                  <TableCell className="text-[0.75rem] text-[#444444] font-normal text-right">
                     {(item.quantity * item.price).toLocaleString()} LKR
                   </TableCell>
                 </TableRow>
