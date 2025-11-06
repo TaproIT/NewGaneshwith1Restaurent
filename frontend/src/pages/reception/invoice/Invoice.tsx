@@ -103,8 +103,8 @@ const Invoice = () => {
       {/* Left side */}
       <div
         className={`${
-          view === "create" ? "col-span-3" : "col-span-1"
-        } h-[calc(100vh-140px)] overflow-auto`}
+          view === "create" ? "col-span-3 overflow-auto" : "col-span-1 overflow-hidden"
+        } h-[calc(100vh-140px)]`}
       >
         {/* Toggle Buttons */}
         <div className="flex items-center gap-3 mb-5 ml-2">
