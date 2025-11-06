@@ -15,8 +15,6 @@ export async function printFinalBill({
   totalBill,
   additionalPrice,
   selectedPayment,
-  totalRoomCharge,
-  totalOrdersPrice,
 }: any) {
   const qz = window.qz;
   if (!qz) {
