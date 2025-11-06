@@ -383,7 +383,7 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
             "a" +
             "\x01" + // Align center
             "      Thank you! Come again!     \n\n\n" +
-            "      " +
+            "      \n\n\n" +
             GS +
             "V" +
             "\x00", // Cut paper
