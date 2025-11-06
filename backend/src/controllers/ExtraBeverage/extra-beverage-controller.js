@@ -92,24 +92,34 @@ export const toggleExtraBeverageCategoryVisibility = async (req, res) => {
 // Create Beverage
 export const createExtraBeverage = async (req, res) => {
     try {
-        const { beverageName, extraBeverageCategory, price, isVisible } = req.body;
+        const { beverageName, extraBeverageCategory, price, isVisible, isEnableBeverage, liquor } = req.body;
 
         const exists = await ExtraBeverageCategory.exists({ _id: extraBeverageCategory });
         if (!exists) return res.status(400).json({ error: "Invalid category" });
+
+        if (liquor && !Array.isArray(liquor))
+            return res.status(400).json({ error: "Liquor must be an array" });
 
         const beverage = await ExtraBeverage.create({
             beverageName,
             extraBeverageCategory,
             price,
             isVisible,
+            isEnableBeverage,
+            liquor: liquor || [],
         });
 
-        const populated = await beverage.populate("extraBeverageCategory", "name");
+        const populated = await beverage.populate([
+            { path: "extraBeverageCategory", select: "name" },
+            { path: "liquor.beverage", select: "name" }, // assuming Beverage has a `name` field
+        ]);
+
         res.status(201).json({ success: true, data: populated });
     } catch (err) {
         res.status(400).json({ success: false, error: err.message });
     }
 };
+
 
 // List Beverages
 export const listExtraBeverages = async (req, res) => {
@@ -145,36 +155,48 @@ export const getExtraBeverage = async (req, res) => {
     }
 };
 
-// ✏Update
 export const updateExtraBeverage = async (req, res) => {
     try {
-        const { beverageName, extraBeverageCategory, price, isVisible } = req.body;
+        const { beverageName, extraBeverageCategory, price, isEnableBeverage, isVisible, liquor } = req.body;
 
         if (extraBeverageCategory) {
             const exists = await ExtraBeverageCategory.exists({ _id: extraBeverageCategory });
             if (!exists) return res.status(400).json({ error: "Invalid category" });
         }
 
+        // Optional: liquor validation
+        if (liquor && !Array.isArray(liquor))
+            return res.status(400).json({ error: "Liquor must be an array" });
+
+        const updateFields = {
+            ...(beverageName && { beverageName }),
+            ...(extraBeverageCategory && { extraBeverageCategory }),
+            ...(price !== undefined && { price }),
+            ...(isVisible !== undefined && { isVisible }),
+            ...(isEnableBeverage !== undefined && { isEnableBeverage }),
+            ...(liquor && { liquor }), 
+        };
+
         const updated = await ExtraBeverage.findByIdAndUpdate(
             req.params.id,
-            {
-                ...(beverageName && { beverageName }),
-                ...(extraBeverageCategory && { extraBeverageCategory }),
-                ...(price !== undefined && { price }),
-                ...(isVisible !== undefined && { isVisible }),
-            },
+            updateFields,
             { new: true, runValidators: true }
         )
-            .populate("extraBeverageCategory", "name")
+            .populate([
+                { path: "extraBeverageCategory", select: "name" },
+                { path: "liquor.beverage", select: "name" },
+            ])
             .lean();
 
         if (!updated)
             return res.status(404).json({ success: false, error: "Beverage not found" });
+
         res.json({ success: true, data: updated });
     } catch (err) {
         res.status(400).json({ success: false, error: err.message });
     }
 };
+
 
 // Delete
 export const deleteExtraBeverage = async (req, res) => {

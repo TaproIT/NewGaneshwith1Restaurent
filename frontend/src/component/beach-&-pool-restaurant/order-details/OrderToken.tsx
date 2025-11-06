@@ -28,6 +28,8 @@ const OrderToken: React.FC<OrderTokenProps> = ({ token, isHoldOrder }) => {
 
   const dispatch = useDispatch();
 
+  console.log(isHoldOrder? `new order token ${token}`:"")
+
   // Handlers
   const handleRemoveItem = useCallback(
     (id: string) => {

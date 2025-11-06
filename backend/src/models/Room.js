@@ -2,7 +2,11 @@ import mongoose from "mongoose";
 
 const roomSchema = new mongoose.Schema({
     no: { type: String, unique: true, required: [true, 'Room number is required.'] },
-    type: { type: String, required: true },
+    type: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "RoomCategory",
+        required: true
+    },
     perDayPrice: { type: Number, required: true },
     facilities: [{ type: String }],
     isBooked: { type: Boolean, default: false },

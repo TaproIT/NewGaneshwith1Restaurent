@@ -44,51 +44,60 @@ export default function Step01() {
   const dispatch = useDispatch();
 
   const checkIn = useWatch({ control: form.control, name: "checkIn" });
-const checkOut = useWatch({ control: form.control, name: "checkOut" });
+  const checkOut = useWatch({ control: form.control, name: "checkOut" });
 
-  // auto-calculate length of stay
+  // Set today's date for check-in on mount
   useEffect(() => {
-  if (checkIn && checkOut) {
-    const start = new Date(checkIn);
-    const end = new Date(checkOut);
-    const diff = Math.max(end.getTime() - start.getTime(), 0);
-    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-    const current = form.getValues("lengthOfStay");
-    if (days !== current) {
-      form.setValue("lengthOfStay", days);
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    const formattedToday = `${yyyy}-${mm}-${dd}`;
+
+    if (!form.getValues("checkIn")) {
+      form.setValue("checkIn", formattedToday);
     }
-  }
-}, [checkIn, checkOut, form]);
+  }, [form]);
 
-
-  // auto-calculate total guests
+  // Auto-calculate length of stay
   useEffect(() => {
-  const subscription = form.watch((values) => {
-    const total = (values.adults ?? 0) + (values.kids ?? 0);
-    if (total !== values.totalGuests) {
-      form.setValue("totalGuests", total);
+    if (checkIn && checkOut) {
+      const start = new Date(checkIn);
+      const end = new Date(checkOut);
+      const diff = Math.max(end.getTime() - start.getTime(), 0);
+      const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+      const current = form.getValues("lengthOfStay");
+      if (days !== current) {
+        form.setValue("lengthOfStay", days);
+      }
     }
-  });
-  return () => subscription.unsubscribe();
-}, [form]);
+  }, [checkIn, checkOut, form]);
 
-
+  // Auto-calculate total guests
+  useEffect(() => {
+    const subscription = form.watch((values) => {
+      const total = (values.adults ?? 0) + (values.kids ?? 0);
+      if (total !== values.totalGuests) {
+        form.setValue("totalGuests", total);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   const onSubmit = (data: Step01FormData) => {
-    // set bookingDate automatically to today
     const today = new Date().toISOString();
     const dataWithBookingDate = { ...data, bookingDate: today };
     dispatch(saveStep01Data(dataWithBookingDate));
     dispatch(nextStep());
   };
 
+  // For restricting checkout min date
+  const todayDate = new Date().toISOString().split("T")[0];
+
   return (
     <div className="p-6 rounded-2xl bg-mainWhite">
       <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-4 w-full"
-        >
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
           {/* Hotel Selection */}
           <FormField
             control={form.control}
@@ -250,7 +259,7 @@ const checkOut = useWatch({ control: form.control, name: "checkOut" });
                         <Input type="number" {...field} disabled />
                       </FormControl>
                     </div>
-                    <FormMessage className="ml-20"/>
+                    <FormMessage className="ml-20" />
                   </FormItem>
                 )}
               />
@@ -269,7 +278,7 @@ const checkOut = useWatch({ control: form.control, name: "checkOut" });
                         <Input type="number" {...field} disabled />
                       </FormControl>
                     </div>
-                    <FormMessage className="ml-20"/>
+                    <FormMessage className="ml-20" />
                   </FormItem>
                 )}
               />
@@ -279,7 +288,6 @@ const checkOut = useWatch({ control: form.control, name: "checkOut" });
             <div className="flex justify-between">
               <FormField
                 control={form.control}
-                rules={{ required: "Check In date is required" }}
                 name="adults"
                 render={({ field }) => (
                   <FormItem className="flex items-center w-100">
@@ -307,6 +315,8 @@ const checkOut = useWatch({ control: form.control, name: "checkOut" });
                   </FormItem>
                 )}
               />
+
+              {/* Check-in Date */}
               <FormField
                 control={form.control}
                 name="checkIn"
@@ -314,7 +324,7 @@ const checkOut = useWatch({ control: form.control, name: "checkOut" });
                   <FormItem className="flex items-center">
                     <Label className="w-35">Check-in</Label>
                     <FormControl className="w-70">
-                      <Input type="date" {...field} />
+                      <Input type="date" {...field} disabled />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -353,14 +363,25 @@ const checkOut = useWatch({ control: form.control, name: "checkOut" });
                   </FormItem>
                 )}
               />
+
+              {/* Check-out Date */}
               <FormField
                 control={form.control}
                 name="checkOut"
+                rules={{
+                  validate: (value) => {
+                    if (!value) return "Check-out date is required";
+                    const selected = new Date(value);
+                    if (selected < new Date(todayDate))
+                      return "Check-out date cannot be before today";
+                    return true;
+                  },
+                }}
                 render={({ field }) => (
                   <FormItem className="flex items-center">
                     <Label className="w-35">Check-out</Label>
                     <FormControl className="w-70">
-                      <Input type="date" {...field} />
+                      <Input type="date" {...field} min={todayDate} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

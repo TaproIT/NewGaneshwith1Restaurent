@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '@/app/store';
 import BeverageList from './BeverageList';
 
-const FoodCategoryList: React.FC = () => { 
+const FoodCategoryList: React.FC<{id:string}> = ({id}) => { 
   const isBeverageItemList = useSelector((state:RootState) => state.beverageCategory.isBeverageItemList);
   useEffect(() => {
 
@@ -14,17 +14,17 @@ const FoodCategoryList: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-2 w-full">
-      <FoodCategorySelector />
-      <div className="w-full grid grid-cols-5 gap-2">
+      <FoodCategorySelector id={id} />
+      <div className="w-full grid grid-cols-5">
          <div className="col-span-1">
-            <BeverageCategorySelector />
+            <BeverageCategorySelector id={id} />
          </div>
          <div className="col-span-4">
              {
                isBeverageItemList ? (
-                 <BeverageList />
+                 <BeverageList id={id} />
                ): (
-                 <FoodList />
+                 <FoodList id={id} />
                )
              }
          </div>

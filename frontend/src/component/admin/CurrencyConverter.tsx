@@ -16,22 +16,27 @@ const CurrencyConverter = () => {
   useEffect(() => {
     const fetchExchangeRate = async () => {
       try {
-        const response = await api.get("/currency-values"); // replace with your GET API
-        if (response.data.data.length > 0) {
-          const rate = response.data.data[0];
+        const response = await api.get("/currency-values");
+        const data = response.data.data;
+
+        if (data.length > 0) {
+          const rate = data[0];
           setExchangeRate(rate.lkr);
           setLkrValue(rate.lkr.toString());
-          setExchangeRateId(rate._id); // store ID for PU
+          setExchangeRateId(rate._id);
+        } else {
+          toast.info("No exchange rate found — please enter a new value.");
         }
       } catch (error) {
         console.error("Failed to fetch exchange rate:", error);
         toast.error("Failed to fetch exchange rate");
       }
     };
+
     fetchExchangeRate();
   }, []);
 
-  // Handle numeric/float input
+  // Handle numeric input
   const handleLkrChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     if (value === "" || /^\d*\.?\d*$/.test(value)) {
@@ -39,7 +44,7 @@ const CurrencyConverter = () => {
     }
   };
 
-  // Save updated exchange rate
+  // Save or create exchange rate
   const handleSave = async () => {
     if (!lkrValue) {
       toast.error("Please enter a valid LKR value");
@@ -47,15 +52,29 @@ const CurrencyConverter = () => {
     }
 
     try {
-      await api.put(`/currency-values/${exchangeRateId}`, {
-        lkr: parseFloat(lkrValue),
-        usd: 1, // or your USD value
-      });
+      if (exchangeRateId) {
+        // UPDATE existing exchange rate
+        await api.put(`/currency-values/${exchangeRateId}`, {
+          lkr: parseFloat(lkrValue),
+          usd: 1,
+        });
+        toast.success("Exchange rate updated successfully!");
+      } else {
+        // CREATE new exchange rate
+        const postResponse = await api.post("/currency-values", {
+          lkr: parseFloat(lkrValue),
+          usd: 1,
+        });
+        const createdRate = postResponse.data.data;
+
+        setExchangeRateId(createdRate._id);
+        toast.success("Exchange rate created successfully!");
+      }
+
       setExchangeRate(parseFloat(lkrValue));
-      toast.success("Exchange rate updated successfully!");
     } catch (error) {
-      console.error("Failed to update exchange rate:", error);
-      toast.error("Failed to update exchange rate");
+      console.error("Failed to save exchange rate:", error);
+      toast.error("Failed to save exchange rate");
     }
   };
 
@@ -98,16 +117,18 @@ const CurrencyConverter = () => {
         </div>
 
         <Button className="bg-Primary_blue text-white w-50" onClick={handleSave}>
-          Save Exchange Rate
+          {exchangeRateId ? "Update Exchange Rate" : "Save Exchange Rate"}
         </Button>
       </div>
 
-      <div className="flex flex-col gap-4">
-        <div className="font-medium">Indicative Exchange Rate</div>
-        <div className="p-4 border border-Ash rounded-lg text-Primary_blue font-medium">
-          1 USD = {exchangeRate} LKR
+      {exchangeRate > 0 && (
+        <div className="flex flex-col gap-4">
+          <div className="font-medium">Indicative Exchange Rate</div>
+          <div className="p-4 border border-Ash rounded-lg text-Primary_blue font-medium">
+            1 USD = {exchangeRate} LKR
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

@@ -174,3 +174,47 @@ body {
   scrollbar-width: none;
 }
 
+@media print {
+  /* Hide everything else on the page */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* Show only modal content */
+  .printable-modal,
+  .printable-modal * {
+    visibility: visible !important;
+  }
+
+  /* Make the modal take the whole printable area */
+  .printable-modal {
+    position: fixed !important;
+    width: 100%;
+    height: 100%;
+    /* display: flex; */
+    background: white !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  /* Remove background overlays */
+  .printable-modal-overlay {
+    display: none !important;
+  }
+
+  /* Hide print buttons or other unwanted UI */
+  .no-print {
+    display: none !important;
+  }
+
+  /* Optional: make printed page use full width */
+  @page {
+    size: auto;
+    margin: 10mm;
+  }
+}
+
+
+
+

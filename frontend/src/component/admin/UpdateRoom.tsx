@@ -15,15 +15,39 @@ const UpdateRoom: React.FC<UpdateRoomProps> = ({ viewedRoom, onClose }) => {
   const [editable, setEditable] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const [formData, setFormData] = useState({
+  const [roomTypes, setRoomTypes] = useState<{ _id: string; type: string }[]>([]);
+
+  type RoomTypeOption = { _id: string; type: string } | null;
+
+  const [formData, setFormData] = useState<{
+    no: string;
+    type: string | RoomTypeOption;
+    perDayPrice: string;
+    facilities: string[];
+    isMaintenance: boolean;
+  }>({
     no: viewedRoom.no || "",
-    type: viewedRoom.type || "",
+    type: (viewedRoom.type as any) || "", // will store object later
     perDayPrice: viewedRoom.perDayPrice.toString() || "",
     facilities: viewedRoom.facilities?.length ? viewedRoom.facilities : [""],
     isMaintenance: viewedRoom.isMaintenance || false,
   });
 
-  // ✅ Sync form data when viewedRoom changes
+  // ✅ Fetch Room Types
+  useEffect(() => {
+    const fetchTypes = async () => {
+      try {
+        const res = await api.get("/room/room-category"); // your endpoint
+        setRoomTypes(res.data);
+      } catch {
+        toast.error("Failed to load room types");
+      }
+    };
+
+    fetchTypes();
+  }, []);
+
+  // ✅ Sync when switching rooms
   useEffect(() => {
     setFormData({
       no: viewedRoom.no || "",
@@ -32,10 +56,15 @@ const UpdateRoom: React.FC<UpdateRoomProps> = ({ viewedRoom, onClose }) => {
       facilities: viewedRoom.facilities?.length ? viewedRoom.facilities : [""],
       isMaintenance: viewedRoom.isMaintenance || false,
     });
-    setEditable(false); // optional reset when switching rooms
+    setEditable(false);
   }, [viewedRoom]);
 
   const handleChange = (field: string, value: any) => {
+    if (field === "type") {
+      const selected = roomTypes.find((t) => t._id === value) || null;
+      setFormData((prev) => ({ ...prev, type: selected }));
+      return;
+    }
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -45,22 +74,19 @@ const UpdateRoom: React.FC<UpdateRoomProps> = ({ viewedRoom, onClose }) => {
     setFormData((prev) => ({ ...prev, facilities: updated }));
   };
 
-  const addFacilityField = () => {
+  const addFacilityField = () =>
+    setFormData((prev) => ({ ...prev, facilities: [...prev.facilities, ""] }));
+
+  const removeFacilityField = (index: number) =>
     setFormData((prev) => ({
       ...prev,
-      facilities: [...prev.facilities, ""],
+      facilities: prev.facilities.filter((_, i) => i !== index),
     }));
-  };
-
-  const removeFacilityField = (index: number) => {
-    const updated = formData.facilities.filter((_, i) => i !== index);
-    setFormData((prev) => ({ ...prev, facilities: updated }));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.no || !formData.type || !formData.perDayPrice) {
+    if (!formData.type || !formData.perDayPrice) {
       toast.error("Please fill all required fields.");
       return;
     }
@@ -69,18 +95,16 @@ const UpdateRoom: React.FC<UpdateRoomProps> = ({ viewedRoom, onClose }) => {
       setLoading(true);
 
       const payload = {
-        type: formData.type,
+        type: typeof formData.type === "object" && formData.type !== null ? formData.type._id : formData.type, // ✅ send only the _id or string
         perDayPrice: Number(formData.perDayPrice),
         facilities: formData.facilities.filter((f) => f.trim() !== ""),
         isMaintenance: formData.isMaintenance,
       };
 
-      const response = await api.put(`/room/update/${viewedRoom._id}`, payload); // check api
+      await api.put(`/room/update/${viewedRoom._id}`, payload);
 
-      if (response.status === 200) {
-        toast.success("Room updated successfully!");
-        onClose(true);
-      }
+      toast.success("Room updated successfully!");
+      onClose(true);
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to update room.");
     } finally {
@@ -91,45 +115,41 @@ const UpdateRoom: React.FC<UpdateRoomProps> = ({ viewedRoom, onClose }) => {
 
   return (
     <div className="p-6 rounded-2xl bg-mainWhite h-[calc(100vh-140px)] overflow-y-auto">
-      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-lg font-medium text-gray-800">Room Details</h2>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => setEditable((prev) => !prev)}
-        >
+        <Button type="button" variant="outline" onClick={() => setEditable((p) => !p)}>
           {editable ? "Cancel" : "Edit"}
         </Button>
       </div>
 
-      {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-4 text-sm text-gray">
         {/* Room No */}
         <div className="grid grid-cols-6 items-center">
           <Label className="col-span-2">Room No</Label>
           <div className="col-span-1">:</div>
-          <Input
-            className="col-span-3"
-            disabled
-            value={formData.no}
-            onChange={(e) => handleChange("no", e.target.value)}
-          />
+          <Input className="col-span-3" disabled value={formData.no} />
         </div>
 
-        {/* Type */}
+        {/* Type (Dropdown) */}
         <div className="grid grid-cols-6 items-center">
           <Label className="col-span-2">Type</Label>
           <div className="col-span-1">:</div>
-          <Input
-            className="col-span-3"
+          <select
+            className="col-span-3 border rounded p-2 bg-white"
             disabled={!editable}
-            value={formData.type}
+            value={typeof formData.type === "object" && formData.type ? formData.type._id : (formData.type || "")}
             onChange={(e) => handleChange("type", e.target.value)}
-          />
+          >
+            <option value="">Select Room Type</option>
+            {roomTypes.map((rt) => (
+              <option key={rt._id} value={rt._id}>
+                {rt.type}
+              </option>
+            ))}
+          </select>
         </div>
 
-        {/* Price per Day */}
+        {/* Price */}
         <div className="grid grid-cols-6 items-center">
           <Label className="col-span-2">Price per Day</Label>
           <div className="col-span-1">:</div>
@@ -147,21 +167,16 @@ const UpdateRoom: React.FC<UpdateRoomProps> = ({ viewedRoom, onClose }) => {
           <Label className="col-span-2">Facilities</Label>
           <div className="col-span-1">:</div>
           <div className="col-span-3 space-y-2">
-            {formData.facilities.map((facility, index) => (
-              <div key={index} className="flex items-center gap-2">
+            {formData.facilities.map((f, i) => (
+              <div key={i} className="flex items-center gap-2">
                 <Input
                   disabled={!editable}
-                  value={facility}
-                  onChange={(e) => handleFacilityChange(index, e.target.value)}
-                  placeholder={`Facility ${index + 1}`}
+                  value={f}
+                  onChange={(e) => handleFacilityChange(i, e.target.value)}
+                  placeholder={`Facility ${i + 1}`}
                 />
                 {editable && formData.facilities.length > 1 && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => removeFacilityField(index)}
-                  >
+                  <Button type="button" variant="outline" size="sm" onClick={() => removeFacilityField(i)}>
                     ✕
                   </Button>
                 )}
@@ -170,19 +185,13 @@ const UpdateRoom: React.FC<UpdateRoomProps> = ({ viewedRoom, onClose }) => {
           </div>
         </div>
 
-        {/* Add Facility Button */}
         {editable && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={addFacilityField}
-          >
+          <Button type="button" variant="outline" size="sm" onClick={addFacilityField}>
             + Add Facility
           </Button>
         )}
 
-        {/* Maintenance Toggle */}
+        {/* Maintenance */}
         <div className="grid grid-cols-6 items-center">
           <Label className="col-span-2">Maintenance</Label>
           <div className="col-span-1">:</div>
@@ -196,13 +205,7 @@ const UpdateRoom: React.FC<UpdateRoomProps> = ({ viewedRoom, onClose }) => {
 
         {/* Submit */}
         {editable && (
-          <Button
-            type="submit"
-            className={`w-full mt-6 ${
-              loading ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-            disabled={loading}
-          >
+          <Button type="submit" className="w-full mt-6" disabled={loading}>
             {loading ? "Updating..." : "Update Room"}
           </Button>
         )}

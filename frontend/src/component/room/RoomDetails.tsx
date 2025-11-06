@@ -25,7 +25,7 @@ interface RoomDetailsProps {
   grandTotal: number;
   isModalOpen: boolean;
   onRemoveRoom: (roomId: string) => void;
-  onBookRoom: (roomId: string, price: number) => void;
+  onBookRoom: (roomIds: string[], prices: number[]) => void;
   onCloseModal: () => void;
   readOnly: boolean;
   checkout: boolean;
@@ -77,7 +77,7 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
   );
 
   useEffect(() => {
-    if (viewedRoom?.no && !invoice) {
+    if (viewedRoom?.no && !invoice && readOnly && viewedRoom.isBooked) {
       dispatch(clearBooking());
       dispatch(fetchRoomBooking(viewedRoom.no));
     }
@@ -156,14 +156,14 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
   }, [selectedRooms, dispatch]);
 
   const handleBookRooms = () => {
-    if (selectedRooms.length === 0) return;
+  if (selectedRooms.length === 0) return;
 
-    selectedRooms.forEach((room) => {
-      if (room._id) {
-        onBookRoom(room._id, room.perDayPrice);
-      }
-    });
-  };
+  const roomIds = selectedRooms.map((room) => room._id).filter(Boolean) as string[];
+  const prices = selectedRooms.map((room) => room.perDayPrice);
+
+  onBookRoom(roomIds, prices);
+};
+
 
   const handleWhatsApp = async () => {
     const message = `This is your room number(s): ${roomNumbers}`;
@@ -240,6 +240,7 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
             guestDetails={bookingDetails.roomData}
             onTotalChange={setTotalPrice}
             onRemoveRoom={handleRemoveRoom}
+            switchRoom={switchRoom}
           />
         )}
       </div>

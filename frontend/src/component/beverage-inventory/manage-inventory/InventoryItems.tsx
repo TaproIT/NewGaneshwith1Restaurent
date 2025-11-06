@@ -1,4 +1,7 @@
+import { useCurrency } from "@/context/CurrencyContext";
+import { useRates } from "@/context/RateContext";
 import type { BeverageItem } from "@/types/BeverageItem";
+import { convertAndFormatPrice } from "@/util/priceConverter";
 import { Plus } from "lucide-react";
 import React, { useState } from "react";
 
@@ -21,10 +24,12 @@ const InventoryItems: React.FC<InventoryItemsProps> = ({
   );
 
   const [selectedBeverage, setSelectedBeverage] = useState("");
+  const { rates } = useRates();
+  const { displayCurrency } = useCurrency();
 
   const handleSelect = (id: string) => {
     setSelectedBeverage(id);
-    onSelectBeverage(id); // 👈 notify parent
+    onSelectBeverage(id);
   };
 
   return (
@@ -53,15 +58,15 @@ const InventoryItems: React.FC<InventoryItemsProps> = ({
               {bev.beverageName}
             </div>
             <div className="font-medium text-[10px] text-center text-gray">
-              375 ml
+              {bev.volume || 0} ml
             </div>
             <div className="font-medium text-[10px] text-center text-[#B24E0E]">
-              {bev.currentMonthAvailable} In Stock
+              {bev.runningStock} In Stock
             </div>
           </div>
           <div className="bg-bg flex gap-5 p-1 justify-center items-center">
             <div className="text-sm font-medium text-primary">
-              LKR {bev.price.toFixed(2)}
+              {convertAndFormatPrice(bev.price, rates, displayCurrency)}
             </div>
           </div>
         </div>

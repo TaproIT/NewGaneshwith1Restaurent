@@ -6,6 +6,7 @@ import { setTableId } from "@/features/beach-restaurant/orderSlice";
 import type { TableStatus } from "../order-model";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "react-toastify";
+import { Table2 } from "lucide-react";
 
 const TableSelectionSection: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -56,56 +57,77 @@ const TableSelectionSection: React.FC = () => {
 
       {/* Tables */}
       <ScrollArea className="h-[calc(100vh-190px)] w-full rounded-2xl">
-        <div className="px-4 pb-4 grid grid-cols-4 gap-3">
-          {/* Skeleton while loading */}
-          {loading
-            ? Array.from({ length: 12 }).map((_, idx) => (
+        {loading ? (
+          <div className="px-4 pb-4 grid grid-cols-4 gap-3">
+            {Array.from({ length: 12 }).map((_, idx) => (
+              <div
+                key={idx}
+                className="col-span-1 flex flex-col gap-1 cursor-pointer"
+              >
+                <Skeleton className="h-3 w-full rounded-sm" />
+                <Skeleton className="h-16 w-full rounded-sm" />
+                <Skeleton className="h-3 w-full rounded-sm" />
+              </div>
+            ))}
+          </div>
+        ) : availableTables.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full py-20 text-center text-[#5B5B5B]">
+            <div className="p-3 flex items-center justify-center bg-[#e6f3f5] rounded-full">
+              <Table2 size={24} className="text-primary" />
+            </div>
+            <p className="text-lg font-semibold mt-2">No Tables Available</p>
+            <p className="text-sm text-gray-500 mt-1">
+              All tables are currently reserved or unavailable.
+            </p>
+          </div>
+        ) : (
+          <div className="px-4 pb-4 grid grid-cols-4 gap-3">
+            {availableTables.map((table) => {
+              const isSelected = selectedTableId === table._id;
+              const tableClass = getTableClasses(
+                table.status as TableStatus,
+                isSelected
+              );
+
+              return (
                 <div
-                  key={idx}
+                  key={table._id}
+                  onClick={() =>
+                    handleTableClick(table._id, table.status as TableStatus)
+                  }
                   className="col-span-1 flex flex-col gap-1 cursor-pointer"
                 >
-                  <Skeleton className="h-3 w-full rounded-sm" />
-                  <Skeleton className="h-16 w-full rounded-sm" />
-                  <Skeleton className="h-3 w-full rounded-sm" />
-                </div>
-              ))
-            : availableTables.map((table) => {
-                const isSelected = selectedTableId === table._id;
-                const tableClass = getTableClasses(
-                  table.status as TableStatus,
-                  isSelected
-                );
-
-                return (
-                  <div
-                    key={table._id}
-                    onClick={() =>
-                      handleTableClick(table._id, table.status as TableStatus)
-                    }
-                    className="col-span-1 flex flex-col gap-1 cursor-pointer"
-                  >
-                    {/* Top border */}
-                    <div className="grid grid-cols-2 gap-1">
-                      <div className={`col-span-1 h-3 ${tableClass} rounded-tl-sm`} />
-                      <div className={`col-span-1 h-3 ${tableClass} rounded-tr-sm`} />
-                    </div>
-
-                    {/* Middle */}
+                  {/* Top border */}
+                  <div className="grid grid-cols-2 gap-1">
                     <div
-                      className={`py-6 flex items-center justify-center rounded-sm font-[500] text-[0.875rem] ${tableClass}`}
-                    >
-                      {table.name}
-                    </div>
-
-                    {/* Bottom border */}
-                    <div className="grid grid-cols-2 gap-1">
-                      <div className={`col-span-1 h-3 ${tableClass} rounded-bl-sm`} />
-                      <div className={`col-span-1 h-3 ${tableClass} rounded-br-sm`} />
-                    </div>
+                      className={`col-span-1 h-3 ${tableClass} rounded-tl-sm`}
+                    />
+                    <div
+                      className={`col-span-1 h-3 ${tableClass} rounded-tr-sm`}
+                    />
                   </div>
-                );
-              })}
-        </div>
+
+                  {/* Middle */}
+                  <div
+                    className={`py-6 flex items-center justify-center rounded-sm font-[500] text-[0.875rem] ${tableClass}`}
+                  >
+                    {table.name}
+                  </div>
+
+                  {/* Bottom border */}
+                  <div className="grid grid-cols-2 gap-1">
+                    <div
+                      className={`col-span-1 h-3 ${tableClass} rounded-bl-sm`}
+                    />
+                    <div
+                      className={`col-span-1 h-3 ${tableClass} rounded-br-sm`}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </ScrollArea>
     </div>
   );

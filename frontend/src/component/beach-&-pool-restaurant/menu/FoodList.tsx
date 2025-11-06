@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
-const FoodList: React.FC = () => {
+const FoodList: React.FC<{id:string}> = ({id}) => {
   const { foodItems: foods, isAddedNewFoodItem, fetchAllFoodItemsStatus } =
     useSelector((state: RootState) => state.food);
   const selectedCategoryId = useSelector(
@@ -26,6 +26,8 @@ const FoodList: React.FC = () => {
   const navigate = useNavigate();
 
   const { loading, error } = fetchAllFoodItemsStatus;
+
+  const isMenuHandlingPage = (id === "0");
 
   const handleAddNewFoodItem = () => {
     dispatch(setIsClickAddNewFoodItem(true));
@@ -47,20 +49,19 @@ const FoodList: React.FC = () => {
     <ScrollArea className="w-full h-[calc(100vh-250px)]">
       <div className="grid grid-cols-3 gap-1">
         {/* Add new item card */}
-        <div
-          className="py-8 flex items-center justify-center border rounded-sm cursor-pointer hover:bg-gray-50"
-          onClick={handleAddNewFoodItem}
-        >
-          <Plus size={24} className="text-[#0A869D]" />
-        </div>
+        {isMenuHandlingPage && (
+          <div
+            className="py-8 flex items-center justify-center border rounded-sm cursor-pointer hover:bg-gray-50"
+            onClick={handleAddNewFoodItem}
+          >
+            <Plus size={24} className="text-[#0A869D]" />
+          </div>
+        )}
 
         {/* Loading state with skeletons */}
         {loading
           ? Array.from({ length: 11 }).map((_, index) => (
-              <Skeleton
-                key={index}
-                className="h-[120px] w-full rounded-sm"
-              />
+              <Skeleton key={index} className="h-[120px] w-full rounded-sm" />
             ))
           : categoryFoods?.map((food: FoodItem, index) => (
               <FoodItemSelector foodItem={food} key={index} />

@@ -11,8 +11,8 @@ import {
     addOrderToBooking
 } from "../../controllers/Reception/booking-controller.js";
 import {
+    finalizeBookingBill,
     getBookingBillingSummary,
-    postBookingCheckout
 } from "../../controllers/Reception/total-bill-calculation-controller.js";
 
 const router = express.Router();
@@ -29,6 +29,6 @@ router.patch("/:id/add-order", addOrderToBooking);
 
 // orders with booking
 router.get("/final-billing/:id/billing-summary", getBookingBillingSummary);
-router.post("/final-billing/:id/checkout",  postBookingCheckout);
+router.post("/final-billing/:id/checkout",  finalizeBookingBill);
 
 export { router as bookingRoutes };
