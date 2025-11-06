@@ -355,7 +355,7 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
         "----------------------------\n";
 
       // Token-wise printing
-      (order.orderTokens || []).forEach((token: any, index: number) => {
+      (order.orderTokens || []).forEach((token: any) => {
         receiptData += `Token #${token.tokenNumber}\n`;
         receiptData += "----------------------------\n";
         const allItems = [
