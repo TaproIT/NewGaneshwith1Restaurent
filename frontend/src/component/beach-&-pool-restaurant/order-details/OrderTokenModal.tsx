@@ -41,123 +41,98 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
   const order = useSelector((state: RootState) => state.order);
 
   // 👇 Set your printer name as shown in QZ Tray or Control Panel
-  const printerName = "POS80"; // or "POS80"
+  //const printerName = "POS80"; // or "POS80"
 
-  /** Load QZ Tray script **/
-  useEffect(() => {
-    if (window.qz) return;
+   useEffect(() => {
+    // Dynamically load QZ Tray
     const script = document.createElement("script");
     script.src = "https://cdn.jsdelivr.net/npm/qz-tray/qz-tray.js";
-    script.async = true;
     script.onload = () => console.log("✅ QZ Tray script loaded");
     document.body.appendChild(script);
   }, []);
 
-  /** Setup QZ Tray security (unsigned for dev mode) **/
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (window.qz && window.qz.security) {
-        // Disable certificate + signing for testing
-        window.qz.security.setCertificatePromise(() => Promise.resolve());
-        window.qz.security.setSignaturePromise(() =>
-          Promise.resolve()
-        );
-        console.log("🔐 QZ security bypassed for dev mode");
-        clearInterval(interval);
+  const printReceipt = async () => {
+    if (!window.qz) {
+      alert("QZ Tray not loaded yet!");
+      return;
+    }
+
+    const qz = window.qz;
+
+    try {
+      // Connect if not connected
+      if (!qz.websocket.isActive()) {
+        await qz.websocket.connect();
+        console.log("✅ Connected to QZ Tray");
       }
-    }, 500);
-  }, []);
 
-  /** Connect to QZ Tray **/
-  const connectToQZ = async () => {
-    if (!window.qz) throw new Error("QZ Tray not loaded");
-    if (!window.qz.websocket.isActive()) {
-      await window.qz.websocket.connect();
-      console.log("✅ Connected to QZ Tray");
+      const printerName = "POS80";
+      const config = qz.configs.create(printerName);
+
+      const ESC = "\x1B";
+      const GS = "\x1D";
+
+      const data = [
+        {
+          type: "raw",
+          format: "plain",
+          data:
+            ESC + "@" + // Initialize printer
+            ESC + "a" + "\x01" + // Align center
+            "============================\n" +
+            " GANESH GARDEN BEACH HOTEL\n" +
+            "      POOL RESTAURANT BILL\n" +
+            "============================\n" +
+            ESC + "a" + "\x00" + // Align left
+            "Order Token: 165\n" +
+            "Date: " + new Date().toLocaleString() + "\n" +
+            "----------------------------\n" +
+            "Item                Qty  Price\n" +
+            "----------------------------\n" +
+            "Coffee               2   800\n" +
+            "Sandwich             1   450\n" +
+            "Pasta                1   950\n" +
+            "Orange Juice         3   900\n" +
+            "Cheese Burger        2  1600\n" +
+            "French Fries         1   550\n" +
+            "Grilled Chicken      1  1200\n" +
+            "Mango Juice          2   600\n" +
+            "Club Sandwich        1   750\n" +
+            "Chocolate Shake      1   700\n" +
+            "Tuna Salad           1   650\n" +
+            "Ice Cream Sundae     2   900\n" +
+            "Lemon Tea            1   400\n" +
+            "Fish Curry Rice      1  1100\n" +
+            "Egg Fried Rice       1   950\n" +
+            "Spaghetti Bolognese  1  1050\n" +
+            "Garlic Bread         1   500\n" +
+            "Spring Rolls         1   650\n" +
+            "Prawn Curry          1  1300\n" +
+            "Bottle Water (1L)    2   400\n" +
+            "----------------------------\n" +
+            "TOTAL:                   16500 LKR\n" +
+            "============================\n" +
+            ESC + "a" + "\x01" + // Align center
+            "     Thank you! Come again!    \n\n\n" +
+            "        \n\n\n" +
+            GS + "V" + "\x00", // Cut paper
+        },
+      ];
+
+      await qz.print(config, data);
+      console.log("✅ Print job sent successfully to POS80!");
+    } catch (err) {
+      console.error("❌ Printing error:", err);
+      alert("Print failed! Check console for details.");
     }
   };
 
-  /** Disconnect from QZ Tray **/
-  const disconnectFromQZ = async () => {
-    if (window.qz && window.qz.websocket.isActive()) {
-      await window.qz.websocket.disconnect();
-      console.log("🔌 Disconnected from QZ Tray");
-    }
-  };
 
   /** Print handler for ET PT 30 **/
   const handlePrint = async () => {
     try {
-      if (!window.qz) {
-        toast.error("⚠️ QZ Tray not loaded. Please start QZ Tray and refresh.");
-        return;
-      }
-
-      await connectToQZ();
-
-      const foundPrinter = await window.qz.printers.find(printerName);
-      if (!foundPrinter) {
-        toast.error(`❌ Printer "${printerName}" not found in QZ Tray.`);
-        return;
-      }
-
-      console.log("🖨️ Using printer:", foundPrinter);
-
-      // --- ESC/POS formatted text ---
-      let receipt = "\x1B\x40"; // Initialize
-      receipt += "\x1B\x61\x01"; // Center align
-      receipt += "============================\n";
-      receipt += "        ORDER TOKEN\n";
-      receipt += "============================\n";
-      receipt += `Order No: ${order.orderNumber}\n`;
-      receipt += `Token No: ${order.orderTokens.length + 1}\n`;
-      receipt += `${order.serviceType?.toUpperCase()}\n`;
-      if (order.restaurantTable?._id) {
-        receipt += `Table: ${order.restaurantTable.name}\n`;
-      }
-      receipt += "----------------------------\n";
-      receipt += "Item               Qty  Price\n";
-      receipt += "----------------------------\n";
-
-      // Food orders
-      order.newOrderToken.foodOrders.forEach((item: any) => {
-        receipt += `${item.title.padEnd(16).substring(0, 16)} ${String(
-          item.quantity
-        ).padStart(2)} ${(item.price * item.quantity)
-          .toString()
-          .padStart(6)}\n`;
-      });
-
-      // Beverage orders
-      order.newOrderToken.beverageOrders.forEach((item: any) => {
-        receipt += `${item.title.padEnd(16).substring(0, 16)} ${String(
-          item.quantity
-        ).padStart(2)} ${(item.price * item.quantity)
-          .toString()
-          .padStart(6)}\n`;
-      });
-
-      receipt += "----------------------------\n";
-      receipt += `Token Bill: ${order.newOrderToken.tokenTotalBill.toFixed(2)} LKR\n`;
-      receipt += `Total Bill: ${order.totalBill.toFixed(2)} LKR\n`;
-      receipt += "============================\n";
-      receipt += "  THANK YOU! COME AGAIN!  \n";
-      receipt += "============================\n";
-      receipt += "\n\n\n";
-      receipt += "\x1D\x56\x00"; // Cut paper
-
-      const data = [{ type: "raw", format: "plain", data: receipt }];
-
-      const config = window.qz.configs.create(foundPrinter, {
-        copies: 1,
-        jobName: "ET PT 30 Order Token",
-        margins: { top: 0, right: 0, bottom: 0, left: 0 },
-        colorType: "grayscale",
-      });
-
-      await window.qz.print(config, data);
-      toast.success("🖨️ Printed successfully on ET PT 30!");
-
+     
+      await printReceipt();
       // Update backend state
       dispatch(setIsPrintedForNewOrderToken(true));
       await dispatch(addNewOrderTokenToOrder({ orderId: id })).unwrap();
@@ -167,7 +142,7 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
       console.error("❌ Printing error:", err);
       toast.error("Printing failed. Check printer/QZ Tray connection.");
     } finally {
-      await disconnectFromQZ();
+      //await disconnectFromQZ();
     }
   };
 
