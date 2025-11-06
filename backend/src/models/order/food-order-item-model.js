@@ -17,6 +17,12 @@ const foodOrderItemSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  liquor: [
+         {
+             beverage: { type: mongoose.Schema.Types.ObjectId, ref: "Beverage", required: true },
+             amount: { type: Number, default: 0 },
+         },
+     ],
 });
 
 const FoodOrderItem = mongoose.model("FoodOrderItem", foodOrderItemSchema);

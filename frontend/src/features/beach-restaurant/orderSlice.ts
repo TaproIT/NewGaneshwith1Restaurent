@@ -431,6 +431,7 @@ const orderSlice = createSlice({
         state.tables = [];
       }
       state.tables = [...state.tables, ...action.payload]
+      //state.tables = [];
     })
     .addCase(fetchAllTables.rejected, (state, action) => {
       state.fetchTablesStatus = { loading: false, error: action.payload as string };

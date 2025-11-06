@@ -24,6 +24,8 @@ import UserConfig from "./pages/admin/UserConfig";
 import RoomConfig from "./pages/admin/RoomConfig";
 import CheckoutDetails from "./component/checkout/CheckoutDetails";
 
+//import PrintButton from "./component/SamplePrint";
+
 function App() {
   return (
     <Router>
@@ -98,6 +100,7 @@ function App() {
         </CurrencyProvider>
       </RateProvider>
     </Router>
+    // <PrintButton />
   );
 }
 

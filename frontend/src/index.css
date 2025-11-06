@@ -174,3 +174,30 @@ body {
   scrollbar-width: none;
 }
 
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #printable-receipt, #printable-receipt * {
+    visibility: visible;
+  }
+
+  #printable-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm; /* Adjust for 58mm printers if needed */
+    font-size: 12px;
+    line-height: 1.3;
+  }
+
+  /* Remove margins for thermal printers */
+  @page {
+    margin: 0;
+    size: 80mm auto;
+  }
+}
+
+
+

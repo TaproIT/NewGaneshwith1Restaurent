@@ -5,19 +5,22 @@ import {
   setIsBeverageItemsList,
 } from "@/features/beach-restaurant/beverageCategorySlice";
 import { setIsClickedAddFoodCategory, setIsFoodCategory, setSelectedCategoryId, setSelectedFoodCategoryTitle } from "@/features/beach-restaurant/foodCategorySlice";
-import { setIsClickAddNewFoodItem } from "@/features/beach-restaurant/foodSlice";
+import { setIsClickAddNewFoodItem, setSelectedFoodItem } from "@/features/beach-restaurant/foodSlice";
 import React, { useRef, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "react-toastify";
 import { Plus } from "lucide-react";
+import { setSelectedBeverageItem, setSelectedExtraBeverageItem } from "@/features/beach-restaurant/beverageSlice";
 
-const FoodCategorySelector: React.FC = () => {
+const FoodCategorySelector: React.FC<{id:string}> = ({id}) => {
   const dispatch = useDispatch();
   const foodCategory = useSelector((state: RootState) => state.foodCategory);
   // const { selectedCategory } = useSelector(
   //   (state: RootState) => state.beverageCategory
   // );
+
+  const isMenuHandlingPage = (id === "0");
 
   const categories = foodCategory.categories;
   const selectedCategoryId = foodCategory.selectedCategoryId;
@@ -75,7 +78,11 @@ useEffect(() => {
     dispatch(setSelectedCategoryId(categories[index]._id));
     dispatch(setIsBeverageItemsList(false));
     dispatch(setSelectedFoodCategoryTitle(categories[index]._id))
-    //dispatch(setIsClickAddNewFoodItem(false));
+    dispatch(setIsClickAddNewFoodItem(true));
+
+    dispatch(setSelectedBeverageItem(""));
+    dispatch(setSelectedExtraBeverageItem(""));
+    dispatch(setSelectedFoodItem(""));
   };
 
   // Drag handlers
@@ -119,7 +126,7 @@ useEffect(() => {
             Array.from({ length: 5 }).map((_, index) => (
               <Skeleton
                 key={index}
-                className="px-4 py-8 w-[135px] 2xl:w-[163px] rounded-md"
+                className="px-4 py-8 w-[140px] 2xl:w-[163px] rounded-md"
               />
             ))
           : categories.map((cat, index) => {
@@ -131,7 +138,7 @@ useEffect(() => {
                     itemRefs.current[index] = el;
                   }}
                   onClick={() => handleClick(index)}
-                  className={`px-4 py-4 w-[135px] 2xl:w-[163px] max-h-[72px] flex-shrink-0 flex items-center justify-center text-[0.75rem] font-medium cursor-pointer rounded-md
+                  className={`px-4 py-4 w-[22%] min-h-[70px]  max-h-[70px] flex-shrink-0 flex items-center justify-center text-[0.75rem] font-medium cursor-pointer rounded-md
                 ${
                   isSelected
                     ? "bg-[#B24E0E] text-white"
@@ -144,14 +151,16 @@ useEffect(() => {
             })}
       </div>
       {/* Add New Category Button (fixed to right) */}
-      <div className="absolute right-0 top-1/2 -translate-y-1/2 pr-1 bg-white">
-        <div
-          className="py-5 px-12 flex items-center justify-center border rounded-sm cursor-pointer"
-          onClick={handleAddNewFoodCategory}
-        >
-          <Plus size={24} className="text-[#0A869D]" />
+      {isMenuHandlingPage && (
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 pr-1 bg-white">
+          <div
+            className="py-5 px-12 flex items-center justify-center border rounded-sm cursor-pointer"
+            onClick={handleAddNewFoodCategory}
+          >
+            <Plus size={24} className="text-[#0A869D]" />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
