@@ -141,6 +141,7 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
         "==========================================\n" +
         ESC + "a" + "\x01" +
         "       Thank you! Come again!       \n\n\n" +
+        "           \n\n\n" +
         GS + "V" + "\x00";
 
       await qz.print(config, [{ type: "raw", format: "plain", data: receiptData }]);
