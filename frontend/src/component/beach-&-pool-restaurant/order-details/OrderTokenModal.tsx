@@ -422,7 +422,7 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
     >
       <DialogTrigger asChild></DialogTrigger>
 
-      <DialogContent className="!p-4 w-[325px] text-[#444444] printable-modal">
+      <DialogContent className="!p-4 w-[325px] text-[#444444] printable-modal max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="!px-2">
             Order {order.orderNumber}
