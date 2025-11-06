@@ -290,9 +290,33 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
     // Dynamically load QZ Tray
     const script = document.createElement("script");
     script.src = "https://cdn.jsdelivr.net/npm/qz-tray/qz-tray.js";
-    script.onload = () => console.log("✅ QZ Tray script loaded");
+    script.onload = () => console.log("QZ Tray script loaded");
     document.body.appendChild(script);
   }, []);
+
+
+  function formatItemLine(name:string, qty:number, price:number) {
+        const maxNameLength = 20; // fits 80mm printers well
+
+        // Split long names into multiple lines
+        const lines = [];
+        while (name.length > maxNameLength) {
+          lines.push(name.substring(0, maxNameLength));
+          name = name.substring(maxNameLength);
+        }
+        lines.push(name); // remaining part
+
+        // Format the first line with qty and price
+        const firstLine =
+          lines[0].padEnd(maxNameLength, " ") +
+          qty.toString().padStart(3, " ") +
+          price.toString().padStart(8, " ");
+        // Subsequent lines only contain the name part
+        const otherLines = lines.slice(1).map((l) => l);
+
+        return [firstLine, ...otherLines].join("\n");
+      }
+
 
   const printReceipt = async () => {
     if (!window.qz) {
@@ -306,7 +330,7 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
       // Connect if not connected
       if (!qz.websocket.isActive()) {
         await qz.websocket.connect();
-        console.log("✅ Connected to QZ Tray");
+        console.log("Connected to QZ Tray");
       }
 
       const printerName = "POS80";
@@ -314,54 +338,60 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
       const ESC = "\x1B";
       const GS = "\x1D";
 
-      // ✅ Combine all items (food + beverage)
+      // Combine all items (food + beverage)
       const allItems = [
         ...(order.newOrderToken.foodOrders || []),
         ...(order.newOrderToken.beverageOrders || []),
       ];
 
-      // ✅ Format each item line for print
-      const formattedItems = allItems
-        .map((item: any) => {
-          const name = item.title?.padEnd(18, " ").substring(0, 18);
-          const qty = String(item.quantity).padStart(2, " ");
-          const price = String(item.price * item.quantity).padStart(5, " ");
-          return `${name}${qty} ${price}\n`;
-        })
-        .join("");
 
-      // ✅ Create dynamic receipt data
+      // Format each item line for print
+     const formattedItems = allItems
+       .map((item) => formatItemLine(item.title, item.quantity, item.price))
+       .join("\n");
+
+      // Create dynamic receipt data
       const data = [
         {
           type: "raw",
           format: "plain",
           data:
-            ESC + "@" + // Initialize printer
-            ESC + "a" + "\x01" + // Align center
-            "============================\n" +
-            " GANESH GARDEN BEACH HOTEL\n" +
-            "      POOL RESTAURANT BILL\n" +
-            "============================\n" +
-            ESC + "a" + "\x00" + // Align left
+            ESC +
+            "@" + // Initialize printer
+            ESC +
+            "a" +
+            "\x01" + // Align center
+            "================================\n" +
+            "   GANESH GARDEN BEACH HOTEL\n" +
+            "     POOL RESTAURANT BILL\n" +
+            "================================\n" +
+            ESC +
+            "a" +
+            "\x00" + // Align left
             `Order Token: ${order.orderTokens.length + 1}\n` +
             `Date: ${new Date().toLocaleString()}\n` +
-            "----------------------------\n" +
-            "Item                Qty  Price\n" +
-            "----------------------------\n" +
+            "--------------------------------\n" +
+            "Item                 Qty   Price\n" +
+            "--------------------------------\n" +
             formattedItems +
-            "----------------------------\n" +
+            "--------------------------------\n" +
             `TOTAL:             ${order.newOrderToken.tokenTotalBill.toFixed(
               2
             )} LKR\n` +
-            "============================\n" +
-            ESC + "a" + "\x01" + // Align center
-            "     Thank you! Come again!    \n\n\n" +
-            GS + "V" + "\x00", // Cut paper
+            "================================\n" +
+            ESC +
+            "a" +
+            "\x01" + // Align center
+            "      Thank you! Come again!     \n\n\n" +
+            "      " +
+            GS +
+            "V" +
+            "\x00", // Cut paper
         },
       ];
       console.log(data);
       await qz.print(config, data);
-      console.log("✅ Print job sent successfully to POS80!");
+      console.log("Print job sent successfully to POS80!");
     } catch (err) {
       console.error("❌ Printing error:", err);
       alert("Print failed! Check console for details.");
@@ -376,6 +406,7 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
       await dispatch(addNewOrderTokenToOrder({ orderId: id })).unwrap();
       await dispatch(fetchOrderById(id)).unwrap();
       toast.success("Order updated successfully!");
+      dispatch(closeOrderTokenModal())
     } catch (err: any) {
       console.error("❌ Printing error:", err);
       toast.error("Printing failed. Check printer/QZ Tray connection.");
