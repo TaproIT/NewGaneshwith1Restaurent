@@ -98,7 +98,7 @@ export const getInvoiceById = async (req, res) => {
 
 export const getInvoices = async (req, res) => {
   try {
-    const { fromDate, toDate, roomId } = req.query;
+    const { fromDate, toDate } = req.query;
 
     const filter = {};
 
@@ -108,9 +108,9 @@ export const getInvoices = async (req, res) => {
       if (toDate) filter.checkInDate.$lte = new Date(toDate);
     }
 
-    if (roomId) {
-      filter.roomIds = roomId;
-    }
+    // if (roomId) {
+    //   filter.roomIds = roomId;
+    // }
 
     const invoices = await Invoice.find(filter).sort({ createdAt: -1 });
      return sendSuccessResponse(
