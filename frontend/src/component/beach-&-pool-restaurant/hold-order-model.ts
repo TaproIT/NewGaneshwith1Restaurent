@@ -4,6 +4,7 @@ export interface HoldOrder {
     _id: string;
     orderNumber: string;
     serviceType: HoldOrderServiceType
+    customerType: string;
 };
 
 export interface FetchHoldOrdersStatus {

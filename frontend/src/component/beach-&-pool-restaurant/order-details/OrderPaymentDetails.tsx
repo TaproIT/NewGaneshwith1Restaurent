@@ -4,6 +4,7 @@ import { type AppDispatch, type RootState } from '@/app/store';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
+import { setSelectedHoldOrderId } from '@/features/beach-restaurant/holdOrderSlice';
 import {
   openOrderBillDetailsModal,
   openOrderTokenModal,
@@ -48,12 +49,17 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
 
  const handleHoldClick = async () => {
    try {
+    console.log(newOrderToken);
+    const hasHoldToken = ( newOrderToken.beverageOrders.length > 0 || newOrderToken.foodOrders.length > 0 )
      dispatch(setIsPrintedForNewOrderToken(false));
 
-     await dispatch(addNewOrderTokenToOrder({ orderId: order._id })).unwrap();
-     await dispatch(fetchOrderById(order._id)).unwrap();
+     if(hasHoldToken) {
+        await dispatch(addNewOrderTokenToOrder({ orderId: order._id })).unwrap();
+        await dispatch(fetchOrderById(order._id)).unwrap();
+     }
 
      toast.success("Order token held successfully");
+     dispatch(setSelectedHoldOrderId(""));
      navigate(`/restaurant/home`);
    } catch (err: any) {
      toast.error(
@@ -216,7 +222,7 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
                      <Button
                        variant="outline"
                        className="col-span-1 !w-full !h-8 border-[#0A869D] cursor-pointer"
-                       disabled={isDisabled}
+                       //disabled={isDisabled}
                        onClick={handleHoldClick}
                      >
                        Hold

@@ -525,7 +525,7 @@ export const getHoldOrders = async (req, res) => {
         { holdOrderToken: { $ne: null } },
         { orderStatus: { $ne: OrderStatuses.COMPLETED.value } },
       ],
-    }).select("_id serviceType orderNumber");
+    }).select("_id serviceType orderNumber customerType");
 
     if (!holdOrders || holdOrders.length === 0) {
       return sendErrorResponse(res, 404, "No hold orders found");
@@ -535,6 +535,7 @@ export const getHoldOrders = async (req, res) => {
     const formattedOrders = holdOrders.map((order) => ({
       _id: order._id,
       serviceType: order.serviceType,
+      customerType: order.customerType,
       orderNumber: order.orderNumber,
     }));
 
