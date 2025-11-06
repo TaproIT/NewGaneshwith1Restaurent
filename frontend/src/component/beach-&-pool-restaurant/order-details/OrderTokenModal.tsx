@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect } from "react";
 import {
   Dialog,
@@ -40,19 +38,21 @@ declare global {
 export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
   const dispatch = useDispatch<AppDispatch>();
   const order = useSelector((state: RootState) => state.order);
-  const printerName = "Pantum P2500 Series"; // ✅ must exactly match your printer’s name in QZ Tray
 
-  // 🔹 Load QZ Tray dynamically
+  // Use your ET PT 30 / POS80 printer name from QZ Tray
+  const printerName = "POS80"; // or "ET PT 30"
+
+  // 🔹 Load QZ Tray script
   useEffect(() => {
     if (window.qz) return;
     const script = document.createElement("script");
     script.src = "https://cdn.jsdelivr.net/npm/qz-tray/qz-tray.js";
     script.async = true;
-    script.onload = () => console.log("✅ QZ Tray script loaded");
+    script.onload = () => console.log("QZ Tray script loaded");
     document.body.appendChild(script);
   }, []);
 
-  // 🔹 Setup QZ security (unsigned mode for development)
+  // 🔹 Setup QZ Tray unsigned mode (for dev)
   useEffect(() => {
     const interval = setInterval(() => {
       if (window.qz) {
@@ -63,31 +63,27 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
     }, 500);
   }, []);
 
-  // 🔹 Connect to QZ Tray
+  // 🔹 Connect QZ Tray
   const connectToQZ = async () => {
     if (!window.qz) throw new Error("QZ Tray not loaded");
-    if (window.qz.websocket.isActive()) {
-      console.log("🔄 Reusing existing QZ connection");
-      return;
-    }
-    console.log("🔌 Connecting to QZ Tray...");
+    if (window.qz.websocket.isActive()) return;
     await window.qz.websocket.connect();
-    console.log("✅ Connected to QZ Tray");
+    console.log("Connected to QZ Tray");
   };
 
   // 🔹 Disconnect QZ Tray
   const disconnectFromQZ = async () => {
     if (window.qz && window.qz.websocket.isActive()) {
-      console.log("🔌 Disconnecting QZ Tray...");
       await window.qz.websocket.disconnect();
+      console.log("🔌 Disconnected from QZ Tray");
     }
   };
 
-  // 🔹 Main print logic
+  // 🔹 ESC/POS Print Function for ET PT 30
   const handlePrint = async () => {
     try {
       if (!window.qz) {
-        toast.error("⚠️ QZ Tray not loaded. Please start QZ Tray and refresh the page.");
+        toast.error("⚠️ QZ Tray not loaded. Please start QZ Tray and refresh.");
         return;
       }
 
@@ -99,79 +95,75 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
         return;
       }
 
-      // 🔸 Build print text
-      let printData = `
-========================================
-        ${order.serviceType?.toUpperCase()} ORDER
-========================================
-Order No : ${order.orderNumber}
-Token No : ${order.orderTokens.length + 1}
-----------------------------------------
-`;
-
+      // Build ESC/POS text for thermal printer
+      let receipt = "\x1B\x40"; // Initialize printer
+      receipt += "\x1B\x61\x01"; // Center alignment
+      receipt += "============================\n";
+      receipt += "      ORDER TOKEN\n";
+      receipt += "============================\n";
+      receipt += `Order No: ${order.orderNumber}\n`;
+      receipt += `Token No: ${order.orderTokens.length + 1}\n`;
+      receipt += `${order.serviceType?.toUpperCase()}\n`;
       if (order.restaurantTable?._id) {
-        printData += `Table : ${order.restaurantTable.name}\n`;
+        receipt += `Table: ${order.restaurantTable.name}\n`;
       }
+      receipt += "----------------------------\n";
+      receipt += "Item               Qty  Price\n";
+      receipt += "----------------------------\n";
 
-      printData += "----------------------------------------\n";
-      printData += "Items\n";
-      printData += "----------------------------------------\n";
-
+      // Add food orders
       order.newOrderToken.foodOrders.forEach((item: any) => {
-        printData += `${item.title.padEnd(20)} ${item.quantity} x ${item.price.toFixed(2)}\n`;
+        receipt += `${item.title.padEnd(16).substring(0, 16)} ${String(
+          item.quantity
+        ).padStart(2)} ${(item.price * item.quantity)
+          .toString()
+          .padStart(6)}\n`;
       });
 
+      // Add beverage orders
       order.newOrderToken.beverageOrders.forEach((item: any) => {
-        printData += `${item.title.padEnd(20)} ${item.quantity} x ${item.price.toFixed(2)}\n`;
+        receipt += `${item.title.padEnd(16).substring(0, 16)} ${String(
+          item.quantity
+        ).padStart(2)} ${(item.price * item.quantity)
+          .toString()
+          .padStart(6)}\n`;
       });
 
-      printData += `
-----------------------------------------
-Token Bill : ${order.newOrderToken.tokenTotalBill.toFixed(2)} LKR
-Total Bill : ${order.totalBill.toFixed(2)} LKR
-----------------------------------------
-     Thank You & Come Again!
-========================================
-`;
+      receipt += "----------------------------\n";
+      receipt += `Token Bill: ${order.newOrderToken.tokenTotalBill.toFixed(2)} LKR\n`;
+      receipt += `Total Bill: ${order.totalBill.toFixed(2)} LKR\n`;
+      receipt += "============================\n";
+      receipt += "   THANK YOU! COME AGAIN!   \n";
+      receipt += "============================\n";
+      receipt += "\n\n\n";
+      receipt += "\x1D\x56\x00"; // Full paper cut
 
-      // 🔸 QZ Tray configuration (optimized for Pantum P2500 USB)
+      const data = [{ type: "raw", format: "plain", data: receipt }];
+
       const config = window.qz.configs.create(foundPrinter, {
-        colorType: "grayscale",
         copies: 1,
-        jobName: "Order Token",
-        altPrinting: true,
-        scaleContent: true,
+        jobName: "ET PT 30 Order Token",
         margins: { top: 0, right: 0, bottom: 0, left: 0 },
-        density: "600dpi",
+        colorType: "grayscale",
       });
 
-      const data = [
-        {
-          type: "raw",
-          format: "plain",
-          data: printData,
-        },
-      ];
-
-      // 🔸 Print now
       await window.qz.print(config, data);
-      toast.success("🖨️ Printed successfully on Pantum P2500!");
+      toast.success("🖨️ Printed successfully on ET PT 30!");
 
-      // 🔸 Backend updates after successful print
+      // Update backend
       dispatch(setIsPrintedForNewOrderToken(true));
       await dispatch(addNewOrderTokenToOrder({ orderId: id })).unwrap();
       await dispatch(fetchOrderById(id)).unwrap();
-
-      toast.success("✅ Order updated successfully after print!");
+      toast.success("Order updated successfully!");
     } catch (err: any) {
-      console.error("❌ QZ print error:", err);
-      toast.error("Printing failed. Check QZ Tray or printer connection.");
+      console.error("❌ Printing error:", err);
+      toast.error("Printing failed. Check printer/QZ Tray connection.");
     } finally {
       await disconnectFromQZ();
     }
   };
 
-  // 🔹 UI
+  // 🔹 Dialog UI
   return (
     <Dialog
       open={order.isOrderTokenOpen}
@@ -221,8 +213,12 @@ Total Bill : ${order.totalBill.toFixed(2)} LKR
             <TableBody>
               {order.newOrderToken.foodOrders.map((item: any) => (
                 <TableRow key={item.foodId}>
-                  <TableCell className="text-[0.75rem] border-r border-gray-300">{item.title}</TableCell>
-                  <TableCell className="text-[0.75rem] text-center border-r border-gray-300">{item.quantity}</TableCell>
+                  <TableCell className="text-[0.75rem] border-r border-gray-300">
+                    {item.title}
+                  </TableCell>
+                  <TableCell className="text-[0.75rem] text-center border-r border-gray-300">
+                    {item.quantity}
+                  </TableCell>
                   <TableCell className="text-[0.75rem] text-right">
                     {(item.quantity * item.price).toLocaleString()} LKR
                   </TableCell>
@@ -230,8 +226,12 @@ Total Bill : ${order.totalBill.toFixed(2)} LKR
               ))}
               {order.newOrderToken.beverageOrders.map((item: any) => (
                 <TableRow key={item.beverageId}>
-                  <TableCell className="text-[0.75rem] border-r border-gray-300">{item.title}</TableCell>
-                  <TableCell className="text-[0.75rem] text-center border-r border-gray-300">{item.quantity}</TableCell>
+                  <TableCell className="text-[0.75rem] border-r border-gray-300">
+                    {item.title}
+                  </TableCell>
+                  <TableCell className="text-[0.75rem] text-center border-r border-gray-300">
+                    {item.quantity}
+                  </TableCell>
                   <TableCell className="text-[0.75rem] text-right">
                     {(item.quantity * item.price).toLocaleString()} LKR
                   </TableCell>
@@ -252,7 +252,7 @@ Total Bill : ${order.totalBill.toFixed(2)} LKR
 
           <div className="my-3 px-3 flex">
             <Button onClick={handlePrint} className="!w-full cursor-pointer">
-              Print via Pantum P2500
+               Print
             </Button>
           </div>
         </div>
