@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
@@ -41,6 +41,14 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+   useEffect(() => {
+      // Dynamically load QZ Tray
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/qz-tray/qz-tray.js";
+      script.onload = () => console.log("QZ Tray script loaded");
+      document.body.appendChild(script);
+    }, []);
 
   const paymentMethods = Object.values(PaymentMethods).filter(
     (method) => method.value !== "Room"
