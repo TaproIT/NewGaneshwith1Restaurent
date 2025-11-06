@@ -128,12 +128,12 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
         `Order No: ${order.orderNumber}\n` +
         `Service Type: ${order.serviceType}\n` +
         `Customer: ${order.guestName || "Walk-in"}\n` +
-        `${order.roomNumber  ? `Room No: ${order.roomNumber}\n`:""}` +
+        `${order.roomNumber  !== "0" ? `Room No: ${order.roomNumber}\n`:""}` +
         "-".repeat(totalWidth) + "\n";
 
       // Token-wise printing
       (order.orderTokens || []).forEach((token: any) => {
-        receiptData += `Token #${token.tokenNumber}\n`;
+        receiptData += ` \n`;
         receiptData += "-".repeat(totalWidth) + "\n";
 
         const allItems = [
