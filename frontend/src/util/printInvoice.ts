@@ -7,7 +7,7 @@ declare global {
   }
 }
 
-export async function printInvoice(invoice: any) {
+export async function printInvoice(_invoice: any) {
   try {
     const qz = window.qz;
     if (!qz) {
