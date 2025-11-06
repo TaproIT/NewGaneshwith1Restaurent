@@ -67,9 +67,7 @@ export const getBookingBillingSummary = async (req, res) => {
             ? (requiresCutoff ? todaySOD : clampToTodayTZ(booking.checkOut, todaySOD))
             : null;
 
-        const effectiveCheckIn = booking.checkIn
-            ? clampToTodayTZ(booking.checkIn, todaySOD)
-            : null;
+        const effectiveCheckIn = booking.checkIn ? dayjs(booking.checkIn).tz(TZ) : null;
 
         // Orders: fetch & summarise
         const orderIds = (booking.orders || []).map(o => o?.oderId).filter(Boolean);
@@ -278,13 +276,16 @@ export const finalizeBookingBill = async (req, res) => {
             serviceCharge,
             discount,
             totalBill,
-            paymentMethod,
-            checkOutById,
+            paymentMethod
         } = req.body || {};
+
+        const checkOutById = req.user?.userId || req.user?._id;
 
         if (!checkOutById) {
             return res.status(400).json({ error: "Unauthorized checkOut. ID is required." });
         }
+
+
 
         const user = await User.findById(checkOutById).lean();
         if (!user) {

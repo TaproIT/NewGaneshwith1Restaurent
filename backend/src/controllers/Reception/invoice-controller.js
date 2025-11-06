@@ -108,22 +108,27 @@ export const getInvoices = async (req, res) => {
       if (toDate) filter.checkInDate.$lte = new Date(toDate);
     }
 
-    // if (roomId) {
-    //   filter.roomIds = roomId;
-    // }
+    // Fetch invoices and populate room numbers
+    const invoices = await Invoice.find(filter)
+      .populate({
+        path: "roomIds",
+        select: "no -_id", // Only get room number, exclude _id
+      })
+      .sort({ createdAt: -1 });
 
-    const invoices = await Invoice.find(filter).sort({ createdAt: -1 });
-     return sendSuccessResponse(
-        res,
-        200,
-        "Invoices retrieved successfully",
-        {
-            invoices,
-            total: invoices.length,
-        }
-    );
+    // Transform data to show room numbers as array of strings
+    const formattedInvoices = invoices.map((invoice) => ({
+      ...invoice.toObject(),
+      roomNumbers: invoice.roomIds.map((room) => room.no),
+    }));
+
+    return sendSuccessResponse(res, 200, "Invoices retrieved successfully", {
+      invoices: formattedInvoices,
+      total: formattedInvoices.length,
+    });
   } catch (error) {
-    return sendErrorResponse(res,500, "Internal Server Error", error.message);
+    return sendErrorResponse(res, 500, "Internal Server Error", error.message);
   }
 };
+
 
