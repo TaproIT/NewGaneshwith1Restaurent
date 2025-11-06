@@ -40,9 +40,9 @@ export default function PrintButton() {
           data:
             "\x1B\x40" + // Initialize printer
             "============================\n" +
-            "      SAMPLE PRINT TEST      \n" +
+            "       POOL RESTAURANT BILL      \n" +
             "============================\n" +
-            "Printer: ET PT 30\n" +
+            "Order Token: 165\n" +
             "Date: " + new Date().toLocaleString() + "\n" +
             "----------------------------\n" +
             "Item           Qty   Price\n" +
