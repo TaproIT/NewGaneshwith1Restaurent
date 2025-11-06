@@ -462,7 +462,7 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
             <TableBody>
               {order.newOrderToken.foodOrders.map((item: any) => (
                 <TableRow key={item.foodId}>
-                  <TableCell className="text-[0.75rem] border-r border-gray-300">
+                  <TableCell className="text-[0.75rem] whitespace-normal break-words border-r border-gray-300">
                     {item.title}
                   </TableCell>
                   <TableCell className="text-[0.75rem] text-center border-r border-gray-300">
@@ -475,7 +475,7 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
               ))}
               {order.newOrderToken.beverageOrders.map((item: any) => (
                 <TableRow key={item.beverageId}>
-                  <TableCell className="text-[0.75rem] border-r border-gray-300">
+                  <TableCell className="text-[0.75rem] whitespace-normal break-words text-wrap border-r border-gray-300">
                     {item.title}
                   </TableCell>
                   <TableCell className="text-[0.75rem] text-center border-r border-gray-300">
