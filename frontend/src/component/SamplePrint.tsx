@@ -26,29 +26,24 @@ export default function PrintButton() {
         console.log("✅ Connected to QZ Tray");
       }
 
-      // ✅ Set your printer name exactly as shown in QZ Tray’s printer list
       const printerName = "POS80";
-
-      // Create printer config
       const config = qz.configs.create(printerName);
 
-      // ESC/POS Commands
       const ESC = "\x1B";
       const GS = "\x1D";
 
-      // ✅ Use RAW ESC/POS text with center alignment
       const data = [
         {
           type: "raw",
           format: "plain",
           data:
-            ESC + "@"+                       // Initialize printer
-            ESC + "a" + "\x01" +              // Align center
+            ESC + "@" + // Initialize printer
+            ESC + "a" + "\x01" + // Align center
             "============================\n" +
-             "     GANESH GARDEN BEACH HOTEL\n" +
-            "     POOL RESTAURANT BILL\n" +
+            " GANESH GARDEN BEACH HOTEL\n" +
+            "      POOL RESTAURANT BILL\n" +
             "============================\n" +
-            ESC + "a" + "\x00" +              // Align left
+            ESC + "a" + "\x00" + // Align left
             "Order Token: 165\n" +
             "Date: " + new Date().toLocaleString() + "\n" +
             "----------------------------\n" +
@@ -60,12 +55,27 @@ export default function PrintButton() {
             "Orange Juice         3   900\n" +
             "Cheese Burger        2  1600\n" +
             "French Fries         1   550\n" +
+            "Grilled Chicken      1  1200\n" +
+            "Mango Juice          2   600\n" +
+            "Club Sandwich        1   750\n" +
+            "Chocolate Shake      1   700\n" +
+            "Tuna Salad           1   650\n" +
+            "Ice Cream Sundae     2   900\n" +
+            "Lemon Tea            1   400\n" +
+            "Fish Curry Rice      1  1100\n" +
+            "Egg Fried Rice       1   950\n" +
+            "Spaghetti Bolognese  1  1050\n" +
+            "Garlic Bread         1   500\n" +
+            "Spring Rolls         1   650\n" +
+            "Prawn Curry          1  1300\n" +
+            "Bottle Water (1L)    2   400\n" +
             "----------------------------\n" +
-            "TOTAL:                   5250 LKR\n" +
+            "TOTAL:                   16500 LKR\n" +
             "============================\n" +
-            ESC + "a" + "\x01" +              // Align center
-            "   Thank you! Come again!   \n\n\n" +
-            GS + "V" + "\x00",               // Cut paper
+            ESC + "a" + "\x01" + // Align center
+            "     Thank you! Come again!    \n\n\n" +
+            "        \n\n\n" +
+            GS + "V" + "\x00", // Cut paper
         },
       ];
 
