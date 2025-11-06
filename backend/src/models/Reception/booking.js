@@ -8,6 +8,19 @@ export const PaymentMethods = Object.freeze({
     FREE_BILL: { value: "Free-Bill", label: "Free Bill" },
 });
 
+const updateHistorySchema = new mongoose.Schema(
+    {
+        updateUserId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+        updatedByName: { type: String, required: true },
+        updateDate: { type: Date, required: true },
+    },
+    { _id: false }
+);
+
+
+const CUSTOMER_VALUES = ["Booking.com", "Open Booking"];
+const BREAKFAST_VALUES = ["Included", "Not-Included", "Full Board"];
+
 const additionalPriceItemSchema = new mongoose.Schema(
     {
         name: { type: String, required: true, trim: true },
@@ -20,21 +33,26 @@ const bookingSchema = new mongoose.Schema(
     {
         hotel: { type: String, required: true },
         guestName: { type: String, required: true },
-        country: { type: String, required: true },
+        country: { type: String},
         email: { type: String },
         whatsapp: { type: String },
+        createdById: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        createdByName: { type: String },
+        checkOutById: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        checkOutByName: { type: String },
         passportId: { type: String },
-        totalGuests: { type: Number, required: true },
-        kids: { type: Number, required: true },
-        adults: { type: Number, required: true },
+        totalGuests: { type: Number },
+        kids: { type: Number },
+        adults: { type: Number},
         lengthOfStay: { type: Number, required: true },
+        oldLengthOfStay: { type: Number, required: true },
         checkIn: { type: Date, required: true },
         checkOut: { type: Date, required: true },
-
         // Current Room(s) for the booking.
         currentRooms: [{
             roomId: { type: mongoose.Schema.Types.ObjectId, ref: "Room", required: true },
             roomNo: { type: String, required: true },
+            price: { type: Number },
             isActive: { type: Boolean, default: true },
         }],
 
@@ -44,6 +62,7 @@ const bookingSchema = new mongoose.Schema(
                 roomId: { type: mongoose.Schema.Types.ObjectId, ref: "Room", required: true },
                 roomNo: { type: String, required: true },
                 perDayPrice: { type: Number, required: true },
+                night: { type: Number, required: true },
 
                 finalRoomTotalPrice: { type: Number },
                 discountPrice: { type: Number },
@@ -52,6 +71,12 @@ const bookingSchema = new mongoose.Schema(
                 switchInDate: { type: Date, required: true},
                 isSwitched: { type: Boolean, default: false },
                 switchFrom: { type: String },
+                perDayPriceHistory: [
+                    {
+                        price: { type: Number, required: true },
+                        date: { type: Date, required: true, default: Date.now }
+                    }
+                ],
                 status: {
                     type: String,
                     enum: ["active", "switched_out", "switched_in", "completed", "no status"],
@@ -82,6 +107,21 @@ const bookingSchema = new mongoose.Schema(
             type: String,
             enum: PAYMENT_METHOD_VALUES,
         },
+
+        customerType: {
+            type: String,
+            enum: CUSTOMER_VALUES,
+            required: true,
+        },
+
+        breakfast: {
+            type: String,
+            enum: BREAKFAST_VALUES,
+            required: true,
+        },
+
+        // logger
+        updatesHistory: [updateHistorySchema],
 
         //QR Code
         payload: { type: Object },

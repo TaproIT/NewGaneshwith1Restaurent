@@ -60,16 +60,70 @@ export const updateExtraBeverageCategory = async (req, res) => {
 };
 
 // Delete
+// Soft Delete Extra Beverage Category
 export const deleteExtraBeverageCategory = async (req, res) => {
     try {
-        const deleted = await ExtraBeverageCategory.findByIdAndDelete(req.params.id).lean();
-        if (!deleted)
+        const { id } = req.params;
+
+        // Find category by ID
+        const category = await ExtraBeverageCategory.findById(id);
+        if (!category) {
             return res.status(404).json({ success: false, error: "Category not found" });
-        res.json({ success: true, message: "Category deleted" });
+        }
+
+        // If already soft deleted
+        if (!category.isVisible) {
+            return res.status(400).json({ success: false, error: "Category already deleted" });
+        }
+
+        // Mark as invisible (soft delete)
+        category.isVisible = false;
+        await category.save();
+
+        res.json({ success: true, message: "Category soft deleted successfully" });
     } catch (err) {
         res.status(400).json({ success: false, error: err.message });
     }
 };
+
+export const getAvailableExtraBeverageCategories = async (req, res) => {
+    try {
+        const {
+            search,     // optional search by name
+            sortBy,     // optional sort field (e.g. name, createdAt)
+            sortOrder,  // optional sort direction: asc or desc
+        } = req.query;
+
+        // Only visible categories (not soft-deleted)
+        const filter = { isVisible: true };
+
+        if (search) {
+            filter.name = { $regex: search, $options: "i" }; // case-insensitive search
+        }
+
+        // Sorting logic
+        const sort = {};
+        if (sortBy) {
+            sort[sortBy] = sortOrder === "desc" ? -1 : 1;
+        } else {
+            sort.createdAt = -1; // newest first
+        }
+
+        // Fetch visible categories
+        const categories = await ExtraBeverageCategory.find(filter)
+            .sort(sort)
+            .lean();
+
+        res.status(200).json({
+            success: true,
+            count: categories.length,
+            data: categories,
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+};
+
 
 // Toggle Visibility
 export const toggleExtraBeverageCategoryVisibility = async (req, res) => {
@@ -104,7 +158,7 @@ export const createExtraBeverage = async (req, res) => {
             beverageName,
             extraBeverageCategory,
             price,
-            isVisible,
+            isVisible: true,
             isEnableBeverage,
             liquor: liquor || [],
         });
@@ -198,17 +252,78 @@ export const updateExtraBeverage = async (req, res) => {
 };
 
 
-// Delete
+// Soft Delete Extra Beverage
 export const deleteExtraBeverage = async (req, res) => {
     try {
-        const deleted = await ExtraBeverage.findByIdAndDelete(req.params.id).lean();
-        if (!deleted)
+        const { id } = req.params;
+
+        // Find the beverage by ID
+        const beverage = await ExtraBeverage.findById(id);
+
+        if (!beverage) {
             return res.status(404).json({ success: false, error: "Beverage not found" });
-        res.json({ success: true, message: "Beverage deleted" });
+        }
+
+        // If already hidden (soft deleted)
+        if (!beverage.isVisible) {
+            return res.status(400).json({ success: false, error: "Beverage already deleted" });
+        }
+
+        // Soft delete by marking as invisible
+        beverage.isVisible = false;
+        await beverage.save();
+
+        res.json({ success: true, message: "Beverage soft deleted successfully" });
     } catch (err) {
         res.status(400).json({ success: false, error: err.message });
     }
 };
+
+export const getAvailableExtraBeverages = async (req, res) => {
+    try {
+        const {
+            category,   // optional filter by category
+            search,     // optional search by name
+            sortBy,     // optional sort field (e.g., price, beverageName)
+            sortOrder,  // optional sort direction: 'asc' or 'desc'
+        } = req.query;
+
+        // Base filter: only visible and enabled beverages
+        const filter = { isVisible: true };
+
+        if (category) {
+            filter.extraBeverageCategory = category;
+        }
+
+        if (search) {
+            filter.beverageName = { $regex: search, $options: "i" }; // case-insensitive search
+        }
+
+        // Build sort object
+        const sort = {};
+        if (sortBy) {
+            sort[sortBy] = sortOrder === "desc" ? -1 : 1;
+        } else {
+            sort.createdAt = -1; // default: newest first
+        }
+
+        // Fetch beverages
+        const beverages = await ExtraBeverage.find(filter)
+            .populate("extraBeverageCategory", "name") // optional populate
+            .populate("liquor.beverage", "beverageName price") // optional populate for liquor
+            .sort(sort)
+            .lean();
+
+        res.status(200).json({
+            success: true,
+            count: beverages.length,
+            data: beverages,
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+};
+
 
 // Toggle Visibility
 export const toggleExtraBeverageVisibility = async (req, res) => {

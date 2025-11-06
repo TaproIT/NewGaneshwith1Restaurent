@@ -8,7 +8,7 @@ import {
     getAllReservedRoomsWithBookingDetails,
     sendBookingQrViaWhatsApp,
     switchRoomsBulk,
-    addOrderToBooking
+    addOrderToBooking, updateBooking, getAllActiveBookings, getBookingById
 } from "../../controllers/Reception/booking-controller.js";
 import {
     finalizeBookingBill,
@@ -26,6 +26,9 @@ router.get("/details/all-rooms", getAllRoomsWithBookingDetails);
 router.get("/extended-today", getTodayExtendedRooms);
 router.get("/details/reserved-all-rooms", getAllReservedRoomsWithBookingDetails );
 router.patch("/:id/add-order", addOrderToBooking);
+router.put("/:id/update-booking",updateBooking)
+router.get("/get-all-active-bookings",getAllActiveBookings);
+router.get("/get-booking/:id", getBookingById);
 
 // orders with booking
 router.get("/final-billing/:id/billing-summary", getBookingBillingSummary);
