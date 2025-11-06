@@ -279,7 +279,7 @@ export const finalizeBookingBill = async (req, res) => {
             paymentMethod
         } = req.body || {};
 
-        const checkOutById = req.user?.id || req.user?._id;
+        const checkOutById = req.user?.userId || req.user?._id;
 
         if (!checkOutById) {
             return res.status(400).json({ error: "Unauthorized checkOut. ID is required." });
