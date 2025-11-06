@@ -1,3 +1,4 @@
+"use client";
 import { useEffect } from "react";
 import {
   Dialog,
@@ -39,39 +40,44 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
   const dispatch = useDispatch<AppDispatch>();
   const order = useSelector((state: RootState) => state.order);
 
-  // Use your ET PT 30 / POS80 printer name from QZ Tray
-  const printerName = "POS80"; // or "ET PT 30"
+  // 👇 Set your printer name as shown in QZ Tray or Control Panel
+  const printerName = "POS80"; // or "POS80"
 
-  // 🔹 Load QZ Tray script
+  /** Load QZ Tray script **/
   useEffect(() => {
     if (window.qz) return;
     const script = document.createElement("script");
     script.src = "https://cdn.jsdelivr.net/npm/qz-tray/qz-tray.js";
     script.async = true;
-    script.onload = () => console.log("QZ Tray script loaded");
+    script.onload = () => console.log("✅ QZ Tray script loaded");
     document.body.appendChild(script);
   }, []);
 
-  // 🔹 Setup QZ Tray unsigned mode (for dev)
+  /** Setup QZ Tray security (unsigned for dev mode) **/
   useEffect(() => {
     const interval = setInterval(() => {
-      if (window.qz) {
-        window.qz.security.setCertificatePromise(() => Promise.resolve("unsigned"));
-        window.qz.security.setSignaturePromise(() => Promise.resolve("unsigned"));
+      if (window.qz && window.qz.security) {
+        // Disable certificate + signing for testing
+        window.qz.security.setCertificatePromise(() => Promise.resolve());
+        window.qz.security.setSignaturePromise(() =>
+          Promise.resolve()
+        );
+        console.log("🔐 QZ security bypassed for dev mode");
         clearInterval(interval);
       }
     }, 500);
   }, []);
 
-  // 🔹 Connect QZ Tray
+  /** Connect to QZ Tray **/
   const connectToQZ = async () => {
     if (!window.qz) throw new Error("QZ Tray not loaded");
-    if (window.qz.websocket.isActive()) return;
-    await window.qz.websocket.connect();
-    console.log("Connected to QZ Tray");
+    if (!window.qz.websocket.isActive()) {
+      await window.qz.websocket.connect();
+      console.log("✅ Connected to QZ Tray");
+    }
   };
 
-  // 🔹 Disconnect QZ Tray
+  /** Disconnect from QZ Tray **/
   const disconnectFromQZ = async () => {
     if (window.qz && window.qz.websocket.isActive()) {
       await window.qz.websocket.disconnect();
@@ -79,7 +85,7 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
     }
   };
 
-  // 🔹 ESC/POS Print Function for ET PT 30
+  /** Print handler for ET PT 30 **/
   const handlePrint = async () => {
     try {
       if (!window.qz) {
@@ -95,11 +101,13 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
         return;
       }
 
-      // Build ESC/POS text for thermal printer
-      let receipt = "\x1B\x40"; // Initialize printer
-      receipt += "\x1B\x61\x01"; // Center alignment
+      console.log("🖨️ Using printer:", foundPrinter);
+
+      // --- ESC/POS formatted text ---
+      let receipt = "\x1B\x40"; // Initialize
+      receipt += "\x1B\x61\x01"; // Center align
       receipt += "============================\n";
-      receipt += "      ORDER TOKEN\n";
+      receipt += "        ORDER TOKEN\n";
       receipt += "============================\n";
       receipt += `Order No: ${order.orderNumber}\n`;
       receipt += `Token No: ${order.orderTokens.length + 1}\n`;
@@ -111,7 +119,7 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
       receipt += "Item               Qty  Price\n";
       receipt += "----------------------------\n";
 
-      // Add food orders
+      // Food orders
       order.newOrderToken.foodOrders.forEach((item: any) => {
         receipt += `${item.title.padEnd(16).substring(0, 16)} ${String(
           item.quantity
@@ -120,7 +128,7 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
           .padStart(6)}\n`;
       });
 
-      // Add beverage orders
+      // Beverage orders
       order.newOrderToken.beverageOrders.forEach((item: any) => {
         receipt += `${item.title.padEnd(16).substring(0, 16)} ${String(
           item.quantity
@@ -133,10 +141,10 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
       receipt += `Token Bill: ${order.newOrderToken.tokenTotalBill.toFixed(2)} LKR\n`;
       receipt += `Total Bill: ${order.totalBill.toFixed(2)} LKR\n`;
       receipt += "============================\n";
-      receipt += "   THANK YOU! COME AGAIN!   \n";
+      receipt += "  THANK YOU! COME AGAIN!  \n";
       receipt += "============================\n";
       receipt += "\n\n\n";
-      receipt += "\x1D\x56\x00"; // Full paper cut
+      receipt += "\x1D\x56\x00"; // Cut paper
 
       const data = [{ type: "raw", format: "plain", data: receipt }];
 
@@ -150,7 +158,7 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
       await window.qz.print(config, data);
       toast.success("🖨️ Printed successfully on ET PT 30!");
 
-      // Update backend
+      // Update backend state
       dispatch(setIsPrintedForNewOrderToken(true));
       await dispatch(addNewOrderTokenToOrder({ orderId: id })).unwrap();
       await dispatch(fetchOrderById(id)).unwrap();
@@ -163,7 +171,7 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
     }
   };
 
-  // 🔹 Dialog UI
+  /** Dialog UI **/
   return (
     <Dialog
       open={order.isOrderTokenOpen}
@@ -252,7 +260,7 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
 
           <div className="my-3 px-3 flex">
             <Button onClick={handlePrint} className="!w-full cursor-pointer">
-               Print
+              Print
             </Button>
           </div>
         </div>
