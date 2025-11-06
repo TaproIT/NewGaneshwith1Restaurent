@@ -24,7 +24,7 @@ export async function printInvoice(invoice: any) {
     }
 
     // ✅ Change this printer name to your actual POS printer name
-    const printerName = "ET PT-30"; 
+    const printerName = "Pantum P2500 Series"; 
     const config = qz.configs.create(printerName);
 
     const html = `
