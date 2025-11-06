@@ -1,3 +1,5 @@
+import type { deleteExtraBeverageItem } from "@/api/order/delete-extra-beverage-api"
+
 export interface FetchAllBeverageItemsStatus {
      loading: boolean,
      error: string | null
@@ -19,6 +21,11 @@ export interface AddExtraBeverageItemStatus {
 }
 
 export interface UpdateExtraBeverageItemStatus {
+     loading: boolean,
+     error: string | null
+}
+
+export interface DeleteExtraBeverageItemStatus {
      loading: boolean,
      error: string | null
 }
@@ -89,4 +96,5 @@ export interface BeverageItems {
   addBeverageItemStatus: AddBeverageItemStatus;
   addExtraBeverageItemStatus: AddExtraBeverageItemStatus;
   updateExtraBeverageItemStatus: UpdateExtraBeverageItemStatus;
+  deleteExtraBeverageItemStatus: DeleteExtraBeverageItemStatus;
 }
