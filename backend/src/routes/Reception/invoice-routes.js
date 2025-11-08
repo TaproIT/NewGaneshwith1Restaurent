@@ -9,9 +9,9 @@ const router = express.Router();
 
 router.post(
   "/",
-  verifyTokenNotBlacklisted,
-  authenticateToken,
-  authorizeRoles([userRoles.ADMIN.value, userRoles.RECEPTION.value, userRoles.SUPER_ADMIN.value]),
+  //verifyTokenNotBlacklisted,
+  //authenticateToken,
+  //authorizeRoles([userRoles.ADMIN.value, userRoles.RECEPTION.value, userRoles.SUPER_ADMIN.value]),
   generateInvoice
 );
 

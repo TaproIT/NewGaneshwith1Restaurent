@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { CurrencyTypes } from "../../utils/enums/currency-type";
+import { CurrencyTypes } from "../../utils/enums/currency-type.js";
 
 const invoiceSchema = new mongoose.Schema(
   {
@@ -10,6 +10,15 @@ const invoiceSchema = new mongoose.Schema(
     customerName: { type: String },
     travelAgentName: { type: String },
     numberOfMembers: { type: Number, required: true },
+    currencyType: {
+      type: String,
+      required: true,
+      enums: [
+        CurrencyTypes.LKR.value,
+        CurrencyTypes.USD.value,
+        CurrencyTypes.EUR.value,
+      ],
+    },
     selectedRooms: [
       {
         roomCategory: {
@@ -22,16 +31,8 @@ const invoiceSchema = new mongoose.Schema(
           required: true,
         },
         perDayPrice: {
-          currencyType: {
-            type: String,
-            required: true,
-            enums: [
-              CurrencyTypes.LKR.value,
-              CurrencyTypes.USD.value,
-              CurrencyTypes.EUR.value,
-            ],
-          },
-          price: { type: Number, required: true },
+          type: Number,
+          required: true,
         },
       },
     ],
