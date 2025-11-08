@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import Counter from "./counter.model.js";
 
 const PAYMENT_METHOD_VALUES = ["Cash", "Card", "Free-Bill"];
 
@@ -33,6 +34,7 @@ const bookingSchema = new mongoose.Schema(
     {
         hotel: { type: String, required: true },
         guestName: { type: String, required: true },
+        uniqueBookingId: { type: String, required: true, unique: true },
         country: { type: String},
         email: { type: String },
         whatsapp: { type: String },
@@ -151,6 +153,31 @@ const bookingSchema = new mongoose.Schema(
 // Add these indexes to speed up the nightly job & frontend query:
 bookingSchema.index({ isCheckOut: 1, checkOut: 1 });
 bookingSchema.index({ lastExtendedOn: 1, isCheckOut: 1 });
+
+bookingSchema.pre("validate", async function (next) {
+    if (this.uniqueBookingId) return next();
+
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const dateKey = `${year}${month}${day}`;
+
+    try {
+        const counter = await Counter.findOneAndUpdate(
+            { dateKey },
+            { $inc: { sequenceValue: 1 } },
+            { new: true, upsert: true }
+        );
+
+        const paddedSeq = String(counter.sequenceValue).padStart(4, "0");
+        this.uniqueBookingId = `booking${dateKey}${paddedSeq}`;
+
+        next();
+    } catch (err) {
+        next(err);
+    }
+});
 
 const Booking = mongoose.models.Booking || mongoose.model("Booking", bookingSchema);
 export default Booking;

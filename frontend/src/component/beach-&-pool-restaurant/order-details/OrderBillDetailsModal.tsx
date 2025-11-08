@@ -52,26 +52,37 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
     document.body.appendChild(script);
   }, []);
 
-  /** ✅ Full-width formatter for 80mm printers **/
+  /**
+   * Full-width item formatter for monospaced thermal printer.
+   * Important: priceStr uses toFixed(2) WITHOUT commas so width is exact.
+   */
   function formatItemLine(name: string, qty: number, price: number) {
-    const totalWidth = 42; // for POS80 printer
-    const qtyWidth = 4;
-    const priceWidth = 8;
+    const totalWidth = 42; // characters per line for typical 80mm / POS80
+    const qtyWidth = 3; // enough for quantities up to 3 digits
+    const priceWidth = 9; // e.g. "12345.67" fits (including decimals)
     const maxNameLength = totalWidth - qtyWidth - priceWidth;
 
-    const lines: string[] = [];
-    while (name.length > maxNameLength) {
-      lines.push(name.substring(0, maxNameLength));
-      name = name.substring(maxNameLength);
-    }
-    lines.push(name);
+    // Ensure price string has fixed format and no thousands separators
+    const priceStr = price.toFixed(2);
 
+    // Split name into chunks that fit
+    const lines: string[] = [];
+    let remaining = name;
+    while (remaining.length > maxNameLength) {
+      lines.push(remaining.substring(0, maxNameLength));
+      remaining = remaining.substring(maxNameLength);
+    }
+    lines.push(remaining);
+
+    // First line contains name, qty, price
     const firstLine =
       lines[0].padEnd(maxNameLength, " ") +
       qty.toString().padStart(qtyWidth, " ") +
-      price.toFixed(2).padStart(priceWidth, " ");
+      priceStr.padStart(priceWidth, " ");
 
+    // Subsequent lines just show name continuation (full width)
     const otherLines = lines.slice(1).map((l) => l.padEnd(totalWidth, " "));
+
     return [firstLine, ...otherLines].join("\n");
   }
 
@@ -94,55 +105,69 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
       const ESC = "\x1B";
       const GS = "\x1D";
 
+      // Header/width constants (same as formatter)
+      const totalWidth = 42;
+      const qtyWidth = 3;
+      const priceWidth = 9;
+      const maxNameLength = totalWidth - qtyWidth - priceWidth;
+
+      // Build column header using same widths so labels align with data
+      const itemHeader =
+        "Item".padEnd(maxNameLength, " ") +
+        "Qty".padStart(qtyWidth, " ") +
+        "Price".padStart(priceWidth, " ");
+
       let receiptData =
-        ESC + "@" +
-        ESC + "a" + "\x01" +
+        ESC + "@" + // init
+        ESC + "a" + "\x01" + // center
         "==========================================\n" +
         "        GANESH GARDEN BEACH HOTEL\n" +
-        "          POOL RESTAURANT BILL\n" +
+        `          ${order.restaurantType} RESTAURANT BILL\n` +
         "==========================================\n" +
-        ESC + "a" + "\x00" +
+        ESC + "a" + "\x00" + // left align
         `Order No: ${order.orderNumber}\n` +
         `Service Type: ${order.serviceType}\n` +
         `Customer: ${order.guestName || "Walk-in"}\n` +
-        "------------------------------------------\n";
+        `${order.roomNumber  !== "0" ? `Room No: ${order.roomNumber}\n`:""}` +
+        "-".repeat(totalWidth) + "\n";
 
       // Token-wise printing
       (order.orderTokens || []).forEach((token: any) => {
-        receiptData += `Token #${token.tokenNumber}\n`;
-        receiptData += "------------------------------------------\n";
+        receiptData += ` \n`;
+        receiptData += "-".repeat(totalWidth) + "\n";
 
         const allItems = [
           ...(token.foodOrders || []),
           ...(token.beverageOrders || []),
         ];
 
-        receiptData +=
-          "Item                              Qty   Price\n" +
-          "------------------------------------------\n" +
-          allItems
-            .map((item: any) =>
-              formatItemLine(
-                item.title,
-                item.quantity,
-                item.price * item.quantity
-              )
-            )
-            .join("\n") +
-          "\n\n";
+        receiptData += itemHeader + "\n";
+        receiptData += "-".repeat(totalWidth) + "\n";
+
+        receiptData += allItems
+          .map((item: any) =>
+            // pass numeric price (price * qty) so priceStr matches displayed total
+            formatItemLine(item.title, item.quantity, item.price * item.quantity)
+          )
+          .join("\n") + "\n\n";
       });
 
+      // Totals (pad keys to align right part)
+      const padKey = (label: string) => label.padEnd(totalWidth - 12, " "); // leave ~12 chars for the amount
+      const amountPad = (amt: number) => `${amt.toFixed(2)} LKR`.padStart(12, " ");
+
+      receiptData += "-".repeat(totalWidth) + "\n";
+      receiptData += padKey("Subtotal:") + amountPad(subTotal) + "\n";
+      receiptData += padKey("Service (10%):") + amountPad(serviceCharge) + "\n";
+      receiptData += padKey(`Discount (${discount}%):`) + amountPad(-discountAmount) + "\n";
+      receiptData += padKey("TOTAL BILL:") + amountPad(totalBill) + "\n";
+      receiptData += "=".repeat(totalWidth) + "\n";
+
       receiptData +=
-        "------------------------------------------\n" +
-        `Subtotal:`.padEnd(30, " ") + `${subTotal.toFixed(2)} LKR\n` +
-        `Service (10%):`.padEnd(30, " ") + `${serviceCharge.toFixed(2)} LKR\n` +
-        `Discount (${discount}%):`.padEnd(30, " ") + `-${discountAmount.toFixed(2)} LKR\n` +
-        `TOTAL BILL:`.padEnd(30, " ") + `${totalBill.toFixed(2)} LKR\n` +
-        "==========================================\n" +
-        ESC + "a" + "\x01" +
-        "       Thank you! Come again!       \n\n\n" +
-        "           \n\n\n" +
-        GS + "V" + "\x00";
+        ESC + "a" + "\x01" + // center
+        "       Thank you! Come again!\n\n\n" +
+        "      \n\n\n" +
+        GS + "V" + "\x00"; // cut
 
       await qz.print(config, [{ type: "raw", format: "plain", data: receiptData }]);
       console.log("✅ Bill printed successfully!");
@@ -235,7 +260,7 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
               </div>
             </div>
 
-            {/* ✅ Token-wise items displayed properly */}
+            {/* Token-wise items displayed properly */}
             <div className="mt-4 space-y-3 border-y py-3 text-sm">
               {(order.orderTokens || []).map((token: any) => (
                 <div key={token._id} className="rounded-md p-3 pb-5">
