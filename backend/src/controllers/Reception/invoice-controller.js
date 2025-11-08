@@ -10,7 +10,7 @@ export const generateInvoice = async (req, res) => {
       checkOutDate,
       customerName,
       numberOfMembers,
-      roomIds, // array of room _id or numbers
+      selectedRooms, // array of room _id or numbers
       subTotal,
       tax,
       discount,
