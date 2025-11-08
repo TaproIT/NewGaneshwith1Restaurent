@@ -110,7 +110,7 @@ export default function ResetPasswordModal() {
       <DialogContent className="w-[90vw] sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {step === 1 ? "Reset Your Password" : "Enter Temporary Password"}
+            {step === 1 ? "Send Temporary Password" : "Reset Password"}
           </DialogTitle>
         </DialogHeader>
 
