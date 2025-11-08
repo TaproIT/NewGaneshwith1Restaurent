@@ -258,6 +258,61 @@ export const createBooking = async (req, res) => {
     }
 };
 
+// GET /api/bookings/:id
+export const getSpecificBookingDetails = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ success: false, message: "Invalid booking ID" });
+        }
+
+        // Populate optional references (Room, User, etc.)
+        const booking = await Booking.findById(id)
+            .populate("currentRooms.roomId", "roomNo price")
+            .populate("createdById", "name")
+            .populate("checkOutById", "name")
+            .populate("updatesHistory.updateUserId", "name email")
+            .lean();
+
+        if (!booking) {
+            return res.status(404).json({ success: false, message: "Booking not found" });
+        }
+
+        // Format or filter only needed data
+        const formattedData = {
+            uniqueBookingId: booking.uniqueBookingId,
+            guestName: booking.guestName,
+            country: booking.country,
+            email: booking.email,
+            whatsapp: booking.whatsapp,
+            totalGuests: booking.totalGuests,
+            kids: booking.kids,
+            adults: booking.adults,
+            checkOut: booking.checkOut,
+            currentRooms: booking.currentRooms?.map(r => ({
+                roomNo: r.roomNo,
+                price: r.price,
+            })),
+            updatesHistory: booking.updatesHistory?.map(u => ({
+                updateUserId: u.updateUserId?._id,
+                updatedByName: u.updatedByName,
+                updateDate: u.updateDate,
+            })),
+        };
+
+        res.status(200).json({
+            success: true,
+            message: "Booking details fetched successfully",
+            data: formattedData,
+        });
+    } catch (err) {
+        console.error("Error fetching booking details:", err);
+        res.status(500).json({ success: false, message: "Server error", error: err.message });
+    }
+};
+
+
 // Controller to create a booking
 // export const createBooking = async (req, res) => {
 //     try {
