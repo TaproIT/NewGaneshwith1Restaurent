@@ -2,70 +2,90 @@ import mongoose from "mongoose";
 import Invoice from "../../models/Reception/invoice.js";
 import Room from "../../models/Room.js";
 import { sendErrorResponse, sendSuccessResponse } from "../../utils/response-util.js";
+import RoomCategory from "../../models/roomCategory.js";
+import { CurrencyTypes } from "../../utils/enums/currency-type.js";
+
 
 export const generateInvoice = async (req, res) => {
   try {
     const {
       checkInDate,
       checkOutDate,
+      hotelType,
+      travelAgentName,
       customerName,
       numberOfMembers,
-      roomIds, // array of room _id or numbers
+      currencyType,
+      selectedRooms, 
       subTotal,
       tax,
       discount,
-      total
+      total,
     } = req.body;
-    console.log(req.body)
 
-    if (!checkInDate || !checkOutDate || !customerName || !roomIds || roomIds.length === 0) {
-      return sendErrorResponse(res,400, "Required fields are missing");
+    // --- Validation ---
+    if (
+      !checkInDate ||
+      !checkOutDate ||
+      !hotelType ||
+      !currencyType ||
+      !selectedRooms ||
+      selectedRooms.length === 0 ||
+      (!customerName && !travelAgentName)
+    ) {
+      return sendErrorResponse(res, 400, "Required fields are missing");
     }
 
-    // Fetch room numbers from DB
-    const rooms = await Room.find({ _id: { $in: roomIds } });
-    const roomNumbers = rooms.map(r => r.no);
+    // --- Validate selectedRooms structure ---
+    for (const room of selectedRooms) {
+      if (
+        !room.roomCategory ||
+        !room.count ||
+        !room.perDayPrice
+      ) {
+        return sendErrorResponse(
+          res,
+          400,
+          "Each selected room must have roomCategory, count, and perDayPrice with currencyType & price"
+        );
+      }
 
-    // Generate timestamp in YYYYMMDD-HHMMSS format
+      // Validate room category exists
+      const existingCategory = await RoomCategory.findById(room.roomCategory);
+      if (!existingCategory) {
+        return sendErrorResponse(res, 404, `Room category not found for ID: ${room.roomCategory}`);
+      }
+    }
+
+    // --- Generate timestamp-based invoice number ---
     const now = new Date();
     const pad = (num) => num.toString().padStart(2, "0");
+    const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
 
-    const year = now.getFullYear();
-    const month = pad(now.getMonth() + 1); // months start from 0
-    const day = pad(now.getDate());
-    const hours = pad(now.getHours());
-    const minutes = pad(now.getMinutes());
-    const seconds = pad(now.getSeconds());
+    // Optionally generate based on first category name or type
+    const invoiceNumber = `INV-${timestamp}-${Math.floor(Math.random() * 1000)}`;
 
-    const timestamp = `${year}${month}${day}-${hours}${minutes}${seconds}`;
-
-    // Create invoice number
-    const invoiceNumber = `INV-${timestamp}-${roomNumbers.join("")}`;
-
-    // Create invoice document
+    // --- Create invoice ---
     const invoice = await Invoice.create({
       invoiceNumber,
       checkInDate: new Date(checkInDate),
       checkOutDate: new Date(checkOutDate),
+      hotelType,
       customerName,
+      travelAgentName,
       numberOfMembers,
-      roomIds,
+      currencyType,
+      selectedRooms,
       subTotal,
       tax,
       discount,
-      total
+      total,
     });
-    
-    return sendSuccessResponse(
-        res,
-        201,
-        "Invoice generated successfully",
-        {
-            invoice
-        }
-    );
+
+    return sendSuccessResponse(res, 201, "Invoice generated successfully", { invoice });
   } catch (error) {
-     return sendErrorResponse(res,500, "Internal Server Error", error.message);
+    console.error("Invoice generation error:", error);
+    return sendErrorResponse(res, 500, "Internal Server Error", error.message);
   }
 };
 
