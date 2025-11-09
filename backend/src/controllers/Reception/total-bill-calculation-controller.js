@@ -7,6 +7,229 @@ import Booking, {PaymentMethods} from "../../models/Reception/booking.js";
 import Order from "../../models/order/order-model.js";
 import Room from "../../models/Room.js";
 import User from "../../models/user/user-model.js";
+import CurrencyValue from "../../models/currency-value.js";
+
+// dayjs.extend(utc);
+// dayjs.extend(timezone);
+//
+// const TZ = "Asia/Colombo";
+// const MS_PER_DAY = 24 * 60 * 60 * 1000;
+//
+// // Start-of-day in Asia/Colombo
+// function sodTZ(d) {
+//     if (!d) return null;
+//     return dayjs(d).tz(TZ).startOf("day");
+// }
+//
+// // Clamp a date to "today (Colombo)" if future; returns Day.js
+// function clampToTodayTZ(d, todaySOD) {
+//     if (!d) return null;
+//     const t = sodTZ(d);
+//     return t.isAfter(todaySOD) ? todaySOD : t;
+// }
+//
+// // Hotel-night diff, min 1 night, expects Day.js SOD inputs
+// function diffNightsTZ(startDayjs, endDayjs) {
+//     if (!startDayjs || !endDayjs) return 0;
+//     const s = startDayjs.valueOf();
+//     const e = endDayjs.valueOf();
+//     const raw = Math.ceil((e - s) / MS_PER_DAY);
+//     return Math.max(raw, 1);
+// }
+//
+//
+// export const getBookingBillingSummary = async (req, res) => {
+//     try {
+//         const { id } = req.params;
+//         if (!mongoose.Types.ObjectId.isValid(id)) {
+//             return res.status(400).json({ message: "Invalid booking id" });
+//         }
+//
+//         // 1) Load lean for calculation
+//         const booking = await Booking.findById(id).lean();
+//         if (!booking) {
+//             return res.status(404).json({ message: "Booking not found" });
+//         }
+//
+//         const todaySOD = dayjs().tz(TZ).startOf("day");
+//
+//         // ORIGINAL DB DATES (returned as-is)
+//         const rawCheckOut = booking.checkOut ? dayjs(booking.checkOut) : null;
+//
+//         // Determine whether to force "today" as effective out date(s)
+//         const checkOutIsFuture = booking.checkOut ? sodTZ(booking.checkOut).isAfter(todaySOD) : false;
+//         const anySwitchOutFuture = Array.isArray(booking.roomsHistory)
+//             ? booking.roomsHistory.some(rh => rh.switchOutDate && sodTZ(rh.switchOutDate).isAfter(todaySOD))
+//             : false;
+//         const requiresCutoff = checkOutIsFuture || anySwitchOutFuture;
+//
+//         // Effective dates (calc/response only)
+//         const effectiveCheckOut = booking.checkOut
+//             ? (requiresCutoff ? todaySOD : clampToTodayTZ(booking.checkOut, todaySOD))
+//             : null;
+//
+//         const effectiveCheckIn = booking.checkIn ? dayjs(booking.checkIn).tz(TZ) : null;
+//
+//         // Orders: fetch & summarise
+//         const orderIds = (booking.orders || []).map(o => o?.oderId).filter(Boolean);
+//         const orders = orderIds.length
+//             ? await Order.find({ _id: { $in: orderIds } }).lean()
+//             : [];
+//
+//         const orderDetails = orders.map(o => ({
+//             orderId: String(o._id),
+//             orderNumber: o.orderNumber,
+//             subTotal: o.subTotal ?? 0,
+//             tax: o.tax ?? 0,
+//             discount: o.discount ?? 0,
+//             serviceCharge: o.serviceCharge ?? 0,
+//             totalBill: o.totalBill ?? 0,
+//             paymentMethod: o.paymentMethod ?? null,
+//             serviceType: o.serviceType ?? null,
+//             restaurantType: o.restaurantType ?? null,
+//             customerType: o.customerType ?? null,
+//             orderStatus: o.orderStatus ?? null,
+//             createdAt: o.createdAt,
+//             updatedAt: o.updatedAt
+//         }));
+//
+//         const ordersTotalBill = orderDetails.reduce((sum, o) => sum + (Number(o.totalBill) || 0), 0);
+//
+//         // Rooms history: compute totals using effective dates
+//         const roomsHistory = Array.isArray(booking.roomsHistory) ? booking.roomsHistory : [];
+//
+//         const computedRoomDetails = roomsHistory.map((rh) => {
+//             const rawSwitchOut = rh.switchOutDate ? dayjs(rh.switchOutDate) : null;
+//
+//             const effIn = rh.switchInDate ? clampToTodayTZ(rh.switchInDate, todaySOD) : null;
+//
+//             let effOut;
+//             if (requiresCutoff) {
+//                 effOut = todaySOD;
+//             } else {
+//                 const rawOut = rh.switchOutDate ? rh.switchOutDate : (effectiveCheckOut ? effectiveCheckOut.toDate() : null);
+//                 effOut = rawOut ? clampToTodayTZ(rawOut, todaySOD) : null;
+//             }
+//
+//             const perDayPrice = Number(rh.perDayPrice) || 0;
+//             const nights = diffNightsTZ(effIn, effOut);
+//             const finalRoomTotalPrice = nights * perDayPrice;
+//
+//             return {
+//                 _id: rh._id ? String(rh._id) : null,
+//                 roomId: rh.roomId ? String(rh.roomId) : null,
+//                 roomNo: rh.roomNo,
+//                 perDayPrice,
+//                 effIn,
+//                 effOut,
+//                 rawSwitchOut, // keep raw to format later
+//                 nights,
+//                 finalRoomTotalPrice,
+//                 status: rh.status ?? "no status",
+//                 isSwitched: !!rh.isSwitched,
+//                 switchFrom: rh.switchFrom ?? null
+//             };
+//         });
+//
+//         const totalRoomsCharges = computedRoomDetails.reduce((sum, r) => sum + (Number(r.finalRoomTotalPrice) || 0), 0);
+//         const totalroomcount = roomsHistory.length;
+//
+//         // Final totals to persist
+//         const finalAllRoomsTotalPrice = totalRoomsCharges;
+//         const totalOrdersBill = ordersTotalBill;
+//         const totalBill = Number(finalAllRoomsTotalPrice) + Number(totalOrdersBill);
+//
+//         // 2) Persist ONLY totals (and each room's finalRoomTotalPrice) — NOT DATES
+//         const bookingDoc = await Booking.findById(id);
+//         if (!bookingDoc) {
+//             return res.status(404).json({ message: "Booking not found (while saving)" });
+//         }
+//
+//         bookingDoc.roomsHistory = bookingDoc.roomsHistory.map((rh) => {
+//             const match = computedRoomDetails.find(crd => {
+//                 if (rh._id && crd._id && String(rh._id) === String(crd._id)) return true;
+//                 return String(rh.roomId || "") === String(crd.roomId || "") &&
+//                     rh.roomNo === crd.roomNo &&
+//                     Number(rh.perDayPrice) === Number(crd.perDayPrice);
+//             });
+//
+//             if (match) {
+//                 rh.finalRoomTotalPrice = match.finalRoomTotalPrice;
+//                 rh.night = match.nights;
+//             } else {
+//                 const effIn = rh.switchInDate ? clampToTodayTZ(rh.switchInDate, todaySOD) : null;
+//                 const rawOut = rh.switchOutDate ? rh.switchOutDate : (effectiveCheckOut ? effectiveCheckOut.toDate() : null);
+//                 const effOut = rawOut ? clampToTodayTZ(rawOut, todaySOD) : null;
+//                 const nights = diffNightsTZ(effIn, effOut);
+//                 rh.finalRoomTotalPrice = (Number(rh.perDayPrice) || 0) * nights;
+//                 rh.night = nights;
+//             }
+//             return rh;
+//         });
+//
+//         bookingDoc.finalAllRoomsTotalPrice = finalAllRoomsTotalPrice;
+//         bookingDoc.totalOrdersBill = totalOrdersBill;
+//         bookingDoc.totalBill = totalBill;
+//
+//         await bookingDoc.save();
+//
+//         // Build response using effective (local) dates and ORIGINAL raw dates
+//         const roomDetailsForResponse = computedRoomDetails.map(r => ({
+//             roomId: r.roomId,
+//             roomNo: r.roomNo,
+//             perDayPrice: r.perDayPrice,
+//
+//             // EFFECTIVE dates (calc/display)
+//             switchInDate: r.effIn ? r.effIn.format("YYYY-MM-DDTHH:mm:ss.SSSZ") : null,
+//             switchOutDate: r.effOut ? r.effOut.format("YYYY-MM-DDTHH:mm:ss.SSSZ") : null,
+//             switchInDateLocal: r.effIn ? r.effIn.format("YYYY-MM-DD") : null,
+//             switchOutDateLocal: r.effOut ? r.effOut.format("YYYY-MM-DD") : null,
+//
+//             // ORIGINAL DB dates (as requested)
+//             rawSwitchOutDate: r.rawSwitchOut ? r.rawSwitchOut.toISOString() : null, // UTC ISO from DB
+//             rawSwitchOutDateLocal: r.rawSwitchOut ? r.rawSwitchOut.tz(TZ).format("YYYY-MM-DD") : null,
+//
+//             nights: r.nights,
+//             finalRoomTotalPrice: r.finalRoomTotalPrice,
+//             status: r.status,
+//             isSwitched: r.isSwitched,
+//             switchFrom: r.switchFrom
+//         }));
+//
+//         return res.status(200).json({
+//             bookingId: String(bookingDoc._id),
+//             hotel: booking.hotel,
+//             guestName: booking.guestName,
+//
+//             // EFFECTIVE (calc/display)
+//             checkIn:  effectiveCheckIn ? effectiveCheckIn.format("YYYY-MM-DDTHH:mm:ss.SSSZ") : null,
+//             checkOut: effectiveCheckOut ? effectiveCheckOut.format("YYYY-MM-DDTHH:mm:ss.SSSZ") : null,
+//             checkInDateLocal:  effectiveCheckIn ? effectiveCheckIn.format("YYYY-MM-DD") : null,
+//             checkOutDateLocal: effectiveCheckOut ? effectiveCheckOut.format("YYYY-MM-DD") : null,
+//
+//             // ORIGINAL DB check-out (as requested)
+//             rawCheckOut: rawCheckOut ? rawCheckOut.toISOString() : null,             // UTC ISO from DB
+//             rawCheckOutLocal: rawCheckOut ? rawCheckOut.tz(TZ).format("YYYY-MM-DD") : null,
+//
+//             orderDetails,
+//             ordersTotalBill: totalOrdersBill,
+//
+//             roomDetails: roomDetailsForResponse,
+//             totalRoomsCharges,
+//             totalroomcount,
+//
+//             finalAllRoomsTotalPrice,
+//             totalOrdersBill,
+//             totalBill,
+//
+//             futureDateCutoffApplied: requiresCutoff,
+//             updatedAt: bookingDoc.updatedAt
+//         });
+//     } catch (err) {
+//         console.error("getBookingBillingSummary error:", err);
+//         return res.status(500).json({ message: "Server error", error: err?.message || err });
+//     }
+// };
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -14,7 +237,7 @@ dayjs.extend(timezone);
 const TZ = "Asia/Colombo";
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
-// Start-of-day in Asia/Colombo
+// Start‑of‑day in Asia/Colombo
 function sodTZ(d) {
     if (!d) return null;
     return dayjs(d).tz(TZ).startOf("day");
@@ -27,7 +250,7 @@ function clampToTodayTZ(d, todaySOD) {
     return t.isAfter(todaySOD) ? todaySOD : t;
 }
 
-// Hotel-night diff, min 1 night, expects Day.js SOD inputs
+// Hotel‑night diff, min 1 night, expects Day.js SOD inputs
 function diffNightsTZ(startDayjs, endDayjs) {
     if (!startDayjs || !endDayjs) return 0;
     const s = startDayjs.valueOf();
@@ -36,7 +259,6 @@ function diffNightsTZ(startDayjs, endDayjs) {
     return Math.max(raw, 1);
 }
 
-
 export const getBookingBillingSummary = async (req, res) => {
     try {
         const { id } = req.params;
@@ -44,32 +266,35 @@ export const getBookingBillingSummary = async (req, res) => {
             return res.status(400).json({ message: "Invalid booking id" });
         }
 
-        // 1) Load lean for calculation
+        // 1) Load booking
         const booking = await Booking.findById(id).lean();
         if (!booking) {
             return res.status(404).json({ message: "Booking not found" });
         }
 
+        // 🔄 Load latest currency conversion rates
+        const cv = await CurrencyValue.findOne().sort({ effectiveAt: -1 }).lean();
+        if (!cv) {
+            return res.status(500).json({ message: "Currency conversion rates not found" });
+        }
+        // Example: cv.usd = 325 (i.e., 1 USD = 325 LKR); cv.eur = 360 (1 EUR = 360 LKR)
+
         const todaySOD = dayjs().tz(TZ).startOf("day");
 
-        // ORIGINAL DB DATES (returned as-is)
         const rawCheckOut = booking.checkOut ? dayjs(booking.checkOut) : null;
 
-        // Determine whether to force "today" as effective out date(s)
         const checkOutIsFuture = booking.checkOut ? sodTZ(booking.checkOut).isAfter(todaySOD) : false;
         const anySwitchOutFuture = Array.isArray(booking.roomsHistory)
             ? booking.roomsHistory.some(rh => rh.switchOutDate && sodTZ(rh.switchOutDate).isAfter(todaySOD))
             : false;
         const requiresCutoff = checkOutIsFuture || anySwitchOutFuture;
 
-        // Effective dates (calc/response only)
         const effectiveCheckOut = booking.checkOut
             ? (requiresCutoff ? todaySOD : clampToTodayTZ(booking.checkOut, todaySOD))
             : null;
 
         const effectiveCheckIn = booking.checkIn ? dayjs(booking.checkIn).tz(TZ) : null;
 
-        // Orders: fetch & summarise
         const orderIds = (booking.orders || []).map(o => o?.oderId).filter(Boolean);
         const orders = orderIds.length
             ? await Order.find({ _id: { $in: orderIds } }).lean()
@@ -94,7 +319,6 @@ export const getBookingBillingSummary = async (req, res) => {
 
         const ordersTotalBill = orderDetails.reduce((sum, o) => sum + (Number(o.totalBill) || 0), 0);
 
-        // Rooms history: compute totals using effective dates
         const roomsHistory = Array.isArray(booking.roomsHistory) ? booking.roomsHistory : [];
 
         const computedRoomDetails = roomsHistory.map((rh) => {
@@ -111,17 +335,30 @@ export const getBookingBillingSummary = async (req, res) => {
             }
 
             const perDayPrice = Number(rh.perDayPrice) || 0;
+            const currency = rh.currency || "LKR"; // 💱 determine currency of this price
+            let perDayPriceInLKR = perDayPrice;
+
+            // 💰 Currency conversion if not LKR
+            if (currency === "USD") {
+                perDayPriceInLKR = perDayPrice * (cv.usd);
+            } else if (currency === "EUR") {
+                perDayPriceInLKR = perDayPrice * (cv.eur);
+            }
+            // else if currency is LKR, no change
+
             const nights = diffNightsTZ(effIn, effOut);
-            const finalRoomTotalPrice = nights * perDayPrice;
+            const finalRoomTotalPrice = nights * perDayPriceInLKR; // 💰 use converted price for total
 
             return {
                 _id: rh._id ? String(rh._id) : null,
                 roomId: rh.roomId ? String(rh.roomId) : null,
                 roomNo: rh.roomNo,
-                perDayPrice,
+                perDayPrice: perDayPrice,
+                currency, // record original currency
+                perDayPriceInLKR, // 💰 show converted per day
                 effIn,
                 effOut,
-                rawSwitchOut, // keep raw to format later
+                rawSwitchOut,
                 nights,
                 finalRoomTotalPrice,
                 status: rh.status ?? "no status",
@@ -133,12 +370,10 @@ export const getBookingBillingSummary = async (req, res) => {
         const totalRoomsCharges = computedRoomDetails.reduce((sum, r) => sum + (Number(r.finalRoomTotalPrice) || 0), 0);
         const totalroomcount = roomsHistory.length;
 
-        // Final totals to persist
         const finalAllRoomsTotalPrice = totalRoomsCharges;
         const totalOrdersBill = ordersTotalBill;
         const totalBill = Number(finalAllRoomsTotalPrice) + Number(totalOrdersBill);
 
-        // 2) Persist ONLY totals (and each room's finalRoomTotalPrice) — NOT DATES
         const bookingDoc = await Booking.findById(id);
         if (!bookingDoc) {
             return res.status(404).json({ message: "Booking not found (while saving)" });
@@ -153,14 +388,14 @@ export const getBookingBillingSummary = async (req, res) => {
             });
 
             if (match) {
-                rh.finalRoomTotalPrice = match.finalRoomTotalPrice;
+                rh.finalRoomTotalPrice = match.finalRoomTotalPrice; // 💰 persist converted total
                 rh.night = match.nights;
             } else {
                 const effIn = rh.switchInDate ? clampToTodayTZ(rh.switchInDate, todaySOD) : null;
                 const rawOut = rh.switchOutDate ? rh.switchOutDate : (effectiveCheckOut ? effectiveCheckOut.toDate() : null);
                 const effOut = rawOut ? clampToTodayTZ(rawOut, todaySOD) : null;
                 const nights = diffNightsTZ(effIn, effOut);
-                rh.finalRoomTotalPrice = (Number(rh.perDayPrice) || 0) * nights;
+                rh.finalRoomTotalPrice = (Number(rh.perDayPrice) || 0) * nights; // Note: if original currency non‑LKR, this fallback might not convert
                 rh.night = nights;
             }
             return rh;
@@ -172,22 +407,18 @@ export const getBookingBillingSummary = async (req, res) => {
 
         await bookingDoc.save();
 
-        // Build response using effective (local) dates and ORIGINAL raw dates
         const roomDetailsForResponse = computedRoomDetails.map(r => ({
             roomId: r.roomId,
             roomNo: r.roomNo,
             perDayPrice: r.perDayPrice,
-
-            // EFFECTIVE dates (calc/display)
+            currency: r.currency,
+            perDayPriceInLKR: r.perDayPriceInLKR, // 💰 for response
             switchInDate: r.effIn ? r.effIn.format("YYYY-MM-DDTHH:mm:ss.SSSZ") : null,
             switchOutDate: r.effOut ? r.effOut.format("YYYY-MM-DDTHH:mm:ss.SSSZ") : null,
             switchInDateLocal: r.effIn ? r.effIn.format("YYYY-MM-DD") : null,
             switchOutDateLocal: r.effOut ? r.effOut.format("YYYY-MM-DD") : null,
-
-            // ORIGINAL DB dates (as requested)
-            rawSwitchOutDate: r.rawSwitchOut ? r.rawSwitchOut.toISOString() : null, // UTC ISO from DB
+            rawSwitchOutDate: r.rawSwitchOut ? r.rawSwitchOut.toISOString() : null,
             rawSwitchOutDateLocal: r.rawSwitchOut ? r.rawSwitchOut.tz(TZ).format("YYYY-MM-DD") : null,
-
             nights: r.nights,
             finalRoomTotalPrice: r.finalRoomTotalPrice,
             status: r.status,
@@ -199,28 +430,20 @@ export const getBookingBillingSummary = async (req, res) => {
             bookingId: String(bookingDoc._id),
             hotel: booking.hotel,
             guestName: booking.guestName,
-
-            // EFFECTIVE (calc/display)
-            checkIn:  effectiveCheckIn ? effectiveCheckIn.format("YYYY-MM-DDTHH:mm:ss.SSSZ") : null,
+            checkIn: effectiveCheckIn ? effectiveCheckIn.format("YYYY-MM-DDTHH:mm:ss.SSSZ") : null,
             checkOut: effectiveCheckOut ? effectiveCheckOut.format("YYYY-MM-DDTHH:mm:ss.SSSZ") : null,
-            checkInDateLocal:  effectiveCheckIn ? effectiveCheckIn.format("YYYY-MM-DD") : null,
+            checkInDateLocal: effectiveCheckIn ? effectiveCheckIn.format("YYYY-MM-DD") : null,
             checkOutDateLocal: effectiveCheckOut ? effectiveCheckOut.format("YYYY-MM-DD") : null,
-
-            // ORIGINAL DB check-out (as requested)
-            rawCheckOut: rawCheckOut ? rawCheckOut.toISOString() : null,             // UTC ISO from DB
+            rawCheckOut: rawCheckOut ? rawCheckOut.toISOString() : null,
             rawCheckOutLocal: rawCheckOut ? rawCheckOut.tz(TZ).format("YYYY-MM-DD") : null,
-
             orderDetails,
             ordersTotalBill: totalOrdersBill,
-
             roomDetails: roomDetailsForResponse,
             totalRoomsCharges,
             totalroomcount,
-
             finalAllRoomsTotalPrice,
             totalOrdersBill,
             totalBill,
-
             futureDateCutoffApplied: requiresCutoff,
             updatedAt: bookingDoc.updatedAt
         });
@@ -229,6 +452,7 @@ export const getBookingBillingSummary = async (req, res) => {
         return res.status(500).json({ message: "Server error", error: err?.message || err });
     }
 };
+
 
 // Convert normal currency units to integer cents for precise comparison
 function toCents(n) {

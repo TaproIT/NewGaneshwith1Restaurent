@@ -197,10 +197,12 @@ export const createBooking = async (req, res) => {
                             currentRooms: normalizedRooms.map((room) => {
                                 const dbRoom = rooms.find((r) => r.no === room.roomNo);
                                 const finalPrice = room.price ?? dbRoom.perDayPrice; // ✅ NEW
+                                const currency = room.currency ?? dbRoom.currency ?? "LKR";
                                 return {
                                     roomId: dbRoom._id,
                                     roomNo: room.roomNo,
                                     price: finalPrice, // ✅ store provided or default price
+                                    currency,
                                     isActive: true,
                                 };
                             }),
@@ -220,16 +222,21 @@ export const createBooking = async (req, res) => {
                 for (const room of normalizedRooms) {
                     const dbRoom = rooms.find((r) => r.no === room.roomNo);
                     const finalPrice = room.price ?? dbRoom.perDayPrice; // ✅ fallback
+                    const currency = room.currency ?? dbRoom.currency ?? "LKR";
                     newBooking[0].roomsHistory.push({
                         roomId: dbRoom._id,
                         roomNo: dbRoom.no,
                         perDayPrice: finalPrice,
                         night: lengthOfStay,
+                        currency,
                         finalRoomTotalPrice: finalPrice * lengthOfStay, // ✅ computed
                         switchInDate: checkIn,
                         switchOutDate: checkOut,
                         isSwitched: false,
                         status: "active",
+                        perDayPriceHistory: [
+                            { price: finalPrice, currency, date: new Date() }, // 🗂 save price snapshot
+                        ],
                     });
                 }
 
@@ -1126,7 +1133,7 @@ export const updateBooking = async (req, res) => {
 
         // ✅ Room price updates
         if (updatedRooms && Array.isArray(updatedRooms) && updatedRooms.length > 0) {
-            for (const { roomNo, newPrice } of updatedRooms) {
+            for (const { roomNo, newPrice, currency } of updatedRooms) {
                 const roomHistory = booking.roomsHistory.find(r => r.roomNo === roomNo);
                 if (!roomHistory) {
                     return res.status(400).json({
@@ -1141,13 +1148,18 @@ export const updateBooking = async (req, res) => {
 
                 roomHistory.perDayPriceHistory.push({
                     price: newPrice,
+                    currency: currency ?? roomHistory.currency ?? "LKR", // 💰 save currency
                     date: new Date(),
                 });
 
                 // Update current room and price
                 roomHistory.perDayPrice = newPrice;
+                roomHistory.currency = currency ?? roomHistory.currency ?? "LKR";
                 const currentRoom = booking.currentRooms.find(r => r.roomNo === roomNo);
-                if (currentRoom) currentRoom.price = newPrice;
+                if (currentRoom) {
+                    currentRoom.price = newPrice;
+                    currentRoom.currency = currency ?? currentRoom.currency ?? "LKR";
+                }
             }
         }
 

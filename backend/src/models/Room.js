@@ -7,6 +7,11 @@ const roomSchema = new mongoose.Schema({
         ref: "RoomCategory",
         required: true
     },
+    currency: {
+        type: String,
+        enum: ["LKR", "USD", "EUR"],
+        default: "LKR"
+    },
     perDayPrice: { type: Number, required: true },
     facilities: [{ type: String }],
     isBooked: { type: Boolean, default: false },
