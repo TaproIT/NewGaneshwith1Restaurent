@@ -17,9 +17,6 @@ export const generateInvoice = async (req, res) => {
       numberOfMembers,
       currencyType,
       selectedRooms, 
-      subTotal,
-      tax,
-      discount,
       total,
     } = req.body;
 
@@ -76,9 +73,6 @@ export const generateInvoice = async (req, res) => {
       numberOfMembers,
       currencyType,
       selectedRooms,
-      subTotal,
-      tax,
-      discount,
       total,
     });
 
