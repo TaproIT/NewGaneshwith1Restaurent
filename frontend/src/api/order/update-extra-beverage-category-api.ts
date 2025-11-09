@@ -6,7 +6,7 @@ import { fetchAllExtraBeverageCategories } from "./get-extra-beverge-categories-
 
 interface UpdateExtraBeverageCategoryRequest {
   categoryId: string | null;
-  categoryName: string;
+  name: string;
 }
 
 

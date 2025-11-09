@@ -1,6 +1,7 @@
 import { addNewBeverage } from "@/api/order/add-beverage-api";
 import { addNewExtraBeverage } from "@/api/order/add-extra-beverage-api";
 import { deleteExtraBeverageItem } from "@/api/order/delete-extra-beverage-api";
+import { deleteExtraBeverageCategory } from "@/api/order/delete-extra-beverage-category-api";
 import { fetchAllBeverageItems } from "@/api/order/get-beverage-list-api";
 import { fetchAllExtraBeverageItems } from "@/api/order/get-extra-beverage-list-api";
 import { updateExtraBeverageCategory } from "@/api/order/update-extra-beverage-category-api";
@@ -230,22 +231,21 @@ const beverageSlice = createSlice({
       })
 
 
-      // delete extra beverage category
-      // .addCase(deleteExtraBeverageCa.pending, (state) => {
-      //   state.deleteExtraBeverageItemStatus.loading = true;
-      //   state.deleteExtraBeverageItemStatus.error = null;
-      // })
+      //delete extra beverage category
+      .addCase(deleteExtraBeverageCategory.pending, (state) => {
+        state.deleteExtraBeverageCategoryStatus.loading = true;
+        state.deleteExtraBeverageItemStatus.error = null;
+      })
 
-      // .addCase(deleteExtraBeverageItem.fulfilled, (state) => {
-      //   state.isAddedBeverageItem = true;
-      //   state.deleteExtraBeverageItemStatus.loading = false;
-      //   state.deleteExtraBeverageItemStatus.error = null;
-      // })
+      .addCase(deleteExtraBeverageCategory.fulfilled, (state) => {
+        state.deleteExtraBeverageCategoryStatus.loading = false;
+        state.deleteExtraBeverageCategoryStatus.error = null;
+      })
 
-      // .addCase(deleteExtraBeverageItem.rejected, (state, action) => {
-      //   state.deleteExtraBeverageItemStatus.loading = true;
-      //   state.deleteExtraBeverageItemStatus.error = action.payload as string;
-      // });
+      .addCase(deleteExtraBeverageCategory.rejected, (state, action) => {
+        state.deleteExtraBeverageCategoryStatus.loading = true;
+        state.deleteExtraBeverageCategoryStatus.error = action.payload as string;
+      });
   },
   
 });

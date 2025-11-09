@@ -1,4 +1,6 @@
+import { deleteExtraBeverageCategory } from "@/api/order/delete-extra-beverage-category-api";
 import { deleteFoodCategory } from "@/api/order/delete-food-category-api";
+import { updateExtraBeverageCategory } from "@/api/order/update-extra-beverage-category-api";
 import { updateFoodCategory } from "@/api/order/update-food-category-api";
 // import { updateBeverageCategory } from "@/api/order/update-beverage-category-api";
 import type { AppDispatch, RootState } from "@/app/store";
@@ -53,9 +55,17 @@ const UpdateCategorySection = () => {
         ).unwrap();
         toast.success("Food category updated successfully!");
         return;
+      } else {
+        await dispatch(
+          updateExtraBeverageCategory({
+            categoryId: selectedCategory,
+            name:categoryName,
+          })
+        ).unwrap();
+        toast.success("Beverage category updated successfully!");
+        return;
       }
-
-      toast.error("No category selected for update.");
+      
     } catch (error) {
       if (isFoodCategory) {
         toast.error(
@@ -65,13 +75,15 @@ const UpdateCategorySection = () => {
     }
   };
 
-  const handleDeleteItem = async () => {
+  const handleDeleteCategory = async () => {
     try {
-      if (selectedCategoryId !== null) {
+      if (isFoodCategory && (selectedCategoryId !== null)) {
         await dispatch(deleteFoodCategory({ categoryId: selectedCategoryId }));
+        return toast.success("Food category deleted successfully!");
       }
 
-      toast.success("Category deleted successfully!");
+       await dispatch(deleteExtraBeverageCategory({ categoryId: selectedCategory }));
+       return toast.success("Extra beverage category deleted successfully!");
     } catch (err: any) {
       toast.error(err?.message || "Failed to delete item");
     }
@@ -138,7 +150,7 @@ const UpdateCategorySection = () => {
               className="w-full cursor-pointer border-Primary_blue"
               disabled={isDisabled}
               variant="outline"
-              onClick={handleDeleteItem}
+              onClick={handleDeleteCategory}
             >
               Remove
             </Button>
