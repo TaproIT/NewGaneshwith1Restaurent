@@ -99,7 +99,7 @@ const Invoice = () => {
   };
 
   return (
-    <div className={`grid gap-5 ${view === "create" ? "grid-cols-4" : "grid-cols-1"}`}>
+    <div className={`grid gap-5`}>
       {/* Left side */}
       <div
         className={`${
@@ -126,7 +126,7 @@ const Invoice = () => {
         {view === "create" ? (
           <>
             <InvoiceForm onFormStatus={handleFormStatus} ref={formRef} />
-            {loadingRooms ? (
+            {/* {loadingRooms ? (
               <RoomGridSkeleton />
             ) : (
               isFormComplete && (
@@ -137,7 +137,7 @@ const Invoice = () => {
                   readOnly={false}
                 />
               )
-            )}
+            )} */}
           </>
         ) : (
           <InvoiceList />
@@ -145,7 +145,7 @@ const Invoice = () => {
       </div>
 
       {/* Right side (only show when creating invoice) */}
-      {view === "create" && (
+      {/* {view === "create" && (
         <div className="col-span-1 h-screen overflow-hidden">
           <RoomDetails
             viewedRoom={viewedRoom}
@@ -165,7 +165,7 @@ const Invoice = () => {
             onInvoiceSuccess={handleInvoiceSuccess}
           />
         </div>
-      )}
+      )} */}
     </div>
   );
 };
