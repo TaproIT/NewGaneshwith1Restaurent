@@ -14,6 +14,11 @@ export interface AddFoodCategoryStatus{
    loading: boolean;
 }
 
+export interface UpdateFoodCategoryStatus{
+   error: string | null;
+   loading: boolean;
+}
+
 export interface FoodCategoryState {
     isClickedAddFoodCategory:boolean,
     isFoodCategory: boolean,
@@ -22,4 +27,6 @@ export interface FoodCategoryState {
     addFoodCategoryStatus: AddFoodCategoryStatus,
     selectedCategoryId: string | null;
     selectedFoodCategoryTitle: string | null;
+    isClickedUpdateFoodCategory:boolean,
+    updateFoodCategoryStatus: UpdateFoodCategoryStatus
 }

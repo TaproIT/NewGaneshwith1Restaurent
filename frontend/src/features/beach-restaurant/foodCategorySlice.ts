@@ -1,5 +1,6 @@
 import { addNewFoodCategory } from "@/api/order/add-food-category-api";
 import { fetchAllFoodCategories } from "@/api/order/get-food-categories-api";
+import { updateFoodCategory } from "@/api/order/update-food-category-api";
 import type { FoodCategory, FoodCategoryState } from "@/component/beach-&-pool-restaurant/food-category";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
@@ -7,19 +8,24 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 // Initial State
 const initialState: FoodCategoryState = {
-  isClickedAddFoodCategory: false, 
-  isFoodCategory: true,
-  categories: [],
-  selectedCategoryId: null,
-  selectedFoodCategoryTitle: null,
-  fetchAllFoodCategoriesStatus: {
-     loading: false,
-     error: null
-  },
-  addFoodCategoryStatus: {
-    loading: false,
-    error: null,
-  }
+    isClickedAddFoodCategory: false,
+    isFoodCategory: true,
+    categories: [],
+    selectedCategoryId: null,
+    selectedFoodCategoryTitle: null,
+    isClickedUpdateFoodCategory: false,
+    fetchAllFoodCategoriesStatus: {
+        loading: false,
+        error: null
+    },
+    addFoodCategoryStatus: {
+        loading: false,
+        error: null,
+    },
+    updateFoodCategoryStatus: {
+        loading: false,
+        error: null,
+    }
 };
 
 
@@ -48,6 +54,9 @@ const foodCategorySlice = createSlice({
         },
         setCategories: (state, action: PayloadAction<FoodCategory[]>) => {
             state.categories = action.payload;
+        },
+        setIsClickedUpdateFoodCategory: (state, action: PayloadAction<boolean>) => {
+            state.isClickedUpdateFoodCategory = action.payload;
         },
     },
     extraReducers: (builder) => {
@@ -89,6 +98,26 @@ const foodCategorySlice = createSlice({
                     error: action.payload as string,
                 };
             })
+            
+            // update a food category
+            .addCase(updateFoodCategory.pending, (state) => {
+                state.updateFoodCategoryStatus = {
+                    loading: true,
+                    error: null,
+                };
+            })
+            .addCase(updateFoodCategory.fulfilled, (state) => {
+                state.updateFoodCategoryStatus = {
+                    loading: false,
+                    error: null,
+                };
+            })
+            .addCase(updateFoodCategory.rejected, (state, action) => {
+                state.updateFoodCategoryStatus = {
+                    loading: false,
+                    error: action.payload as string,
+                };
+            })
 
 
         //   // add
@@ -111,5 +140,5 @@ const foodCategorySlice = createSlice({
     },
 });
 
-export const { setSelectedCategoryId, setIsClickedAddFoodCategory, setIsFoodCategory, setSelectedFoodCategoryTitle } = foodCategorySlice.actions;
+export const { setSelectedCategoryId, setIsClickedAddFoodCategory, setIsFoodCategory, setSelectedFoodCategoryTitle, setIsClickedUpdateFoodCategory } = foodCategorySlice.actions;
 export default foodCategorySlice.reducer;
