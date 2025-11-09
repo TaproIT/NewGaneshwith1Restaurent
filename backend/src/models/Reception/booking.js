@@ -74,7 +74,7 @@ const bookingSchema = new mongoose.Schema(
                     enum: ["LKR", "USD", "EUR"],
                     default: "LKR"
                 },
-                night: { type: Number, required: true },
+                night: { type: Number},
 
                 finalRoomTotalPrice: { type: Number },
                 discountPrice: { type: Number },

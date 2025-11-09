@@ -616,7 +616,122 @@ export const getBookingWithActiveRoomsAndPrices = async (req, res) => {
     }
 };
 
-// Switch rooms with proper isSwitched status
+// // Switch rooms with proper isSwitched status
+// export const switchRoomsBulk = async (req, res) => {
+//     const { bookingId } = req.params;
+//     const { oldRooms, newRooms } = req.body;
+//
+//     if (!Array.isArray(oldRooms) || !Array.isArray(newRooms)) {
+//         return res.status(400).json({ error: "oldRooms and newRooms must be arrays" });
+//     }
+//
+//     const today = new Date();
+//
+//     try {
+//         // Fetch booking
+//         const booking = await Booking.findById(bookingId);
+//         if (!booking) throw Object.assign(new Error("Booking not found"), { status: 404 });
+//
+//         // Fetch all old and new rooms in one query
+//         const allRoomNumbers = [...oldRooms.map(r => r.roomNo), ...newRooms];
+//         const rooms = await Room.find({ no: { $in: allRoomNumbers } });
+//         const roomMap = Object.fromEntries(rooms.map(r => [r.no, r]));
+//
+//         // Validate rooms
+//         oldRooms.forEach(o => {
+//             if (!booking.currentRooms.some(r => r.roomNo === o.roomNo && r.isActive)) {
+//                 throw Object.assign(new Error(`Old room ${o.roomNo} not found or inactive`), { status: 400 });
+//             }
+//             if (!roomMap[o.roomNo]) throw Object.assign(new Error(`Old room ${o.roomNo} not found`), { status: 400 });
+//         });
+//
+//         newRooms.forEach(no => {
+//             if (!roomMap[no]) throw Object.assign(new Error(`New room ${no} not found`), { status: 400 });
+//             if (roomMap[no].isBooked) throw Object.assign(new Error(`New room ${no} is already booked`), { status: 400 });
+//         });
+//
+//         // Process old rooms in memory and mark as inactive
+//         const oldRoomNumbers = oldRooms.map(r => r.roomNo);
+//         booking.currentRooms.forEach(r => {
+//             const oldData = oldRooms.find(o => o.roomNo === r.roomNo);
+//             if (oldData && r.isActive) {
+//                 r.isActive = false;
+//                 const hist = booking.roomsHistory.find(h => h.roomNo === r.roomNo && !h.isSwitched);
+//                 if (hist) {
+//                     hist.switchOutDate = today;
+//                     hist.isSwitched = true;
+//                     hist.status = "switched_out";
+//                     hist.switchFrom = newRooms.join(", ");
+//                     hist.discountPrice = oldData.discountPrice;
+//                     hist.finalRoomTotalPrice = oldData.finalRoomTotalPrice;
+//                 }
+//             }
+//         });
+//
+//         //  Update old rooms in Room model in bulk
+//         await Room.updateMany(
+//             { no: { $in: oldRoomNumbers } },
+//             { $set: { isBooked: false } }
+//         );
+//
+//         //  Process new rooms: add to booking and history
+//         const newHistories = [];
+//         const newCurrentRooms = newRooms.map(no => {
+//             const r = roomMap[no];
+//             r.isBooked = true; // mark booked in memory
+//             newHistories.push({
+//                 roomId: r._id,
+//                 roomNo: r.no,
+//                 perDayPrice: r.perDayPrice,
+//                 finalRoomTotalPrice: null,
+//                 discountPrice: null,
+//                 switchInDate: today,
+//                 switchOutDate: booking.checkOut,
+//                 isSwitched: false,
+//                 status: "switched_in",
+//                 switchFrom: oldRooms.map(o => o.roomNo).join(", "),
+//             });
+//             return { roomId: r._id, roomNo: r.no, isActive: true };
+//         });
+//
+//         booking.currentRooms.push(...newCurrentRooms);
+//         booking.roomsHistory.push(...newHistories);
+//
+//         // Update new rooms in Room model in bulk
+//         await Room.updateMany(
+//             { no: newRooms },
+//             { $set: { isBooked: true } }
+//         );
+//
+//         // Regenerate QR
+//         const activeRooms = booking.currentRooms.filter(r => r.isActive).map(r => r.roomNo);
+//         const qr = await generateAndUploadQr({
+//             name: booking.guestName,
+//             roomNumbers: activeRooms,
+//             checkIn: booking.checkIn,
+//             checkOut: booking.checkOut,
+//             hotel: booking.hotel,
+//         });
+//         booking.qrPublicId = qr.publicId;
+//         booking.qrUrl = qr.url;
+//
+//         // 9. Save booking
+//         await booking.save();
+//
+//         return res.status(200).json({
+//             message: "Rooms switched successfully",
+//             bookingId: booking._id,
+//             currentRooms: activeRooms,
+//             qrUrl: booking.qrUrl
+//         });
+//
+//     } catch (err) {
+//         console.error("Switch rooms error:", err);
+//         return res.status(err.status || 500).json({ error: err.message || "Failed to switch rooms" });
+//     }
+// };
+
+// Switch rooms with proper isSwitched status and currency handling
 export const switchRoomsBulk = async (req, res) => {
     const { bookingId } = req.params;
     const { oldRooms, newRooms } = req.body;
@@ -632,78 +747,85 @@ export const switchRoomsBulk = async (req, res) => {
         const booking = await Booking.findById(bookingId);
         if (!booking) throw Object.assign(new Error("Booking not found"), { status: 404 });
 
-        // Fetch all old and new rooms in one query
-        const allRoomNumbers = [...oldRooms.map(r => r.roomNo), ...newRooms];
-        const rooms = await Room.find({ no: { $in: allRoomNumbers } });
+        // Validate old rooms: must exist in currentRooms with isActive=true
+        oldRooms.forEach(roomNo => {
+            if (!booking.currentRooms.some(r => r.roomNo === roomNo && r.isActive)) {
+                throw Object.assign(new Error(`Old room ${roomNo} not found or inactive in current booking`), { status: 400 });
+            }
+        });
+
+        // Fetch all new room documents
+        const newRoomNumbers = newRooms.map(r => r.roomNo);
+        const rooms = await Room.find({ no: { $in: newRoomNumbers } });
         const roomMap = Object.fromEntries(rooms.map(r => [r.no, r]));
 
-        // Validate rooms
-        oldRooms.forEach(o => {
-            if (!booking.currentRooms.some(r => r.roomNo === o.roomNo && r.isActive)) {
-                throw Object.assign(new Error(`Old room ${o.roomNo} not found or inactive`), { status: 400 });
-            }
-            if (!roomMap[o.roomNo]) throw Object.assign(new Error(`Old room ${o.roomNo} not found`), { status: 400 });
+        // Validate new rooms
+        newRooms.forEach(nr => {
+            const r = roomMap[nr.roomNo];
+            if (!r) throw Object.assign(new Error(`New room ${nr.roomNo} not found`), { status: 400 });
+            if (r.isBooked) throw Object.assign(new Error(`New room ${nr.roomNo} is already booked`), { status: 400 });
         });
 
-        newRooms.forEach(no => {
-            if (!roomMap[no]) throw Object.assign(new Error(`New room ${no} not found`), { status: 400 });
-            if (roomMap[no].isBooked) throw Object.assign(new Error(`New room ${no} is already booked`), { status: 400 });
-        });
-
-        // Process old rooms in memory and mark as inactive
-        const oldRoomNumbers = oldRooms.map(r => r.roomNo);
+        // --- Process old rooms ---
         booking.currentRooms.forEach(r => {
-            const oldData = oldRooms.find(o => o.roomNo === r.roomNo);
-            if (oldData && r.isActive) {
+            if (oldRooms.includes(r.roomNo) && r.isActive) {
                 r.isActive = false;
                 const hist = booking.roomsHistory.find(h => h.roomNo === r.roomNo && !h.isSwitched);
                 if (hist) {
                     hist.switchOutDate = today;
                     hist.isSwitched = true;
                     hist.status = "switched_out";
-                    hist.switchFrom = newRooms.join(", ");
-                    hist.discountPrice = oldData.discountPrice;
-                    hist.finalRoomTotalPrice = oldData.finalRoomTotalPrice;
+                    hist.switchFrom = newRoomNumbers.join(", ");
+                    // Retain existing finalRoomTotalPrice, discountPrice, currency
                 }
             }
         });
 
-        //  Update old rooms in Room model in bulk
         await Room.updateMany(
-            { no: { $in: oldRoomNumbers } },
+            { no: { $in: oldRooms } },
             { $set: { isBooked: false } }
         );
 
-        //  Process new rooms: add to booking and history
+        // --- Process new rooms ---
         const newHistories = [];
-        const newCurrentRooms = newRooms.map(no => {
-            const r = roomMap[no];
-            r.isBooked = true; // mark booked in memory
+        const newCurrentRooms = newRooms.map(nr => {
+            const r = roomMap[nr.roomNo];
+            // Use given perDayPrice & currency if provided, else defaults from Room
+            const perDayPrice = nr.perDayPrice != null ? nr.perDayPrice : r.perDayPrice;
+            const currency = nr.currency || r.currency;
+
             newHistories.push({
                 roomId: r._id,
                 roomNo: r.no,
-                perDayPrice: r.perDayPrice,
-                finalRoomTotalPrice: null,
-                discountPrice: null,
+                perDayPrice,
+                currency,
+                finalRoomTotalPrice: nr.finalRoomTotalPrice || null,
+                discountPrice: nr.discountPrice || null,
                 switchInDate: today,
                 switchOutDate: booking.checkOut,
                 isSwitched: false,
                 status: "switched_in",
-                switchFrom: oldRooms.map(o => o.roomNo).join(", "),
+                switchFrom: oldRooms.join(", ")
             });
-            return { roomId: r._id, roomNo: r.no, isActive: true };
+
+            return {
+                roomId: r._id,
+                roomNo: r.no,
+                isActive: true,
+                perDayPrice,
+                currency
+            };
         });
 
         booking.currentRooms.push(...newCurrentRooms);
         booking.roomsHistory.push(...newHistories);
 
-        // Update new rooms in Room model in bulk
         await Room.updateMany(
-            { no: newRooms },
+            { no: newRoomNumbers },
             { $set: { isBooked: true } }
         );
 
-        // Regenerate QR
+        // --- Regenerate QR ---
         const activeRooms = booking.currentRooms.filter(r => r.isActive).map(r => r.roomNo);
         const qr = await generateAndUploadQr({
             name: booking.guestName,
@@ -715,7 +837,7 @@ export const switchRoomsBulk = async (req, res) => {
         booking.qrPublicId = qr.publicId;
         booking.qrUrl = qr.url;
 
-        // 9. Save booking
+        // --- Save booking ---
         await booking.save();
 
         return res.status(200).json({
@@ -730,6 +852,7 @@ export const switchRoomsBulk = async (req, res) => {
         return res.status(err.status || 500).json({ error: err.message || "Failed to switch rooms" });
     }
 };
+
 
 // Get all rooms for register guest
 export const getAllRoomsWithBookingDetails = async (req, res) => {
