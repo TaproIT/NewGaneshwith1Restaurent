@@ -1,4 +1,5 @@
 import { addNewFoodCategory } from "@/api/order/add-food-category-api";
+import { deleteFoodCategory } from "@/api/order/delete-food-category-api";
 import { fetchAllFoodCategories } from "@/api/order/get-food-categories-api";
 import { updateFoodCategory } from "@/api/order/update-food-category-api";
 import type { FoodCategory, FoodCategoryState } from "@/component/beach-&-pool-restaurant/food-category";
@@ -23,6 +24,10 @@ const initialState: FoodCategoryState = {
         error: null,
     },
     updateFoodCategoryStatus: {
+        loading: false,
+        error: null,
+    },
+    deleteFoodCategoryStatus: {
         loading: false,
         error: null,
     }
@@ -114,6 +119,27 @@ const foodCategorySlice = createSlice({
             })
             .addCase(updateFoodCategory.rejected, (state, action) => {
                 state.updateFoodCategoryStatus = {
+                    loading: false,
+                    error: action.payload as string,
+                };
+            })
+
+
+             // delete a food category
+            .addCase(deleteFoodCategory.pending, (state) => {
+                state.deleteFoodCategoryStatus = {
+                    loading: true,
+                    error: null,
+                };
+            })
+            .addCase(deleteFoodCategory.fulfilled, (state) => {
+                state.deleteFoodCategoryStatus = {
+                    loading: false,
+                    error: null,
+                };
+            })
+            .addCase(deleteFoodCategory.rejected, (state, action) => {
+                state.deleteFoodCategoryStatus = {
                     loading: false,
                     error: action.payload as string,
                 };

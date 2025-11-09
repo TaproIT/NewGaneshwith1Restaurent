@@ -1,3 +1,5 @@
+import type { deleteFoodCategory } from "@/api/order/delete-food-category-api";
+
 export interface FoodCategory {
   _id: string;
   categoryName: string;
@@ -19,14 +21,20 @@ export interface UpdateFoodCategoryStatus{
    loading: boolean;
 }
 
+export interface DeleteFoodCategoryStatus{
+   error: string | null;
+   loading: boolean;
+}
+
 export interface FoodCategoryState {
     isClickedAddFoodCategory:boolean,
     isFoodCategory: boolean,
     categories: FoodCategory[],
     fetchAllFoodCategoriesStatus: FetchAllFoodCategoriesStatus,
     addFoodCategoryStatus: AddFoodCategoryStatus,
-    selectedCategoryId: string | null;
-    selectedFoodCategoryTitle: string | null;
+    selectedCategoryId: string | null,
+    selectedFoodCategoryTitle: string | null,
     isClickedUpdateFoodCategory:boolean,
-    updateFoodCategoryStatus: UpdateFoodCategoryStatus
+    updateFoodCategoryStatus: UpdateFoodCategoryStatus,
+    deleteFoodCategoryStatus: DeleteFoodCategoryStatus
 }
