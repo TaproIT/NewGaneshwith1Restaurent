@@ -23,7 +23,7 @@ const Header: React.FC<HeaderProps> = ({ pathTitles }) => {
     const currentPath = location.pathname;
     if (currentPath.startsWith("/restaurant/tables")) return "Tables";
     if (currentPath.startsWith("/restaurant/menu")) return "Menu";
-    return pathTitles[currentPath] || "Page Not Found";
+    return pathTitles[currentPath] || "";
   };
 
   const fetchUserDetails = async () => {
