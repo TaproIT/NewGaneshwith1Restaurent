@@ -4,6 +4,7 @@ export interface Invoice {
   checkInDate: string;     // ISO date string
   checkOutDate: string;    // ISO date string
   customerName: string;
+  travelAgentName: string;
   numberOfMembers: number;
   roomIds: string[];
   subTotal: DecimalValue;

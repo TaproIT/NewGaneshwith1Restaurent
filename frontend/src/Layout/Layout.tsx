@@ -12,7 +12,8 @@ import {
   ShieldCheck, User, UserRoundPlus, Users,
   RepeatIcon, BookText, House, Table2, NotepadText,
   PauseCircle, Newspaper, Banknote,
-  Warehouse
+  Warehouse,
+  BookOpen
 } from "lucide-react";
 
 const navigationConfig = {
@@ -35,6 +36,7 @@ const navigationConfig = {
   "Reception": [
     { path: "/onboarding", title: "Onboarding", icon: <UserRoundPlus size={22} /> },
     { path: "/room-availability", title: "Room Availability", icon: <ShieldCheck size={22} /> },
+    { path: "/bookings", title: "Bookings", icon: <BookOpen size={22} /> },
     { path: "/switch-rooms", title: "Switch Rooms", icon: <RepeatIcon size={22} /> },
     { path: "/checkouts", title: "Checkouts", icon: <CircleArrowRight size={22} /> },
     { path: "/invoice", title: "Invoice", icon: <BookText size={22} /> },
@@ -83,11 +85,14 @@ const pathTitles = {
   "/admin/user-config": "User Config",
   "/admin/room-config": "Room Config",
   "/checkout-details": "Checkout Details",
+  "/bookings": "Bookings",
 };
 
 const getSidebarFromPath = (path: string): string => {
   if (path.startsWith("/onboarding") ||
       path.startsWith("/room-availability") ||
+      path.startsWith("/bookings") ||
+      path.startsWith("/bookings/:id") ||
       path.startsWith("/switch-rooms") ||
       path.startsWith("/checkouts") ||
       path.startsWith("/invoice"))

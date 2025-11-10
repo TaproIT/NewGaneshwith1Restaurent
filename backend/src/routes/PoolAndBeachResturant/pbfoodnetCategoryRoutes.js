@@ -43,7 +43,8 @@ router.get(
     userRoles.BEACH_RESTAURANT_STAFF.value,
     userRoles.POOL_RESTAURANT_STAFF.value,
     userRoles.ADMIN.value,
-  ])
+  ]),
+  getAvailableCategories
 );
 router.get("/:id",getCategory)
 

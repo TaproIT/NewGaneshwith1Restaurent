@@ -1,11 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import QrCodeModal from "../modal/QrCodeModal";
-import { api } from "@/api/axios";
-import { useSelector } from "react-redux";
-import type { RootState } from "@/app/store";
 import type { Room } from "@/types/roomTypes";
-import { toast } from "react-toastify";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useRates } from "@/context/RateContext";
 import { convertAndFormatPrice } from "@/util/priceConverter";
@@ -63,17 +59,11 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
   setDiscountPercent,
   handleBookRooms,
   handleSwitchRoom,
-  selectedRooms,
   loadingBooking,
-  onInvoiceSuccess,
   loading,
 }) => {
-  const [loadingBook, setLoadingBook] = useState(false);
   const [loadingSwitch, setLoadingSwitch] = useState(false);
 
-  const invoiceData = useSelector(
-    (state: RootState) => state.invoice.invoiceFormData
-  );
   const navigate = useNavigate();
 
   const { rates } = useRates();
@@ -86,33 +76,6 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
     convertAndFormatPrice(amount, rates, displayCurrency);
 
   // Book invoice handler
-  const handleBookClick = async () => {
-    setLoadingBook(true);
-    try {
-      const payload = {
-        checkInDate: new Date(invoiceData.checkIn).toISOString(),
-        checkOutDate: new Date(invoiceData.checkOut).toISOString(),
-        customerName: invoiceData.name,
-        numberOfMembers: invoiceData.totalGuests,
-        roomIds: selectedRooms.map((room) => room._id),
-        subTotal: invoiceSubTotal,
-        tax: 0, // add tax if needed
-        discount: invoiceDiscount,
-        total: invoiceFinalBill,
-      };
-
-      await api.post("/invoice", payload);
-      toast.success("Invoice generated & rooms booked successfully!");
-      if (onInvoiceSuccess) onInvoiceSuccess();
-    } catch (error) {
-      toast.error("Failed to generate invoice. Please try again later.");
-      console.error("Failed to generate invoice:", error);
-    } finally {
-      setTimeout(() => {
-        setLoadingBook(false);
-      }, 1500);
-    }
-  };
 
   // Switch room handler
   const handleSwitchClick = () => {
@@ -180,20 +143,6 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
         onEmail={handleEmail}
         loading={loading}
       />
-
-      {invoice && (
-        <Button
-          className="w-full"
-          onClick={handleBookClick}
-          disabled={loadingBook}
-        >
-          {loadingBook ? (
-            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-          ) : (
-            "Generate Invoice"
-          )}
-        </Button>
-      )}
 
       {!invoice && !checkout && (
         <Button

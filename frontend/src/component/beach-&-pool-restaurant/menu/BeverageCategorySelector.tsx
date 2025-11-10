@@ -4,7 +4,7 @@ import {
   setIsBeverageItemsList,
   setSelectedBeverageCategoryTitle,
 } from "@/features/beach-restaurant/beverageCategorySlice";
-import { setIsClickedAddFoodCategory, setIsFoodCategory, setSelectedCategoryId, setSelectedFoodCategoryTitle } from "@/features/beach-restaurant/foodCategorySlice";
+import { setIsClickedAddFoodCategory, setIsClickedUpdateFoodCategory, setIsFoodCategory, setSelectedCategoryId, setSelectedFoodCategoryTitle } from "@/features/beach-restaurant/foodCategorySlice";
 import { setIsClickAddNewFoodItem, setSelectedFoodItem } from "@/features/beach-restaurant/foodSlice";
 import { BeverageCategories } from "@/lib/enums/order-related-enums";
 import React, { useRef, useEffect } from "react";
@@ -12,7 +12,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "react-toastify";
 import { fetchAllExtraBeverageCategories } from "@/api/order/get-extra-beverge-categories-api";
-import { Plus } from "lucide-react";
+import { Edit, Plus } from "lucide-react";
 import { setSelectedBeverageItem, setSelectedExtraBeverageItem } from "@/features/beach-restaurant/beverageSlice";
 
 
@@ -20,6 +20,10 @@ const BeverageCategorySelector: React.FC<{id:string}> = ({id}) => {
   const dispatch = useDispatch<AppDispatch>();
   const beverageCategory = useSelector(
     (state: RootState) => state.beverageCategory
+  );
+
+   const foodCategory = useSelector(
+    (state: RootState) => state.foodCategory
   );
 
   const isMenuHandlingPage = (id === "0");
@@ -31,6 +35,11 @@ const BeverageCategorySelector: React.FC<{id:string}> = ({id}) => {
   const categories = Object.values(BeverageCategories);
 
   const extraCategories = beverageCategory.extraCategories;
+
+  const isExtraBeverageCategory =
+              selectedCategory !== BeverageCategories.HARD_LIQUOR.value &&
+              selectedCategory !== BeverageCategories.SOFT_DRINKS.value;
+  
 
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -62,6 +71,7 @@ const BeverageCategorySelector: React.FC<{id:string}> = ({id}) => {
   }, [selectedIndex]);
 
   const handleClick = (category: string) => {
+    dispatch(setIsFoodCategory(false));
     dispatch(setSelectedCategory(category));
     dispatch(setSelectedCategoryId(""));
     dispatch(setIsBeverageItemsList(true));
@@ -80,6 +90,12 @@ const BeverageCategorySelector: React.FC<{id:string}> = ({id}) => {
     dispatch(setIsFoodCategory(false));
     dispatch(setIsClickAddNewFoodItem(false));
   }
+
+  const handleUpdateBeverageCategory = () => {
+    dispatch(setIsClickedUpdateFoodCategory(true));
+    dispatch(setIsClickedAddFoodCategory(false));
+    dispatch(setIsClickAddNewFoodItem(false));
+  };
 
   return (
     <div className="relative flex flex-col items-start w-11/12 rounded-md">
@@ -133,12 +149,33 @@ const BeverageCategorySelector: React.FC<{id:string}> = ({id}) => {
         </div>
       )}
       {isMenuHandlingPage && (
-        <div className="sticky left-0 bottom-5 w-full pr-1 bg-white">
+        <div className="w-full flex gap-2">
+          <div className="sticky left-0 bottom-5 w-[47%] pr-1 bg-white">
+            <div
+              className="py-5 w-full flex items-center justify-center border rounded-sm cursor-pointer"
+              onClick={handleAddNewBeverageCategory}
+            >
+              <Plus size={24} className="text-[#0A869D]" />
+            </div>
+          </div>
+
           <div
-            className="py-5 w-full flex items-center justify-center border rounded-sm cursor-pointer"
-            onClick={handleAddNewBeverageCategory}
+            className={`sticky left-0 bottom-5 w-[48%] pr-1 bg-white ${
+              foodCategory.isFoodCategory || (!isExtraBeverageCategory)
+                ? "opacity-50 cursor-not-allowed"
+                : "cursor-pointer"
+            }`}
           >
-            <Plus size={24} className="text-[#0A869D]" />
+            <div
+              className="py-5 w-full flex items-center justify-center border rounded-sm"
+              onClick={
+                !foodCategory.isFoodCategory
+                  ? handleUpdateBeverageCategory
+                  : undefined
+              }
+            >
+              <Edit size={24} className="text-[#0A869D]" />
+            </div>
           </div>
         </div>
       )}

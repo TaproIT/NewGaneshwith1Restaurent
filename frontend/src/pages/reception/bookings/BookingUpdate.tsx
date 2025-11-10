@@ -1,0 +1,486 @@
+import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { api } from "@/api/axios";
+import type { Booking } from "@/types/bookingUpdate";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
+import { toast } from "react-toastify";
+import QrCodeModal from "@/component/modal/QrCodeModal";
+
+const CUSTOMER_VALUES = ["Open Booking", "Agent"];
+const BREAKFAST_VALUES = ["Included", "Not Included"];
+
+const BookingUpdate = () => {
+  const { id } = useParams();
+  const [loading, setLoading] = useState(true);
+  const [updateLoading, setUpdateLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [roomNumbers, setRoomNumbers] = useState<string[]>([]);
+  const navigate = useNavigate();
+
+  const todayDate = new Date().toISOString().slice(0, 10);
+
+  const form = useForm<Booking>({
+    defaultValues: {
+      guestName: "",
+      country: "",
+      customerType: "",
+      breakfast: "",
+      passportId: "",
+      email: "",
+      whatsapp: "",
+      totalGuests: 0,
+      lengthOfStay: 0,
+      checkIn: "",
+      checkOut: "",
+      adults: 0,
+      kids: 0,
+    },
+  });
+
+  const { watch, setValue } = form;
+
+  // Update totalGuests automatically
+  const adults = watch("adults");
+  const kids = watch("kids");
+  useEffect(() => {
+    setValue("totalGuests", adults + kids);
+  }, [adults, kids, setValue]);
+
+  useEffect(() => {
+    const fetchBooking = async () => {
+      try {
+        const res = await api.get(`/booking/get-booking/${id}`);
+        form.reset(res.data.booking);
+        // Store room numbers for modal
+        const rooms = res.data.booking.currentRooms.map((r: any) => r.roomNo);
+        setRoomNumbers(rooms);
+      } catch (error) {
+        const message =
+          (error as any)?.response?.data?.message ||
+          (error instanceof Error ? error.message : String(error));
+        toast.error(`Error fetching booking: ${message}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBooking();
+  }, [id, form]);
+
+  const onSubmit = async (data: Booking) => {
+    setUpdateLoading(true);
+    try {
+      const res = await api.put(`/booking/${id}/update-booking`, data);
+      toast.success("Booking Updated Successfully");
+
+      // Update room numbers in case they changed
+      const updatedRooms = res.data.booking.currentRooms.map(
+        (r: any) => r.roomNo
+      );
+      setRoomNumbers(updatedRooms);
+
+      // Open QR modal instead of navigating
+      setIsModalOpen(true);
+    } catch (error) {
+      const message =
+        (error as any)?.response?.data?.message ||
+        (error instanceof Error ? error.message : String(error));
+      toast.error(`Update failed: ${message}`);
+    } finally {
+      setUpdateLoading(false);
+    }
+  };
+
+  const onCloseModal = () => setIsModalOpen(false);
+
+  const handleWhatsApp = async () => {
+    const message = `This is your room number(s): ${roomNumbers.join(", ")}`;
+    try {
+      const res = await api.post(`/booking/${id}/send-whatsapp`, { message });
+      if (res.data?.whatsappLink) {
+        window.open(res.data.whatsappLink, "_blank");
+      }
+      navigate("/bookings")
+    } catch (error) {
+      const errMsg =
+        (error as any)?.response?.data?.message ||
+        (error instanceof Error ? error.message : String(error));
+      toast.error(errMsg || "Error sending WhatsApp");
+    }
+  };
+
+  const handleEmail = async () => {
+    const message = `This is your room number(s): ${roomNumbers.join(", ")}`;
+    setLoading(true);
+    try {
+      await api.post(`/booking/${id}/send-email`, { message });
+      toast.success("Email sent successfully!");
+      navigate("/bookings")
+    } catch (error) {
+      const errMsg =
+        (error as any)?.response?.data?.message ||
+        (error instanceof Error ? error.message : String(error));
+      toast.error(errMsg || "Error sending email");
+    } finally {
+      onCloseModal();
+      setLoading(false);
+    }
+  };
+  
+
+  if (loading) return <div className="p-6">Loading...</div>;
+
+  return (
+    <div className="p-6 rounded-2xl bg-mainWhite h-[calc(100vh-140px)] overflow-y-auto">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* Guest Name & Country */}
+          <div className="flex justify-between gap-6">
+            <FormField
+              control={form.control}
+              name="guestName"
+              render={({ field }) => (
+                <FormItem className="flex flex-col items-center">
+                  <div className="flex items-center">
+                    <FormLabel className="w-50">Guest Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter guest name" {...field} />
+                    </FormControl>
+                  </div>
+                  <div>
+                    <FormMessage />
+                  </div>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="country"
+              render={({ field }) => (
+                <FormItem className="flex flex-col items-center">
+                  <div className="flex items-center">
+                    <FormLabel className="w-50">Country</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter country" {...field} />
+                    </FormControl>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Customer Type & Breakfast */}
+          <div className="flex justify-between">
+            <FormField
+              control={form.control}
+              name="customerType"
+              rules={{ required: "Select customer type" }}
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <div className="flex items-center">
+                    <FormLabel className="w-33">Customer Type</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      disabled
+                      defaultValue={field.value}
+                    >
+                      <FormControl className="w-72">
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {CUSTOMER_VALUES.map((item) => (
+                          <SelectItem value={item} key={item}>
+                            {item}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Breakfast */}
+            <FormField
+              control={form.control}
+              name="breakfast"
+              rules={{ required: "Select breakfast option" }}
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <div className="flex items-center">
+                    <FormLabel className="w-32">Breakfast</FormLabel>
+                    <Select
+                    onValueChange={field.onChange}
+                    disabled
+                      defaultValue={field.value}
+                    >
+                      <FormControl className="w-72">
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select"/>
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {BREAKFAST_VALUES.map((item) => (
+                          <SelectItem value={item} key={item}>
+                            {item}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Passport & Email */}
+          <div className="flex justify-between">
+            <FormField
+              control={form.control}
+              name="passportId"
+              render={({ field }) => (
+                <FormItem className="flex flex-col items-center">
+                  <div className="flex items-center">
+                    <FormLabel className="w-50">Passport ID</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter passport ID" {...field} disabled/>
+                    </FormControl>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem className="flex flex-col items-center">
+                  <div className="flex items-center">
+                    <FormLabel className="w-50">Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="guest@example.com"
+                        type="email"
+                        {...field}
+                      />
+                    </FormControl>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* WhatsApp */}
+          <div className="flex justify-between">
+            <FormField
+              control={form.control}
+              name="whatsapp"
+              render={({ field }) => (
+                <FormItem className="flex flex-col items-center">
+                  <div className="flex items-center">
+                    <FormLabel className="w-50">WhatsApp</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="+947X XXX XXXX"
+                        {...field}
+                        maxLength={12}
+                        minLength={12}
+                      />
+                    </FormControl>
+                  </div>
+                  <FormMessage className="ml-10" />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Adults & Kids & Total Guests */}
+          <div className="flex justify-between gap-6">
+            <FormField
+              control={form.control}
+              name="adults"
+              render={({ field }) => (
+                <FormItem className="flex flex-col w-1/3">
+                  <FormLabel>Adults</FormLabel>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      onClick={() =>
+                        field.onChange(Math.max(field.value - 1, 0))
+                      }
+                    >
+                      -
+                    </Button>
+                    <span>{field.value}</span>
+                    <Button
+                      type="button"
+                      onClick={() => field.onChange(field.value + 1)}
+                    >
+                      +
+                    </Button>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="kids"
+              render={({ field }) => (
+                <FormItem className="flex flex-col w-1/3">
+                  <FormLabel>Kids</FormLabel>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      onClick={() =>
+                        field.onChange(Math.max(field.value - 1, 0))
+                      }
+                    >
+                      -
+                    </Button>
+                    <span>{field.value}</span>
+                    <Button
+                      type="button"
+                      onClick={() => field.onChange(field.value + 1)}
+                    >
+                      +
+                    </Button>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="totalGuests"
+              render={({ field }) => (
+                <FormItem className="flex flex-col w-1/3">
+                  <FormLabel>Total Guests</FormLabel>
+                  <FormControl>
+                    <Input type="number" {...field} disabled />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Check-in & Check-out */}
+          <div className="flex justify-between">
+            <FormField
+              control={form.control}
+              name="checkIn"
+              render={({ field }) => (
+                <FormItem className="flex items-center">
+                  <Label className="w-35">Check-in</Label>
+                  <FormControl className="w-70">
+                    <Input
+                      type="date"
+                      {...field}
+                      disabled
+                      value={field.value?.slice(0, 10)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="checkOut"
+              rules={{
+                validate: (value) => {
+                  const selected = new Date(value);
+                  if (selected < new Date(todayDate))
+                    return "Check-out date cannot be before today";
+                  return true;
+                },
+              }}
+              render={({ field }) => (
+                <FormItem className="flex items-center">
+                  <Label className="w-35">Check-out</Label>
+                  <FormControl className="w-70">
+                    <Input
+                      type="date"
+                      {...field}
+                      min={todayDate}
+                      value={field.value?.slice(0, 10)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Length of Stay */}
+          <div className="flex justify-between gap-6">
+            <FormField
+              control={form.control}
+              rules={{
+                validate: (value) =>
+                  value > 0 || "Length must be greater than 0",
+              }}
+              name="lengthOfStay"
+              render={({ field }) => (
+                <FormItem className="flex flex-col items-center">
+                  <div className="flex items-center">
+                    <Label className="w-54">Length of Stay</Label>
+                    <FormControl>
+                      <Input type="number" {...field} disabled />
+                    </FormControl>
+                  </div>
+                  <FormMessage className="ml-20" />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Update Button */}
+          <div className="flex justify-end">
+            <Button type="submit" className="w-40">
+              {updateLoading ? (
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              ) : (
+                "Update Booking"
+              )}
+            </Button>
+          </div>
+        </form>
+      </Form>
+
+      <QrCodeModal
+        isOpen={isModalOpen}
+        onClose={onCloseModal}
+        onWhatsApp={handleWhatsApp}
+        onEmail={handleEmail}
+        loading={loading}
+      />
+    </div>
+  );
+};
+
+export default BookingUpdate;

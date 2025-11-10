@@ -14,12 +14,25 @@ export interface AddFoodCategoryStatus{
    loading: boolean;
 }
 
+export interface UpdateFoodCategoryStatus{
+   error: string | null;
+   loading: boolean;
+}
+
+export interface DeleteFoodCategoryStatus{
+   error: string | null;
+   loading: boolean;
+}
+
 export interface FoodCategoryState {
     isClickedAddFoodCategory:boolean,
     isFoodCategory: boolean,
     categories: FoodCategory[],
     fetchAllFoodCategoriesStatus: FetchAllFoodCategoriesStatus,
     addFoodCategoryStatus: AddFoodCategoryStatus,
-    selectedCategoryId: string | null;
-    selectedFoodCategoryTitle: string | null;
+    selectedCategoryId: string | null,
+    selectedFoodCategoryTitle: string | null,
+    isClickedUpdateFoodCategory:boolean,
+    updateFoodCategoryStatus: UpdateFoodCategoryStatus,
+    deleteFoodCategoryStatus: DeleteFoodCategoryStatus
 }

@@ -69,6 +69,7 @@ const bookingSchema = new mongoose.Schema(
                 roomId: { type: mongoose.Schema.Types.ObjectId, ref: "Room", required: true },
                 roomNo: { type: String, required: true },
                 perDayPrice: { type: Number, required: true },
+
                 currency: {
                     type: String,
                     enum: ["LKR", "USD", "EUR"],
