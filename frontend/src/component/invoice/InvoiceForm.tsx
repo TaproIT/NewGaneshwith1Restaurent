@@ -52,20 +52,20 @@ const InvoiceForm = () => {
     name: "rooms",
   });
 
-      useEffect(() => {
-  reset({
-    customerName: "",
-    travelAgentName: "",
-    checkIn: "",
-    checkOut: "",
-    adults: 0,
-    kids: 0,
-    totalGuests: 0,
-    lengthOfStay: 0,
-    hotelType: "",
-    rooms: [{ category: "", count: 1, price: 0 }],
-  });
-}, [reset])
+  useEffect(() => {
+    reset({
+      customerName: "",
+      travelAgentName: "",
+      checkIn: "",
+      checkOut: "",
+      adults: 0,
+      kids: 0,
+      totalGuests: 0,
+      lengthOfStay: 0,
+      hotelType: "",
+      rooms: [{ category: "", count: 1, price: 0 }],
+    });
+  }, [reset]);
 
   useEffect(() => {
     if (checkIn && checkOut) {
@@ -114,7 +114,7 @@ const InvoiceForm = () => {
     }
   };
 
-  console.log()
+  console.log();
 
   useEffect(() => {
     const fetchRoomTypes = async () => {
@@ -127,10 +127,6 @@ const InvoiceForm = () => {
     };
     fetchRoomTypes();
   }, []);
-
-  const rooms = watch("rooms");
-const stay = watch("lengthOfStay");
-
 
   return (
     <div className="bg-mainWhite p-6 rounded-2xl mb-5">
@@ -399,53 +395,55 @@ const stay = watch("lengthOfStay");
                 className="grid grid-cols-4 gap-4 items-end border p-4 rounded-md"
               >
                 <FormField
-  control={control}
-  name={`rooms.${index}.category`}
-  defaultValue={field.category}
-  render={({ field }) => (
-    <FormItem>
-      <FormLabel>Category</FormLabel>
-      <FormControl>
-        <select {...field} className="border p-2 rounded w-full">
-          <option value="">Select</option>
-          {roomTypes.map((room) => (
-            <option key={room._id} value={room._id}>
-              {room.type}
-            </option>
-          ))}
-        </select>
-      </FormControl>
-      <FormMessage />
-    </FormItem>
-  )}
-/>
+                  control={control}
+                  name={`rooms.${index}.category`}
+                  defaultValue={field.category}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Category</FormLabel>
+                      <FormControl>
+                        <select
+                          {...field}
+                          className="border p-2 rounded w-full"
+                        >
+                          <option value="">Select</option>
+                          {roomTypes.map((room) => (
+                            <option key={room._id} value={room._id}>
+                              {room.type}
+                            </option>
+                          ))}
+                        </select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-<FormField
-  control={control}
-  name={`rooms.${index}.count`}
-  defaultValue={field.count}
-  render={({ field }) => (
-    <FormItem>
-      <FormLabel>Count</FormLabel>
-      <Input type="number" {...field} min={1} />
-      <FormMessage />
-    </FormItem>
-  )}
-/>
+                <FormField
+                  control={control}
+                  name={`rooms.${index}.count`}
+                  defaultValue={field.count}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Count</FormLabel>
+                      <Input type="number" {...field} min={1} />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-<FormField
-  control={control}
-  name={`rooms.${index}.price`}
-  defaultValue={field.price}
-  render={({ field }) => (
-    <FormItem>
-      <FormLabel>Per Day Price</FormLabel>
-      <Input type="number" {...field} min={0} />
-      <FormMessage />
-    </FormItem>
-  )}
-/>
-
+                <FormField
+                  control={control}
+                  name={`rooms.${index}.price`}
+                  defaultValue={field.price}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Per Day Price</FormLabel>
+                      <Input type="number" {...field} min={0} />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <Button
                   type="button"
@@ -459,27 +457,27 @@ const stay = watch("lengthOfStay");
           </div>
 
           <div className="flex justify-end pt-3">
-  <Button
-    type="button"
-    variant="outline"
-    onClick={() => {
-      const rooms = watch("rooms");
-      const stay = watch("lengthOfStay") || 0;
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                const rooms = watch("rooms");
+                const stay = watch("lengthOfStay") || 0;
 
-      let total = 0;
-      rooms.forEach((r) => {
-        const price = Number(r.price) || 0;
-        const count = Number(r.count) || 0;
-        total += price * count * stay;
-      });
+                let total = 0;
+                rooms.forEach((r) => {
+                  const price = Number(r.price) || 0;
+                  const count = Number(r.count) || 0;
+                  total += price * count * stay;
+                });
 
-      setValue("total", total);
-      console.log(total)
-    }}
-  >
-    Confirm Rooms
-  </Button>
-</div>
+                setValue("total", total);
+                console.log(total);
+              }}
+            >
+              Confirm Rooms
+            </Button>
+          </div>
 
           {/* ✅ Submit */}
           <div className="flex justify-end">
