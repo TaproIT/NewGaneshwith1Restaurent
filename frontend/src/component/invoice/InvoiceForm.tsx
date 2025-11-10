@@ -1,5 +1,5 @@
-import { useEffect, useImperativeHandle, forwardRef } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useImperativeHandle, forwardRef, useState } from "react";
+import { useForm, useFieldArray } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -12,96 +12,213 @@ import {
 import { Input } from "@/components/ui/input";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
-import { setInvoiceData, type invoiceData } from "@/features/invoice/invoiceSlice";
+import {
+  setInvoiceData,
+  type invoiceData,
+} from "@/features/invoice/invoiceSlice";
+import { api } from "@/api/axios";
+import { toast } from "react-toastify";
 
 interface InvoiceFormProps {
   onFormStatus: (status: boolean) => void;
   onInvoiceSuccess?: () => void;
 }
-// #TODO:
-const InvoiceForm = forwardRef(({ onFormStatus, /*onInvoiceSuccess*/ }: InvoiceFormProps, ref) => {
+
+const InvoiceForm = forwardRef(({ onFormStatus }: InvoiceFormProps, ref) => {
   const dispatch = useDispatch();
   const invoiceFormData = useSelector(
     (state: RootState) => state.invoice.invoiceFormData
   );
 
   const form = useForm<invoiceData>({
-    defaultValues: invoiceFormData,
+    defaultValues: {
+      ...invoiceFormData,
+      rooms: invoiceFormData.rooms || [{ category: "", count: 1, price: 0 }],
+      currencyType: "LKR", // ✅ make sure default value is here
+      total: 0,
+    },
     mode: "onSubmit",
   });
 
   const { control, handleSubmit, watch, setValue, formState, reset } = form;
   const { errors } = formState;
+  const [roomTypes, setRoomTypes] = useState<{ _id: string; type: string }[]>(
+    []
+  );
+  const [loading, setLoading] = useState(false);
 
   const checkIn = watch("checkIn");
   const checkOut = watch("checkOut");
   const adults = watch("adults");
   const kids = watch("kids");
 
-  // ✅ Expose resetForm to parent
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "rooms",
+  });
+
   useImperativeHandle(ref, () => ({
     resetForm() {
       reset({
-        name: "",
+        customerName: "",
+        travelAgentName: "",
         checkIn: "",
         checkOut: "",
         adults: 0,
         kids: 0,
         totalGuests: 0,
         lengthOfStay: 0,
+        hotelType: "",
+        rooms: [{ category: "", count: 1, price: 0 }],
       });
       onFormStatus(false);
     },
   }));
 
-  // ✅ Calculate length of stay
   useEffect(() => {
     if (checkIn && checkOut) {
       const start = new Date(checkIn);
       const end = new Date(checkOut);
-      const diffTime = Math.max(end.getTime() - start.getTime(), 0);
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      setValue("lengthOfStay", diffDays);
+      const diff = Math.max(end.getTime() - start.getTime(), 0);
+      const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+      setValue("lengthOfStay", days);
     }
   }, [checkIn, checkOut, setValue]);
 
-  // ✅ Calculate total guests
   useEffect(() => {
     setValue("totalGuests", (adults || 0) + (kids || 0));
   }, [adults, kids, setValue]);
 
-  const onSubmit = (data: invoiceData) => {
-    const requiredFields = ["name", "checkIn", "checkOut", "adults", "kids"];
-    const allRequiredFilled = requiredFields.every(
-      (field) =>
-        data[field as keyof invoiceData] !== "" &&
-        data[field as keyof invoiceData] !== undefined &&
-        data[field as keyof invoiceData] !== null
-    );
+  const onSubmit = async (data: invoiceData) => {
+    setLoading(true);
+    try {
+      const payload = {
+        checkInDate: data.checkIn,
+        checkOutDate: data.checkOut,
+        hotelType: data.hotelType.replace("Hotel ", ""), // "Hotel A" → "A"
+        customerName: data.customerName,
+        travelAgentName: data.travelAgentName,
+        numberOfMembers: data.totalGuests,
+        currencyType: data.currencyType,
+        selectedRooms: data.rooms.map((room) => ({
+          roomCategory: room.category,
+          count: room.count,
+          perDayPrice: room.price,
+        })),
+        total: data.total,
+      };
 
-    onFormStatus(allRequiredFilled);
-    dispatch(setInvoiceData(data));
+      await api.post("/invoice", payload);
+
+      toast.success("Invoice created successfully");
+      reset();
+
+      dispatch(setInvoiceData(data));
+      onFormStatus(true);
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error?.response?.data?.message || "Failed to create invoice");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    const fetchRoomTypes = async () => {
+      try {
+        const res = await api.get("room/room-category"); // ← CHANGE IF YOUR ENDPOINT DIFFERS
+        setRoomTypes(res.data || []);
+      } catch (err) {
+        toast.error("Failed to load room types");
+      }
+    };
+    fetchRoomTypes();
+  }, []);
+
+  useEffect(() => {
+    const rooms = watch("rooms") || [];
+    const stay = watch("lengthOfStay") || 0;
+
+    let total = 0;
+    rooms.forEach((r) => {
+      total += (r.price || 0) * (r.count || 0) * stay;
+    });
+
+    setValue("total", total);
+  }, [watch("rooms"), watch("lengthOfStay"), setValue]);
 
   return (
     <div className="bg-mainWhite p-6 rounded-2xl mb-5">
       <Form {...form}>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 w-full">
+          {/* Hotel Selection */}
+          <FormField
+            control={form.control}
+            rules={{ required: "Select a hotel" }}
+            name="hotelType"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex gap-5">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => field.onChange("Hotel A")}
+                    className={`w-75 h-10 ${
+                      field.value === "Hotel A"
+                        ? "bg-secondary text-white hover:bg-secondary"
+                        : ""
+                    }`}
+                  >
+                    Hotel A
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => field.onChange("Hotel B")}
+                    className={`w-75 h-10 ${
+                      field.value === "Hotel B"
+                        ? "bg-secondary text-white hover:bg-secondary"
+                        : ""
+                    }`}
+                  >
+                    Hotel B
+                  </Button>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           {/* ✅ Name */}
           <div className="grid grid-cols-2 gap-4">
             <FormField
               control={control}
-              name="name"
-              rules={{ required: "Name is required" }}
+              name="customerName"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <div className="flex items-center">
-                    <FormLabel className="w-1/3">Name</FormLabel>
+                    <FormLabel className="w-1/3">Guest Name</FormLabel>
                     <FormControl>
                       <Input type="text" {...field} />
                     </FormControl>
                   </div>
-                  <FormMessage>{errors.name?.message}</FormMessage>
+                  <FormMessage>{errors.customerName?.message}</FormMessage>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={control}
+              name="travelAgentName"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <div className="flex items-center">
+                    <FormLabel className="w-1/3">Agent Name</FormLabel>
+                    <FormControl>
+                      <Input type="text" {...field} />
+                    </FormControl>
+                  </div>
+                  <FormMessage>{errors.travelAgentName?.message}</FormMessage>
                 </FormItem>
               )}
             />
@@ -123,7 +240,9 @@ const InvoiceForm = forwardRef(({ onFormStatus, /*onInvoiceSuccess*/ }: InvoiceF
                     <div className="flex items-center gap-2">
                       <Button
                         type="button"
-                        onClick={() => field.onChange(Math.max(field.value - 1, 0))}
+                        onClick={() =>
+                          field.onChange(Math.max(field.value - 1, 0))
+                        }
                         className="bg-white text-black border border-gray-300 hover:bg-white hover:text-black"
                       >
                         -
@@ -174,7 +293,9 @@ const InvoiceForm = forwardRef(({ onFormStatus, /*onInvoiceSuccess*/ }: InvoiceF
                     <div className="flex items-center gap-2">
                       <Button
                         type="button"
-                        onClick={() => field.onChange(Math.max(field.value - 1, 0))}
+                        onClick={() =>
+                          field.onChange(Math.max(field.value - 1, 0))
+                        }
                         className="bg-white text-black border border-gray-300 hover:bg-white hover:text-black"
                       >
                         -
@@ -256,10 +377,112 @@ const InvoiceForm = forwardRef(({ onFormStatus, /*onInvoiceSuccess*/ }: InvoiceF
             />
           </div>
 
+          <FormField
+            control={control}
+            name="currencyType"
+            rules={{ required: "Currency is required" }}
+            render={({ field }) => (
+              <FormItem className="flex items-center">
+                <FormLabel className="w-40">Currency</FormLabel>
+                <FormControl>
+                  <select {...field} className="border p-2 rounded w-100">
+                    <option value="LKR">LKR</option>
+                    <option value="USD">USD</option>
+                    <option value="EURO">EURO</option>
+                  </select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="space-y-3 pt-4 border-t">
+            <div className="flex justify-between items-center">
+              <h3 className="font-semibold">Rooms</h3>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => append({ category: "", count: 1, price: 0 })}
+              >
+                + Add Room
+              </Button>
+            </div>
+
+            {fields.map((field, index) => (
+              <div
+                key={field.id}
+                className="grid grid-cols-4 gap-4 items-end border p-4 rounded-md"
+              >
+                <FormField
+                  control={control}
+                  name={`rooms.${index}.category`}
+                  rules={{ required: "Required" }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Category</FormLabel>
+                      <FormControl>
+                        <select
+                          {...field}
+                          className="border p-2 rounded w-full"
+                        >
+                          <option value="">Select</option>
+                          {roomTypes.map((room) => (
+                            <option key={room._id} value={room._id}>
+                              {room.type}
+                            </option>
+                          ))}
+                        </select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={control}
+                  name={`rooms.${index}.count`}
+                  rules={{ required: "Required", min: 1 }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Count</FormLabel>
+                      <Input type="number" {...field} min={1} />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={control}
+                  name={`rooms.${index}.price`}
+                  rules={{ required: "Required", min: 0 }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Per Day Price</FormLabel>
+                      <Input type="number" {...field} min={0} />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => remove(index)}
+                >
+                  Remove
+                </Button>
+              </div>
+            ))}
+          </div>
+
           {/* ✅ Submit */}
           <div className="flex justify-end">
             <Button type="submit" className="w-1/2">
-              Continue
+              {loading ? (
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              ) : (
+                "Generate Invoice"
+              )}
             </Button>
           </div>
         </form>
