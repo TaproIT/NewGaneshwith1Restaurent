@@ -83,7 +83,7 @@ const OrderInitialDetails: React.FC = () => {
         <div className="grid grid-cols-2">
           <p className="col-span-1">Customer Name</p>
           <p className="col-span-1">
-            : <span className="px-2">{order.guestName || "John Doe"}</span>
+            : <span className="px-2">{order.guestName || ""}</span>
           </p>
         </div>
 
@@ -105,6 +105,15 @@ const OrderInitialDetails: React.FC = () => {
             <p className="col-span-1">Table</p>
             <p className="col-span-1">
               : <span className="px-2">{order.restaurantTable?.name}</span>
+            </p>
+          </div>
+        )}
+
+         {order.checkOutUser && (
+          <div className="grid grid-cols-2">
+            <p className="col-span-1">Staff Member</p>
+            <p className="col-span-1">
+              : <span className="px-2">{order.checkOutUser?.name}</span>
             </p>
           </div>
         )}
