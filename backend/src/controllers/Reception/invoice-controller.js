@@ -122,18 +122,33 @@ export const getInvoices = async (req, res) => {
       if (toDate) filter.checkInDate.$lte = new Date(toDate);
     }
 
-    // Fetch invoices and populate room numbers
+    // ✅ Populate room category details inside selectedRooms
     const invoices = await Invoice.find(filter)
       .populate({
-        path: "roomIds",
-        select: "no -_id", // Only get room number, exclude _id
+        path: "selectedRooms.roomCategory", // populate the referenced RoomCategory
+        select: "name type description", // select only the fields you want
       })
       .sort({ createdAt: -1 });
 
-    // Transform data to show room numbers as array of strings
+    // ✅ Transform invoices to include only relevant info
     const formattedInvoices = invoices.map((invoice) => ({
-      ...invoice.toObject(),
-      roomNumbers: invoice.roomIds.map((room) => room.no),
+      invoiceNumber: invoice.invoiceNumber,
+      checkInDate: invoice.checkInDate,
+      checkOutDate: invoice.checkOutDate,
+      hotelType: invoice.hotelType,
+      customerName: invoice.customerName,
+      travelAgentName: invoice.travelAgentName,
+      numberOfMembers: invoice.numberOfMembers,
+      currencyType: invoice.currencyType,
+      total: invoice.total,
+      createdAt: invoice.createdAt,
+      selectedRooms: invoice.selectedRooms.map((room) => ({
+        category: room.roomCategory ? room.roomCategory.name : "Unknown",
+        type: room.roomCategory ? room.roomCategory.type : null,
+        description: room.roomCategory ? room.roomCategory.description : null,
+        count: room.count,
+        perDayPrice: room.perDayPrice,
+      })),
     }));
 
     return sendSuccessResponse(res, 200, "Invoices retrieved successfully", {
@@ -144,5 +159,6 @@ export const getInvoices = async (req, res) => {
     return sendErrorResponse(res, 500, "Internal Server Error", error.message);
   }
 };
+
 
 
