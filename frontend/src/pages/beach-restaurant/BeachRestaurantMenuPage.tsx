@@ -12,11 +12,12 @@ import AddCategorySection from '@/component/beach-&-pool-restaurant/menu/AddCate
 import OrderBillDetailsModal from '@/component/beach-&-pool-restaurant/order-details/OrderBillDetailsModal';
 import { setIsClickAddNewFoodItem } from '@/features/beach-restaurant/foodSlice';
 import UpdateItemSection from '@/component/beach-&-pool-restaurant/menu/UpdateFoodItemSection';
+import UpdateCategorySection from '@/component/beach-&-pool-restaurant/menu/UpdateFoodCategorySection';
 
 const BeachRestaurantMenuPage: React.FC = () => {
   const orderTokens = useSelector((state:RootState) => state.order.orderTokens);
   const isClickAddNewFoodItem = useSelector((state:RootState) => state.food.isClickAddNewFoodItem);
-  const isClickedAddFoodCategory = useSelector((state:RootState) => state.foodCategory.isClickedAddFoodCategory);
+  const { isClickedAddFoodCategory, isClickedUpdateFoodCategory } = useSelector((state:RootState) => state.foodCategory);
   const dispatch = useDispatch<AppDispatch>();
 
   const param = useParams();
@@ -41,7 +42,7 @@ const BeachRestaurantMenuPage: React.FC = () => {
           id==="0" ? (
             isClickAddNewFoodItem ? (<AddFoodItemSection/>)
              : isClickedAddFoodCategory ? (<AddCategorySection />) 
-               :(<UpdateItemSection />)
+               : isClickedUpdateFoodCategory ? (<UpdateCategorySection />) : (<UpdateItemSection />)
           ): (
             <OrderDetailsSection />
           )

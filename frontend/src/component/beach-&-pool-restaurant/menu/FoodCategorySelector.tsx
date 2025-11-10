@@ -4,13 +4,13 @@ import {
   setSelectedCategory,
   setIsBeverageItemsList,
 } from "@/features/beach-restaurant/beverageCategorySlice";
-import { setIsClickedAddFoodCategory, setIsFoodCategory, setSelectedCategoryId, setSelectedFoodCategoryTitle } from "@/features/beach-restaurant/foodCategorySlice";
+import { setIsClickedAddFoodCategory, setIsClickedUpdateFoodCategory, setIsFoodCategory, setSelectedCategoryId, setSelectedFoodCategoryTitle } from "@/features/beach-restaurant/foodCategorySlice";
 import { setIsClickAddNewFoodItem, setSelectedFoodItem } from "@/features/beach-restaurant/foodSlice";
 import React, { useRef, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "react-toastify";
-import { Plus } from "lucide-react";
+import { Edit, Plus } from "lucide-react";
 import { setSelectedBeverageItem, setSelectedExtraBeverageItem } from "@/features/beach-restaurant/beverageSlice";
 
 const FoodCategorySelector: React.FC<{id:string}> = ({id}) => {
@@ -74,6 +74,7 @@ useEffect(() => {
   }, [selectedIndex]);
 
   const handleClick = (index: number) => {
+    dispatch(setIsFoodCategory(true));
     dispatch(setSelectedCategory(""));
     dispatch(setSelectedCategoryId(categories[index]._id));
     dispatch(setIsBeverageItemsList(false));
@@ -111,6 +112,13 @@ useEffect(() => {
     dispatch(setIsClickAddNewFoodItem(false));
   }
 
+  const handleUpdateFoodCategory = () => {
+     dispatch(setIsFoodCategory(true));
+     dispatch(setIsClickedUpdateFoodCategory(true));
+     dispatch(setIsClickedAddFoodCategory(false));
+     dispatch(setIsClickAddNewFoodItem(false));
+  }
+
   return (
     <div className="relative flex flex-col items-start w-full">
       <div
@@ -132,34 +140,62 @@ useEffect(() => {
           : categories.map((cat, index) => {
               const isSelected = cat._id === selectedCategoryId;
               return (
-                <div
-                  key={cat._id}
-                  ref={(el) => {
-                    itemRefs.current[index] = el;
-                  }}
-                  onClick={() => handleClick(index)}
-                  className={`px-4 py-4 w-[22%] min-h-[70px]  max-h-[70px] flex-shrink-0 flex items-center justify-center text-[0.75rem] font-medium cursor-pointer rounded-md
+                <>
+                  <div
+                    key={cat._id}
+                    ref={(el) => {
+                      itemRefs.current[index] = el;
+                    }}
+                    onClick={() => handleClick(index)}
+                    className={`relative px-4 py-4 w-[22%] min-h-[70px]  max-h-[70px] flex-shrink-0 flex items-center justify-center text-[0.75rem] font-medium cursor-pointer rounded-md
                 ${
                   isSelected
                     ? "bg-[#B24E0E] text-white"
                     : "bg-transparent text-[#5B5B5B] border border-[#CECECE]"
                 }`}
-                >
-                  {cat.categoryName}
-                </div>
+                  >
+                    {cat.categoryName}
+                  </div>
+                  {/* {isMenuHandlingPage && (
+                    <div className="" onClick={handleUpdateFoodCategory}>
+                      <Edit2 size={22} />
+                    </div>
+                  )} */}
+                </>
               );
             })}
       </div>
       {/* Add New Category Button (fixed to right) */}
       {isMenuHandlingPage && (
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 pr-1 bg-white">
-          <div
-            className="py-5 px-12 flex items-center justify-center border rounded-sm cursor-pointer"
-            onClick={handleAddNewFoodCategory}
-          >
-            <Plus size={24} className="text-[#0A869D]" />
+        <>
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 pr-1 bg-white">
+            <div
+              className="py-5 px-4 flex items-center justify-center border rounded-sm cursor-pointer"
+              onClick={handleAddNewFoodCategory}
+            >
+              <Plus size={24} className="text-[#0A869D]" />
+            </div>
           </div>
-        </div>
+
+          <div
+            className={`absolute right-[9%] top-1/2 -translate-y-1/2 pr-1 bg-white ${
+              !foodCategory.isFoodCategory
+                ? "opacity-50 cursor-not-allowed"
+                : "cursor-pointer"
+            }`}
+          >
+            <div
+              className="py-5 px-4 flex items-center justify-center border rounded-sm"
+              onClick={
+                foodCategory.isFoodCategory
+                  ? handleUpdateFoodCategory
+                  : undefined
+              }
+            >
+              <Edit size={24} className="text-[#0A869D]" />
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

@@ -1,8 +1,10 @@
 import { addNewBeverage } from "@/api/order/add-beverage-api";
 import { addNewExtraBeverage } from "@/api/order/add-extra-beverage-api";
 import { deleteExtraBeverageItem } from "@/api/order/delete-extra-beverage-api";
+import { deleteExtraBeverageCategory } from "@/api/order/delete-extra-beverage-category-api";
 import { fetchAllBeverageItems } from "@/api/order/get-beverage-list-api";
 import { fetchAllExtraBeverageItems } from "@/api/order/get-extra-beverage-list-api";
+import { updateExtraBeverageCategory } from "@/api/order/update-extra-beverage-category-api";
 import { updateExtraBeverage } from "@/api/order/update-extra-beverage-item-api";
 import type { BeverageItems } from "@/component/beach-&-pool-restaurant/beverage-model";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
@@ -38,6 +40,14 @@ const initialState: BeverageItems = {
     error: null
   },
   deleteExtraBeverageItemStatus: {
+    loading: false,
+    error: null
+  },
+   updateExtraBeverageCategoryStatus: {
+    loading: false,
+    error: null
+  },
+  deleteExtraBeverageCategoryStatus: {
     loading: false,
     error: null
   },
@@ -202,6 +212,39 @@ const beverageSlice = createSlice({
       .addCase(deleteExtraBeverageItem.rejected, (state, action) => {
         state.deleteExtraBeverageItemStatus.loading = true;
         state.deleteExtraBeverageItemStatus.error = action.payload as string;
+      })
+
+       // update extra beverage category
+      .addCase(updateExtraBeverageCategory.pending, (state) => {
+        state.updateExtraBeverageCategoryStatus.loading = true;
+        state.updateExtraBeverageCategoryStatus.error = null;
+      })
+
+      .addCase(updateExtraBeverageCategory.fulfilled, (state) => {
+        state.updateExtraBeverageCategoryStatus.loading = false;
+        state.updateExtraBeverageCategoryStatus.error = null;
+      })
+
+      .addCase(updateExtraBeverageCategory.rejected, (state, action) => {
+        state.updateExtraBeverageCategoryStatus.loading = true;
+        state.updateExtraBeverageCategoryStatus.error = action.payload as string;
+      })
+
+
+      //delete extra beverage category
+      .addCase(deleteExtraBeverageCategory.pending, (state) => {
+        state.deleteExtraBeverageCategoryStatus.loading = true;
+        state.deleteExtraBeverageItemStatus.error = null;
+      })
+
+      .addCase(deleteExtraBeverageCategory.fulfilled, (state) => {
+        state.deleteExtraBeverageCategoryStatus.loading = false;
+        state.deleteExtraBeverageCategoryStatus.error = null;
+      })
+
+      .addCase(deleteExtraBeverageCategory.rejected, (state, action) => {
+        state.deleteExtraBeverageCategoryStatus.loading = true;
+        state.deleteExtraBeverageCategoryStatus.error = action.payload as string;
       });
   },
   
