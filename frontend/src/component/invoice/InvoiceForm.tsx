@@ -114,6 +114,8 @@ const InvoiceForm = () => {
     }
   };
 
+  console.log()
+
   useEffect(() => {
     const fetchRoomTypes = async () => {
       try {
@@ -126,17 +128,9 @@ const InvoiceForm = () => {
     fetchRoomTypes();
   }, []);
 
-  useEffect(() => {
-    const rooms = watch("rooms") || [];
-    const stay = watch("lengthOfStay") || 0;
+  const rooms = watch("rooms");
+const stay = watch("lengthOfStay");
 
-    let total = 0;
-    rooms.forEach((r) => {
-      total += (r.price || 0) * (r.count || 0) * stay;
-    });
-
-    setValue("total", total);
-  }, [watch("rooms"), watch("lengthOfStay"), setValue]);
 
   return (
     <div className="bg-mainWhite p-6 rounded-2xl mb-5">
@@ -405,55 +399,53 @@ const InvoiceForm = () => {
                 className="grid grid-cols-4 gap-4 items-end border p-4 rounded-md"
               >
                 <FormField
-                  control={control}
-                  name={`rooms.${index}.category`}
-                  rules={{ required: "Required" }}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Category</FormLabel>
-                      <FormControl>
-                        <select
-                          {...field}
-                          className="border p-2 rounded w-full"
-                        >
-                          <option value="">Select</option>
-                          {roomTypes.map((room) => (
-                            <option key={room._id} value={room._id}>
-                              {room.type}
-                            </option>
-                          ))}
-                        </select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+  control={control}
+  name={`rooms.${index}.category`}
+  defaultValue={field.category}
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Category</FormLabel>
+      <FormControl>
+        <select {...field} className="border p-2 rounded w-full">
+          <option value="">Select</option>
+          {roomTypes.map((room) => (
+            <option key={room._id} value={room._id}>
+              {room.type}
+            </option>
+          ))}
+        </select>
+      </FormControl>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
 
-                <FormField
-                  control={control}
-                  name={`rooms.${index}.count`}
-                  rules={{ required: "Required", min: 1 }}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Count</FormLabel>
-                      <Input type="number" {...field} min={1} />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+<FormField
+  control={control}
+  name={`rooms.${index}.count`}
+  defaultValue={field.count}
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Count</FormLabel>
+      <Input type="number" {...field} min={1} />
+      <FormMessage />
+    </FormItem>
+  )}
+/>
 
-                <FormField
-                  control={control}
-                  name={`rooms.${index}.price`}
-                  rules={{ required: "Required", min: 0 }}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Per Day Price</FormLabel>
-                      <Input type="number" {...field} min={0} />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+<FormField
+  control={control}
+  name={`rooms.${index}.price`}
+  defaultValue={field.price}
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Per Day Price</FormLabel>
+      <Input type="number" {...field} min={0} />
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+
 
                 <Button
                   type="button"
@@ -465,6 +457,29 @@ const InvoiceForm = () => {
               </div>
             ))}
           </div>
+
+          <div className="flex justify-end pt-3">
+  <Button
+    type="button"
+    variant="outline"
+    onClick={() => {
+      const rooms = watch("rooms");
+      const stay = watch("lengthOfStay") || 0;
+
+      let total = 0;
+      rooms.forEach((r) => {
+        const price = Number(r.price) || 0;
+        const count = Number(r.count) || 0;
+        total += price * count * stay;
+      });
+
+      setValue("total", total);
+      console.log(total)
+    }}
+  >
+    Confirm Rooms
+  </Button>
+</div>
 
           {/* ✅ Submit */}
           <div className="flex justify-end">
