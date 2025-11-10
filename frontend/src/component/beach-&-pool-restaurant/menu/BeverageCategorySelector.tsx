@@ -22,6 +22,10 @@ const BeverageCategorySelector: React.FC<{id:string}> = ({id}) => {
     (state: RootState) => state.beverageCategory
   );
 
+   const foodCategory = useSelector(
+    (state: RootState) => state.foodCategory
+  );
+
   const isMenuHandlingPage = (id === "0");
 
   const selectedCategory = beverageCategory.selectedCategory;
@@ -31,6 +35,11 @@ const BeverageCategorySelector: React.FC<{id:string}> = ({id}) => {
   const categories = Object.values(BeverageCategories);
 
   const extraCategories = beverageCategory.extraCategories;
+
+  const isExtraBeverageCategory =
+              selectedCategory !== BeverageCategories.HARD_LIQUOR.value &&
+              selectedCategory !== BeverageCategories.SOFT_DRINKS.value;
+  
 
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -62,6 +71,7 @@ const BeverageCategorySelector: React.FC<{id:string}> = ({id}) => {
   }, [selectedIndex]);
 
   const handleClick = (category: string) => {
+    dispatch(setIsFoodCategory(false));
     dispatch(setSelectedCategory(category));
     dispatch(setSelectedCategoryId(""));
     dispatch(setIsBeverageItemsList(true));
@@ -149,10 +159,20 @@ const BeverageCategorySelector: React.FC<{id:string}> = ({id}) => {
             </div>
           </div>
 
-          <div className="sticky left-0 bottom-5 w-[48%] pr-1 bg-white">
+          <div
+            className={`sticky left-0 bottom-5 w-[48%] pr-1 bg-white ${
+              foodCategory.isFoodCategory || (!isExtraBeverageCategory)
+                ? "opacity-50 cursor-not-allowed"
+                : "cursor-pointer"
+            }`}
+          >
             <div
-              className="py-5 w-full flex items-center justify-center border rounded-sm cursor-pointer"
-              onClick={handleUpdateBeverageCategory}
+              className="py-5 w-full flex items-center justify-center border rounded-sm"
+              onClick={
+                !foodCategory.isFoodCategory
+                  ? handleUpdateBeverageCategory
+                  : undefined
+              }
             >
               <Edit size={24} className="text-[#0A869D]" />
             </div>

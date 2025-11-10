@@ -74,6 +74,7 @@ useEffect(() => {
   }, [selectedIndex]);
 
   const handleClick = (index: number) => {
+    dispatch(setIsFoodCategory(true));
     dispatch(setSelectedCategory(""));
     dispatch(setSelectedCategoryId(categories[index]._id));
     dispatch(setIsBeverageItemsList(false));
@@ -112,7 +113,7 @@ useEffect(() => {
   }
 
   const handleUpdateFoodCategory = () => {
-    console.log("edit category")
+     dispatch(setIsFoodCategory(true));
      dispatch(setIsClickedUpdateFoodCategory(true));
      dispatch(setIsClickedAddFoodCategory(false));
      dispatch(setIsClickAddNewFoodItem(false));
@@ -176,10 +177,20 @@ useEffect(() => {
             </div>
           </div>
 
-          <div className="absolute right-[9%] top-1/2 -translate-y-1/2 pr-1 bg-white">
+          <div
+            className={`absolute right-[9%] top-1/2 -translate-y-1/2 pr-1 bg-white ${
+              !foodCategory.isFoodCategory
+                ? "opacity-50 cursor-not-allowed"
+                : "cursor-pointer"
+            }`}
+          >
             <div
-              className="py-5 px-4 flex items-center justify-center border rounded-sm cursor-pointer"
-              onClick={handleUpdateFoodCategory}
+              className="py-5 px-4 flex items-center justify-center border rounded-sm"
+              onClick={
+                foodCategory.isFoodCategory
+                  ? handleUpdateFoodCategory
+                  : undefined
+              }
             >
               <Edit size={24} className="text-[#0A869D]" />
             </div>

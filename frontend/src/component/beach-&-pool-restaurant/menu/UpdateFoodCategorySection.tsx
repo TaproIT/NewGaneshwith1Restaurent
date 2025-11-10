@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { setSelectedCategory } from "@/features/beach-restaurant/beverageCategorySlice";
+import { setIsClickAddNewFoodItem } from "@/features/beach-restaurant/foodSlice";
+import { BeverageCategories } from "@/lib/enums/order-related-enums";
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -83,9 +86,13 @@ const UpdateCategorySection = () => {
       }
 
        await dispatch(deleteExtraBeverageCategory({ categoryId: selectedCategory }));
-       return toast.success("Extra beverage category deleted successfully!");
+       
+       dispatch(setIsClickAddNewFoodItem(true))
+       dispatch(setSelectedCategory(BeverageCategories.HARD_LIQUOR.value));
+
+       toast.success("Extra beverage category deleted successfully!");
     } catch (err: any) {
-      toast.error(err?.message || "Failed to delete item");
+      toast.error(err?.message || "Failed to delete Category");
     }
   };
 
