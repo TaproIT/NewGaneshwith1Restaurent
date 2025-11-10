@@ -64,7 +64,7 @@ const bookingSchema = new mongoose.Schema(
                 roomId: { type: mongoose.Schema.Types.ObjectId, ref: "Room", required: true },
                 roomNo: { type: String, required: true },
                 perDayPrice: { type: Number, required: true },
-                night: { type: Number, required: true },
+                night: { type: Number },
 
                 finalRoomTotalPrice: { type: Number },
                 discountPrice: { type: Number },
