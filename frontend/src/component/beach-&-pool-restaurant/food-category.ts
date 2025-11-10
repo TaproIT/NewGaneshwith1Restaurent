@@ -1,5 +1,3 @@
-import type { deleteFoodCategory } from "@/api/order/delete-food-category-api";
-
 export interface FoodCategory {
   _id: string;
   categoryName: string;

@@ -10,7 +10,7 @@ import React, { useRef, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "react-toastify";
-import { Edit, Edit2, Plus } from "lucide-react";
+import { Edit, Plus } from "lucide-react";
 import { setSelectedBeverageItem, setSelectedExtraBeverageItem } from "@/features/beach-restaurant/beverageSlice";
 
 const FoodCategorySelector: React.FC<{id:string}> = ({id}) => {

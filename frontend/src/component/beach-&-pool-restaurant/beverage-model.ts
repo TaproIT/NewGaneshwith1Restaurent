@@ -1,5 +1,3 @@
-import type { deleteExtraBeverageItem } from "@/api/order/delete-extra-beverage-api"
-
 export interface FetchAllBeverageItemsStatus {
      loading: boolean,
      error: string | null
