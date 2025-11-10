@@ -77,21 +77,21 @@ const FoodItemSelector: React.FC<FoodItemSelectorProps> = ({ foodItem }) => {
      onClick={handleSelection}
     >
       {/* Food item name */}
-      <div className="py-6 flex items-center justify-center text-[#444444] text-[0.625rem] capitalize bg-[#F4F4F4] rounded-sm">
+      <div className="py-7 px-2 h-[90px] max-h-[90px] flex items-center justify-center text-[#444444] text-[0.8rem] text-center capitalize bg-[#F4F4F4] rounded-sm">
         {foodItem.itemName}
       </div>
 
       {/* Price and Add button */}
       <div className="grid grid-cols-7 gap-1">
-        <div className="py-1.5 col-span-5 bg-[#F4F4F4] flex items-center justify-center rounded-sm">
-          <p className="text-[#0A869D] text-[0.75rem]">{displayPrice}</p>
+        <div className="py-2.5 col-span-5 bg-[#F4F4F4] flex items-center justify-center rounded-sm">
+          <p className="text-[#0A869D] text-[0.85rem]">{displayPrice}</p>
         </div>
         <Button
           className="col-span-2 !w-full !h-full flex items-center justify-center rounded-sm cursor-pointer"
           onClick={handleAddClick}
           disabled={isDisabled}
         >
-          <Plus size={16} className="text-[#FEFEFE]" />
+          <Plus size={20} className="text-[#FEFEFE]" />
         </Button>
       </div>
     </div>
