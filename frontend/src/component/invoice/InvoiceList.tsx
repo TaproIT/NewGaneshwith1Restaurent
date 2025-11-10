@@ -62,6 +62,7 @@ const InvoiceList = () => {
                   <th className="py-3 px-4 text-left">No.</th>
                   <th className="py-3 px-4 text-left">Invoice</th>
                   <th className="py-3 px-4 text-left">Customer</th>
+                  <th className="py-3 px-4 text-left">Agent Name</th>
                   <th className="py-3 px-4 text-left">Members</th>
                   <th className="py-3 px-4 text-left">Total</th>
                   <th className="py-3 px-4 text-left">Created</th>
@@ -74,7 +75,8 @@ const InvoiceList = () => {
                   <tr key={inv._id} className="border-b hover:bg-gray-50">
                     <td className="py-2 px-4">{index + 1}</td>
                     <td className="py-2 px-4">{inv.invoiceNumber}</td>
-                    <td className="py-2 px-4">{inv.customerName}</td>
+                    <td className="py-2 px-4">{inv.customerName||"N/A"}</td>
+                    <td className="py-2 px-4">{inv.travelAgentName||"N/A"}</td>
                     <td className="py-2 px-4">{inv.numberOfMembers}</td>
                     <td className="py-2 px-4">{inv.total.$numberDecimal}</td>
                     <td className="py-2 px-4">{new Date(inv.createdAt).toLocaleDateString()}</td>
