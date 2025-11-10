@@ -36,9 +36,6 @@ const invoiceSchema = new mongoose.Schema(
         },
       },
     ],
-    subTotal: { type: mongoose.Schema.Types.Decimal128, required: true },
-    tax: { type: mongoose.Schema.Types.Decimal128, default: 0 },
-    discount: { type: mongoose.Schema.Types.Decimal128, default: 0 },
     total: { type: mongoose.Schema.Types.Decimal128, required: true },
   },
   { timestamps: true }
