@@ -1,4 +1,4 @@
-import { useEffect, useImperativeHandle, forwardRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,12 +19,7 @@ import {
 import { api } from "@/api/axios";
 import { toast } from "react-toastify";
 
-interface InvoiceFormProps {
-  onFormStatus: (status: boolean) => void;
-  onInvoiceSuccess?: () => void;
-}
-
-const InvoiceForm = forwardRef(({ onFormStatus }: InvoiceFormProps, ref) => {
+const InvoiceForm = () => {
   const dispatch = useDispatch();
   const invoiceFormData = useSelector(
     (state: RootState) => state.invoice.invoiceFormData
@@ -57,23 +52,20 @@ const InvoiceForm = forwardRef(({ onFormStatus }: InvoiceFormProps, ref) => {
     name: "rooms",
   });
 
-  useImperativeHandle(ref, () => ({
-    resetForm() {
-      reset({
-        customerName: "",
-        travelAgentName: "",
-        checkIn: "",
-        checkOut: "",
-        adults: 0,
-        kids: 0,
-        totalGuests: 0,
-        lengthOfStay: 0,
-        hotelType: "",
-        rooms: [{ category: "", count: 1, price: 0 }],
-      });
-      onFormStatus(false);
-    },
-  }));
+  useEffect(() => {
+    reset({
+      customerName: "",
+      travelAgentName: "",
+      checkIn: "",
+      checkOut: "",
+      adults: 0,
+      kids: 0,
+      totalGuests: 0,
+      lengthOfStay: 0,
+      hotelType: "",
+      rooms: [{ category: "", count: 1, price: 0 }],
+    });
+  }, [reset]);
 
   useEffect(() => {
     if (checkIn && checkOut) {
@@ -114,7 +106,6 @@ const InvoiceForm = forwardRef(({ onFormStatus }: InvoiceFormProps, ref) => {
       reset();
 
       dispatch(setInvoiceData(data));
-      onFormStatus(true);
     } catch (error: any) {
       console.error(error);
       toast.error(error?.response?.data?.message || "Failed to create invoice");
@@ -122,6 +113,8 @@ const InvoiceForm = forwardRef(({ onFormStatus }: InvoiceFormProps, ref) => {
       setLoading(false);
     }
   };
+
+  console.log();
 
   useEffect(() => {
     const fetchRoomTypes = async () => {
@@ -134,18 +127,6 @@ const InvoiceForm = forwardRef(({ onFormStatus }: InvoiceFormProps, ref) => {
     };
     fetchRoomTypes();
   }, []);
-
-  useEffect(() => {
-    const rooms = watch("rooms") || [];
-    const stay = watch("lengthOfStay") || 0;
-
-    let total = 0;
-    rooms.forEach((r) => {
-      total += (r.price || 0) * (r.count || 0) * stay;
-    });
-
-    setValue("total", total);
-  }, [watch("rooms"), watch("lengthOfStay"), setValue]);
 
   return (
     <div className="bg-mainWhite p-6 rounded-2xl mb-5">
@@ -416,7 +397,7 @@ const InvoiceForm = forwardRef(({ onFormStatus }: InvoiceFormProps, ref) => {
                 <FormField
                   control={control}
                   name={`rooms.${index}.category`}
-                  rules={{ required: "Required" }}
+                  defaultValue={field.category}
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Category</FormLabel>
@@ -441,7 +422,7 @@ const InvoiceForm = forwardRef(({ onFormStatus }: InvoiceFormProps, ref) => {
                 <FormField
                   control={control}
                   name={`rooms.${index}.count`}
-                  rules={{ required: "Required", min: 1 }}
+                  defaultValue={field.count}
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Count</FormLabel>
@@ -454,7 +435,7 @@ const InvoiceForm = forwardRef(({ onFormStatus }: InvoiceFormProps, ref) => {
                 <FormField
                   control={control}
                   name={`rooms.${index}.price`}
-                  rules={{ required: "Required", min: 0 }}
+                  defaultValue={field.price}
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Per Day Price</FormLabel>
@@ -475,6 +456,29 @@ const InvoiceForm = forwardRef(({ onFormStatus }: InvoiceFormProps, ref) => {
             ))}
           </div>
 
+          <div className="flex justify-end pt-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                const rooms = watch("rooms");
+                const stay = watch("lengthOfStay") || 0;
+
+                let total = 0;
+                rooms.forEach((r) => {
+                  const price = Number(r.price) || 0;
+                  const count = Number(r.count) || 0;
+                  total += price * count * stay;
+                });
+
+                setValue("total", total);
+                console.log(total);
+              }}
+            >
+              Confirm Rooms
+            </Button>
+          </div>
+
           {/* ✅ Submit */}
           <div className="flex justify-end">
             <Button type="submit" className="w-1/2">
@@ -489,6 +493,6 @@ const InvoiceForm = forwardRef(({ onFormStatus }: InvoiceFormProps, ref) => {
       </Form>
     </div>
   );
-});
+};
 
 export default InvoiceForm;
