@@ -394,6 +394,7 @@ export const addOrderToken = async (req, res) => {
 
 export const updateOrderBillDetails = async (req, res) => {
   try {
+    const {userId} = req.user;
     const { id } = req.params;
     const {
       subTotal,
@@ -427,7 +428,8 @@ export const updateOrderBillDetails = async (req, res) => {
         serviceCharge,
         totalBill,
         paymentMethod,
-        orderStatus: OrderStatuses.COMPLETED.value
+        orderStatus: OrderStatuses.COMPLETED.value,
+        checkOutUser: userId
       },
       { new: true, runValidators: true }
     );
@@ -493,7 +495,11 @@ export const getOrderDetails = async (req, res) => {
             model: "BeverageOrderItem",
           },
         ],
-      });
+      })
+      .populate({
+        path: "checkOutUser",
+        select: "_id name userRole",
+      })
 
     if (!order) {
       return sendErrorResponse(res, 404, "Order not found");

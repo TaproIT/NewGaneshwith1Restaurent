@@ -53,6 +53,7 @@ const initialState: Order = {
   serviceCharge: 0,
   totalBill: 0,
   paymentMethod: "",
+  checkOutUser: null,
   isOrderBillDetailsOpen: false,
   orderInitialDataStatus: {
      error:null,
