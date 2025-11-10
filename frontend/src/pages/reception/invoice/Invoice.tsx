@@ -6,9 +6,6 @@ import { api } from "@/api/axios";
 import type { RootState } from "@/app/store";
 import type { Room } from "@/types/roomTypes";
 import InvoiceForm from "@/component/invoice/InvoiceForm";
-import RoomDetails from "@/component/room/RoomDetails";
-import RoomGrid from "@/component/room/RoomGrid";
-import RoomGridSkeleton from "@/component/skeleton/RoomGridSkeleton";
 import InvoiceList from "@/component/invoice/InvoiceList";
 
 const SOCKET_URL = import.meta.env.SOCKET_URL;
@@ -16,14 +13,10 @@ const SOCKET_URL = import.meta.env.SOCKET_URL;
 const Invoice = () => {
   const [view, setView] = useState<"create" | "list">("create");
   const [rooms, setRooms] = useState<Room[]>([]);
-  const [selectedRooms, setSelectedRooms] = useState<Room[]>([]);
-  const [viewedRoom, setViewedRoom] = useState<Room | null>(null);
   const [loadingRooms, setLoadingRooms] = useState(true);
   const [isFormComplete, setIsFormComplete] = useState(false);
   const formRef = useRef<any>(null);
   const socketRef = useRef<Socket | null>(null);
-
-  const guestDetails = useSelector((state: RootState) => state.onboarding.step01Data);
 
   // Fetch rooms and init socket
   useEffect(() => {
@@ -58,46 +51,6 @@ const Invoice = () => {
     };
   }, []);
 
-  // Handlers
-  const handleInvoiceSuccess = () => {
-    setSelectedRooms([]);
-    setViewedRoom(null);
-    setIsFormComplete(false);
-
-    selectedRooms.forEach((room) => {
-      socketRef.current?.emit("unlockRoom", room.no);
-    });
-
-    formRef.current?.resetForm?.();
-  };
-
-  const handleRemoveRoom = (roomNo: string) => {
-    setSelectedRooms((prev) => prev.filter((r) => r.no !== roomNo));
-    if (viewedRoom?.no === roomNo) setViewedRoom(null);
-    socketRef.current?.emit("unlockRoom", roomNo);
-  };
-
-  const handleRoomClick = (room: Room) => {
-    if (room.isBooked || room.isMaintenance) return;
-
-    setViewedRoom(room);
-    setSelectedRooms((prev) =>
-      prev.find((r) => r.no === room.no)
-        ? prev.filter((r) => r.no !== room.no)
-        : [...prev, room]
-    );
-
-    if (selectedRooms.find((r) => r.no === room.no)) {
-      socketRef.current?.emit("unlockRoom", room.no);
-    } else {
-      socketRef.current?.emit("lockRoom", room.no);
-    }
-  };
-
-  const handleFormStatus = (status: boolean) => {
-    setIsFormComplete(status);
-  };
-
   return (
     <div className={`grid gap-5`}>
       {/* Left side */}
@@ -125,7 +78,7 @@ const Invoice = () => {
         {/* Content */}
         {view === "create" ? (
           <>
-            <InvoiceForm onFormStatus={handleFormStatus} ref={formRef} />
+            <InvoiceForm />
             {/* {loadingRooms ? (
               <RoomGridSkeleton />
             ) : (

@@ -1,4 +1,4 @@
-import { useEffect, useImperativeHandle, forwardRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,12 +19,7 @@ import {
 import { api } from "@/api/axios";
 import { toast } from "react-toastify";
 
-interface InvoiceFormProps {
-  onFormStatus: (status: boolean) => void;
-  onInvoiceSuccess?: () => void;
-}
-
-const InvoiceForm = forwardRef(({ onFormStatus }: InvoiceFormProps, ref) => {
+const InvoiceForm = () => {
   const dispatch = useDispatch();
   const invoiceFormData = useSelector(
     (state: RootState) => state.invoice.invoiceFormData
@@ -57,23 +52,20 @@ const InvoiceForm = forwardRef(({ onFormStatus }: InvoiceFormProps, ref) => {
     name: "rooms",
   });
 
-  useImperativeHandle(ref, () => ({
-    resetForm() {
-      reset({
-        customerName: "",
-        travelAgentName: "",
-        checkIn: "",
-        checkOut: "",
-        adults: 0,
-        kids: 0,
-        totalGuests: 0,
-        lengthOfStay: 0,
-        hotelType: "",
-        rooms: [{ category: "", count: 1, price: 0 }],
-      });
-      onFormStatus(false);
-    },
-  }));
+      useEffect(() => {
+  reset({
+    customerName: "",
+    travelAgentName: "",
+    checkIn: "",
+    checkOut: "",
+    adults: 0,
+    kids: 0,
+    totalGuests: 0,
+    lengthOfStay: 0,
+    hotelType: "",
+    rooms: [{ category: "", count: 1, price: 0 }],
+  });
+}, [reset])
 
   useEffect(() => {
     if (checkIn && checkOut) {
@@ -114,7 +106,6 @@ const InvoiceForm = forwardRef(({ onFormStatus }: InvoiceFormProps, ref) => {
       reset();
 
       dispatch(setInvoiceData(data));
-      onFormStatus(true);
     } catch (error: any) {
       console.error(error);
       toast.error(error?.response?.data?.message || "Failed to create invoice");
@@ -489,6 +480,6 @@ const InvoiceForm = forwardRef(({ onFormStatus }: InvoiceFormProps, ref) => {
       </Form>
     </div>
   );
-});
+};
 
 export default InvoiceForm;
