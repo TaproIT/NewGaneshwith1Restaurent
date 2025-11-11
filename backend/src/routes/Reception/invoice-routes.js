@@ -9,9 +9,9 @@ const router = express.Router();
 
 router.post(
   "/",
-  //verifyTokenNotBlacklisted,
-  //authenticateToken,
-  //authorizeRoles([userRoles.ADMIN.value, userRoles.RECEPTION.value, userRoles.SUPER_ADMIN.value]),
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  authorizeRoles([userRoles.ADMIN.value, userRoles.RECEPTION.value, userRoles.SUPER_ADMIN.value]),
   generateInvoice
 );
 
@@ -19,7 +19,7 @@ router.get(
   "/",
   verifyTokenNotBlacklisted,
   authenticateToken,
-  authorizeRoles([userRoles.ADMIN.value, userRoles.SUPER_ADMIN.value]),
+  authorizeRoles([userRoles.ADMIN.value, userRoles.RECEPTION.value, userRoles.SUPER_ADMIN.value]),
   getInvoices
 );
 
@@ -27,7 +27,7 @@ router.get(
   "/:id",
   verifyTokenNotBlacklisted,
   authenticateToken,
-  authorizeRoles([userRoles.ADMIN.value, userRoles.SUPER_ADMIN.value]),
+  authorizeRoles([userRoles.ADMIN.value, userRoles.RECEPTION.value, userRoles.SUPER_ADMIN.value]),
   getInvoiceById
 );
 
