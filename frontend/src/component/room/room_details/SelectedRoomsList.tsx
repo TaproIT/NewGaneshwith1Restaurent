@@ -76,7 +76,7 @@ const SelectedRoomsList: React.FC<SelectedRoomsListProps> = ({
     });
   };
 
-  const handleCurrencyChange = (roomNo: string, newCurrency: SupportedCurrency) => {
+  const handleCurrencyChange = (newCurrency: SupportedCurrency) => {
   setEditableRooms((prev) => {
     const updated = prev.map((r) => ({ ...r, currency: newCurrency })); // update all rooms
 
@@ -132,7 +132,7 @@ const SelectedRoomsList: React.FC<SelectedRoomsListProps> = ({
       <label className="text-xs text-gray-500 mb-1">Currency</label>
       <select
         value={room.currency}
-        onChange={(e) => handleCurrencyChange(room.no, e.target.value as SupportedCurrency)}
+        onChange={(e) => handleCurrencyChange(e.target.value as SupportedCurrency)}
         className="border rounded-lg px-2 py-1 bg-white text-sm focus:ring-2 focus:ring-Primary_blue focus:outline-none"
       >
         <option value="LKR">LKR</option>

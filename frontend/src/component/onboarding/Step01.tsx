@@ -26,6 +26,7 @@ import {
   saveStep01Data,
 } from "@/features/onboarding/onboardingSlice";
 import type { RootState } from "@/app/store";
+import type { BookedRoom } from "@/types/guestDataTypes";
 
 const CUSTOMER_VALUES = ["Booking.com", "Open Booking"];
 const BREAKFAST_VALUES = ["Included", "Not-Included", "Full Board"];
@@ -43,7 +44,7 @@ type Step01FormData = {
   checkOut: string;
   lengthOfStay: number;
   totalGuests: number;
-  currentRooms: string[];
+  currentRooms: BookedRoom[];
   bookingDate: string;
   customerType: string;
   breakfast: string;
