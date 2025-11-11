@@ -26,6 +26,10 @@ const BeverageCategorySelector: React.FC<{id:string}> = ({id}) => {
     (state: RootState) => state.foodCategory
   );
 
+   const {role} = useSelector(
+    (state: RootState) => state.user
+  );
+
   const isMenuHandlingPage = (id === "0");
 
   const selectedCategory = beverageCategory.selectedCategory;
@@ -39,6 +43,8 @@ const BeverageCategorySelector: React.FC<{id:string}> = ({id}) => {
   const isExtraBeverageCategory =
               selectedCategory !== BeverageCategories.HARD_LIQUOR.value &&
               selectedCategory !== BeverageCategories.SOFT_DRINKS.value;
+
+  const isAdminRole = (role === "Beach-Restaurant-Admin") || (role === "Pool-Restaurant-Admin") ;
   
 
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -114,7 +120,7 @@ const BeverageCategorySelector: React.FC<{id:string}> = ({id}) => {
                   itemRefs.current[index] = el;
                 }}
                 onClick={() => handleClick(cat.value)}
-                className={`px-4 py-6 mb-2 w-full max-h-[72px] flex items-center justify-center text-[0.75rem] font-medium cursor-pointer rounded-md
+                className={`px-4 py-6 mb-2 w-full max-h-[72px] flex items-center justify-center text-[0.95rem] text-center font-semibold cursor-pointer rounded-md
                   ${
                     isSelected
                       ? "bg-[#B24E0E] text-white"
@@ -135,7 +141,7 @@ const BeverageCategorySelector: React.FC<{id:string}> = ({id}) => {
                   itemRefs.current[index] = el;
                 }}
                 onClick={() => handleClick(cat._id)}
-                className={`px-4 py-6 mb-2 w-full max-h-[72px] flex items-center justify-center text-[0.75rem] font-medium cursor-pointer rounded-md
+                className={`px-4 py-6 mb-2 w-full max-h-[72px] flex items-center justify-center text-[0.95rem] text-center font-semibold cursor-pointer rounded-md
                   ${
                     isSelected
                       ? "bg-[#B24E0E] text-white"
@@ -148,7 +154,7 @@ const BeverageCategorySelector: React.FC<{id:string}> = ({id}) => {
           })}
         </div>
       )}
-      {isMenuHandlingPage && (
+      {( isMenuHandlingPage && isAdminRole ) && (
         <div className="w-full flex gap-2">
           <div className="sticky left-0 bottom-5 w-[47%] pr-1 bg-white">
             <div

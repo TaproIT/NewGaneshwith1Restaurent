@@ -89,7 +89,7 @@ const BeverageItemSelector: React.FC<BeverageItemSelectorProps> = ({ beverageIte
      onClick={handleSelection}
      >
       {/* Beverage item name */}
-      <div className="py-7 px-2 h-[90px] max-h-[90px] flex items-center justify-center text-[#444444] text-[0.8rem] text-center capitalize bg-[#F4F4F4] rounded-sm">
+      <div className="py-7 px-2 h-[90px] max-h-[90px] flex items-center justify-center text-[#444444] text-[0.95rem] text-center font-medium capitalize bg-[#F4F4F4] rounded-sm">
         {beverageItem.beverageName}
       </div>
 

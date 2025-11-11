@@ -18,10 +18,15 @@ const BeachRestaurantMenuPage: React.FC = () => {
   const orderTokens = useSelector((state:RootState) => state.order.orderTokens);
   const isClickAddNewFoodItem = useSelector((state:RootState) => state.food.isClickAddNewFoodItem);
   const { isClickedAddFoodCategory, isClickedUpdateFoodCategory } = useSelector((state:RootState) => state.foodCategory);
+  const { role } = useSelector(
+    (state: RootState) => state.user
+  );
   const dispatch = useDispatch<AppDispatch>();
 
   const param = useParams();
   const id = param?.id as string;
+
+  const isAdminRole = (role === "Beach-Restaurant-Admin") || (role === "Pool-Restaurant-Admin") ;
 
   useEffect(() => {
     if (id === "0") return;
@@ -34,24 +39,30 @@ const BeachRestaurantMenuPage: React.FC = () => {
 
   return (
     <div className="grid grid-cols-7 gap-3">
-      <div className="col-span-5">
+      <div className={`${isAdminRole ? "col-span-5" : "col-span-7"}` }>
         <FoodMenuDetailsSection id={id} />
       </div>
-      <div className="col-span-2">
-        {
-          id==="0" ? (
-            isClickAddNewFoodItem ? (<AddFoodItemSection/>)
-             : isClickedAddFoodCategory ? (<AddCategorySection />) 
-               : isClickedUpdateFoodCategory ? (<UpdateCategorySection />) : (<UpdateItemSection />)
-          ): (
+      {isAdminRole && (
+        <div className="col-span-2">
+          {id === "0" ? (
+            isClickAddNewFoodItem ? (
+              <AddFoodItemSection />
+            ) : isClickedAddFoodCategory ? (
+              <AddCategorySection />
+            ) : isClickedUpdateFoodCategory ? (
+              <UpdateCategorySection />
+            ) : (
+              <UpdateItemSection />
+            )
+          ) : (
             <OrderDetailsSection />
-          )
-        }
-      </div>
+          )}
+        </div>
+      )}
       <OrderTokenDialog id={id} />
       <OrderBillDetailsModal id={id} />
     </div>
-  )
+  );
 }
 
 export default BeachRestaurantMenuPage

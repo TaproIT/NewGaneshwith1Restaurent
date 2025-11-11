@@ -210,7 +210,7 @@ const beverageSlice = createSlice({
       })
 
       .addCase(deleteExtraBeverageItem.rejected, (state, action) => {
-        state.deleteExtraBeverageItemStatus.loading = true;
+        state.deleteExtraBeverageItemStatus.loading = false;
         state.deleteExtraBeverageItemStatus.error = action.payload as string;
       })
 
@@ -226,7 +226,7 @@ const beverageSlice = createSlice({
       })
 
       .addCase(updateExtraBeverageCategory.rejected, (state, action) => {
-        state.updateExtraBeverageCategoryStatus.loading = true;
+        state.updateExtraBeverageCategoryStatus.loading = false;
         state.updateExtraBeverageCategoryStatus.error = action.payload as string;
       })
 
@@ -243,7 +243,7 @@ const beverageSlice = createSlice({
       })
 
       .addCase(deleteExtraBeverageCategory.rejected, (state, action) => {
-        state.deleteExtraBeverageCategoryStatus.loading = true;
+        state.deleteExtraBeverageCategoryStatus.loading = false;
         state.deleteExtraBeverageCategoryStatus.error = action.payload as string;
       });
   },

@@ -56,6 +56,20 @@ const navigationConfig = {
     { path: "/restaurant/hold", title: "Hold", icon: <PauseCircle size={22} /> },
     { path: "/restaurant/daily-summary", title: "Daily Summary", icon: <Newspaper size={22} /> },
   ],
+  "Beach-Restaurant-Admin": [
+    { path: "/restaurant/home", title: "Home", icon: <House size={22} /> },
+    { path: "/restaurant/tables/0", title: "Tables", icon: <Table2 size={22} /> },
+    { path: "/restaurant/menu/0", title: "Menu", icon: <NotepadText size={22} /> },
+    { path: "/restaurant/hold", title: "Hold", icon: <PauseCircle size={22} /> },
+    { path: "/restaurant/daily-summary", title: "Daily Summary", icon: <Newspaper size={22} /> },
+  ],
+  "Pool-Restaurant-Admin": [
+    { path: "/restaurant/home", title: "Home", icon: <House size={22} /> },
+    { path: "/restaurant/tables/0", title: "Tables", icon: <Table2 size={22} /> },
+    { path: "/restaurant/menu/0", title: "Menu", icon: <NotepadText size={22} /> },
+    { path: "/restaurant/hold", title: "Hold", icon: <PauseCircle size={22} /> },
+    { path: "/restaurant/daily-summary", title: "Daily Summary", icon: <Newspaper size={22} /> },
+  ],
   "Beverage-Inventory": [
     { path: "/beverage-inventory/dashboard", title: "Dashboard", icon: <House size={22} /> },
     { path: "/beverage-inventory/manage-inventory", title: "Manage Inventory", icon: <Table2 size={22} /> },

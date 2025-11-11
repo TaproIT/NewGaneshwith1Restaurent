@@ -77,7 +77,7 @@ const FoodItemSelector: React.FC<FoodItemSelectorProps> = ({ foodItem }) => {
      onClick={handleSelection}
     >
       {/* Food item name */}
-      <div className="py-7 px-2 h-[90px] max-h-[90px] flex items-center justify-center text-[#444444] text-[0.8rem] text-center capitalize bg-[#F4F4F4] rounded-sm">
+      <div className="py-7 px-2 h-[90px] max-h-[90px] flex items-center justify-center text-[#444444] text-[0.95rem] font-medium text-center capitalize bg-[#F4F4F4] rounded-sm">
         {foodItem.itemName}
       </div>
 
