@@ -10,11 +10,11 @@ export const getRestaurantTypeByUserRole = async (id) => {
 
     const user = await User.findById(id).lean();
 
-    if (user.userRole === userRoles.BEACH_RESTAURANT_STAFF.value) {
+    if (user.userRole === userRoles.BEACH_RESTAURANT_STAFF.value || user.userRole === userRoles.BEACH_RESTAURANT_ADMIN.value) {
       return RestaurantTypes.BEACH.value;
     }
 
-    if (user.userRole === userRoles.POOL_RESTAURANT_STAFF.value) {
+    if (user.userRole === userRoles.POOL_RESTAURANT_STAFF.value || user.userRole === userRoles.POOL_RESTAURANT_ADMIN.value) {
       return RestaurantTypes.POOL.value;
     }
   } catch (error) {

@@ -32,6 +32,8 @@ const userSchema = new mongoose.Schema(
         userRoles.RECEPTION.value,
         userRoles.BEACH_RESTAURANT_STAFF.value,
         userRoles.POOL_RESTAURANT_STAFF.value,
+        userRoles.BEACH_RESTAURANT_ADMIN.value,
+        userRoles.POOL_RESTAURANT_ADMIN.value
       ],
     },
     refreshToken: {
