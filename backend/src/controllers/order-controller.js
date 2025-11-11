@@ -18,9 +18,9 @@ export const setInitialOrderDetails = async (req, res) => {
 
         const orderStatus = OrderStatuses.SET_INITIAL_ORDER_DATA.value;
 
-        const orderNumber = await generateOrderNumber();
+         const restaurantType = await getRestaurantTypeByUserRole(userId);
 
-        const restaurantType = await getRestaurantTypeByUserRole(userId);
+        const orderNumber = await generateOrderNumber(restaurantType);
 
         const newOrder = await Order.create({
             orderNumber,
