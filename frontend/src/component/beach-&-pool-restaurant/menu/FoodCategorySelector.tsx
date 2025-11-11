@@ -156,7 +156,7 @@ useEffect(() => {
                     : "bg-transparent text-[#5B5B5B] border border-[#CECECE]"
                 }`}
                   >
-                    {cat.categoryName}
+                    {cat.categoryName.toUpperCase()}
                   </div>
                   {/* {isMenuHandlingPage && (
                     <div className="" onClick={handleUpdateFoodCategory}>

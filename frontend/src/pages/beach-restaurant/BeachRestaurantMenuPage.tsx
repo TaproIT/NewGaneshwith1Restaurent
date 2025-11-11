@@ -39,7 +39,7 @@ const BeachRestaurantMenuPage: React.FC = () => {
 
   return (
     <div className="grid grid-cols-7 gap-3">
-      <div className={`${((isAdminRole) && (id !=="0")) || ((!isAdminRole) && (id !=="0"))? "col-span-5" : "col-span-7"}`}>
+      <div className={`${((isAdminRole)) || ((!isAdminRole) && (id !=="0"))? "col-span-5" : "col-span-7"}`}>
         <FoodMenuDetailsSection id={id} />
       </div>
       {
