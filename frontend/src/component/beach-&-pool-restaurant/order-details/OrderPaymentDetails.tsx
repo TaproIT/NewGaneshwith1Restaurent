@@ -206,7 +206,7 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
                      className="mt-5 !w-full !h-8 border-[#0A869D] cursor-pointer"
                      onClick={handleProceedPaymentClick}
                    >
-                     Proceed to payment
+                     Proceed to menu
                    </Button>
                  ) : (
                    <div className="grid grid-cols-2 gap-1">

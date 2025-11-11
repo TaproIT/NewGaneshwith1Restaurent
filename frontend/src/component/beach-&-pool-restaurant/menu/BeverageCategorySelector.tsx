@@ -127,7 +127,7 @@ const BeverageCategorySelector: React.FC<{id:string}> = ({id}) => {
                       : "bg-transparent text-[#5B5B5B] border border-[#CECECE]"
                   }`}
               >
-                {cat.label}
+                {cat.label.toUpperCase()}
               </div>
             );
           })}
@@ -148,7 +148,7 @@ const BeverageCategorySelector: React.FC<{id:string}> = ({id}) => {
                       : "bg-transparent text-[#5B5B5B] border border-[#CECECE]"
                   }`}
               >
-                {cat.name}
+                {cat.name.toUpperCase()}
               </div>
             );
           })}

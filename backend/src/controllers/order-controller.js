@@ -525,13 +525,17 @@ export const getHoldOrders = async (req, res) => {
     const restaurantType = await getRestaurantTypeByUserRole(userId);
 
     // Find all orders where holdOrderToken is not null
-    const holdOrders = await Order.find({
-      restaurantType,
-      $or: [
-        { holdOrderToken: { $ne: null } },
-        { orderStatus: { $ne: OrderStatuses.COMPLETED.value } },
-      ],
-    }).select("_id serviceType orderNumber customerType");
+   const holdOrders = await Order.find({
+     restaurantType,
+     $or: [
+       { holdOrderToken: { $ne: null } },
+       { orderStatus: { $ne: OrderStatuses.COMPLETED.value } },
+     ],
+   })
+     .select(
+       "_id serviceType orderNumber customerType guestName restaurantTable"
+     )
+     .populate("restaurantTable", "tableNumber");
 
     if (!holdOrders || holdOrders.length === 0) {
       return sendErrorResponse(res, 404, "No hold orders found");
@@ -542,6 +546,8 @@ export const getHoldOrders = async (req, res) => {
       _id: order._id,
       serviceType: order.serviceType,
       customerType: order.customerType,
+      guestName: order.guestName,
+      restaurantTable: order.restaurantTable,
       orderNumber: order.orderNumber,
     }));
 
@@ -578,9 +584,10 @@ export const getDailyOrdersSummary = async (req, res) => {
     const orders = await Order.find({
       createdAt: { $gte: start, $lt: end },
       restaurantType,
+      orderStatus: OrderStatuses.COMPLETED.value
     })
       .populate({
-        path: "orderTokens",
+        path: "orderTokens", 
         populate: [
           {
             path: "foodOrders",
