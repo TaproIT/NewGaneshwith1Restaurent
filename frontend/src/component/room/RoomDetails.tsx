@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import type { Room } from "@/types/roomTypes";
-import type { Step01FormData } from "@/types/guestDataTypes";
+import type { BookedRoom, Step01FormData } from "@/types/guestDataTypes";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -35,6 +35,7 @@ interface RoomDetailsProps {
   whatsAppId: string;
   loadingBooking?: boolean;
   onInvoiceSuccess?: () => void;
+  onUpdateRooms?: (rooms: BookedRoom[]) => void;
 }
 
 const RoomDetails: React.FC<RoomDetailsProps> = ({
@@ -54,6 +55,7 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
   whatsAppId,
   loadingBooking,
   onInvoiceSuccess,
+  onUpdateRooms,
 }) => {
   const invoiceData = useSelector(
     (state: RootState) => state.invoice.invoiceFormData
@@ -71,6 +73,13 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
   >([]);
   const [daysStayed, setDaysStayed] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [updatedRooms, setUpdatedRooms] = useState<BookedRoom[]>([]);
+
+  const handleUpdateRooms = (rooms: BookedRoom[]) => {
+    setUpdatedRooms(rooms); // update state
+    // Optional: also call parent onUpdateRooms if RoomDetails has a parent that needs it
+    onUpdateRooms?.(rooms);
+  };
 
   const roomNumbers = useSelector((state: RootState) =>
     state.rooms.roomNumbers.join(", ")
@@ -156,14 +165,15 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
   }, [selectedRooms, dispatch]);
 
   const handleBookRooms = () => {
-  if (selectedRooms.length === 0) return;
+    if (selectedRooms.length === 0) return;
 
-  const roomIds = selectedRooms.map((room) => room._id).filter(Boolean) as string[];
-  const prices = selectedRooms.map((room) => room.perDayPrice);
+    const roomIds = selectedRooms
+      .map((room) => room._id)
+      .filter(Boolean) as string[];
+    const prices = selectedRooms.map((room) => room.perDayPrice);
 
-  onBookRoom(roomIds, prices);
-};
-
+    onBookRoom(roomIds, prices);
+  };
 
   const handleWhatsApp = async () => {
     const message = `This is your room number(s): ${roomNumbers}`;
@@ -233,6 +243,7 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
           invoiceData={invoiceData}
           totalDays={totalDays}
           onRemoveRoom={onRemoveRoom}
+          onUpdateRooms={handleUpdateRooms}
         />
 
         {checkout && viewedRoom?.no && (
@@ -270,6 +281,7 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
         loadingBooking={loadingBooking}
         onInvoiceSuccess={onInvoiceSuccess}
         loading={loading}
+        updatedRooms={updatedRooms}
       />
     </div>
   );

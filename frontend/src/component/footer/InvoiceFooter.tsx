@@ -6,6 +6,7 @@ import { useCurrency } from "@/context/CurrencyContext";
 import { useRates } from "@/context/RateContext";
 import { convertAndFormatPrice } from "@/util/priceConverter";
 import { useNavigate } from "react-router-dom";
+import type { BookedRoom } from "@/types/guestDataTypes";
 
 interface InvoiceFooterProps {
   readOnly?: boolean;
@@ -13,6 +14,7 @@ interface InvoiceFooterProps {
   switchRoom?: boolean;
   invoice?: boolean;
   selectedRooms: Room[];
+  updatedRooms?: BookedRoom[];
 
   // values
   totalPrice: number;
@@ -61,6 +63,7 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
   handleSwitchRoom,
   loadingBooking,
   loading,
+  updatedRooms,
 }) => {
   const [loadingSwitch, setLoadingSwitch] = useState(false);
 
@@ -125,13 +128,23 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
         <div>Total Bill</div>
         <div>:</div>
         <div className="text-left">
-          {checkout
-            ? convertAmount(totalBill)
-            : invoice
-            ? convertAmount(invoiceFinalBill)
-            : switchRoom
-            ? convertAmount(totalPrice)
-            : convertAmount(grandTotal)}
+          {checkout ? (
+            convertAmount(totalBill)
+          ) : invoice ? (
+            convertAmount(invoiceFinalBill)
+          ) : switchRoom ? (
+            convertAmount(totalPrice)
+          ) : (
+            <div>
+              {updatedRooms?.[0]?.currency === "USD"
+                ? `$ ${grandTotal}`
+                : updatedRooms?.[0]?.currency === "EUR"
+                ? `€ ${grandTotal}`
+                : updatedRooms?.[0]?.currency === "LKR"
+                ? `LKR ${grandTotal}`
+                : grandTotal}
+            </div>
+          )}
         </div>
       </div>
 
@@ -158,7 +171,14 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
         </Button>
       )}
 
-      {checkout && !switchRoom && <Button className="w-full" onClick={() =>navigate('/checkout-details')}>Checkout</Button>}
+      {checkout && !switchRoom && (
+        <Button
+          className="w-full"
+          onClick={() => navigate("/checkout-details")}
+        >
+          Checkout
+        </Button>
+      )}
 
       {switchRoom && (
         <Button

@@ -1,6 +1,10 @@
+import type { SupportedCurrency } from "./currency";
+
 export type BookedRoom = {
-  id: number;
+  roomNo: string;
   price: number;
+  currency: SupportedCurrency;
+  totalPrice:number
 };
 
 export type Step01FormData = {
@@ -16,7 +20,7 @@ export type Step01FormData = {
   checkOut: string;     // ISO string date from backend
   lengthOfStay: number;
   totalGuests: number;
-  currentRooms: string[]; // ✅ matches ["103"] from backend
+  currentRooms: BookedRoom[]; // ✅ matches ["103"] from backend
   payload?: {
     extraService?: string;
     specialRequests?: string;
