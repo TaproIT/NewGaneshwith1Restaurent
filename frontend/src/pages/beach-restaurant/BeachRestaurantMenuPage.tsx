@@ -39,12 +39,12 @@ const BeachRestaurantMenuPage: React.FC = () => {
 
   return (
     <div className="grid grid-cols-7 gap-3">
-      <div className={`${isAdminRole ? "col-span-5" : "col-span-7"}` }>
+      <div className={`${((isAdminRole) && (id !=="0")) || ((!isAdminRole) && (id !=="0"))? "col-span-5" : "col-span-7"}`}>
         <FoodMenuDetailsSection id={id} />
       </div>
-      {isAdminRole && (
+      {
         <div className="col-span-2">
-          {id === "0" ? (
+          {id === "0" && isAdminRole ? (
             isClickAddNewFoodItem ? (
               <AddFoodItemSection />
             ) : isClickedAddFoodCategory ? (
@@ -58,7 +58,7 @@ const BeachRestaurantMenuPage: React.FC = () => {
             <OrderDetailsSection />
           )}
         </div>
-      )}
+      }
       <OrderTokenDialog id={id} />
       <OrderBillDetailsModal id={id} />
     </div>
