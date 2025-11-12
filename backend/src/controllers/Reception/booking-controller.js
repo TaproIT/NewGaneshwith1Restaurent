@@ -1114,6 +1114,9 @@ export const updateBooking = async (req, res) => {
         if (!booking) {
             return res.status(404).json({ error: "Booking not found." });
         }
+        if(booking.isCheckOut){
+            return res.status(404).json({ error: "Booking is already checkout." });
+        }
 
         // ✅ Update simple fields
         if (guestName) booking.guestName = guestName.trim();
@@ -1260,6 +1263,100 @@ export const updateBooking = async (req, res) => {
         console.error("[UpdateBooking Error]", err);
         return res.status(500).json({ error: "Internal server error." });
     }
+};
+
+export const searchBookings = async (req, res) => {
+    const { uniqueBookingId, rooms, guestName } = req.body;
+
+    let results = [];
+
+    // 1️⃣ If any filters are given, handle them separately
+    if (uniqueBookingId || (rooms && rooms.length > 0) || guestName) {
+        const queries = [];
+
+        if (uniqueBookingId && uniqueBookingId.trim() !== "") {
+            queries.push(
+                Booking.find({
+                    uniqueBookingId: { $regex: uniqueBookingId.trim(), $options: "i" },
+                }).select({
+                    _id: 1,
+                    uniqueBookingId: 1,
+                    guestName: 1,
+                    totalGuests: 1,
+                    isCheckOut: 1,
+                    "currentRooms.roomNo": 1,
+                })
+            );
+        }
+
+        if (rooms && rooms.length > 0) {
+            const roomList = Array.isArray(rooms) ? rooms : [rooms];
+            queries.push(
+                Booking.find({
+                    "currentRooms.roomNo": { $in: roomList },
+                }).select({
+                    _id: 1,
+                    uniqueBookingId: 1,
+                    guestName: 1,
+                    totalGuests: 1,
+                    isCheckOut: 1,
+                    "currentRooms.roomNo": 1,
+                })
+            );
+        }
+
+        if (guestName && guestName.trim() !== "") {
+            queries.push(
+                Booking.find({
+                    guestName: { $regex: guestName.trim(), $options: "i" },
+                }).select({
+                    _id: 1,
+                    uniqueBookingId: 1,
+                    guestName: 1,
+                    totalGuests: 1,
+                    isCheckOut: 1,
+                    "currentRooms.roomNo": 1,
+                })
+            );
+        }
+
+        // Run all queries in parallel
+        const queryResults = await Promise.all(queries);
+
+        // Merge all results & remove duplicates by _id
+        const merged = queryResults.flat();
+        const uniqueBookings = Array.from(
+            new Map(merged.map((b) => [b._id.toString(), b])).values()
+        );
+
+        results = uniqueBookings;
+    } else {
+        // 2️⃣ No filters — get all bookings
+        results = await Booking.find().select({
+            _id: 1,
+            uniqueBookingId: 1,
+            guestName: 1,
+            totalGuests: 1,
+            isCheckOut: 1,
+            "currentRooms.roomNo": 1,
+        });
+    }
+
+    // Format results
+    const formattedResults = results.map((b) => ({
+        id: b._id,
+        bookingId: b.uniqueBookingId,
+        guestName: b.guestName,
+        totalGuests: b.totalGuests,
+        isCheckOut: b.isCheckOut,
+        rooms: b.currentRooms.map((r) => r.roomNo),
+    }));
+
+    res.status(200).json({
+        success: true,
+        count: formattedResults.length,
+        data: formattedResults,
+    });
 };
 
 // Get booking by ID

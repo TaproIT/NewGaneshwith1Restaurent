@@ -121,10 +121,13 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
         ESC + "@" + // init
         ESC + "a" + "\x01" + // center
         "==========================================\n" +
-        "        GANESH GARDEN BEACH HOTEL\n" +
-        `          ${order.restaurantType} RESTAURANT BILL\n` +
+       `${order.restaurantType === "Beach"? "GANESH GARDEN BEACH CABANA" : "MARAKOLLIYA BEACH RESORT"}\n` +
+        `${order.restaurantType === "Beach"? "MAHI MAHI SEA FOOD RESTAURANT" : "SUNSET POOL BAR & RESTAURANT"}      \n` +
+        "Tangalle \n"+
         "==========================================\n" +
         ESC + "a" + "\x00" + // left align
+        `Date        : ${new Date().toLocaleString()}\n` +
+        `TP ${order.restaurantType === "Beach"? "+94 47 22 42 529" : "+94 47 22 44 822"}\n` +
         `Order No: ${order.orderNumber}\n` +
         `Service Type: ${order.serviceType}\n` +
         `Customer: ${order.guestName || "Walk-in"}\n` +
