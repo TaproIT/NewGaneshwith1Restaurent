@@ -2,70 +2,88 @@ import mongoose from "mongoose";
 import Invoice from "../../models/Reception/invoice.js";
 import Room from "../../models/Room.js";
 import { sendErrorResponse, sendSuccessResponse } from "../../utils/response-util.js";
+import RoomCategory from "../../models/roomCategory.js";
+import { CurrencyTypes } from "../../utils/enums/currency-type.js";
+import { generateInvoiceNumber } from "../../utils/invoice-util.js";
+import { InvoiceCounter } from "../../models/Reception/invoice-counter.model.js";
+
 
 export const generateInvoice = async (req, res) => {
   try {
     const {
       checkInDate,
       checkOutDate,
+      hotelType,
+      travelAgentName,
       customerName,
       numberOfMembers,
-      roomIds, // array of room _id or numbers
-      subTotal,
-      tax,
-      discount,
-      total
+      currencyType,
+      selectedRooms, 
+      total,
     } = req.body;
-    console.log(req.body)
 
-    if (!checkInDate || !checkOutDate || !customerName || !roomIds || roomIds.length === 0) {
-      return sendErrorResponse(res,400, "Required fields are missing");
+    // --- Validation ---
+    if (
+      !checkInDate ||
+      !checkOutDate ||
+      !hotelType ||
+      !currencyType ||
+      !selectedRooms ||
+      selectedRooms.length === 0 ||
+      (!customerName && !travelAgentName)
+    ) {
+      return sendErrorResponse(res, 400, "Required fields are missing");
     }
 
-    // Fetch room numbers from DB
-    const rooms = await Room.find({ _id: { $in: roomIds } });
-    const roomNumbers = rooms.map(r => r.no);
+    // --- Validate selectedRooms structure ---
+    for (const room of selectedRooms) {
+      if (
+        !room.roomCategory ||
+        !room.count ||
+        !room.perDayPrice
+      ) {
+        return sendErrorResponse(
+          res,
+          400,
+          "Each selected room must have roomCategory, count, and perDayPrice with currencyType & price"
+        );
+      }
 
-    // Generate timestamp in YYYYMMDD-HHMMSS format
-    const now = new Date();
-    const pad = (num) => num.toString().padStart(2, "0");
+      // Validate room category exists
+      const existingCategory = await RoomCategory.findById(room.roomCategory);
+      if (!existingCategory) {
+        return sendErrorResponse(res, 404, `Room category not found for ID: ${room.roomCategory}`);
+      }
+    }
 
-    const year = now.getFullYear();
-    const month = pad(now.getMonth() + 1); // months start from 0
-    const day = pad(now.getDate());
-    const hours = pad(now.getHours());
-    const minutes = pad(now.getMinutes());
-    const seconds = pad(now.getSeconds());
+    // --- Generate timestamp-based invoice number ---
+    // const now = new Date();
+    // const pad = (num) => num.toString().padStart(2, "0");
+    // const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
 
-    const timestamp = `${year}${month}${day}-${hours}${minutes}${seconds}`;
+    // Optionally generate based on first category name or type
+    //const invoiceNumber = `INV-${timestamp}-${Math.floor(Math.random() * 1000)}`;
 
-    // Create invoice number
-    const invoiceNumber = `INV-${timestamp}-${roomNumbers.join("")}`;
+    const invoiceNumber = await generateInvoiceNumber();
 
-    // Create invoice document
+    // --- Create invoice ---
     const invoice = await Invoice.create({
       invoiceNumber,
       checkInDate: new Date(checkInDate),
       checkOutDate: new Date(checkOutDate),
+      hotelType,
       customerName,
+      travelAgentName,
       numberOfMembers,
-      roomIds,
-      subTotal,
-      tax,
-      discount,
-      total
+      currencyType,
+      selectedRooms,
+      total,
     });
-    
-    return sendSuccessResponse(
-        res,
-        201,
-        "Invoice generated successfully",
-        {
-            invoice
-        }
-    );
+
+    return sendSuccessResponse(res, 201, "Invoice generated successfully", { invoice });
   } catch (error) {
-     return sendErrorResponse(res,500, "Internal Server Error", error.message);
+    console.error("Invoice generation error:", error);
+    return sendErrorResponse(res, 500, "Internal Server Error", error.message);
   }
 };
 
@@ -98,7 +116,7 @@ export const getInvoiceById = async (req, res) => {
 
 export const getInvoices = async (req, res) => {
   try {
-    const { fromDate, toDate } = req.query;
+    const { fromDate, toDate, searchText } = req.query;
 
     const filter = {};
 
@@ -108,22 +126,77 @@ export const getInvoices = async (req, res) => {
       if (toDate) filter.checkInDate.$lte = new Date(toDate);
     }
 
-    // if (roomId) {
-    //   filter.roomIds = roomId;
-    // }
+    // Search filter
+    if (searchText && searchText.trim() !== "") {
+      const regex = new RegExp(searchText, "i"); // case-insensitive match
+      filter.$or = [
+        { invoiceNumber: regex },
+        { customerName: regex },
+        { travelAgentName: regex },
+      ];
+    }
 
-    const invoices = await Invoice.find(filter).sort({ createdAt: -1 });
-     return sendSuccessResponse(
-        res,
-        200,
-        "Invoices retrieved successfully",
-        {
-            invoices,
-            total: invoices.length,
-        }
-    );
+    // ✅ Populate room category details inside selectedRooms
+    const invoices = await Invoice.find(filter)
+      .populate({
+        path: "selectedRooms.roomCategory", // populate the referenced RoomCategory
+        select: "name type description", // select only the fields you want
+      })
+      .sort({ createdAt: -1 });
+
+    // ✅ Transform invoices to include only relevant info
+    const formattedInvoices = invoices.map((invoice) => ({
+      invoiceNumber: invoice.invoiceNumber,
+      checkInDate: invoice.checkInDate,
+      checkOutDate: invoice.checkOutDate,
+      hotelType: invoice.hotelType,
+      customerName: invoice.customerName,
+      travelAgentName: invoice.travelAgentName,
+      numberOfMembers: invoice.numberOfMembers,
+      currencyType: invoice.currencyType,
+      total: invoice.total,
+      createdAt: invoice.createdAt,
+      selectedRooms: invoice.selectedRooms.map((room) => ({
+        category: room.roomCategory ? room.roomCategory.name : "Unknown",
+        type: room.roomCategory ? room.roomCategory.type : null,
+        description: room.roomCategory ? room.roomCategory.description : null,
+        count: room.count,
+        perDayPrice: room.perDayPrice,
+      })),
+    }));
+
+    return sendSuccessResponse(res, 200, "Invoices retrieved successfully", {
+      invoices: formattedInvoices,
+      total: formattedInvoices.length,
+    });
   } catch (error) {
-    return sendErrorResponse(res,500, "Internal Server Error", error.message);
+    return sendErrorResponse(res, 500, "Internal Server Error", error.message);
   }
 };
+
+export const resetInvoiceCounter = async (req, res) => {
+  try {
+    const { name, value } = req.body;
+
+    // Ensure name is provided
+    if (!name) {
+      return sendErrorResponse(res, 400, "Missing 'name' field in request body");
+    }
+
+    // Default reset value to 0 if not provided
+    const resetValue = typeof value === "number" ? value : 0;
+
+    // Find and update or create if not exists
+    const counter = await InvoiceCounter.findOneAndUpdate(
+      { name },
+      { $set: { seq: resetValue } },
+      { new: true, upsert: true }
+    );
+
+    return sendSuccessResponse(res, 200, "Invoice counter reset successfully", counter);
+  } catch (error) {
+    return sendErrorResponse(res, 500, "Internal Server Error", error.message);
+  }
+};
+
 

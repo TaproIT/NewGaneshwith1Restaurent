@@ -10,7 +10,7 @@ export const fetchAllExtraBeverageCategories = createAsyncThunk<
   void
 >("beverageCategory/fetchAllExtraBeverageCategories", async (_, { rejectWithValue }) => {
   try {
-    const response = await api.get(`/extra-beverages/category`);
+    const response = await api.get(`/extra-beverages/available/category`);
     return response.data.data as BeverageCategory[];
   } catch (error: any) {
     return rejectWithValue(error?.response?.data || "Failed to fetch extra beverage categories");

@@ -4,16 +4,16 @@ import Beverage from "../models/Beverage/beverage.js";
 
 export const updateBeverageQuantityManually = async (id, quantity, note = "") => {
     if (!quantity || quantity <= 0) {
-        throw new Error("Quantity must be greater than 0.");
+        return { success: false, message: "Quantity must be greater than 0." };
     }
 
     const beverage = await Beverage.findById(id);
     if (!beverage || beverage.status === "deleted") {
-        throw new Error("Beverage not found or deleted.");
+        return { success: false, message: "Beverage not found or deleted." };
     }
 
     if (beverage.runningStock < quantity) {
-        throw new Error("Not enough stock to reduce.");
+        return { success: false, message: "Not enough stock to reduce." };
     }
 
     const now = dayjs();

@@ -32,7 +32,7 @@ export default function UpdateItemSection() {
   const { selectedFoodItem, isUpdatedFoodItem, fetchAllFoodItemsStatus } = useSelector(
     (state: RootState) => state.food
   );
-   const { selectedCategory, selectedBeverageCategoryTitle } = useSelector(
+   const { selectedCategory, selectedBeverageCategoryTitle, fetchAllExtraBeverageCategoriesStatus } = useSelector(
     (state: RootState) => state.beverageCategory
   );
   const { beverageItems: beverages, selectedBeverageItem, selectedExtraBeverageItem, fetchAllExtraBeverageItemsStatus } = useSelector(
@@ -49,6 +49,8 @@ export default function UpdateItemSection() {
   const updateFoodItemLoading = fetchAllFoodItemsStatus.loading;
 
   const updateExtraBeverageItemLoading = fetchAllExtraBeverageItemsStatus.loading;
+
+  const updateExtraBeverageCategoriesLoading = fetchAllExtraBeverageCategoriesStatus.loading;
 
   // States
   const [itemName, setItemName] = useState("");
@@ -120,7 +122,7 @@ export default function UpdateItemSection() {
       }
 
       if (selectedExtraBeverageItem !== null) {
-       
+        dispatch(deleteExtraBeverageItem({beverageId:selectedExtraBeverageItem._id}))
       }
 
       toast.success("Item deleted successfully!");
@@ -159,7 +161,7 @@ export default function UpdateItemSection() {
   }
 }, [selectedFoodItem, selectedBeverageItem, selectedExtraBeverageItem, isUpdatedFoodItem]);
 
-  if ( updateFoodItemLoading || updateExtraBeverageItemLoading ) {
+  if ( updateFoodItemLoading || updateExtraBeverageItemLoading || updateExtraBeverageCategoriesLoading) {
     return (
       <UpdateItemSkeleton />
     )
@@ -344,6 +346,7 @@ function FormRow({
 import { Skeleton } from "@/components/ui/skeleton";
 import { updateExtraBeverage } from "@/api/order/update-extra-beverage-item-api";
 import { deleteFoodItem } from "@/api/order/delete-food-item-api";
+import { deleteExtraBeverageItem } from "@/api/order/delete-extra-beverage-api";
 
 function UpdateItemSkeleton() {
   return (

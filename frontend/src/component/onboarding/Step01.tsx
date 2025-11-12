@@ -6,6 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import {
   Form,
   FormControl,
   FormField,
@@ -14,8 +21,15 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useDispatch, useSelector } from "react-redux";
-import { nextStep, saveStep01Data } from "@/features/onboarding/onboardingSlice";
+import {
+  nextStep,
+  saveStep01Data,
+} from "@/features/onboarding/onboardingSlice";
 import type { RootState } from "@/app/store";
+import type { BookedRoom } from "@/types/guestDataTypes";
+
+const CUSTOMER_VALUES = ["Booking.com", "Open Booking"];
+const BREAKFAST_VALUES = ["Included", "Not-Included", "Full Board"];
 
 type Step01FormData = {
   hotel: string;
@@ -30,15 +44,23 @@ type Step01FormData = {
   checkOut: string;
   lengthOfStay: number;
   totalGuests: number;
-  currentRooms: string[];
-  bookingDate: string; // will be set automatically
+  currentRooms: BookedRoom[];
+  bookingDate: string;
+  customerType: string;
+  breakfast: string;
 };
 
 export default function Step01() {
-  const step01Data = useSelector((state: RootState) => state.onboarding.step01Data);
+  const step01Data = useSelector(
+    (state: RootState) => state.onboarding.step01Data
+  );
 
   const form = useForm<Step01FormData>({
-    defaultValues: step01Data,
+    defaultValues: {
+      ...step01Data,
+      customerType: step01Data?.customerType ?? "",
+      breakfast: step01Data?.breakfast ?? "",
+    },
   });
 
   const dispatch = useDispatch();
@@ -91,13 +113,15 @@ export default function Step01() {
     dispatch(nextStep());
   };
 
-  // For restricting checkout min date
   const todayDate = new Date().toISOString().split("T")[0];
 
   return (
-    <div className="p-6 rounded-2xl bg-mainWhite">
+    <div className="p-6 rounded-2xl bg-mainWhite h-[calc(100vh-140px)] overflow-y-auto">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-4 w-full"
+        >
           {/* Hotel Selection */}
           <FormField
             control={form.control}
@@ -162,7 +186,6 @@ export default function Step01() {
               <FormField
                 control={form.control}
                 name="country"
-                rules={{ required: "Country is required" }}
                 render={({ field }) => (
                   <FormItem className="flex flex-col items-center">
                     <div className="flex items-center">
@@ -177,11 +200,75 @@ export default function Step01() {
               />
             </div>
 
+            <div className="flex justify-between">
+              <FormField
+                control={form.control}
+                name="customerType"
+                rules={{ required: "Select customer type" }}
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <div className="flex items-center">
+                      <FormLabel className="w-33">Customer Type</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl className="w-72">
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {CUSTOMER_VALUES.map((item) => (
+                            <SelectItem value={item} key={item}>
+                              {item}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Breakfast */}
+              <FormField
+                control={form.control}
+                name="breakfast"
+                rules={{ required: "Select breakfast option" }}
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <div className="flex items-center">
+                      <FormLabel className="w-32">Breakfast</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl className="w-72">
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {BREAKFAST_VALUES.map((item) => (
+                            <SelectItem value={item} key={item}>
+                              {item}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             {/* Passport ID & Email */}
             <div className="flex justify-between">
               <FormField
                 control={form.control}
-                rules={{ required: "Passport ID is required" }}
                 name="passportId"
                 render={({ field }) => (
                   <FormItem className="flex flex-col items-center">
@@ -198,7 +285,6 @@ export default function Step01() {
               <FormField
                 control={form.control}
                 name="email"
-                rules={{ required: "Email is required" }}
                 render={({ field }) => (
                   <FormItem className="flex flex-col items-center">
                     <div className="flex items-center">
@@ -221,7 +307,6 @@ export default function Step01() {
             <div className="flex justify-between">
               <FormField
                 control={form.control}
-                rules={{ required: "WhatsApp number is required" }}
                 name="whatsapp"
                 render={({ field }) => (
                   <FormItem className="flex flex-col items-center">
@@ -370,7 +455,6 @@ export default function Step01() {
                 name="checkOut"
                 rules={{
                   validate: (value) => {
-                    if (!value) return "Check-out date is required";
                     const selected = new Date(value);
                     if (selected < new Date(todayDate))
                       return "Check-out date cannot be before today";

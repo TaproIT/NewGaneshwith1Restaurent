@@ -49,6 +49,12 @@ export interface AvailableBookedRoom {
    bookingId: string;
 }
 
+export interface CheckOutUser {
+   _id: string;
+   name: string;
+   userRole: string;
+}
+
 export type TableStatus = "Selected" | "Empty" | "Reserved";
 
 export interface OrderInitialDataStatus {
@@ -117,6 +123,7 @@ export interface Order{
   serviceCharge: number;
   totalBill: number; 
   paymentMethod: string;
+  checkOutUser: CheckOutUser | null;
   isOrderBillDetailsOpen: boolean;
   orderInitialDataStatus: OrderInitialDataStatus; 
   fetchOrderDataStatus: FetchOrderDataStatus;
