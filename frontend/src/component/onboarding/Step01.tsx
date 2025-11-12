@@ -172,7 +172,7 @@ export default function Step01() {
                 render={({ field }) => (
                   <FormItem className="flex flex-col items-center">
                     <div className="flex items-center">
-                      <FormLabel className="w-50">Guest Name</FormLabel>
+                      <FormLabel className="w-50">Guest Name <span className="text-red-500">*</span></FormLabel>
                       <FormControl>
                         <Input placeholder="Enter guest name" {...field} />
                       </FormControl>
@@ -208,7 +208,7 @@ export default function Step01() {
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <div className="flex items-center">
-                      <FormLabel className="w-33">Customer Type</FormLabel>
+                      <FormLabel className="w-33">Customer Type <span className="text-red-500">*</span></FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
@@ -240,7 +240,7 @@ export default function Step01() {
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <div className="flex items-center">
-                      <FormLabel className="w-32">Breakfast</FormLabel>
+                      <FormLabel className="w-32">Breakfast <span className="text-red-500">*</span></FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
@@ -339,7 +339,7 @@ export default function Step01() {
                 render={({ field }) => (
                   <FormItem className="flex flex-col items-center">
                     <div className="flex items-center">
-                      <FormLabel className="w-50">Total Guests</FormLabel>
+                      <FormLabel className="w-50">Total Guests <span className="text-red-500">*</span></FormLabel>
                       <FormControl>
                         <Input type="number" {...field} disabled />
                       </FormControl>
@@ -358,7 +358,7 @@ export default function Step01() {
                 render={({ field }) => (
                   <FormItem className="flex flex-col items-center">
                     <div className="flex items-center">
-                      <Label className="w-54">Length of Stay</Label>
+                      <Label className="w-54">Length of Stay <span className="text-red-500">*</span></Label>
                       <FormControl>
                         <Input type="number" {...field} disabled />
                       </FormControl>

@@ -481,7 +481,7 @@ const InvoiceForm = () => {
 
           {/* ✅ Submit */}
           <div className="flex justify-end">
-            <Button type="submit" className="w-1/2">
+            <Button type="submit" className="w-50">
               {loading ? (
                 <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
               ) : (
