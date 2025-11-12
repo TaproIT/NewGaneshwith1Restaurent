@@ -1394,15 +1394,94 @@ export const getBookingById = async (req, res) => {
     }
 };
 
+// export const getAllActiveBookings = async (req, res) => {
+//     try {
+//         const bookings = await Booking.find({ isCheckOut: false })
+//             .populate("currentRooms.roomId", "no perDayPrice facilities isBooked") // populate room details
+//             .populate("roomsHistory.roomId", "no perDayPrice") // include room info in history
+//             .populate("updatesHistory.updateUserId", "fullName email") // include who updated
+//             .populate("orders.oderId") // populate linked orders
+//             .sort({ createdAt: -1 }) // latest first
+//             .lean();
+//
+//         if (!bookings.length) {
+//             return res.status(404).json({ message: "No active bookings found." });
+//         }
+//
+//         return res.status(200).json({
+//             count: bookings.length,
+//             bookings,
+//         });
+//     } catch (error) {
+//         console.error("Error fetching active bookings:", error);
+//         return res.status(500).json({ message: "Failed to fetch active bookings." });
+//     }
+// };
+
 export const getAllActiveBookings = async (req, res) => {
     try {
-        const bookings = await Booking.find({ isCheckOut: false })
-            .populate("currentRooms.roomId", "no perDayPrice facilities isBooked") // populate room details
-            .populate("roomsHistory.roomId", "no perDayPrice") // include room info in history
-            .populate("updatesHistory.updateUserId", "fullName email") // include who updated
-            .populate("orders.oderId") // populate linked orders
-            .sort({ createdAt: -1 }) // latest first
-            .lean();
+        const { searchTerm } = req.body;
+        let bookings = [];
+
+        // 1️⃣ If searchTerm provided → search separately in three fields
+        if (searchTerm && searchTerm.trim() !== "") {
+            const searchRegex = new RegExp(searchTerm.trim(), "i"); // case-insensitive
+            const searchResults = [];
+
+            // Search 1: uniqueBookingId
+            const byBookingId = await Booking.find({
+                isCheckOut: false,
+                uniqueBookingId: { $regex: searchRegex },
+            })
+                .populate("currentRooms.roomId", "no perDayPrice facilities isBooked")
+                .populate("roomsHistory.roomId", "no perDayPrice")
+                .populate("updatesHistory.updateUserId", "fullName email")
+                .populate("orders.oderId")
+                .lean();
+            searchResults.push(...byBookingId);
+
+            // Search 2: currentRooms.roomNo
+            const byRoom = await Booking.find({
+                isCheckOut: false,
+                "currentRooms.roomNo": { $regex: searchRegex },
+            })
+                .populate("currentRooms.roomId", "no perDayPrice facilities isBooked")
+                .populate("roomsHistory.roomId", "no perDayPrice")
+                .populate("updatesHistory.updateUserId", "fullName email")
+                .populate("orders.oderId")
+                .lean();
+            searchResults.push(...byRoom);
+
+            // Search 3: guestName
+            const byGuestName = await Booking.find({
+                isCheckOut: false,
+                guestName: { $regex: searchRegex },
+            })
+                .populate("currentRooms.roomId", "no perDayPrice facilities isBooked")
+                .populate("roomsHistory.roomId", "no perDayPrice")
+                .populate("updatesHistory.updateUserId", "fullName email")
+                .populate("orders.oderId")
+                .lean();
+            searchResults.push(...byGuestName);
+
+            // Remove duplicates (by _id)
+            const uniqueBookings = Array.from(
+                new Map(searchResults.map((b) => [b._id.toString(), b])).values()
+            );
+
+            bookings = uniqueBookings.sort(
+                (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+            );
+        } else {
+            // 2️⃣ No search term → return all active bookings
+            bookings = await Booking.find({ isCheckOut: false })
+                .populate("currentRooms.roomId", "no perDayPrice facilities isBooked")
+                .populate("roomsHistory.roomId", "no perDayPrice")
+                .populate("updatesHistory.updateUserId", "fullName email")
+                .populate("orders.oderId")
+                .sort({ createdAt: -1 })
+                .lean();
+        }
 
         if (!bookings.length) {
             return res.status(404).json({ message: "No active bookings found." });
