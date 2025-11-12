@@ -14,25 +14,34 @@ const TotalGuests: React.FC<TotalGuestsProps> = ({ monthlySummary }) => {
           <Users2 color="#1D2939" />
         </div>
         <div className="flex flex-col gap-2">
-          <div className="text-Primary_blue font-medium text-[16px]">Total Guests Registered</div>
-          <div className="text-Primary_orange font-bold text-2xl text-right">{(monthlySummary?.totalGuests?.hotelA ?? 0) + (monthlySummary?.totalGuests?.hotelB ?? 0)}</div>
+          <div className="text-Primary_blue font-medium text-[16px]">
+            Total Guests Registered
+          </div>
+          <div className="text-Primary_orange font-bold text-2xl text-right">
+            {(monthlySummary?.totalGuests?.hotelA ?? 0) +
+              (monthlySummary?.totalGuests?.hotelB ?? 0)}
+          </div>
         </div>
       </div>
 
       <div className="flex flex-col gap-1">
         <div className="grid-cols-4 text-[#6F6868] text-[14px] font-medium grid">
-          <div className="col-span-2">Hotel A</div>
+          <div className="col-span-2">Ganesh Garden Beach Cabana</div>
           <div className="col-span-1">:</div>
-          <div className="col-span-1">{monthlySummary?.totalGuests?.hotelA ?? 0}</div>
+          <div className="col-span-1">
+            {monthlySummary?.totalGuests?.hotelA ?? 0}
+          </div>
         </div>
         <div className="grid-cols-4 text-[#6F6868] text-[14px] font-medium grid">
-          <div className="col-span-2">Hotel B</div>
+          <div className="col-span-2">Marakolliya Beach Resort</div>
           <div className="col-span-1">:</div>
-          <div className="col-span-1">{monthlySummary?.totalGuests?.hotelB ?? 0}</div>
+          <div className="col-span-1">
+            {monthlySummary?.totalGuests?.hotelB ?? 0}
+          </div>
         </div>
       </div>
     </div>
-  )
+  );
 };
 
 export default TotalGuests;
