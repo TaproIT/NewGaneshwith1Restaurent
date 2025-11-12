@@ -37,6 +37,7 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
     })) || []
   );
 
+  console.log(guestDetails)
   // Sync with guestDetails when it changes
   useEffect(() => {
     if (!guestDetails?.activeRooms) return setRooms([]);

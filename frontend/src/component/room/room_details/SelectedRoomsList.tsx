@@ -32,7 +32,8 @@ const SelectedRoomsList: React.FC<SelectedRoomsListProps> = ({
   onUpdateRooms,
 }) => {
   const { rates } = useRates();
-  const lengthOfStay = guestDetails?.lengthOfStay || invoiceData?.lengthOfStay || totalDays;
+  const lengthOfStay =
+    guestDetails?.lengthOfStay || invoiceData?.lengthOfStay || totalDays;
 
   const [editableRooms, setEditableRooms] = useState<EditableRoom[]>([]);
 
@@ -51,7 +52,7 @@ const SelectedRoomsList: React.FC<SelectedRoomsListProps> = ({
         roomNo: r.no,
         price: r.perDayPrice,
         currency: r.currency,
-        totalPrice: r.perDayPrice * lengthOfStay
+        totalPrice: r.perDayPrice * lengthOfStay,
       }))
     );
   }, [selectedRooms]);
@@ -68,7 +69,7 @@ const SelectedRoomsList: React.FC<SelectedRoomsListProps> = ({
           roomNo: r.no,
           price: r.perDayPrice,
           currency: r.currency,
-          totalPrice: r.perDayPrice * lengthOfStay
+          totalPrice: r.perDayPrice * lengthOfStay,
         }))
       );
 
@@ -77,37 +78,51 @@ const SelectedRoomsList: React.FC<SelectedRoomsListProps> = ({
   };
 
   const handleCurrencyChange = (newCurrency: SupportedCurrency) => {
-  setEditableRooms((prev) => {
-    const updated = prev.map((r) => ({ ...r, currency: newCurrency })); // update all rooms
+    setEditableRooms((prev) => {
+      const updated = prev.map((r) => ({ ...r, currency: newCurrency })); // update all rooms
 
-    // Notify parent
-    onUpdateRooms?.(
-      updated.map((r) => ({
-        roomNo: r.no,
-        price: r.perDayPrice,
-        currency: r.currency,
-        totalPrice: r.perDayPrice * lengthOfStay,
-      }))
-    );
+      // Notify parent
+      onUpdateRooms?.(
+        updated.map((r) => ({
+          roomNo: r.no,
+          price: r.perDayPrice,
+          currency: r.currency,
+          totalPrice: r.perDayPrice * lengthOfStay,
+        }))
+      );
 
-    return updated;
-  });
-};
-
+      return updated;
+    });
+  };
 
   if (editableRooms.length === 0) return null;
 
   return (
     <ul className="flex flex-col gap-5">
       {editableRooms.map((room) => {
-        const perDayPriceDisplay = convertAndFormatPrice(room.perDayPrice, rates, room.currency);
-        const totalPriceDisplay = convertAndFormatPrice(room.perDayPrice * lengthOfStay, rates, room.currency);
+        const perDayPriceDisplay = convertAndFormatPrice(
+          room.price ? room.price : room.perDayPrice,
+          rates,
+          room.currency
+        );
+        const totalPriceDisplay = convertAndFormatPrice(
+          room.perDayPrice * lengthOfStay,
+          rates,
+          room.currency
+        );
 
         return (
-          <li key={room._id} className={`border rounded-lg p-3 bg-gray-50 shadow-sm ${checkout && "mt-5"}`}>
+          <li
+            key={room._id}
+            className={`border rounded-lg p-3 bg-gray-50 shadow-sm ${
+              checkout && "mt-5"
+            }`}
+          >
             <div className="flex items-center justify-between text-gray">
               <h2 className="text-sm font-medium">Room-{room.no}</h2>
-              <div className="text-lg font-medium text-Primary_blue">{perDayPriceDisplay}</div>
+              <div className="text-lg font-medium text-Primary_blue">
+                {perDayPriceDisplay}
+              </div>
             </div>
 
             <div className="text-[10px] text-right text-gray">Per Day</div>
@@ -127,32 +142,37 @@ const SelectedRoomsList: React.FC<SelectedRoomsListProps> = ({
             </div>
 
             {!checkout && (
-  <div className="flex items-center gap-3 justify-between bg-white p-3 rounded-xl shadow-sm border">
-    <div className="flex flex-col">
-      <label className="text-xs text-gray-500 mb-1">Currency</label>
-      <select
-        value={room.currency}
-        onChange={(e) => handleCurrencyChange(e.target.value as SupportedCurrency)}
-        className="border rounded-lg px-2 py-1 bg-white text-sm focus:ring-2 focus:ring-Primary_blue focus:outline-none"
-      >
-        <option value="LKR">LKR</option>
-        <option value="USD">USD</option>
-        <option value="EUR">EUR</option>
-      </select>
-    </div>
+              <div className="flex items-center gap-3 justify-between bg-white p-3 rounded-xl shadow-sm border">
+                <div className="flex flex-col">
+                  <label className="text-xs text-gray-500 mb-1">Currency</label>
+                  <select
+                    value={room.currency}
+                    onChange={(e) =>
+                      handleCurrencyChange(e.target.value as SupportedCurrency)
+                    }
+                    className="border rounded-lg px-2 py-1 bg-white text-sm focus:ring-2 focus:ring-Primary_blue focus:outline-none"
+                  >
+                    <option value="LKR">LKR</option>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                  </select>
+                </div>
 
-    <div className="flex flex-col">
-      <label className="text-xs text-gray-500 mb-1">Per Day Price</label>
-      <input
-        type="number"
-        value={room.perDayPrice}
-        onChange={(e) => handlePriceChange(room.no, Number(e.target.value))}
-        className="border rounded-lg px-2 py-1 bg-white text-sm w-[140px] focus:ring-2 focus:ring-Primary_blue focus:outline-none"
-      />
-    </div>
-  </div>
-)}
-
+                <div className="flex flex-col">
+                  <label className="text-xs text-gray-500 mb-1">
+                    Per Day Price
+                  </label>
+                  <input
+                    type="number"
+                    value={room.perDayPrice}
+                    onChange={(e) =>
+                      handlePriceChange(room.no, Number(e.target.value))
+                    }
+                    className="border rounded-lg px-2 py-1 bg-white text-sm w-full focus:ring-2 focus:ring-Primary_blue focus:outline-none"
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Total */}
             <div className="mt-2 grid grid-cols-4 text-gray p-2 rounded-xl bg-white shadow-sm">
@@ -168,7 +188,11 @@ const SelectedRoomsList: React.FC<SelectedRoomsListProps> = ({
 
             {!checkout && (
               <div className="flex justify-end">
-                <Button variant="ghost" size="icon" onClick={() => onRemoveRoom(room.no)}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onRemoveRoom(room.no)}
+                >
                   <Trash2 color="red" />
                 </Button>
               </div>
