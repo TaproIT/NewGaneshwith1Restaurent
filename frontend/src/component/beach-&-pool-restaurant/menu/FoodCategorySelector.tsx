@@ -149,11 +149,11 @@ useEffect(() => {
                       itemRefs.current[index] = el;
                     }}
                     onClick={() => handleClick(index)}
-                    className={`relative px-4 py-4 w-[22%] min-h-[70px]  max-h-[70px] flex-shrink-0 flex items-center justify-center text-[0.95rem] font-semibold cursor-pointer rounded-md
+                    className={`relative px-4 py-4 w-[22%] min-h-[70px]  max-h-[70px] flex-shrink-0 flex items-center justify-center text-[0.95rem] text-center font-semibold cursor-pointer rounded-md
                 ${
                   isSelected
                     ? "bg-[#B24E0E] text-white"
-                    : "bg-transparent text-[#5B5B5B] border border-[#CECECE]"
+                    : "bg-transparent text-[#E37E0A] border border-[#CECECE]"
                 }`}
                   >
                     {cat.categoryName.toUpperCase()}

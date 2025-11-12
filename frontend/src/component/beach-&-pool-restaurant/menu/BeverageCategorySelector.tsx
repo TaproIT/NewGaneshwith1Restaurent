@@ -124,7 +124,7 @@ const BeverageCategorySelector: React.FC<{id:string}> = ({id}) => {
                   ${
                     isSelected
                       ? "bg-[#B24E0E] text-white"
-                      : "bg-transparent text-[#5B5B5B] border border-[#CECECE]"
+                      : "bg-transparent text-[#8B0000] border border-[#CECECE]"
                   }`}
               >
                 {cat.label.toUpperCase()}
@@ -145,7 +145,7 @@ const BeverageCategorySelector: React.FC<{id:string}> = ({id}) => {
                   ${
                     isSelected
                       ? "bg-[#B24E0E] text-white"
-                      : "bg-transparent text-[#5B5B5B] border border-[#CECECE]"
+                      : "bg-transparent text-[#1A81B5] border border-[#CECECE]"
                   }`}
               >
                 {cat.name.toUpperCase()}
