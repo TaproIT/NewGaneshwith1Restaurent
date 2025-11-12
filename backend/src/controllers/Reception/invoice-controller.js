@@ -4,6 +4,8 @@ import Room from "../../models/Room.js";
 import { sendErrorResponse, sendSuccessResponse } from "../../utils/response-util.js";
 import RoomCategory from "../../models/roomCategory.js";
 import { CurrencyTypes } from "../../utils/enums/currency-type.js";
+import { generateInvoiceNumber } from "../../utils/invoice-util.js";
+import { InvoiceCounter } from "../../models/Reception/invoice-counter.model.js";
 
 
 export const generateInvoice = async (req, res) => {
@@ -55,12 +57,14 @@ export const generateInvoice = async (req, res) => {
     }
 
     // --- Generate timestamp-based invoice number ---
-    const now = new Date();
-    const pad = (num) => num.toString().padStart(2, "0");
-    const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+    // const now = new Date();
+    // const pad = (num) => num.toString().padStart(2, "0");
+    // const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
 
     // Optionally generate based on first category name or type
-    const invoiceNumber = `INV-${timestamp}-${Math.floor(Math.random() * 1000)}`;
+    //const invoiceNumber = `INV-${timestamp}-${Math.floor(Math.random() * 1000)}`;
+
+    const invoiceNumber = await generateInvoiceNumber();
 
     // --- Create invoice ---
     const invoice = await Invoice.create({
@@ -112,7 +116,7 @@ export const getInvoiceById = async (req, res) => {
 
 export const getInvoices = async (req, res) => {
   try {
-    const { fromDate, toDate } = req.query;
+    const { fromDate, toDate, searchText } = req.query;
 
     const filter = {};
 
@@ -120,6 +124,16 @@ export const getInvoices = async (req, res) => {
       filter.checkInDate = {};
       if (fromDate) filter.checkInDate.$gte = new Date(fromDate);
       if (toDate) filter.checkInDate.$lte = new Date(toDate);
+    }
+
+    // Search filter
+    if (searchText && searchText.trim() !== "") {
+      const regex = new RegExp(searchText, "i"); // case-insensitive match
+      filter.$or = [
+        { invoiceNumber: regex },
+        { customerName: regex },
+        { travelAgentName: regex },
+      ];
     }
 
     // ✅ Populate room category details inside selectedRooms
@@ -160,5 +174,29 @@ export const getInvoices = async (req, res) => {
   }
 };
 
+export const resetInvoiceCounter = async (req, res) => {
+  try {
+    const { name, value } = req.body;
+
+    // Ensure name is provided
+    if (!name) {
+      return sendErrorResponse(res, 400, "Missing 'name' field in request body");
+    }
+
+    // Default reset value to 0 if not provided
+    const resetValue = typeof value === "number" ? value : 0;
+
+    // Find and update or create if not exists
+    const counter = await InvoiceCounter.findOneAndUpdate(
+      { name },
+      { $set: { seq: resetValue } },
+      { new: true, upsert: true }
+    );
+
+    return sendSuccessResponse(res, 200, "Invoice counter reset successfully", counter);
+  } catch (error) {
+    return sendErrorResponse(res, 500, "Internal Server Error", error.message);
+  }
+};
 
 
