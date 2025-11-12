@@ -28,7 +28,7 @@ router.get("/extended-today", getTodayExtendedRooms);
 router.get("/details/reserved-all-rooms", getAllReservedRoomsWithBookingDetails );
 router.patch("/:id/add-order", addOrderToBooking);
 router.put("/:id/update-booking",authenticateToken, updateBooking);
-router.get("/get-all-active-bookings",getAllActiveBookings);
+router.post("/get-all-active-bookings",getAllActiveBookings);
 router.get("/get-booking/:id", getBookingById);
 router.get("/specific/details/:id",getSpecificBookingDetails)
 
