@@ -32,7 +32,11 @@ const additionalPriceItemSchema = new mongoose.Schema(
 
 const bookingSchema = new mongoose.Schema(
     {
-        hotel: { type: String, required: true },
+        hotel: {
+            type: String,
+            required: true,
+            enum: ['Ganesh Garden Beach Cabana', 'Marakolliya Beach Resort'],
+        },
         guestName: { type: String, required: true },
         uniqueBookingId: { type: String, required: true, unique: true },
         country: { type: String},
