@@ -129,7 +129,7 @@ useEffect(() => {
         onMouseLeave={handleMouseLeave}
         onMouseUp={handleMouseUp}
         onMouseMove={handleMouseMove}
-        className="flex gap-2.5 overflow-x-auto cursor-grab active:cursor-grabbing no-scrollbar w-[81.5%]"
+        className={`flex gap-2.5 overflow-x-auto cursor-grab active:cursor-grabbing no-scrollbar ${isMenuHandlingPage ? isAdminRole ? "w-[81.5%]": "w-full" : "w-full"}`}
       >
         {loading
           ? // Show skeletons while loading
@@ -169,35 +169,37 @@ useEffect(() => {
       </div>
       {/* Add New Category Button (fixed to right) */}
       {(isMenuHandlingPage && isAdminRole) && (
-        <>
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 pr-1 bg-white">
+        <div className="w-[20%] grid grid-cols-2 gap-0.25 absolute right-[0%] top-1/2 -translate-y-1/2">
+          <div className=" col-span-1 pr-1 bg-primary rounded-l-lg">
             <div
-              className="py-5 px-4 flex items-center justify-center border rounded-sm cursor-pointer"
+              className="py-5 px-2 flex items-center justify-center gap-1 rounded-sm cursor-pointer text-white text-[0.9rem]"
               onClick={handleAddNewFoodCategory}
             >
-              <Plus size={24} className="text-[#0A869D]" />
+              <Plus size={20} />
+              Add
             </div>
           </div>
 
           <div
-            className={`absolute right-[9%] top-1/2 -translate-y-1/2 pr-1 bg-white ${
+            className={`col-span-1 pr-1 bg-primary rounded-r-lg ${
               !foodCategory.isFoodCategory
                 ? "opacity-50 cursor-not-allowed"
                 : "cursor-pointer"
             }`}
           >
             <div
-              className="py-5 px-4 flex items-center justify-center border rounded-sm"
+              className="py-5.5 px-2 flex items-center justify-center gap-2 rounded-sm text-white text-[0.9rem]"
               onClick={
                 foodCategory.isFoodCategory
                   ? handleUpdateFoodCategory
                   : undefined
               }
-            >
-              <Edit size={24} className="text-[#0A869D]" />
+            > 
+              <Edit size={18} />
+              Edit
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
