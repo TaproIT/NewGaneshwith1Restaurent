@@ -2,6 +2,7 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import { api } from "../axios";
 import type { BeverageCategory } from "@/component/beach-&-pool-restaurant/beverage-category-model";
 import { fetchAllExtraBeverageCategories } from "./get-extra-beverge-categories-api";
+import { fetchAllFoodCategories } from "./get-food-categories-api";
 
 interface AddExtraBeverageCategory {
   name: string;
@@ -19,6 +20,7 @@ export const addNewExtraBeverageCategory = createAsyncThunk<
     try {
       const response = await api.post(`/extra-beverages/category`, beverageCategory);
       await dispatch(fetchAllExtraBeverageCategories());
+      await dispatch(fetchAllFoodCategories())
       return response.data.data as BeverageCategory;
     } catch (error: any) {
       return rejectWithValue(

@@ -4,6 +4,9 @@ import type { AppDispatch, RootState } from '@/app/store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { setSelectedCategory } from '@/features/beach-restaurant/beverageCategorySlice';
+import { setSelectedCategoryId } from '@/features/beach-restaurant/foodCategorySlice';
+import { BeverageCategories } from '@/lib/enums/order-related-enums';
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
@@ -11,8 +14,8 @@ import { toast } from 'react-toastify';
 const AddCategorySection = () => {
   const dispatch = useDispatch<AppDispatch>();
   
-  const { isClickedAddFoodCategory, isFoodCategory, addFoodCategoryStatus} = useSelector((state:RootState) => state.foodCategory);
-  const { addNewExtraBeverageCategoryStatus } = useSelector((state:RootState) => state.beverageCategory);
+  const { isClickedAddFoodCategory, isFoodCategory, addFoodCategoryStatus, categories} = useSelector((state:RootState) => state.foodCategory);
+  const { addNewExtraBeverageCategoryStatus, selectedCategory } = useSelector((state:RootState) => state.beverageCategory);
 
   const [categoryName, setCategoryName] = useState<string>("");
   
@@ -24,12 +27,17 @@ const AddCategorySection = () => {
           await dispatch(addNewFoodCategory({ categoryName })).unwrap();
           toast.success("Food category added successfully!");
           setCategoryName("");
+          dispatch(setSelectedCategoryId(categories[0]._id));
           return;
         }
-
         await dispatch(addNewExtraBeverageCategory({ name:categoryName })).unwrap();
+        if (selectedCategory ){
+          dispatch(setSelectedCategory(""));
+        }
         toast.success("Beverage category added successfully!");
         setCategoryName("");
+        dispatch(setSelectedCategoryId(""));
+        dispatch(setSelectedCategory(BeverageCategories.HARD_LIQUOR.value));
         return;
     }catch(error) {
          if (isClickedAddFoodCategory) {

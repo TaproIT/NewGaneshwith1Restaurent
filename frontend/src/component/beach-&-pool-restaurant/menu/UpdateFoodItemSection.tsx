@@ -126,6 +126,7 @@ export default function UpdateItemSection() {
       }
 
       toast.success("Item deleted successfully!");
+      dispatch(setIsClickAddNewFoodItem(true));
     } catch (err: any) {
       toast.error(err?.message || "Failed to delete item");
     }
@@ -347,6 +348,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { updateExtraBeverage } from "@/api/order/update-extra-beverage-item-api";
 import { deleteFoodItem } from "@/api/order/delete-food-item-api";
 import { deleteExtraBeverageItem } from "@/api/order/delete-extra-beverage-api";
+import { setIsClickAddNewFoodItem } from "@/features/beach-restaurant/foodSlice";
 
 function UpdateItemSkeleton() {
   return (
