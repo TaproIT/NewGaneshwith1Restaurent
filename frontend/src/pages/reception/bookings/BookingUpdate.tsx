@@ -24,8 +24,8 @@ import { Label } from "@/components/ui/label";
 import { toast } from "react-toastify";
 import QrCodeModal from "@/component/modal/QrCodeModal";
 
-const CUSTOMER_VALUES = ["Open Booking", "Agent"];
-const BREAKFAST_VALUES = ["Included", "Not Included"];
+const CUSTOMER_VALUES = ["Booking.com", "Open Booking"];
+const BREAKFAST_VALUES = ["Included", "Not-Included", "Full Board"];
 
 const BookingUpdate = () => {
   const { id } = useParams();
@@ -69,6 +69,7 @@ const BookingUpdate = () => {
       try {
         const res = await api.get(`/booking/get-booking/${id}`);
         form.reset(res.data.booking);
+        console.log(res.data.booking)
         // Store room numbers for modal
         const rooms = res.data.booking.currentRooms.map((r: any) => r.roomNo);
         setRoomNumbers(rooms);
@@ -117,7 +118,7 @@ const BookingUpdate = () => {
       if (res.data?.whatsappLink) {
         window.open(res.data.whatsappLink, "_blank");
       }
-      navigate("/bookings")
+      navigate("/bookings");
     } catch (error) {
       const errMsg =
         (error as any)?.response?.data?.message ||
@@ -132,7 +133,7 @@ const BookingUpdate = () => {
     try {
       await api.post(`/booking/${id}/send-email`, { message });
       toast.success("Email sent successfully!");
-      navigate("/bookings")
+      navigate("/bookings");
     } catch (error) {
       const errMsg =
         (error as any)?.response?.data?.message ||
@@ -143,7 +144,6 @@ const BookingUpdate = () => {
       setLoading(false);
     }
   };
-  
 
   if (loading) return <div className="p-6">Loading...</div>;
 
@@ -151,323 +151,330 @@ const BookingUpdate = () => {
     <div className="p-6 rounded-2xl bg-mainWhite h-[calc(100vh-140px)] overflow-y-auto">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Guest Name & Country */}
-          <div className="flex justify-between gap-6">
-            <FormField
-              control={form.control}
-              name="guestName"
-              render={({ field }) => (
-                <FormItem className="flex flex-col items-center">
-                  <div className="flex items-center">
-                    <FormLabel className="w-50">Guest Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter guest name" {...field} />
-                    </FormControl>
-                  </div>
-                  <div>
+          <div className="flex flex-col gap-5 p-5 border-2 rounded-2xl mt-10">
+            {/* Guest Name & Country */}
+            <div className="flex justify-between">
+              <FormField
+                control={form.control}
+                rules={{ required: "Guest name is required" }}
+                name="guestName"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col items-center">
+                    <div className="flex items-center">
+                      <FormLabel className="w-50">Guest Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter guest name" {...field} />
+                      </FormControl>
+                    </div>
+                    <div>
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="country"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col items-center">
+                    <div className="flex items-center">
+                      <FormLabel className="w-50">Country</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter country" {...field} />
+                      </FormControl>
+                    </div>
                     <FormMessage />
-                  </div>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="country"
-              render={({ field }) => (
-                <FormItem className="flex flex-col items-center">
-                  <div className="flex items-center">
-                    <FormLabel className="w-50">Country</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter country" {...field} />
-                    </FormControl>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+                  </FormItem>
+                )}
+              />
+            </div>
 
-          {/* Customer Type & Breakfast */}
-          <div className="flex justify-between">
-            <FormField
-              control={form.control}
-              name="customerType"
-              rules={{ required: "Select customer type" }}
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <div className="flex items-center">
-                    <FormLabel className="w-33">Customer Type</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      disabled
-                      defaultValue={field.value}
-                    >
-                      <FormControl className="w-72">
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select" />
-                        </SelectTrigger>
+            <div className="flex justify-between">
+              <FormField
+                control={form.control}
+                name="customerType"
+                rules={{ required: "Select customer type" }}
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <div className="flex items-center">
+                      <FormLabel className="w-33">Customer Type</FormLabel>
+                      <Select
+  onValueChange={field.onChange}
+  value={field.value}
+  disabled
+>
+  <FormControl className="w-72">
+    <SelectTrigger>
+      <SelectValue placeholder="Select" />
+    </SelectTrigger>
+  </FormControl>
+  <SelectContent>
+    {CUSTOMER_VALUES.map((item) => (
+      <SelectItem value={item} key={item}>
+        {item}
+      </SelectItem>
+    ))}
+  </SelectContent>
+</Select>
+
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Breakfast */}
+              <FormField
+                control={form.control}
+                name="breakfast"
+                rules={{ required: "Select breakfast option" }}
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <div className="flex items-center">
+                      <FormLabel className="w-32">Breakfast</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        disabled
+                        value={field.value}
+                      >
+                        <FormControl className="w-72">
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {BREAKFAST_VALUES.map((item) => (
+                            <SelectItem value={item} key={item}>
+                              {item}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Passport ID & Email */}
+            <div className="flex justify-between">
+              <FormField
+                control={form.control}
+                name="passportId"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col items-center">
+                    <div className="flex items-center">
+                      <FormLabel className="w-50">Passport ID</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter passport ID" {...field} />
                       </FormControl>
-                      <SelectContent>
-                        {CUSTOMER_VALUES.map((item) => (
-                          <SelectItem value={item} key={item}>
-                            {item}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Breakfast */}
-            <FormField
-              control={form.control}
-              name="breakfast"
-              rules={{ required: "Select breakfast option" }}
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <div className="flex items-center">
-                    <FormLabel className="w-32">Breakfast</FormLabel>
-                    <Select
-                    onValueChange={field.onChange}
-                    disabled
-                      defaultValue={field.value}
-                    >
-                      <FormControl className="w-72">
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select"/>
-                        </SelectTrigger>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col items-center">
+                    <div className="flex items-center">
+                      <FormLabel className="w-50">Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="guest@example.com"
+                          type="email"
+                          {...field}
+                        />
                       </FormControl>
-                      <SelectContent>
-                        {BREAKFAST_VALUES.map((item) => (
-                          <SelectItem value={item} key={item}>
-                            {item}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-          {/* Passport & Email */}
-          <div className="flex justify-between">
-            <FormField
-              control={form.control}
-              name="passportId"
-              render={({ field }) => (
-                <FormItem className="flex flex-col items-center">
-                  <div className="flex items-center">
-                    <FormLabel className="w-50">Passport ID</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter passport ID" {...field} disabled/>
+            {/* WhatsApp */}
+            <div className="flex justify-between">
+              <FormField
+                control={form.control}
+                name="whatsapp"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col items-center">
+                    <div className="flex items-center">
+                      <FormLabel className="w-50">WhatsApp</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="+947X XXX XXXX"
+                          {...field}
+                          maxLength={12}
+                          minLength={12}
+                        />
+                      </FormControl>
+                    </div>
+                    <FormMessage className="ml-10" />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Guests & Length of Stay */}
+            <div className="flex justify-between">
+              <FormField
+                control={form.control}
+                rules={{
+                  validate: (value) =>
+                    value > 0 || "Total Guests must be greater than 0",
+                }}
+                name="totalGuests"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col items-center">
+                    <div className="flex items-center">
+                      <FormLabel className="w-50">Total Guests</FormLabel>
+                      <FormControl>
+                        <Input type="number" {...field} disabled />
+                      </FormControl>
+                    </div>
+                    <FormMessage className="ml-20" />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                rules={{
+                  validate: (value) =>
+                    value > 0 || "Length must be greater than 0",
+                }}
+                name="lengthOfStay"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col items-center">
+                    <div className="flex items-center">
+                      <Label className="w-54">Length of Stay</Label>
+                      <FormControl>
+                        <Input type="number" {...field} disabled />
+                      </FormControl>
+                    </div>
+                    <FormMessage className="ml-20" />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Adults & Check-in */}
+            <div className="flex justify-between">
+              <FormField
+                control={form.control}
+                name="adults"
+                render={({ field }) => (
+                  <FormItem className="flex items-center w-100">
+                    <Label className="w-35">Adults</Label>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        onClick={() =>
+                          field.onChange(Math.max(field.value - 1, 0))
+                        }
+                        className="bg-white text-black border-gray border-2 hover:bg-white hover:text-black"
+                      >
+                        -
+                      </Button>
+                      <span>{field.value}</span>
+                      <Button
+                        type="button"
+                        onClick={() => field.onChange(field.value + 1)}
+                        className="bg-white text-black border-gray border-2 hover:bg-white hover:text-black"
+                      >
+                        +
+                      </Button>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Check-in Date */}
+              <FormField
+                control={form.control}
+                name="checkIn"
+                render={({ field }) => (
+                  <FormItem className="flex items-center">
+                    <Label className="w-35">Check-in</Label>
+                    <FormControl className="w-70">
+                      <Input type="date" {...field} disabled value={field.value?.slice(0, 10)}/>
                     </FormControl>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem className="flex flex-col items-center">
-                  <div className="flex items-center">
-                    <FormLabel className="w-50">Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="guest@example.com"
-                        type="email"
-                        {...field}
-                      />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Kids & Check-out */}
+            <div className="flex justify-between">
+              <FormField
+                control={form.control}
+                name="kids"
+                render={({ field }) => (
+                  <FormItem className="flex items-center">
+                    <Label className="w-35">Kids</Label>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        onClick={() =>
+                          field.onChange(Math.max(field.value - 1, 0))
+                        }
+                        className="bg-white text-black border-gray border-2 hover:bg-white hover:text-black"
+                      >
+                        -
+                      </Button>
+                      <span>{field.value}</span>
+                      <Button
+                        type="button"
+                        onClick={() => field.onChange(field.value + 1)}
+                        className="bg-white text-black border-gray border-2 hover:bg-white hover:text-black"
+                      >
+                        +
+                      </Button>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Check-out Date */}
+              <FormField
+                control={form.control}
+                name="checkOut"
+                rules={{
+                  validate: (value) => {
+                    const selected = new Date(value);
+                    if (selected < new Date(todayDate))
+                      return "Check-out date cannot be before today";
+                    return true;
+                  },
+                }}
+                render={({ field }) => (
+                  <FormItem className="flex items-center">
+                    <Label className="w-35">Check-out</Label>
+                    <FormControl className="w-70">
+                      <Input type="date" {...field} min={todayDate} value={field.value?.slice(0, 10)}/>
                     </FormControl>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-          {/* WhatsApp */}
-          <div className="flex justify-between">
-            <FormField
-              control={form.control}
-              name="whatsapp"
-              render={({ field }) => (
-                <FormItem className="flex flex-col items-center">
-                  <div className="flex items-center">
-                    <FormLabel className="w-50">WhatsApp</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="+947X XXX XXXX"
-                        {...field}
-                        maxLength={12}
-                        minLength={12}
-                      />
-                    </FormControl>
-                  </div>
-                  <FormMessage className="ml-10" />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          {/* Adults & Kids & Total Guests */}
-          <div className="flex justify-between gap-6">
-            <FormField
-              control={form.control}
-              name="adults"
-              render={({ field }) => (
-                <FormItem className="flex flex-col w-1/3">
-                  <FormLabel>Adults</FormLabel>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="button"
-                      onClick={() =>
-                        field.onChange(Math.max(field.value - 1, 0))
-                      }
-                    >
-                      -
-                    </Button>
-                    <span>{field.value}</span>
-                    <Button
-                      type="button"
-                      onClick={() => field.onChange(field.value + 1)}
-                    >
-                      +
-                    </Button>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="kids"
-              render={({ field }) => (
-                <FormItem className="flex flex-col w-1/3">
-                  <FormLabel>Kids</FormLabel>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="button"
-                      onClick={() =>
-                        field.onChange(Math.max(field.value - 1, 0))
-                      }
-                    >
-                      -
-                    </Button>
-                    <span>{field.value}</span>
-                    <Button
-                      type="button"
-                      onClick={() => field.onChange(field.value + 1)}
-                    >
-                      +
-                    </Button>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="totalGuests"
-              render={({ field }) => (
-                <FormItem className="flex flex-col w-1/3">
-                  <FormLabel>Total Guests</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} disabled />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          {/* Check-in & Check-out */}
-          <div className="flex justify-between">
-            <FormField
-              control={form.control}
-              name="checkIn"
-              render={({ field }) => (
-                <FormItem className="flex items-center">
-                  <Label className="w-35">Check-in</Label>
-                  <FormControl className="w-70">
-                    <Input
-                      type="date"
-                      {...field}
-                      disabled
-                      value={field.value?.slice(0, 10)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="checkOut"
-              rules={{
-                validate: (value) => {
-                  const selected = new Date(value);
-                  if (selected < new Date(todayDate))
-                    return "Check-out date cannot be before today";
-                  return true;
-                },
-              }}
-              render={({ field }) => (
-                <FormItem className="flex items-center">
-                  <Label className="w-35">Check-out</Label>
-                  <FormControl className="w-70">
-                    <Input
-                      type="date"
-                      {...field}
-                      min={todayDate}
-                      value={field.value?.slice(0, 10)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          {/* Length of Stay */}
-          <div className="flex justify-between gap-6">
-            <FormField
-              control={form.control}
-              rules={{
-                validate: (value) =>
-                  value > 0 || "Length must be greater than 0",
-              }}
-              name="lengthOfStay"
-              render={({ field }) => (
-                <FormItem className="flex flex-col items-center">
-                  <div className="flex items-center">
-                    <Label className="w-54">Length of Stay</Label>
-                    <FormControl>
-                      <Input type="number" {...field} disabled />
-                    </FormControl>
-                  </div>
-                  <FormMessage className="ml-20" />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          {/* Update Button */}
-          <div className="flex justify-end">
-            <Button type="submit" className="w-40">
-              {updateLoading ? (
-                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-              ) : (
-                "Update Booking"
-              )}
-            </Button>
+            {/* Continue Button */}
+            <div className="flex justify-end">
+              <Button type="submit" className="w-40">
+                {updateLoading ? (
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                ) : (
+                  "Update Booking"
+                )}
+              </Button>
+            </div>
           </div>
         </form>
       </Form>

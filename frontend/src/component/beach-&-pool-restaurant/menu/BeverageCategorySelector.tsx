@@ -110,7 +110,7 @@ const BeverageCategorySelector: React.FC<{id:string}> = ({id}) => {
           <Skeleton key={index} className="h-[72px] w-full mb-2 rounded-md" />
         ))
       ) : (
-        <div className="w-full h-[calc(100vh-300px)] overflow-y-auto no-scrollbar">
+        <div className={`w-full ${isMenuHandlingPage ? isAdminRole ? "h-[calc(100vh-360px)]" :"h-[calc(100vh-300px)]" : "h-[calc(100vh-300px)]" }  overflow-y-auto no-scrollbar`}>
           {categories.map((cat, index) => {
             const isSelected = cat.value === selectedCategory;
             return (
@@ -155,32 +155,34 @@ const BeverageCategorySelector: React.FC<{id:string}> = ({id}) => {
         </div>
       )}
       {( isMenuHandlingPage && isAdminRole ) && (
-        <div className="w-full flex gap-2">
-          <div className="sticky left-0 bottom-5 w-[47%] pr-1 bg-white">
+        <div className="w-full flex gap-0.25">
+          <div className="sticky left-0 bottom-5 w-[47%] pr-1 bg-primary rounded-l-lg ">
             <div
-              className="py-5 w-full flex items-center justify-center border rounded-sm cursor-pointer"
+              className="py-5.5 w-full flex items-center justify-center cursor-pointer text-white gap-1 text-[0.9rem]"
               onClick={handleAddNewBeverageCategory}
             >
-              <Plus size={24} className="text-[#0A869D]" />
+              <Plus size={20} />
+              Add
             </div>
           </div>
 
           <div
-            className={`sticky left-0 bottom-5 w-[48%] pr-1 bg-white ${
+            className={`sticky left-0 bottom-5 w-[48%] pr-1 bg-primary rounded-r-lg ${
               foodCategory.isFoodCategory || (!isExtraBeverageCategory)
                 ? "opacity-50 cursor-not-allowed"
                 : "cursor-pointer"
             }`}
           >
             <div
-              className="py-5 w-full flex items-center justify-center border rounded-sm"
+              className="py-5.5 w-full flex items-center justify-center gap-1 rounded-sm text-white text-[0.9rem]"
               onClick={
                 !foodCategory.isFoodCategory
                   ? handleUpdateBeverageCategory
                   : undefined
               }
             >
-              <Edit size={24} className="text-[#0A869D]" />
+              <Edit size={18} />
+              Edit
             </div>
           </div>
         </div>
