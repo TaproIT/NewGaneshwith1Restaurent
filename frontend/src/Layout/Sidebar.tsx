@@ -112,7 +112,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </nav>
       </div>
 
-      <div>
+      <div className="border-t-2">
         {(userRole === "Admin" || userRole === "Super-Admin") && activeSidebar !== "Admin" && (
           <button onClick={() => navigate("/admin/dashboard")}
                   className="flex items-center gap-2 p-2 rounded-lg w-full hover:bg-primary hover:text-white mt-4 text-sm">

@@ -40,7 +40,7 @@ const navigationConfig = {
     { path: "/switch-rooms", title: "Switch Rooms", icon: <RepeatIcon size={22} /> },
     { path: "/checkouts", title: "Checkouts", icon: <CircleArrowRight size={22} /> },
     { path: "/invoice", title: "Invoice", icon: <BookText size={22} /> },
-    { path: "/room-config", title: "Room Config", icon: <Warehouse size={22} /> },
+    // { path: "/room-config", title: "Room Config", icon: <Warehouse size={22} /> },
   ],
   "Beach-Restaurant-Staff": [
     { path: "/restaurant/home", title: "Home", icon: <House size={22} /> },
