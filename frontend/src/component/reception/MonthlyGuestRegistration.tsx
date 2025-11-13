@@ -46,7 +46,7 @@ const MonthlyGuestRegistration: React.FC<MonthlyGuestRegistrationProps> = ({
     "Dec",
   ];
 
-  // Prepare data for Ganesh Garden Beach Cabana and Marakolliya Beach Resort dynamically from the prop
+  // Prepare data for Ganesh Garden Beach Cabana and Marakolliya Beach Resort dynamically from the prop
   const hotelAData = labels.map((_, index) => {
     const monthData = monthlyGuestsSummary?.find(
       (item) => item.monthNumber === index + 1
@@ -74,7 +74,7 @@ const MonthlyGuestRegistration: React.FC<MonthlyGuestRegistrationProps> = ({
         fill: true,
       },
       {
-        label: "Marakolliya Beach Resort",
+        label: "Marakolliya Beach Resort",
         data: hotelBData,
         borderColor: "rgba(234, 62, 47, 1)",
         backgroundColor: "rgba(234, 62, 47, 0.2)",

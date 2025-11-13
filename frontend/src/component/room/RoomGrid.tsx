@@ -118,7 +118,7 @@ const RoomGrid: React.FC<RoomGridProps> = ({
 
           // Determine if the room should be clickable
           const isClickable =
-            currentPath === "/switch-rooms"
+            currentPath === "/switch-rooms" || currentPath === "/checkouts"
               ? status === "reserved" // only reserved rooms clickable in switch-rooms
               : !readOnly
               ? status === "empty" // only empty rooms clickable in normal mode
