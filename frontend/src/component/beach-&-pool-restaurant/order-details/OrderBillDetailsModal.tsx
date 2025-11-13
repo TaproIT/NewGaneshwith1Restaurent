@@ -17,6 +17,7 @@ import { updateOrderBillDetails } from "@/api/order/update-order-bill-details";
 import { PaymentMethods } from "@/lib/enums/order-related-enums";
 import { useNavigate } from "react-router-dom";
 import { updateBookingDetailsWithOrderId } from "@/api/order/update-booking-details-with-order-id-api";
+import { Loader2 } from "lucide-react";
 
 interface OrderTokenDialogProps {
   id: string;
@@ -34,6 +35,7 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
   const [discount, setDiscount] = useState(0);
   const [step, setStep] = useState(1);
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();
 
   const paymentMethods = Object.values(PaymentMethods);
@@ -199,14 +201,19 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
     };
 
     try {
+      setLoading(true);
       await dispatch(updateOrderBillDetails(orderData)).unwrap();
       if (orderData.paymentMethod === PaymentMethods.ROOM.value) {
         await dispatch(updateBookingDetailsWithOrderId(bookingData)).unwrap();
       }
       await printReceipt();
+      setLoading(false);
       toast.success("Order payment processed & printed!");
+      dispatch(closeOrderBillDetailsModal());
       navigate("/restaurant/home");
     } catch (err: any) {
+      setLoading(false);
+      dispatch(closeOrderBillDetailsModal());
       toast.error(
         err?.message || "Unable to complete the payment. Please try again."
       );
@@ -223,7 +230,6 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
         return;
       }
       updateOrderDetails();
-      dispatch(closeOrderBillDetailsModal());
     }
   };
 
@@ -276,7 +282,9 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
                       className="flex justify-between text-xs py-1 last:border-none"
                     >
                       <span className="w-[60%] break-words">{item.title}</span>
-                      <span className="w-[20%] text-center">{item.quantity}</span>
+                      <span className="w-[20%] text-center">
+                        {item.quantity}
+                      </span>
                       <span className="w-[20%] text-right">
                         {(item.price * item.quantity).toFixed(2)}
                       </span>
@@ -348,11 +356,27 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
             </div>
 
             <div className="flex justify-between mt-6">
-              <Button variant="outline" onClick={handleBack} className="w-[48%]">
+              <Button
+                variant="outline"
+                onClick={handleBack}
+                className="w-[48%]"
+              >
                 Back
               </Button>
-              <Button onClick={handleNext} className="w-[48%]">
-                Confirm & Print
+
+              <Button
+                onClick={handleNext}
+                disabled={loading}
+                className="w-[48%] cursor-pointer"
+              >
+                {loading ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Processing...
+                  </div>
+                ) : (
+                  "Confirm & Print"
+                )}
               </Button>
             </div>
           </>
