@@ -12,12 +12,13 @@ import { api } from "@/api/axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import RoomGridSkeleton from "../skeleton/RoomGridSkeleton";
 import type { BookedRoom } from "@/types/guestDataTypes";
+import type { OldRoom } from "@/features/switch-rooms/removedRooms";
 
 const SOCKET_URL = import.meta.env.SOCKET_URL;
 
 const Step02 = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [loadingRooms, setLoadingRooms] = useState(true);
   const [selectedRooms, setSelectedRooms] = useState<Room[]>([]);
   const [viewedRoom, setViewedRoom] = useState<Room | null>(null);
@@ -35,9 +36,8 @@ const Step02 = () => {
   const [updatedRooms, setUpdatedRooms] = useState<BookedRoom[]>([]);
   const [isWhatsappAvailable, setIsWhatsappAvailable] = useState(false);
   const [isEmailAvailable, setIsEmailAvailable] = useState(false);
-  // const removedRooms = useSelector(
-  //   (state: RootState) => state.removedRooms.oldRooms
-  // );
+  
+  const totalOldRoomsPrice = removedRooms?.reduce((sum: number, room: OldRoom) => sum + room.finalRoomTotalPrice, 0);
 
   const socketRef = useRef<Socket | null>(null);
 
@@ -158,8 +158,9 @@ const Step02 = () => {
         const booking = await api.post("/booking", bookingData);
         setWhatsAppBookingId(booking.data.bookingId);
         // ✅ Check if we have at least one contact option before opening modal
-      const hasContact =
-        bookingData.whatsapp?.trim() !== "" || bookingData.email?.trim() !== "";
+        const hasContact =
+          bookingData.whatsapp?.trim() !== "" ||
+          bookingData.email?.trim() !== "";
 
         const hasWhatsapp = bookingData.whatsapp?.trim() !== "";
         const hasEmail = bookingData.email?.trim() !== "";
@@ -167,21 +168,26 @@ const Step02 = () => {
         setIsWhatsappAvailable(hasWhatsapp);
         setIsEmailAvailable(hasEmail);
 
-      if (hasContact) {
-        setIsModalOpen(true);
-      } else {
-        navigate("/onboarding");
-      }
+        if (hasContact) {
+          setIsModalOpen(true);
+        } else {
+          navigate("/onboarding");
+        }
       } else {
         const payload = {
           oldRooms: removedRooms,
           newRooms: updatedRooms.map((r) => ({
-    roomNo: r.roomNo,
-    perDayPrice: r.price, // in LKR internally, you can convert if needed
-    currency: r.currency,
-  })),
+            roomNo: r.roomNo,
+            perDayPrice: r.price, // in LKR internally, you can convert if needed
+            currency: r.currency,
+          })),
         };
         await api.put(`/booking/${bookingId}/switch-rooms`, payload);
+        navigate("/onboarding", {
+      state: {
+        oldRooms: [], // pass the array directly
+      },
+    });
       }
 
       roomIds.forEach((id) => socketRef.current?.emit("unlockRoom", id));
@@ -191,14 +197,14 @@ const Step02 = () => {
       toast.success("Rooms booked successfully!");
       // setIsModalOpen(true);
     } catch (err: any) {
-  console.error("Failed to book rooms:", err);
+      console.error("Failed to book rooms:", err);
 
-  // Extract message from server or fallback to generic error
-  const message =
-    err?.response?.data?.message || // Axios error from backend
-    (err instanceof Error ? err.message : String(err)); // JS error fallback
+      // Extract message from server or fallback to generic error
+      const message =
+        err?.response?.data?.message || // Axios error from backend
+        (err instanceof Error ? err.message : String(err)); // JS error fallback
 
-  toast.error(`Booking failed: ${message}`);
+      toast.error(`Booking failed: ${message}`);
     } finally {
       setTimeout(() => setLoadingBooking(false), 1500);
     }
@@ -255,6 +261,7 @@ const Step02 = () => {
           onUpdateRooms={(rooms: BookedRoom[]) => setUpdatedRooms(rooms)}
           isWhatsappAvailable={isWhatsappAvailable}
           isEmailAvailable={isEmailAvailable}
+          totalOldRoomsPrice={totalOldRoomsPrice}
         />
       </div>
     </div>
