@@ -347,7 +347,19 @@ export const getBookingBillingSummary = async (req, res) => {
             // else if currency is LKR, no change
 
             const nights = diffNightsTZ(effIn, effOut);
-            const finalRoomTotalPrice = nights * perDayPriceInLKR; // 💰 use converted price for total
+            let finalRoomTotalPrice = nights * perDayPriceInLKR; // 💰 use converted price for total
+
+            // 💸 Apply discount if available
+            let discountPrice = Number(rh.discountPrice) || 0;
+
+            if (discountPrice > 0) {
+                if (currency === "USD") {
+                    discountPrice = discountPrice * (cv.usd);
+                } else if (currency === "EUR") {
+                    discountPrice = discountPrice * (cv.eur);
+                }
+                finalRoomTotalPrice = Math.max(finalRoomTotalPrice - discountPrice, 0); // avoid negatives
+            }
 
             return {
                 _id: rh._id ? String(rh._id) : null,
