@@ -5,7 +5,7 @@ import type { Room } from "@/types/roomTypes";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useRates } from "@/context/RateContext";
 import { convertAndFormatPrice } from "@/util/priceConverter";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import type { BookedRoom } from "@/types/guestDataTypes";
 
 interface InvoiceFooterProps {
