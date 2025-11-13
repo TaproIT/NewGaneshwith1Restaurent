@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import type { Room } from "@/types/roomTypes";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
+import { useLocation } from "react-router-dom";
 
 interface RoomGridProps {
   rooms: Room[];
@@ -53,9 +54,11 @@ const RoomGrid: React.FC<RoomGridProps> = ({
   ).length;
   const maintainCount = rooms.filter((r) => r.isMaintenance).length;
   const selectedCount = selectedRooms.length;
-  const userRole = useSelector((state: RootState) => state.user.role);
 
+  const userRole = useSelector((state: RootState) => state.user.role);
+  const location = useLocation();
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
+  const currentPath = location.pathname;
 
   const handleRoomClick = (room: Room) => {
     onRoomClick?.(room);
@@ -63,7 +66,11 @@ const RoomGrid: React.FC<RoomGridProps> = ({
   };
 
   return (
-    <div className={`p-6 rounded-2xl bg-mainWhite ${roomConfigMode ? "h-[calc(100vh-200px)]" : "h-[calc(100vh-140px)]"} overflow-y-auto`}>
+    <div
+      className={`p-6 rounded-2xl bg-mainWhite ${
+        roomConfigMode ? "h-[calc(100vh-200px)]" : "h-[calc(100vh-140px)]"
+      } overflow-y-auto`}
+    >
       {/* Legend */}
       <div className="flex justify-end gap-3 mb-3 text-sm">
         <div className="flex gap-1 items-center">
@@ -96,39 +103,44 @@ const RoomGrid: React.FC<RoomGridProps> = ({
 
       {/* Rooms */}
       <div className="grid grid-cols-4 gap-4 overflow-auto">
-        {(userRole === "Admin" || userRole === "Super-Admin") && roomConfigMode && (
-          <div
-            className="p-4 rounded-xl text-center h-22 cursor-pointer bg-gray-100 flex flex-col items-center justify-center hover:bg-gray-200 transition border-Primary_blue border-1"
-            onClick={onAddRoomClick}
-          >
-            <span className="text-3xl text-Primary_blue">+</span>
-          </div>
-        )}
+        {(userRole === "Admin" || userRole === "Super-Admin") &&
+          roomConfigMode && (
+            <div
+              className="p-4 rounded-xl text-center h-22 cursor-pointer bg-gray-100 flex flex-col items-center justify-center hover:bg-gray-200 transition border-Primary_blue border-1"
+              onClick={onAddRoomClick}
+            >
+              <span className="text-3xl text-Primary_blue">+</span>
+            </div>
+          )}
+
         {rooms.map((room) => {
           const status = getStatus(room);
 
-          return !readOnly ? (
+          // Determine if the room should be clickable
+          const isClickable =
+            currentPath === "/switch-rooms"
+              ? status === "reserved" // only reserved rooms clickable in switch-rooms
+              : !readOnly
+              ? status === "empty" // only empty rooms clickable in normal mode
+              : true; // in readOnly, all clickable for viewing
+
+          const handleClick = () => {
+            if (isClickable) handleRoomClick(room);
+          };
+
+          return (
             <div
               key={room._id}
-              className={`p-4 rounded-xl text-center h-22 
-                ${getStatusColor(status)} 
+              className={`p-4 rounded-xl text-center h-22
+                ${getStatusColor(status)}
                 ${
-                  status !== "empty" ? "cursor-not-allowed" : "cursor-pointer"
-                }`}
-              onClick={() => status === "empty" && onRoomClick?.(room)}
-            >
-              <p className="font-bold">{room.no}</p>
-              <p className="font-bold text-[10px]">{room.type?.type}</p>
-              {status === "reserved" && <p className="text-sm">Booked</p>}
-            </div>
-          ) : (
-            <div
-              key={room._id}
-              className={`p-4 rounded-xl text-center h-22 cursor-pointer
-                ${getStatusColor(status)} ${
-                activeRoomId === room._id ? "border-2 border-black" : ""
-              }`}
-              onClick={() => handleRoomClick(room)}
+                  isClickable
+                    ? "cursor-pointer hover:opacity-90"
+                    : "cursor-not-allowed opacity-60"
+                }
+                ${activeRoomId === room._id ? "border-2 border-black" : ""}
+              `}
+              onClick={handleClick}
             >
               <p className="font-bold">{room.no}</p>
               <p className="font-bold text-[10px]">{room.type?.type}</p>

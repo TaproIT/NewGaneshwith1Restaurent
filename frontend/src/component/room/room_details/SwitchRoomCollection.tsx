@@ -7,15 +7,15 @@ import { convertAndFormatPrice } from "@/util/priceConverter";
 
 interface OldRoom {
   roomNo: string;
-  discountPrice: number; // stored internally in LKR
-  finalRoomTotalPrice: number; // stored in LKR
-  currency: string; // added currency
+  discountPrice: number;
+  finalRoomTotalPrice: number;
+  currency: string;
 }
 
 interface SwitchRoomCollectionProps {
   guestDetails: Booking | null;
-  onTotalChange?: (total: number) => void; // callback for total
-  onRemoveRoom?: (oldRoom: OldRoom) => void; // callback for deleted room
+  onTotalChange?: (total: number) => void;
+  onRemoveRoom?: (oldRoom: OldRoom) => void;
   switchRoom?: boolean;
 }
 
@@ -28,23 +28,42 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
   const { rates, loading } = useRates();
   const { displayCurrency } = useCurrency();
 
-  // Internal state in LKR
+  // Calculate length of stay (from checkIn to today)
+  const getLengthOfStay = () => {
+    if (!guestDetails?.checkIn) return 1; // default 1 day
+    const checkInDate = new Date(guestDetails.checkIn);
+    const today = new Date();
+    const diffTime = Math.max(today.getTime() - checkInDate.getTime(), 0);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays || 1; // avoid zero
+  };
+
+  const lengthOfStay = getLengthOfStay();
+
+  // Initial room state
   const [rooms, setRooms] = useState(
-    guestDetails?.activeRooms.map((r) => ({
-      ...r,
-      discountPrice: 0, // in LKR
-      finalRoomTotalPrice: r.roomTotalPrice, // in LKR
-    })) || []
+    guestDetails?.activeRooms.map((r) => {
+      const roomTotalPrice = r.perDayPrice * lengthOfStay;
+      return {
+        ...r,
+        discountPrice: 0,
+        finalRoomTotalPrice: roomTotalPrice,
+      };
+    }) || []
   );
 
-  // Sync with guestDetails when it changes
+  // Update rooms when guestDetails change
   useEffect(() => {
     if (!guestDetails?.activeRooms) return setRooms([]);
-    const updatedRooms = guestDetails.activeRooms.map((r) => ({
-      ...r,
-      discountPrice: 0,
-      finalRoomTotalPrice: r.roomTotalPrice,
-    }));
+    const lengthOfStay = getLengthOfStay();
+    const updatedRooms = guestDetails.activeRooms.map((r) => {
+      const roomTotalPrice = r.perDayPrice * lengthOfStay;
+      return {
+        ...r,
+        discountPrice: 0,
+        finalRoomTotalPrice: roomTotalPrice,
+      };
+    });
     setRooms(updatedRooms);
 
     if (onTotalChange) {
@@ -54,22 +73,9 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
       );
       onTotalChange(total);
     }
-  }, [guestDetails, onTotalChange]);
+  }, [guestDetails]);
 
   if (!rooms.length || loading) return null;
-
-  // Convert input from USD/LKR to internal LKR
-  // const currencyToLKR = (amount: number, currency: string) => {
-  //   if (currency === "USD") {
-  //     const rate = rates["LKR_USD"] || 1;
-  //     return amount / rate; // USD -> LKR
-  //   }
-  //   if (currency === "EUR") {
-  //     const rate = rates["LKR_EUR"] || 1;
-  //     return amount / rate; // EUR -> LKR
-  //   }
-  //   return amount; // LKR
-  // };
 
   const handleDiscountChange = (roomNo: string, value: number) => {
     setRooms((prev) => {
@@ -78,7 +84,10 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
           ? {
               ...room,
               discountPrice: value,
-              finalRoomTotalPrice: Math.max(room.roomTotalPrice - value, 0),
+              finalRoomTotalPrice: Math.max(
+                room.perDayPrice * lengthOfStay - value,
+                0
+              ),
             }
           : room
       );
@@ -122,7 +131,6 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
     <div>
       <ul className="flex flex-col gap-5 mt-2">
         {rooms.map((room) => {
-          // Display values in selected currency
           const perDayPriceDisplay = convertAndFormatPrice(
             room.perDayPrice,
             rates,
@@ -134,7 +142,6 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
             displayCurrency
           );
 
-          // Show discount input in selected currency
           const discountInputValue =
             displayCurrency === "USD"
               ? room.discountPrice * (rates["LKR_USD"] || 1)
@@ -208,15 +215,14 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
                     <input
                       type="number"
                       min={0}
-                      max={room.roomTotalPrice}
+                      max={room.perDayPrice * lengthOfStay}
                       value={discountInputValue}
-                      onChange={(e) =>
-                        handleDiscountChange(
-                          room.roomNo,
-                          Number(e.target.value)
-                          // room.currency
-                        )
-                      }
+                      onChange={(e) => {
+                        const inputValue = Number(e.target.value);
+                        const maxValue = room.perDayPrice * lengthOfStay;
+                        const validValue = Math.min(inputValue, maxValue); // prevent going above max
+                        handleDiscountChange(room.roomNo, validValue);
+                      }}
                       className="border rounded-lg px-2 py-1 bg-white text-sm w-full focus:ring-2 focus:ring-Primary_blue focus:outline-none"
                     />
                   </div>
@@ -228,10 +234,13 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
                 <span>Final Total</span>
                 <span className="truncate max-w-[140px]">
                   {finalTotalDisplay}
+                  <div className="text-[11px] text-right text-gray-400">
+                Per Day × {lengthOfStay} Days
+              </div>
                 </span>
               </div>
 
-              {/* Delete Button */}
+              {/* Remove Button */}
               {switchRoom && (
                 <div className="flex justify-end mt-3">
                   <Button onClick={() => handleRemoveRoom(room)}>Update</Button>

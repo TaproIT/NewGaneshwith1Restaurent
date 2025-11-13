@@ -1,7 +1,7 @@
 // features/room/roomSlice.ts
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
-interface OldRoom {
+export interface OldRoom {
   roomNo: string;
   discountPrice: number;
   finalRoomTotalPrice: number;
