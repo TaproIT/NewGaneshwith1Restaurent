@@ -14,6 +14,7 @@ export interface DailyOrder{
    _id: string;
    orderNumber: string;
    serviceType: string;
+   customerType: string;
    orderTokens: DailyOrderToken[];
 }
 

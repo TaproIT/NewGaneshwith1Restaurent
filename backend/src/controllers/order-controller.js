@@ -629,6 +629,7 @@ export const getDailyOrdersSummary = async (req, res) => {
       _id: order._id.toString(),
       orderNumber: order.orderNumber,
       serviceType: order.serviceType,
+      customerType: order.customerType,
       orderTokens: order.orderTokens.map((token) => ({
         tokenNumber: token.tokenNumber,
         orderedTime: token.createdAt?.toISOString() ?? "",
