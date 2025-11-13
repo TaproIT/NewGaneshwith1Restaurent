@@ -542,12 +542,13 @@ export const sendBookingQrViaWhatsApp = async (req, res) => {
     }
 };
 
-// Get All room details for particular booking
 export const getBookingWithActiveRoomsAndPrices = async (req, res) => {
     try {
         const { roomNo } = req.params;
 
         const bookingId = await findActiveBookingByRoomNo(roomNo);
+        const room = await Room.findOne({no: roomNo});
+        console.log(room)
 
         if (!bookingId) {
             return res.status(404).json({ message: "No active booking found for this room." });
@@ -575,6 +576,7 @@ export const getBookingWithActiveRoomsAndPrices = async (req, res) => {
             let perDayPrice = historyEntry ? historyEntry.perDayPrice : activeRoom.roomId.perDayPrice;
             let switchInDate = historyEntry ? historyEntry.switchInDate : booking.checkIn;
             let switchOutDate = historyEntry && historyEntry.switchOutDate ? historyEntry.switchOutDate : booking.checkOut;
+            let currency = historyEntry && historyEntry.currency ;
 
             // Calculate total days (inclusive of switchInDate, exclusive of switchOutDate)
             const diffTime = new Date(switchOutDate) - new Date(switchInDate);
@@ -589,7 +591,9 @@ export const getBookingWithActiveRoomsAndPrices = async (req, res) => {
                 perDayPrice,
                 switchInDate,
                 switchOutDate,
-                roomTotalPrice
+                roomTotalPrice,
+                currency,
+                defaultPrice: room.perDayPrice
             };
         });
 
@@ -608,6 +612,7 @@ export const getBookingWithActiveRoomsAndPrices = async (req, res) => {
         return res.status(500).json({ message: "Internal Server Error" });
     }
 };
+
 
 // Switch rooms with proper isSwitched status
 export const switchRoomsBulk = async (req, res) => {
