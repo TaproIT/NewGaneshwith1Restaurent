@@ -175,7 +175,11 @@ const Step02 = () => {
       } else {
         const payload = {
           oldRooms: removedRooms,
-          newRooms: updatedRooms.map((r) => r.roomNo),
+          newRooms: updatedRooms.map((r) => ({
+    roomNo: r.roomNo,
+    perDayPrice: r.price, // in LKR internally, you can convert if needed
+    currency: r.currency,
+  })),
         };
         await api.put(`/booking/${bookingId}/switch-rooms`, payload);
       }
