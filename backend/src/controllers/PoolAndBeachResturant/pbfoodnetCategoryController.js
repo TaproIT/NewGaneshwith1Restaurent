@@ -10,14 +10,14 @@ export const createCategory = async (req, res) => {
     const defaultRestaurantType = await getRestaurantTypeByUserRole(userId);
 
     // check if category already exists for this restaurant type
-    const existing = await PBFoodNetCategory.findOne({
-      categoryName: new RegExp(`^${categoryName}$`, "i"),
-      restaurantType: restaurantType || defaultRestaurantType,
-    });
-
-    if (existing) {
-      return res.status(400).json({ error: "Category already exists" });
-    }
+    // const existing = await PBFoodNetCategory.findOne({
+    //   categoryName: new RegExp(`^${categoryName}$`, "i"),
+    //   restaurantType: restaurantType || defaultRestaurantType,
+    // });
+    //
+    // if (existing) {
+    //   return res.status(400).json({ error: "Category already exists" });
+    // }
 
     // create new category
     const category = await PBFoodNetCategory.create({
