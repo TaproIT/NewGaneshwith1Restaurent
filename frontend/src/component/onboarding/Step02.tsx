@@ -129,8 +129,6 @@ const Step02 = () => {
     if (loadingBooking || roomIds.length === 0) return;
     setLoadingBooking(true);
 
-    console.log(updatedRooms);
-
     try {
       // Use Redux currentRooms for price/currency updates
       const selectedRoomsData = updatedRooms.filter((r) =>
@@ -177,7 +175,11 @@ const Step02 = () => {
       } else {
         const payload = {
           oldRooms: removedRooms,
-          newRooms: selectedRoomsData.map((r) => r.roomNo),
+          newRooms: updatedRooms.map((r) => ({
+    roomNo: r.roomNo,
+    perDayPrice: r.price, // in LKR internally, you can convert if needed
+    currency: r.currency,
+  })),
         };
         await api.put(`/booking/${bookingId}/switch-rooms`, payload);
       }
