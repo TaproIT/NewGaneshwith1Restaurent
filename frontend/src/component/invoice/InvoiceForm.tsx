@@ -87,7 +87,7 @@ const InvoiceForm = () => {
       const payload = {
         checkInDate: data.checkIn,
         checkOutDate: data.checkOut,
-        hotelType: data.hotelType.replace("Hotel ", ""), // "Hotel A" → "A"
+        hotelType: data.hotelType.replace("Hotel ", ""), // "Ganesh Garden Beach Cabana" → "A"
         customerName: data.customerName,
         travelAgentName: data.travelAgentName,
         numberOfMembers: data.totalGuests,
@@ -143,27 +143,27 @@ const InvoiceForm = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => field.onChange("Hotel A")}
+                    onClick={() => field.onChange("Ganesh Garden Beach Cabana")}
                     className={`w-75 h-10 ${
-                      field.value === "Hotel A"
+                      field.value === "Ganesh Garden Beach Cabana"
                         ? "bg-secondary text-white hover:bg-secondary"
                         : ""
                     }`}
                   >
-                    Hotel A
+                    Ganesh Garden Beach Cabana
                   </Button>
 
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => field.onChange("Hotel B")}
+                    onClick={() => field.onChange("Marakolliya Beach Resort")}
                     className={`w-75 h-10 ${
-                      field.value === "Hotel B"
+                      field.value === "Marakolliya Beach Resort"
                         ? "bg-secondary text-white hover:bg-secondary"
                         : ""
                     }`}
                   >
-                    Hotel B
+                    Marakolliya Beach Resort
                   </Button>
                 </div>
                 <FormMessage />
@@ -481,7 +481,7 @@ const InvoiceForm = () => {
 
           {/* ✅ Submit */}
           <div className="flex justify-end">
-            <Button type="submit" className="w-1/2">
+            <Button type="submit" className="w-50">
               {loading ? (
                 <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
               ) : (

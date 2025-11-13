@@ -118,6 +118,7 @@ const RoomGrid: React.FC<RoomGridProps> = ({
               onClick={() => status === "empty" && onRoomClick?.(room)}
             >
               <p className="font-bold">{room.no}</p>
+              <p className="font-bold text-[10px]">{room.type?.type}</p>
               {status === "reserved" && <p className="text-sm">Booked</p>}
             </div>
           ) : (
@@ -130,6 +131,7 @@ const RoomGrid: React.FC<RoomGridProps> = ({
               onClick={() => handleRoomClick(room)}
             >
               <p className="font-bold">{room.no}</p>
+              <p className="font-bold text-[10px]">{room.type?.type}</p>
               {status === "reserved" && <p className="text-sm">Booked</p>}
             </div>
           );

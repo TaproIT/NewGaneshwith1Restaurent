@@ -59,6 +59,11 @@ const bookingSchema = new mongoose.Schema(
             roomId: { type: mongoose.Schema.Types.ObjectId, ref: "Room", required: true },
             roomNo: { type: String, required: true },
             price: { type: Number },
+            currency: {
+                type: String,
+                enum: ["LKR", "USD", "EUR"],
+                default: "LKR"
+            },
             isActive: { type: Boolean, default: true },
         }],
 
@@ -68,7 +73,13 @@ const bookingSchema = new mongoose.Schema(
                 roomId: { type: mongoose.Schema.Types.ObjectId, ref: "Room", required: true },
                 roomNo: { type: String, required: true },
                 perDayPrice: { type: Number, required: true },
-                night: { type: Number },
+
+                currency: {
+                    type: String,
+                    enum: ["LKR", "USD", "EUR"],
+                    default: "LKR"
+                },
+                night: { type: Number},
 
                 finalRoomTotalPrice: { type: Number },
                 discountPrice: { type: Number },
@@ -80,6 +91,11 @@ const bookingSchema = new mongoose.Schema(
                 perDayPriceHistory: [
                     {
                         price: { type: Number, required: true },
+                        currency: {
+                            type: String,
+                            enum: ["LKR", "USD", "EUR"],
+                            default: "LKR"
+                        },
                         date: { type: Date, required: true, default: Date.now }
                     }
                 ],
