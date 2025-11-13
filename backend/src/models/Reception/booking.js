@@ -36,6 +36,7 @@ const bookingSchema = new mongoose.Schema(
             type: String,
             required: true,
             enum: ['Ganesh Garden Beach Cabana', 'Marakolliya Beach Resort'],
+            set: v => v.trim(),
         },
         guestName: { type: String, required: true },
         uniqueBookingId: { type: String, required: true, unique: true },
