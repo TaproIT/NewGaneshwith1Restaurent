@@ -16,9 +16,9 @@ import { setSelectedBeverageItem, setSelectedExtraBeverageItem } from "@/feature
 const FoodCategorySelector: React.FC<{id:string}> = ({id}) => {
   const dispatch = useDispatch();
   const foodCategory = useSelector((state: RootState) => state.foodCategory);
-  // const { selectedCategory } = useSelector(
-  //   (state: RootState) => state.beverageCategory
-  // );
+  const { role } = useSelector(
+    (state: RootState) => state.user
+  );
 
   const isMenuHandlingPage = (id === "0");
 
@@ -33,6 +33,8 @@ const FoodCategorySelector: React.FC<{id:string}> = ({id}) => {
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
+
+  const isAdminRole = (role === "Beach-Restaurant-Admin") || (role === "Pool-Restaurant-Admin") ;
 
   const selectedIndex = categories.findIndex(
     (cat) => cat._id === selectedCategoryId
@@ -127,7 +129,7 @@ useEffect(() => {
         onMouseLeave={handleMouseLeave}
         onMouseUp={handleMouseUp}
         onMouseMove={handleMouseMove}
-        className="flex gap-2.5 overflow-x-auto cursor-grab active:cursor-grabbing no-scrollbar w-[81.5%]"
+        className={`flex gap-2.5 overflow-x-auto cursor-grab active:cursor-grabbing no-scrollbar ${isMenuHandlingPage ? isAdminRole ? "w-[81.5%]": "w-full" : "w-full"}`}
       >
         {loading
           ? // Show skeletons while loading
@@ -147,14 +149,14 @@ useEffect(() => {
                       itemRefs.current[index] = el;
                     }}
                     onClick={() => handleClick(index)}
-                    className={`relative px-4 py-4 w-[22%] min-h-[70px]  max-h-[70px] flex-shrink-0 flex items-center justify-center text-[0.75rem] font-medium cursor-pointer rounded-md
+                    className={`relative px-4 py-4 w-[22%] min-h-[70px]  max-h-[70px] flex-shrink-0 flex items-center justify-center text-[0.95rem] text-center font-semibold cursor-pointer rounded-md
                 ${
                   isSelected
                     ? "bg-[#B24E0E] text-white"
-                    : "bg-transparent text-[#5B5B5B] border border-[#CECECE]"
+                    : "bg-transparent text-[#E37E0A] border border-[#CECECE]"
                 }`}
                   >
-                    {cat.categoryName}
+                    {cat.categoryName.toUpperCase()}
                   </div>
                   {/* {isMenuHandlingPage && (
                     <div className="" onClick={handleUpdateFoodCategory}>
@@ -166,36 +168,38 @@ useEffect(() => {
             })}
       </div>
       {/* Add New Category Button (fixed to right) */}
-      {isMenuHandlingPage && (
-        <>
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 pr-1 bg-white">
+      {(isMenuHandlingPage && isAdminRole) && (
+        <div className="w-[20%] grid grid-cols-2 gap-0.25 absolute right-[0%] top-1/2 -translate-y-1/2">
+          <div className=" col-span-1 pr-1 bg-primary rounded-l-lg">
             <div
-              className="py-5 px-4 flex items-center justify-center border rounded-sm cursor-pointer"
+              className="py-5 px-2 flex items-center justify-center gap-1 rounded-sm cursor-pointer text-white text-[0.9rem]"
               onClick={handleAddNewFoodCategory}
             >
-              <Plus size={24} className="text-[#0A869D]" />
+              <Plus size={20} />
+              Add
             </div>
           </div>
 
           <div
-            className={`absolute right-[9%] top-1/2 -translate-y-1/2 pr-1 bg-white ${
+            className={`col-span-1 pr-1 bg-primary rounded-r-lg ${
               !foodCategory.isFoodCategory
                 ? "opacity-50 cursor-not-allowed"
                 : "cursor-pointer"
             }`}
           >
             <div
-              className="py-5 px-4 flex items-center justify-center border rounded-sm"
+              className="py-5.5 px-2 flex items-center justify-center gap-2 rounded-sm text-white text-[0.9rem]"
               onClick={
                 foodCategory.isFoodCategory
                   ? handleUpdateFoodCategory
                   : undefined
               }
-            >
-              <Edit size={24} className="text-[#0A869D]" />
+            > 
+              <Edit size={18} />
+              Edit
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );

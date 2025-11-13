@@ -36,26 +36,31 @@ const GuestDetailsCard: React.FC<GuestDetailsCardProps> = ({
     }
   }, [daysStayed, onDaysCalculated]);
 
-  return (
-    <div className="flex flex-col mt-4 gap-1 text-sm">
-      <div className="flex justify-between text-gray whitespace-nowrap">
-        <div className="">Customer : </div>
-        <div className="">{guestDetails.guestName}</div>
-      </div>
-      <div className="flex justify-between text-gray whitespace-nowrap">
-        <div>Days of Staying : </div>
-        <div>{daysStayed} days</div>
-      </div>
-      <div className="flex justify-between text-gray whitespace-nowrap">
-        <div className="">Checked-In Date : </div>
-        <div className="">{formatDate(checkInDate)}</div>
-      </div>
-      <div className="flex justify-between text-gray whitespace-nowrap">
-        <div className="">Check Out Date : </div>
-        <div className="">{formatDate(checkOutDate)}</div>
-      </div>
+ return (
+  <div className="mt-4 p-4 bg-white border rounded-xl shadow-sm text-sm space-y-3">
+
+    <div className="flex justify-between">
+      <span className="text-gray-500">Customer</span>
+      <span className="font-medium text-gray-800">{guestDetails.guestName}</span>
     </div>
-  );
+
+    <div className="flex justify-between">
+      <span className="text-gray-500">Days of Staying</span>
+      <span className="font-medium text-gray-800">{daysStayed} days</span>
+    </div>
+
+    <div className="flex justify-between">
+      <span className="text-gray-500">Checked-In Date</span>
+      <span className="font-medium text-gray-800">{formatDate(checkInDate)}</span>
+    </div>
+
+    <div className="flex justify-between">
+      <span className="text-gray-500">Check-Out Date</span>
+      <span className="font-medium text-gray-800">{formatDate(checkOutDate)}</span>
+    </div>
+
+  </div>
+);
 };
 
 export default GuestDetailsCard;

@@ -71,6 +71,8 @@ const Login = () => {
           "Reception": "/onboarding",
           "Beach-Restaurant-Staff": "/restaurant/home",
           "Pool-Restaurant-Staff": "/restaurant/home",
+          "Beach-Restaurant-Admin": "/restaurant/home",
+          "Pool-Restaurant-Admin": "/restaurant/home",
         };
 
         const redirectPath = roleRedirects[data.userRole] || "/";
@@ -145,6 +147,12 @@ const Login = () => {
                         </SelectItem>
                         <SelectItem value="Pool-Restaurant-Staff">
                           Pool Staff
+                        </SelectItem>
+                        <SelectItem value="Beach-Restaurant-Admin">
+                          Beach Admin
+                        </SelectItem>
+                        <SelectItem value="Pool-Restaurant-Admin">
+                          Pool Admin
                         </SelectItem>
                       </SelectContent>
                     </Select>

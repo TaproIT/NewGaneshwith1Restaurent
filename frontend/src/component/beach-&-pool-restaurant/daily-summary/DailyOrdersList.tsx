@@ -51,7 +51,7 @@ export const DailyOrdersList: React.FC<{ orders: DailyOrder[] }> = ({
       </div>
 
       {/* Orders */}
-      <ScrollArea className="w-full h-[calc(100vh-270px)]">
+      <ScrollArea className="w-full h-[calc(100vh-400px)]">
         <div className="pb-2 flex flex-col gap-2">
           {loading ? (
             // Show skeletons when loading

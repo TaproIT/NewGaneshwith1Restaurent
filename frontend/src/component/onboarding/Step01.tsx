@@ -26,6 +26,7 @@ import {
   saveStep01Data,
 } from "@/features/onboarding/onboardingSlice";
 import type { RootState } from "@/app/store";
+import type { BookedRoom } from "@/types/guestDataTypes";
 
 const CUSTOMER_VALUES = ["Booking.com", "Open Booking"];
 const BREAKFAST_VALUES = ["Included", "Not-Included", "Full Board"];
@@ -43,7 +44,7 @@ type Step01FormData = {
   checkOut: string;
   lengthOfStay: number;
   totalGuests: number;
-  currentRooms: string[];
+  currentRooms: BookedRoom[];
   bookingDate: string;
   customerType: string;
   breakfast: string;
@@ -132,27 +133,27 @@ export default function Step01() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => field.onChange("Hotel A")}
+                    onClick={() => field.onChange("Ganesh Garden Beach Cabana")}
                     className={`w-75 h-10 ${
-                      field.value === "Hotel A"
+                      field.value === "Ganesh Garden Beach Cabana"
                         ? "bg-secondary text-white hover:bg-secondary"
                         : ""
                     }`}
                   >
-                    Hotel A
+                    Ganesh Garden Beach Cabana
                   </Button>
 
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => field.onChange("Hotel B")}
+                    onClick={() => field.onChange("Marakolliya Beach Resort")}
                     className={`w-75 h-10 ${
-                      field.value === "Hotel B"
+                      field.value === "Marakolliya Beach Resort"
                         ? "bg-secondary text-white hover:bg-secondary"
                         : ""
                     }`}
                   >
-                    Hotel B
+                    Marakolliya Beach Resort
                   </Button>
                 </div>
                 <FormMessage />
@@ -171,7 +172,9 @@ export default function Step01() {
                 render={({ field }) => (
                   <FormItem className="flex flex-col items-center">
                     <div className="flex items-center">
-                      <FormLabel className="w-50">Guest Name</FormLabel>
+                      <FormLabel className="w-50">
+                        Guest Name <span className="text-red-500">*</span>
+                      </FormLabel>
                       <FormControl>
                         <Input placeholder="Enter guest name" {...field} />
                       </FormControl>
@@ -207,7 +210,9 @@ export default function Step01() {
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <div className="flex items-center">
-                      <FormLabel className="w-33">Customer Type</FormLabel>
+                      <FormLabel className="w-33">
+                        Customer Type <span className="text-red-500">*</span>
+                      </FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
@@ -239,7 +244,9 @@ export default function Step01() {
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <div className="flex items-center">
-                      <FormLabel className="w-32">Breakfast</FormLabel>
+                      <FormLabel className="w-32">
+                        Breakfast <span className="text-red-500">*</span>
+                      </FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
@@ -338,7 +345,9 @@ export default function Step01() {
                 render={({ field }) => (
                   <FormItem className="flex flex-col items-center">
                     <div className="flex items-center">
-                      <FormLabel className="w-50">Total Guests</FormLabel>
+                      <FormLabel className="w-50">
+                        Total Guests <span className="text-red-500">*</span>
+                      </FormLabel>
                       <FormControl>
                         <Input type="number" {...field} disabled />
                       </FormControl>
@@ -357,7 +366,9 @@ export default function Step01() {
                 render={({ field }) => (
                   <FormItem className="flex flex-col items-center">
                     <div className="flex items-center">
-                      <Label className="w-54">Length of Stay</Label>
+                      <Label className="w-54">
+                        Length of Stay <span className="text-red-500">*</span>
+                      </Label>
                       <FormControl>
                         <Input type="number" {...field} disabled />
                       </FormControl>

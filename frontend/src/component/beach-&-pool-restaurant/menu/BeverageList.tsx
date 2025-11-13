@@ -25,15 +25,21 @@ const BeverageList: React.FC<{id:string}> = ({id}) => {
     (state: RootState) => state.beverageCategory.selectedCategory
   );
 
+  const { role } = useSelector(
+      (state: RootState) => state.user
+    );
+
   const dispatch = useDispatch<AppDispatch>();
 
   const isMenuHandlingPage = (id === "0");
+
+  const isAdminRole = (role === "Beach-Restaurant-Admin") || (role === "Pool-Restaurant-Admin") ;
 
   const isExtraBeverageCategory =
             selectedCategoryId !== BeverageCategories.HARD_LIQUOR.value &&
             selectedCategoryId !== BeverageCategories.SOFT_DRINKS.value;
   
-
+ 
  const categoryBeverages = [
   ...beverages.filter(
     (beverage) => beverage.category === selectedCategoryId
@@ -66,9 +72,9 @@ const BeverageList: React.FC<{id:string}> = ({id}) => {
 
   return (
     <ScrollArea className="w-full h-[calc(100vh-250px)]">
-      <div className="grid grid-cols-3 gap-1">
+      <div className={`${isAdminRole ? 'grid grid-cols-3 gap-1' : 'grid grid-cols-4 gap-1'}`}>
         {/* Add new beverage item */}
-        { (isMenuHandlingPage &&  isExtraBeverageCategory) && (
+        { (isMenuHandlingPage &&  isExtraBeverageCategory  && isAdminRole) && (
           <div
             className="py-8 flex items-center justify-center border rounded-sm cursor-pointer"
             onClick={handleAddNewFoodItem}

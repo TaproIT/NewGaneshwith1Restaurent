@@ -37,6 +37,7 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
     })) || []
   );
 
+  console.log(guestDetails)
   // Sync with guestDetails when it changes
   useEffect(() => {
     if (!guestDetails?.activeRooms) return setRooms([]);
@@ -48,7 +49,10 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
     setRooms(updatedRooms);
 
     if (onTotalChange) {
-      const total = updatedRooms.reduce((sum, r) => sum + r.finalRoomTotalPrice, 0);
+      const total = updatedRooms.reduce(
+        (sum, r) => sum + r.finalRoomTotalPrice,
+        0
+      );
       onTotalChange(total);
     }
   }, [guestDetails, onTotalChange]);
@@ -73,13 +77,19 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
           ? {
               ...room,
               discountPrice: discountLKR,
-              finalRoomTotalPrice: Math.max(room.roomTotalPrice - discountLKR, 0),
+              finalRoomTotalPrice: Math.max(
+                room.roomTotalPrice - discountLKR,
+                0
+              ),
             }
           : room
       );
 
       if (onTotalChange) {
-        const total = updatedRooms.reduce((sum, r) => sum + r.finalRoomTotalPrice, 0);
+        const total = updatedRooms.reduce(
+          (sum, r) => sum + r.finalRoomTotalPrice,
+          0
+        );
         onTotalChange(total);
       }
 
@@ -91,7 +101,10 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
     setRooms((prevRooms) => {
       const updatedRooms = prevRooms.filter((r) => r.roomNo !== room.roomNo);
       if (onTotalChange) {
-        const total = updatedRooms.reduce((sum, r) => sum + r.finalRoomTotalPrice, 0);
+        const total = updatedRooms.reduce(
+          (sum, r) => sum + r.finalRoomTotalPrice,
+          0
+        );
         onTotalChange(total);
       }
       return updatedRooms;
@@ -110,8 +123,16 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
       <ul className="flex flex-col gap-5 mt-2">
         {rooms.map((room) => {
           // Display values in selected currency
-          const perDayPriceDisplay = convertAndFormatPrice(room.perDayPrice, rates, displayCurrency);
-          const finalTotalDisplay = convertAndFormatPrice(room.finalRoomTotalPrice, rates, displayCurrency);
+          const perDayPriceDisplay = convertAndFormatPrice(
+            room.perDayPrice,
+            rates,
+            displayCurrency
+          );
+          const finalTotalDisplay = convertAndFormatPrice(
+            room.finalRoomTotalPrice,
+            rates,
+            displayCurrency
+          );
 
           // Show discount input in selected currency
           const discountInputValue =
@@ -122,63 +143,79 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
           return (
             <li
               key={room.roomNo}
-              className="border rounded-lg p-3 bg-gray-50 shadow-sm"
+              className="border rounded-xl p-4 bg-gray-50 shadow-sm hover:shadow-md transition-shadow"
             >
-              {/* Room header */}
-              <div className="flex items-center justify-between text-gray-800">
-                <h2 className="text-lg font-medium">Room {room.roomNo}</h2>
-                <div className="text-lg font-medium">{perDayPriceDisplay}</div>
+              {/* Header */}
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-semibold text-gray-700">
+                  Room - {room.roomNo}
+                </h2>
+                <div className="text-base font-semibold text-Primary_blue">
+                  {perDayPriceDisplay}
+                </div>
               </div>
-              <div className="text-sm text-right text-gray-500">Per Day</div>
+              <div className="text-[11px] text-right text-gray-400">
+                Per Day
+              </div>
 
               {/* Facilities */}
-              <div className="mt-4 text-sm text-gray-700">
+              <div className="mt-4 p-3 rounded-lg bg-white border text-sm">
                 <span className="font-medium">Facilities:</span>
                 {room.facilities?.length > 0 ? (
-                  <ul className="list-disc list-inside ml-4 mt-1">
+                  <ul className="list-disc ml-5 mt-1 text-gray-600">
                     {room.facilities.map((facility: string, idx: number) => (
                       <li key={idx}>{facility}</li>
                     ))}
                   </ul>
                 ) : (
-                  <span className="ml-2">None</span>
+                  <span className="ml-2 text-gray-500">None</span>
                 )}
               </div>
 
-              {/* Discount input */}
+              {/* Discount Input */}
               {switchRoom && (
-                <div className="mt-3 flex items-center gap-2">
-                  <label className="text-sm font-medium text-gray">Discount:</label>
+                <div className="mt-4 flex items-center justify-between">
+                  <label className="text-sm text-gray-600 font-medium">
+                    Discount
+                  </label>
                   <input
                     type="number"
                     min={0}
                     max={
-                    displayCurrency === "USD"
-                      ? room.roomTotalPrice * (rates["LKR_USD"] || 1)
-                      : room.roomTotalPrice
-                  }
-                  value={discountInputValue}
-                  onChange={(e) => handleDiscountChange(room.roomNo, Number(e.target.value))}
-                  className="border rounded px-2 py-1 w-30"
-                />
-              </div>)}
+                      displayCurrency === "USD"
+                        ? room.roomTotalPrice * (rates["LKR_USD"] || 1)
+                        : room.roomTotalPrice
+                    }
+                    value={discountInputValue}
+                    onChange={(e) =>
+                      handleDiscountChange(room.roomNo, Number(e.target.value))
+                    }
+                    className="border rounded-lg px-2 py-1 w-[130px] bg-white shadow-sm focus:ring focus:ring-Primary_blue/40 outline-none text-sm"
+                  />
+                </div>
+              )}
 
-              {/* Final total */}
-              <div className="flex gap-2 text-gray-800 mt-2">
-                <span>Final Total: </span>
-                <span>{finalTotalDisplay}</span>
+              {/* Final Total */}
+              <div className="mt-4 flex justify-between text-sm font-medium text-gray-700 bg-white p-2 rounded-lg border">
+                <span>Final Total</span>
+                <span className="truncate max-w-[140px]">
+                  {finalTotalDisplay}
+                </span>
               </div>
 
-              {/* Delete button */}
-              {switchRoom && <div className="flex justify-end mt-3">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleRemoveRoom(room)}
-                >
-                  <Trash2 color="red" />
-                </Button>
-              </div>}
+              {/* Delete Button */}
+              {switchRoom && (
+                <div className="flex justify-end mt-3">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="hover:bg-red-100 rounded-full"
+                    onClick={() => handleRemoveRoom(room)}
+                  >
+                    <Trash2 className="text-red-500" />
+                  </Button>
+                </div>
+              )}
             </li>
           );
         })}

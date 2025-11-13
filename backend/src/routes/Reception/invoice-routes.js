@@ -1,5 +1,5 @@
 import express from "express";
-import { generateInvoice, getInvoiceById, getInvoices } from "../../controllers/Reception/invoice-controller.js";
+import { generateInvoice, getInvoiceById, getInvoices, resetInvoiceCounter } from "../../controllers/Reception/invoice-controller.js";
 import { verifyTokenNotBlacklisted } from "../../middleware/check-black-list-token.js";
 import { authenticateToken } from "../../middleware/verify-token.js";
 import { userRoles } from "../../utils/enums/user-role.js";
@@ -9,17 +9,26 @@ const router = express.Router();
 
 router.post(
   "/",
-  //verifyTokenNotBlacklisted,
-  //authenticateToken,
-  //authorizeRoles([userRoles.ADMIN.value, userRoles.RECEPTION.value, userRoles.SUPER_ADMIN.value]),
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  authorizeRoles([userRoles.ADMIN.value, userRoles.RECEPTION.value, userRoles.SUPER_ADMIN.value]),
   generateInvoice
+);
+
+
+router.post(
+  "/reset-counter",
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  authorizeRoles([userRoles.ADMIN.value, userRoles.RECEPTION.value, userRoles.SUPER_ADMIN.value]),
+  resetInvoiceCounter
 );
 
 router.get(
   "/",
   verifyTokenNotBlacklisted,
   authenticateToken,
-  authorizeRoles([userRoles.ADMIN.value, userRoles.SUPER_ADMIN.value]),
+  authorizeRoles([userRoles.ADMIN.value, userRoles.RECEPTION.value, userRoles.SUPER_ADMIN.value]),
   getInvoices
 );
 
@@ -27,7 +36,7 @@ router.get(
   "/:id",
   verifyTokenNotBlacklisted,
   authenticateToken,
-  authorizeRoles([userRoles.ADMIN.value, userRoles.SUPER_ADMIN.value]),
+  authorizeRoles([userRoles.ADMIN.value, userRoles.RECEPTION.value, userRoles.SUPER_ADMIN.value]),
   getInvoiceById
 );
 

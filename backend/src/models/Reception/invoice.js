@@ -3,7 +3,7 @@ import { CurrencyTypes } from "../../utils/enums/currency-type.js";
 
 const invoiceSchema = new mongoose.Schema(
   {
-    invoiceNumber: { type: String, required: true, unique: true },
+    invoiceNumber: { type: String, required: true },
     checkInDate: { type: Date, required: true },
     checkOutDate: { type: Date, required: true },
     hotelType: { type: String, required: true },
@@ -41,5 +41,5 @@ const invoiceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Invoice = mongoose.model("Invoice", invoiceSchema);
+const Invoice = mongoose.model("Invoice", invoiceSchema); 
 export default Invoice;

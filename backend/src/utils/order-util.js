@@ -1,14 +1,22 @@
 import { OrderCounter } from "../models/order/order-counter-model.js";
 
 
-export async function generateOrderNumber() {
+export async function generateOrderNumber(restaurantType) {
+  if (!restaurantType) {
+    throw new Error("Restaurant type is required to generate an order number.");
+  }
+
   const counter = await OrderCounter.findOneAndUpdate(
-    { name: "orderNumber" },
+    { restaurantType }, // use restaurantType instead of fixed name
     { $inc: { seq: 1 } },
     { new: true, upsert: true }
   );
 
-  return counter.seq.toString().padStart(5, "0"); // e.g. 00001, 00002
+  // Generate a prefix based on restaurant type
+  const prefix = restaurantType.toUpperCase().slice(0, 3); // e.g. "DIN", "DEL", "TAK"
+
+  // Format: e.g., DIN-00001
+  return `${counter.seq.toString().padStart(5, "0")}`;
 }
 
 

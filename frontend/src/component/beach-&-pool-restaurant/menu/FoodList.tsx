@@ -17,6 +17,11 @@ const FoodList: React.FC<{id:string}> = ({id}) => {
   const selectedCategoryId = useSelector(
     (state: RootState) => state.foodCategory.selectedCategoryId
   );
+
+  const { role } = useSelector(
+    (state: RootState) => state.user
+  );
+
   const dispatch = useDispatch<AppDispatch>();
 
   const categoryFoods = foods.filter(
@@ -28,6 +33,8 @@ const FoodList: React.FC<{id:string}> = ({id}) => {
   const { loading, error } = fetchAllFoodItemsStatus;
 
   const isMenuHandlingPage = (id === "0");
+
+  const isAdminRole = (role === "Beach-Restaurant-Admin") || (role === "Pool-Restaurant-Admin") ;
 
   const handleAddNewFoodItem = () => {
     dispatch(setIsClickAddNewFoodItem(true));
@@ -47,9 +54,9 @@ const FoodList: React.FC<{id:string}> = ({id}) => {
 
   return (
     <ScrollArea className="w-full h-[calc(100vh-250px)]">
-      <div className="grid grid-cols-3 gap-1">
+      <div className={`${isAdminRole ? 'grid grid-cols-3 gap-1' : 'grid grid-cols-4 gap-1'}`}>
         {/* Add new item card */}
-        {isMenuHandlingPage && (
+        {(isMenuHandlingPage && isAdminRole) && (
           <div
             className="py-8 flex items-center justify-center border rounded-sm cursor-pointer hover:bg-gray-50"
             onClick={handleAddNewFoodItem}

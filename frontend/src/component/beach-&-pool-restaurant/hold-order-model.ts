@@ -5,6 +5,11 @@ export interface HoldOrder {
     orderNumber: string;
     serviceType: HoldOrderServiceType
     customerType: string;
+    guestName: string;
+    restaurantTable: {
+        _id: string;
+        tableNumber: number;
+    }
 };
 
 export interface FetchHoldOrdersStatus {
