@@ -2,8 +2,6 @@ import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import type { Room } from "@/types/roomTypes";
-import { convertAndFormatPrice } from "@/util/priceConverter";
-import { useRates } from "@/context/RateContext";
 import type { SupportedCurrency } from "@/types/currency";
 import type { BookedRoom } from "@/types/guestDataTypes";
 
@@ -31,7 +29,6 @@ const SelectedRoomsList: React.FC<SelectedRoomsListProps> = ({
   onRemoveRoom,
   onUpdateRooms,
 }) => {
-  const { rates } = useRates();
   const lengthOfStay =
     guestDetails?.lengthOfStay || invoiceData?.lengthOfStay || totalDays;
 
@@ -100,16 +97,16 @@ const SelectedRoomsList: React.FC<SelectedRoomsListProps> = ({
   return (
     <ul className="flex flex-col gap-5">
       {editableRooms.map((room) => {
-        const perDayPriceDisplay = convertAndFormatPrice(
-          room.price ? room.price : room.perDayPrice,
-          rates,
-          room.currency
-        );
-        const totalPriceDisplay = convertAndFormatPrice(
-          room.perDayPrice * lengthOfStay,
-          rates,
-          room.currency
-        );
+        // const perDayPriceDisplay = convertAndFormatPrice(
+        //   room.price ? room.price : room.perDayPrice,
+        //   rates,
+        //   room.currency
+        // );
+        // const totalPriceDisplay = convertAndFormatPrice(
+        //   room.perDayPrice * lengthOfStay,
+        //   rates,
+        //   room.currency
+        // );
 
         return (
           <li
@@ -121,7 +118,7 @@ const SelectedRoomsList: React.FC<SelectedRoomsListProps> = ({
             <div className="flex items-center justify-between text-gray">
               <h2 className="text-sm font-medium">Room-{room.no}</h2>
               <div className="text-lg font-medium text-Primary_blue">
-                {perDayPriceDisplay}
+                {room.currency} {room.price ? room.price : room.perDayPrice}
               </div>
             </div>
 
@@ -180,9 +177,9 @@ const SelectedRoomsList: React.FC<SelectedRoomsListProps> = ({
               <span className="col-span-1">:</span>
               <span
                 className="col-span-2 text-left truncate max-w-[140px] text-sm cursor-pointer"
-                title={totalPriceDisplay}
+                // title={totalPriceDisplay}
               >
-                {totalPriceDisplay}
+                {room.currency} {room.perDayPrice * lengthOfStay}
               </span>
             </div>
 

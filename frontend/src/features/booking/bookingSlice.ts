@@ -8,6 +8,7 @@ export const fetchRoomBooking = createAsyncThunk(
   async (roomNo: string, { rejectWithValue }) => {
     try {
       const res = await api.get(`/booking/active-rooms-with-prices/${roomNo}`);
+      console.log(res.data)
       return res.data;
     } catch (err: any) {
       return rejectWithValue(err.response?.data || "Something went wrong");
