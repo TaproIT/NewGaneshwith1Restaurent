@@ -71,7 +71,7 @@ const BeverageList: React.FC<{id:string}> = ({id}) => {
   }, [error]);
 
   return (
-    <ScrollArea className="w-full h-[calc(100vh-250px)]">
+    <ScrollArea className="w-full h-[calc(100vh-300px)]">
       <div className={`${isAdminRole ? 'grid grid-cols-3 gap-1' : 'grid grid-cols-4 gap-1'}`}>
         {/* Add new beverage item */}
         { (isMenuHandlingPage &&  isExtraBeverageCategory  && isAdminRole) && (

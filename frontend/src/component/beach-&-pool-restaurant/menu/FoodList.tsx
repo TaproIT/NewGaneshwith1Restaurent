@@ -43,7 +43,7 @@ const FoodList: React.FC<{id:string}> = ({id}) => {
 
   useEffect(() => {
     dispatch(fetchAllFoodItems());
-  }, [isAddedNewFoodItem]);
+  }, [isAddedNewFoodItem, selectedCategoryId]);
 
   // toast error handler
   useEffect(() => {
@@ -53,7 +53,7 @@ const FoodList: React.FC<{id:string}> = ({id}) => {
   }, [error]);
 
   return (
-    <ScrollArea className="w-full h-[calc(100vh-250px)]">
+    <ScrollArea className="w-full h-[calc(100vh-300px)]">
       <div className={`${isAdminRole ? 'grid grid-cols-3 gap-1' : 'grid grid-cols-4 gap-1'}`}>
         {/* Add new item card */}
         {(isMenuHandlingPage && isAdminRole) && (
