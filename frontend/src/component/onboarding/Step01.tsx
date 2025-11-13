@@ -146,14 +146,14 @@ export default function Step01() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => field.onChange("Marakolliya Beach Resort")}
+                    onClick={() => field.onChange("Marakolliya Beach Resort")}
                     className={`w-75 h-10 ${
-                      field.value === "Marakolliya Beach Resort"
+                      field.value === "Marakolliya Beach Resort"
                         ? "bg-secondary text-white hover:bg-secondary"
                         : ""
                     }`}
                   >
-                    Marakolliya Beach Resort
+                    Marakolliya Beach Resort
                   </Button>
                 </div>
                 <FormMessage />

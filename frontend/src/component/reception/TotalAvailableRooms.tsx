@@ -32,7 +32,7 @@ const TotalAvailableRooms: React.FC<TotalAvailableRoomsProps> = ({
           <div className="col-span-1">100</div>
         </div>
         <div className="grid-cols-4 text-[#6F6868] text-[14px] font-medium grid">
-          <div className="col-span-2">Marakolliya Beach Resort</div>
+          <div className="col-span-2">Marakolliya Beach Resort</div>
           <div className="col-span-1">:</div>
           <div className="col-span-1">100</div>
         </div>
