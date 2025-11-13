@@ -15,6 +15,8 @@ interface InvoiceFooterProps {
   invoice?: boolean;
   selectedRooms: Room[];
   updatedRooms?: BookedRoom[];
+  isWhatsappAvailable?: boolean;
+  isEmailAvailable?: boolean;
 
   // values
   totalPrice: number;
@@ -64,6 +66,8 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
   loadingBooking,
   loading,
   updatedRooms,
+  isEmailAvailable,
+  isWhatsappAvailable
 }) => {
   const [loadingSwitch, setLoadingSwitch] = useState(false);
 
@@ -155,6 +159,8 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
         onWhatsApp={handleWhatsApp}
         onEmail={handleEmail}
         loading={loading}
+        isWhatsappAvailable={isWhatsappAvailable}
+        isEmailAvailable={isEmailAvailable}
       />
 
       {!invoice && !checkout && (

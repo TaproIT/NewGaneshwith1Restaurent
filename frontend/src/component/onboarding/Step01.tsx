@@ -162,7 +162,7 @@ export default function Step01() {
           />
 
           {/* Guest Details */}
-          <div className="flex flex-col gap-5 p-5 border-2 rounded-2xl mt-10">
+          <div className="flex flex-col gap-5 p-5 border-2 rounded-2xl">
             {/* Guest Name & Country */}
             <div className="flex justify-between">
               <FormField

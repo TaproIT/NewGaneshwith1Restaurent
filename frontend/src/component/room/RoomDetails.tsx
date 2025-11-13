@@ -36,6 +36,8 @@ interface RoomDetailsProps {
   loadingBooking?: boolean;
   onInvoiceSuccess?: () => void;
   onUpdateRooms?: (rooms: BookedRoom[]) => void;
+  isWhatsappAvailable?: boolean;
+  isEmailAvailable?: boolean;
 }
 
 const RoomDetails: React.FC<RoomDetailsProps> = ({
@@ -56,6 +58,8 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
   loadingBooking,
   onInvoiceSuccess,
   onUpdateRooms,
+  isEmailAvailable,
+  isWhatsappAvailable
 }) => {
   const invoiceData = useSelector(
     (state: RootState) => state.invoice.invoiceFormData
@@ -282,6 +286,8 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
         onInvoiceSuccess={onInvoiceSuccess}
         loading={loading}
         updatedRooms={updatedRooms}
+        isWhatsappAvailable={isWhatsappAvailable}
+        isEmailAvailable={isEmailAvailable}
       />
     </div>
   );

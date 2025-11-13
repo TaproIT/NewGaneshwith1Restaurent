@@ -34,6 +34,8 @@ const BookingUpdate = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [roomNumbers, setRoomNumbers] = useState<string[]>([]);
   const navigate = useNavigate();
+  const [isWhatsappAvailable, setIsWhatsappAvailable] = useState(false);
+  const [isEmailAvailable, setIsEmailAvailable] = useState(false);
 
   const todayDate = new Date().toISOString().slice(0, 10);
 
@@ -69,7 +71,6 @@ const BookingUpdate = () => {
       try {
         const res = await api.get(`/booking/get-booking/${id}`);
         form.reset(res.data.booking);
-        console.log(res.data.booking)
         // Store room numbers for modal
         const rooms = res.data.booking.currentRooms.map((r: any) => r.roomNo);
         setRoomNumbers(rooms);
@@ -97,8 +98,22 @@ const BookingUpdate = () => {
       );
       setRoomNumbers(updatedRooms);
 
-      // Open QR modal instead of navigating
-      setIsModalOpen(true);
+      // ✅ Check if we have at least one contact option before opening modal
+      const hasContact =
+        data.whatsapp?.trim() !== "" || data.email?.trim() !== "";
+
+      const hasWhatsapp = data.whatsapp?.trim() !== "";
+      const hasEmail = data.email?.trim() !== "";
+
+      setIsWhatsappAvailable(hasWhatsapp);
+      setIsEmailAvailable(hasEmail);
+
+      if (hasContact) {
+        setIsModalOpen(true);
+      } else {
+        // No contact info — just go back to bookings page
+        navigate("/bookings");
+      }
     } catch (error) {
       const message =
         (error as any)?.response?.data?.message ||
@@ -109,7 +124,10 @@ const BookingUpdate = () => {
     }
   };
 
-  const onCloseModal = () => setIsModalOpen(false);
+  const onCloseModal = () => {
+    setIsModalOpen(false);
+    navigate("/bookings");
+  };
 
   const handleWhatsApp = async () => {
     const message = `This is your room number(s): ${roomNumbers.join(", ")}`;
@@ -199,24 +217,23 @@ const BookingUpdate = () => {
                     <div className="flex items-center">
                       <FormLabel className="w-33">Customer Type</FormLabel>
                       <Select
-  onValueChange={field.onChange}
-  value={field.value}
-  disabled
->
-  <FormControl className="w-72">
-    <SelectTrigger>
-      <SelectValue placeholder="Select" />
-    </SelectTrigger>
-  </FormControl>
-  <SelectContent>
-    {CUSTOMER_VALUES.map((item) => (
-      <SelectItem value={item} key={item}>
-        {item}
-      </SelectItem>
-    ))}
-  </SelectContent>
-</Select>
-
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        disabled
+                      >
+                        <FormControl className="w-72">
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {CUSTOMER_VALUES.map((item) => (
+                            <SelectItem value={item} key={item}>
+                              {item}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <FormMessage />
                   </FormItem>
@@ -401,7 +418,12 @@ const BookingUpdate = () => {
                   <FormItem className="flex items-center">
                     <Label className="w-35">Check-in</Label>
                     <FormControl className="w-70">
-                      <Input type="date" {...field} disabled value={field.value?.slice(0, 10)}/>
+                      <Input
+                        type="date"
+                        {...field}
+                        disabled
+                        value={field.value?.slice(0, 10)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -457,7 +479,12 @@ const BookingUpdate = () => {
                   <FormItem className="flex items-center">
                     <Label className="w-35">Check-out</Label>
                     <FormControl className="w-70">
-                      <Input type="date" {...field} min={todayDate} value={field.value?.slice(0, 10)}/>
+                      <Input
+                        type="date"
+                        {...field}
+                        min={todayDate}
+                        value={field.value?.slice(0, 10)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -485,6 +512,8 @@ const BookingUpdate = () => {
         onWhatsApp={handleWhatsApp}
         onEmail={handleEmail}
         loading={loading}
+        isWhatsappAvailable={isWhatsappAvailable}
+        isEmailAvailable={isEmailAvailable}
       />
     </div>
   );
