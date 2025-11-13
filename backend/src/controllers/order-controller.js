@@ -170,10 +170,12 @@ export const selectTableForOrder = async (req, res) => {
     }
 
     // Check if the table is already assigned to another active order
-    const existingOrderWithTable = await Order.findOne({
-      restaurantTable: tableId,
-      orderStatus: { $ne: OrderStatuses.COMPLETED.value }, // table is free only if previous order is completed
-    });
+   const existingOrderWithTable = await Order.findOne({
+     restaurantTable: tableId,
+     orderStatus: {
+       $nin: [OrderStatuses.COMPLETED.value, OrderStatuses.CANCELED.value],
+     },
+   });
 
     if (existingOrderWithTable) {
       return sendErrorResponse(
@@ -525,17 +527,24 @@ export const getHoldOrders = async (req, res) => {
     const restaurantType = await getRestaurantTypeByUserRole(userId);
 
     // Find all orders where holdOrderToken is not null
-   const holdOrders = await Order.find({
-     restaurantType,
-     $or: [
-       { holdOrderToken: { $ne: null } },
-       { orderStatus: { $ne: OrderStatuses.COMPLETED.value } },
-     ],
-   })
-     .select(
-       "_id serviceType orderNumber customerType guestName restaurantTable"
-     )
-     .populate("restaurantTable", "tableNumber");
+    const holdOrders = await Order.find({
+      restaurantType,
+      orderStatus: {
+        $nin: [OrderStatuses.COMPLETED.value, OrderStatuses.CANCELED.value],
+      },
+      $or: [
+        { holdOrderToken: { $ne: null } },
+        {
+          orderStatus: {
+            $nin: [OrderStatuses.COMPLETED.value, OrderStatuses.CANCELED.value],
+          },
+        },
+      ],
+    })
+      .select(
+        "_id serviceType orderNumber customerType guestName restaurantTable"
+      )
+      .populate("restaurantTable", "tableNumber");
 
     if (!holdOrders || holdOrders.length === 0) {
       return sendErrorResponse(res, 404, "No hold orders found");
@@ -773,6 +782,42 @@ export const getOrderSummary = async (req, res) => {
     return sendErrorResponse(res, 500, "Internal server error");
   }
 };
+
+export const cancelOrder = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find the order
+    const order = await Order.findById(id);
+    if (!order) {
+      return sendErrorResponse(res, 404, "Order not found");
+    }
+
+    // Update the order status to canceled
+    order.orderStatus = OrderStatuses.CANCELED.value;
+    await order.save();
+
+    // If the order has a restaurant table, mark it as EMPTY or AVAILABLE
+    if (order.restaurantTable) {
+      await RestaurantTable.findByIdAndUpdate(
+        order.restaurantTable,
+        { status: TableStatuses.EMPTY.value },
+        { new: true }
+      );
+    }
+
+    return sendSuccessResponse(
+      res,
+      200,
+      "Order canceled successfully",
+      { order }
+    );
+  } catch (error) {
+    console.error("Error canceling order:", error);
+    return sendErrorResponse(res, 500, "Internal Server Error", error.message);
+  }
+};
+
 
 
 
