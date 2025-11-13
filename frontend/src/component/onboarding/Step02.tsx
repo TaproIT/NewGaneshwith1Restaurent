@@ -7,9 +7,9 @@ import { io, Socket } from "socket.io-client";
 import RoomGrid from "../room/RoomGrid";
 import RoomDetails from "../room/RoomDetails";
 import type { Room } from "@/types/roomTypes";
-import { addRoom } from "@/features/onboarding/onboardingSlice";
+import { addRoom, resetSteps } from "@/features/onboarding/onboardingSlice";
 import { api } from "@/api/axios";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate} from "react-router-dom";
 import RoomGridSkeleton from "../skeleton/RoomGridSkeleton";
 import type { BookedRoom } from "@/types/guestDataTypes";
 import type { OldRoom } from "@/features/switch-rooms/removedRooms";
@@ -171,7 +171,7 @@ const Step02 = () => {
         if (hasContact) {
           setIsModalOpen(true);
         } else {
-          navigate("/onboarding");
+          dispatch(resetSteps())
         }
       } else {
         const payload = {
