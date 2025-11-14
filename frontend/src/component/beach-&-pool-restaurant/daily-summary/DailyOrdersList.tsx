@@ -57,7 +57,7 @@ export const DailyOrdersList: React.FC<{ orders: DailyOrder[] }> = ({
       </div>
 
       {/* Orders */}
-      <ScrollArea className="w-full h-[calc(100vh-450px)]">
+      <ScrollArea className="w-full h-[calc(100vh-420px)]">
         <div className="pb-2 flex flex-col gap-2">
           {loading ? (
             // Show skeletons when loading
@@ -102,7 +102,7 @@ export const DailyOrdersList: React.FC<{ orders: DailyOrder[] }> = ({
                 <div
                   key={order._id}
                   onClick={() => dispatch(setSelectedOrderId(order._id))}
-                  className={`grid grid-cols-7 gap-4 p-3 text-sm border-1 rounded-lg cursor-pointer transition-colors
+                  className={`grid grid-cols-7 gap-4 p-3 text-sm border-2 rounded-lg cursor-pointer transition-colors
                     ${
                       isSelected
                         ? "bg-[#F4F4F4] border-[#444444]"

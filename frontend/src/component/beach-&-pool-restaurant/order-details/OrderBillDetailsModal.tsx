@@ -129,12 +129,13 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
         "Tangalle \n"+
         "==========================================\n" +
         ESC + "a" + "\x00" + // left align
-        `Date        : ${new Date().toLocaleString()}\n` +
-        `TP ${order.restaurantType === "Beach"? "+94 47 22 42 529" : "+94 47 22 44 822"}\n` +
-        `Order No: ${order.orderNumber}\n` +
-        `Service Type: ${order.serviceType}\n` +
-        `Customer: ${order.guestName || "Walk-in"}\n` +
-        `${order.roomNumber  !== "0" ? `Room No: ${order.roomNumber}\n`:""}` +
+        `Order No     : ${order.orderNumber}\n` +
+        `Service Type : ${order.serviceType}\n` +
+        `Customer Type: ${order.customerType}\n` +
+        `Customer     : ${order.guestName || "Walk-in"}\n` +
+        `${order.roomNumber  !== "0" ? `Room No      : ${order.roomNumber}\n`:""}` +
+        `Date         : ${new Date().toLocaleString()}\n` +
+        `TP           : ${order.restaurantType === "Beach"? "+94 472242529 / +94 705505705" : "+94 472244822 / +94 705505705"}\n` +
         "-".repeat(totalWidth) + "\n";
       
       receiptData += itemHeader + "\n";
