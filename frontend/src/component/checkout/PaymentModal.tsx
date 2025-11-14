@@ -22,6 +22,9 @@ interface PaymentModalProps {
   discount: number;
   totalBill: number;
   additionalPrice: { name: string; price: number }[];
+  spa: number;
+  laundary: number;
+  miniBar: number;
 }
 
 const PaymentModal: React.FC<PaymentModalProps> = ({
@@ -37,6 +40,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   discount,
   totalBill,
   additionalPrice,
+  miniBar,
+  spa,
+  laundary,
 }) => {
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -71,6 +77,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       discount,
       totalBill,
       paymentMethod: selectedPayment,
+      spa,
+      miniBar,
+      laundary,
     };
 
     try {
@@ -91,6 +100,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         selectedPayment,
         totalRoomCharge,
         totalOrdersPrice,
+        spa,
+        miniBar,
+        laundary
       });
         onOpenChange(false);
         navigate("/checkouts");

@@ -17,6 +17,9 @@ const CheckoutDetails: React.FC = () => {
   const [discount, setDiscount] = useState(0);
   const [charges, setCharges] = useState<{ name: string; price: number }[]>([]);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [spa, setSpa] = useState(0);
+  const [laundry, setLaundry] = useState(0);
+  const [miniBar, setMiniBar] = useState(0);
 
   const id = useSelector((state: RootState) => state.booking.roomData?.bookingId)
   const navigate = useNavigate();
@@ -47,10 +50,10 @@ const CheckoutDetails: React.FC = () => {
   const tax = 0;
   const serviceCharge = 0;
   const discountAmount = discount;
-  const total = subtotal + tax + serviceCharge - discountAmount;
+  const total = subtotal + spa + laundry + miniBar + tax + serviceCharge - discountAmount;
 
   return (
-    <div className="h-[calc(100vh-140px)] bg-white p-8 overflow-y-auto">
+    <div className="h-[calc(100vh-140px)] bg-white p-4 overflow-y-auto">
       <div className="h-full grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-mainWhite rounded-2xl shadow-sm p-6 flex flex-col justify-between">
           <div>
@@ -61,7 +64,16 @@ const CheckoutDetails: React.FC = () => {
 
         <div className="bg-mainWhite rounded-2xl shadow-sm p-6 flex flex-col justify-between">
           <div>
-            <AdditionalCharges charges={charges} setCharges={setCharges} />
+            <AdditionalCharges
+        charges={charges}
+        setCharges={setCharges}
+        spa={spa}
+        setSpa={setSpa}
+        laundry={laundry}
+        setLaundry={setLaundry}
+        miniBar={miniBar}
+        setMiniBar={setMiniBar}
+      />
             <TotalSummary
               subtotal={subtotal}
               tax={tax}
@@ -92,6 +104,9 @@ const CheckoutDetails: React.FC = () => {
         discount={discount}
         totalBill={total}
         additionalPrice={charges}
+        spa={spa}
+        laundary={laundry}
+        miniBar={miniBar}
       />
     </div>
   );
