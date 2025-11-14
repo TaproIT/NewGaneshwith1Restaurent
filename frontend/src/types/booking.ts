@@ -24,6 +24,7 @@ export interface RoomDetail {
   nights: number;
   finalRoomTotalPrice: number;
   status: string;
+  currency: string;
 }
 
 export interface Booking {
