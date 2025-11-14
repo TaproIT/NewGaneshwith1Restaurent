@@ -125,7 +125,7 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
         ESC + "a" + "\x01" + // center
         "==========================================\n" +
        `${order.restaurantType === "Beach"? "GANESH GARDEN BEACH CABANA" : "MARAKOLLIYA BEACH RESORT"}\n` +
-        `${order.restaurantType === "Beach"? "MAHI MAHI SEA FOOD RESTAURANT" : "SUNSET POOL BAR & RESTAURANT"}      \n` +
+        `${order.restaurantType === "Beach"? "MAHI MAHI SEA FOOD RESTAURANT" : "SUNSET POOL BAR & RESTAURANT"}\n` +
         "Tangalle \n"+
         "==========================================\n" +
         ESC + "a" + "\x00" + // left align
@@ -136,19 +136,22 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
         `Customer: ${order.guestName || "Walk-in"}\n` +
         `${order.roomNumber  !== "0" ? `Room No: ${order.roomNumber}\n`:""}` +
         "-".repeat(totalWidth) + "\n";
+      
+      receiptData += itemHeader + "\n";
+      receiptData += "-".repeat(totalWidth) + "\n";
 
       // Token-wise printing
       (order.orderTokens || []).forEach((token: any) => {
         receiptData += ` \n`;
-        receiptData += "-".repeat(totalWidth) + "\n";
+        //receiptData += "-".repeat(totalWidth) + "\n";
 
         const allItems = [
           ...(token.foodOrders || []),
           ...(token.beverageOrders || []),
         ];
 
-        receiptData += itemHeader + "\n";
-        receiptData += "-".repeat(totalWidth) + "\n";
+        // receiptData += itemHeader + "\n";
+        // receiptData += "-".repeat(totalWidth) + "\n";
 
         receiptData += allItems
           .map((item: any) =>
@@ -171,7 +174,7 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
 
       receiptData +=
         ESC + "a" + "\x01" + // center
-        "       Thank you! Come again!\n\n\n" +
+         "       Thank you! Come again!       \n\n\n" +
         "      \n\n\n" +
         GS + "V" + "\x00"; // cut
 
