@@ -441,6 +441,8 @@ export const getBookingBillingSummary = async (req, res) => {
         return res.status(200).json({
             bookingId: String(bookingDoc._id),
             hotel: booking.hotel,
+            breakfast: booking.breakfast,
+            customerType: booking.customerType,
             guestName: booking.guestName,
             checkIn: effectiveCheckIn ? effectiveCheckIn.format("YYYY-MM-DDTHH:mm:ss.SSSZ") : null,
             checkOut: effectiveCheckOut ? effectiveCheckOut.format("YYYY-MM-DDTHH:mm:ss.SSSZ") : null,
@@ -509,13 +511,14 @@ export const finalizeBookingBill = async (req, res) => {
             additionalPrice = [],
             subtotal,
             tax,
-            serviceCharge,
             discount,
             totalBill,
             paymentMethod
         } = req.body || {};
 
         const checkOutById = req.user?.userId || req.user?._id;
+
+        const serviceCharge = 0;
 
         if (!checkOutById) {
             return res.status(400).json({ error: "Unauthorized checkOut. ID is required." });
@@ -545,9 +548,9 @@ export const finalizeBookingBill = async (req, res) => {
         if (tax == null) {
             return res.status(400).json({ message: "tax is required" });
         }
-        if (serviceCharge == null) {
-            return res.status(400).json({ message: "serviceCharge is required" });
-        }
+        // if (serviceCharge == null) {
+        //     return res.status(400).json({ message: "serviceCharge is required" });
+        // }
         if (discount == null) {
             return res.status(400).json({ message: "discount is required" });
         }
@@ -566,11 +569,18 @@ export const finalizeBookingBill = async (req, res) => {
         }
 
         // Normalize discount to 0–1
-        const discountRate = normalizeDiscountRate(discount);
-        if (discountRate == null || discountRate < 0 || discountRate > 1) {
+        // const discountRate = normalizeDiscountRate(discount);
+        // if (discountRate == null || discountRate < 0 || discountRate > 1) {
+        //     return res.status(400).json({
+        //         message:
+        //             "Invalid discount. Provide a percentage as 0–1 (e.g., 0.15) or 0–100 (e.g., 15).",
+        //         details: { received: discount },
+        //     });
+        // }
+
+        if (discount < 0) {
             return res.status(400).json({
-                message:
-                    "Invalid discount. Provide a percentage as 0–1 (e.g., 0.15) or 0–100 (e.g., 15).",
+                message: "Invalid discount. Discount must be a positive price value.",
                 details: { received: discount },
             });
         }
@@ -699,7 +709,8 @@ export const finalizeBookingBill = async (req, res) => {
         }
 
         // 5) Validate totalBill = subtotal + tax + serviceCharge - (subtotal * discountRate)
-        const discountAmount = Number(subtotal) * discountRate;
+        // const discountAmount = Number(subtotal) * discountRate;
+        const discountAmount = Number(discount);
         const computedTotalBill =
             Number(subtotal) + Number(tax) + Number(serviceCharge) - discountAmount;
 
