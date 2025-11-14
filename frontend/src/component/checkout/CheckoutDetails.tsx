@@ -45,8 +45,8 @@ const CheckoutDetails: React.FC = () => {
     charges.reduce((acc, c) => acc + (Number(c.price) || 0), 0);
 
   const tax = 0;
-  const serviceCharge = subtotal * 0.1;
-  const discountAmount = (subtotal + tax + serviceCharge) * (discount / 100);
+  const serviceCharge = 0;
+  const discountAmount = discount;
   const total = subtotal + tax + serviceCharge - discountAmount;
 
   return (
@@ -54,7 +54,7 @@ const CheckoutDetails: React.FC = () => {
       <div className="h-full grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-mainWhite rounded-2xl shadow-sm p-6 flex flex-col justify-between">
           <div>
-            <BookingInfo booking={booking} discount={discount} setDiscount={setDiscount} />
+            <BookingInfo booking={booking} discount={discount} setDiscount={setDiscount} subtotal={subtotal}/>
             <BillingTabs booking={booking} />
           </div>
         </div>
