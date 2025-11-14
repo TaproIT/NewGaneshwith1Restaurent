@@ -94,7 +94,8 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
       toast.error("QZ Tray not loaded yet!");
       return;
     }
-
+    
+    // configure qz
     const qz = window.qz;
     try {
       if (!qz.websocket.isActive()) {
