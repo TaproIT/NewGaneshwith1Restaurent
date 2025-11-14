@@ -12,7 +12,6 @@ interface Props {
 
 const BillingTabs: React.FC<Props> = ({ booking }) => {
   const [activeTab, setActiveTab] = useState<"summary" | "details">("summary");
-  const [loading, setLoading] = useState(true);
   const [usd, setUsd] = useState<number>();
   const [eur, setEur] = useState<number>();
 
@@ -41,8 +40,6 @@ const BillingTabs: React.FC<Props> = ({ booking }) => {
         setEur(data.eur);
       } catch (error) {
         console.error("Failed to fetch rates:", error);
-      } finally {
-        setLoading(false);
       }
     };
 
