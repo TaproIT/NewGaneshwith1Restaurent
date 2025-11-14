@@ -27,6 +27,7 @@ export const OrderStatuses = Object.freeze({
   READY: { value: 3, label: "Ready to Serve" },
   SERVED: { value: 4, label: "Served" },
   COMPLETED: { value: 5, label: "Completed" },
+  CANCELED: { value: 6, label: "Canceled" },
 });
 
 export const TableStatuses = Object.freeze({
