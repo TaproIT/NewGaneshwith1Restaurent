@@ -168,7 +168,7 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
            </div>
          ) : (
            // Actual Payment Details
-           <div className="py-3 flex flex-col gap-3">
+           <div className="pt-3 flex flex-col gap-3">
              {/* Payment Details */}
              <div className="px-6 2xl:px-8 w-full flex flex-col gap-1 text-[0.75rem] text-[#444444] font-normal">
                <div className="grid grid-cols-5 gap-2">
