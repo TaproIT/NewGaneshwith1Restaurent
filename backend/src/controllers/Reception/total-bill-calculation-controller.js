@@ -513,7 +513,10 @@ export const finalizeBookingBill = async (req, res) => {
             tax,
             discount,
             totalBill,
-            paymentMethod
+            paymentMethod,
+            miniBar,
+            laundary,
+            spa,
         } = req.body || {};
 
         const checkOutById = req.user?.userId || req.user?._id;
@@ -582,6 +585,26 @@ export const finalizeBookingBill = async (req, res) => {
             return res.status(400).json({
                 message: "Invalid discount. Discount must be a positive price value.",
                 details: { received: discount },
+            });
+        }
+
+        if (laundary <= 0) {
+            return res.status(400).json({
+                message: "Invalid laundary. laundary must be a positive price value.",
+                details: { received:laundary },
+            });
+        }
+
+        if (spa <= 0) {
+            return res.status(400).json({
+                message: "Invalid Spa. Spa must be a positive price value.",
+                details: { received: spa },
+            });
+        }
+        if (miniBar <= 0) {
+            return res.status(400).json({
+                message: "Invalid mini bar. Mini bar must be a positive price value.",
+                details: { received: miniBar },
             });
         }
 
@@ -712,26 +735,26 @@ export const finalizeBookingBill = async (req, res) => {
         // const discountAmount = Number(subtotal) * discountRate;
         const discountAmount = Number(discount);
         const computedTotalBill =
-            Number(subtotal) + Number(tax) + Number(serviceCharge) - discountAmount;
+            Number(subtotal) + Number(miniBar) + Number(laundary) + Number(spa) + Number(tax) + Number(serviceCharge) - discountAmount;
 
         if (toCents(totalBill) !== toCents(computedTotalBill)) {
             await session.abortTransaction();
             return res.status(400).json({
                 message:
-                    "Mismatch: totalBill must equal subtotal + tax + serviceCharge - (subtotal * discount%).",
+                    "Mismatch: totalBill must equal subtotal + tax + mini bar + laundary + spa + serviceCharge - discountPrice.",
                 details: {
                     sent: Number(totalBill),
                     expected: Number(computedTotalBill),
                     breakdown: {
                         subtotal: Number(subtotal),
                         tax: Number(tax),
-                        serviceCharge: Number(serviceCharge),
-                        discountPercent: discountRate * 100,
-                        discountAmount: Number(discountAmount.toFixed(2)),
+                        serviceCharge: 0,
+                        discountPrice: Number(discount),
                     },
                 },
             });
         }
+
 
         // 6) Persist fields
         booking.additionalPriceItems = cleanedAdditional;
@@ -741,12 +764,17 @@ export const finalizeBookingBill = async (req, res) => {
         booking.tax = Number(tax);
         booking.serviceCharge = Number(serviceCharge);
         booking.discount = Number(discount);
+        booking.miniBar = Number(miniBar);
+        booking.laundary = Number(laundary);
+        booking.spa = Number(spa);
+
         booking.checkOutById = checkOutById;
         booking.checkOutByName = checkOutByName;
 
         booking.totalBill = Number(totalBill);
         booking.paymentMethod = paymentMethod;
         booking.isCheckOut = true;
+
 
         booking.oldLengthOfStay = booking.lengthOfStay;
 

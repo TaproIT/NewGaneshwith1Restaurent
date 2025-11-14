@@ -120,6 +120,9 @@ const bookingSchema = new mongoose.Schema(
         subtotal: { type: Number, default: 0 },
         tax: { type: Number, default: 0 },
         serviceCharge: { type: Number, default: 0 },
+        miniBar:{ type: Number, default: 0 },
+        laundary: { type: Number, default: 0 },
+        spa: { type: Number, default: 0 },
         discount: { type: Number, default: 0 },
 
         // Master total for the booking
