@@ -141,7 +141,7 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
         "\x01" + // center
         "==========================================\n" +
         `${order.restaurantType === "Beach"? "GANESH GARDEN BEACH CABANA" : "MARAKOLLIYA BEACH RESORT"}\n` +
-        `${order.restaurantType === "Beach"? "MAHI MAHI SEA FOOD RESTAURANT" : "SUNSET POOL BAR & RESTAURANT"}      \n` +
+        `${order.restaurantType === "Beach"? "MAHI MAHI SEA FOOD RESTAURANT" : "SUNSET POOL BAR & RESTAURANT"}\n` +
         "Tangalle \n"+
         "==========================================\n" +
         ESC +

@@ -124,7 +124,7 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
         ESC + "a" + "\x01" + // center
         "==========================================\n" +
        `${order.restaurantType === "Beach"? "GANESH GARDEN BEACH CABANA" : "MARAKOLLIYA BEACH RESORT"}\n` +
-        `${order.restaurantType === "Beach"? "MAHI MAHI SEA FOOD RESTAURANT" : "SUNSET POOL BAR & RESTAURANT"}      \n` +
+        `${order.restaurantType === "Beach"? "MAHI MAHI SEA FOOD RESTAURANT" : "SUNSET POOL BAR & RESTAURANT"}\n` +
         "Tangalle \n"+
         "==========================================\n" +
         ESC + "a" + "\x00" + // left align
@@ -170,7 +170,7 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
 
       receiptData +=
         ESC + "a" + "\x01" + // center
-        "       Thank you! Come again!\n\n\n" +
+         "       Thank you! Come again!       \n\n\n" +
         "      \n\n\n" +
         GS + "V" + "\x00"; // cut
 
