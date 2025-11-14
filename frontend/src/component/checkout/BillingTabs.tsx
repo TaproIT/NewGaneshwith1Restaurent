@@ -87,7 +87,7 @@ const BillingTabs: React.FC<Props> = ({ booking }) => {
 
       {/* DETAILS TAB */}
       {activeTab === "details" && (
-        <div className="space-y-4 text-sm">
+        <div className="space-y-4 text-sm h-40 overflow-y-auto">
           {/* ROOM DETAILS */}
           <div>
             <div className="font-medium mb-2">Rooms</div>
@@ -102,7 +102,8 @@ const BillingTabs: React.FC<Props> = ({ booking }) => {
                       <span>Room {room.roomNo}</span>
 
                       <div className="mb-2">
-                        ({room.nights} nights × {room.perDayPrice} {room.currency}
+                        ({room.nights} nights × {room.perDayPrice}{" "}
+                        {room.currency}
                         {lkrRate && (
                           <>
                             {" × "} {lkrRate} LKR
@@ -130,20 +131,46 @@ const BillingTabs: React.FC<Props> = ({ booking }) => {
           {/* ORDER DETAILS */}
           <div>
             <div className="font-medium mb-2">Orders</div>
-
             {booking.orderDetails?.length ? (
-              booking.orderDetails.map((order) => (
-                <div key={order.orderId} className="flex justify-between">
-                  <span>Order #{order.orderNumber}</span>
-                  <span>
-                    {convertAndFormatPrice(
-                      order.totalBill,
-                      rates,
-                      displayCurrency
-                    )}
-                  </span>
-                </div>
-              ))
+              (() => {
+                // Group by date + restaurantType
+                const grouped: Record<
+                  string,
+                  { date: string; type: string; total: number }
+                > = {};
+
+                booking.orderDetails.forEach((order) => {
+                  const date = order.updatedAt.split("T")[0];
+                  const key = `${date}-${order.restaurantType}`;
+
+                  if (!grouped[key]) {
+                    grouped[key] = {
+                      date,
+                      type: order.restaurantType,
+                      total: 0,
+                    };
+                  }
+
+                  grouped[key].total += order.totalBill;
+                });
+
+                // Render grouped results
+                return Object.values(grouped).map((item, index) => (
+                  <div key={index} className="flex flex-col">
+                    <div>{item.date}</div>
+                    <div className="flex justify-between">
+                      <span>{item.type}</span>
+                      <span>
+                        {convertAndFormatPrice(
+                          item.total,
+                          rates,
+                          displayCurrency
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                ));
+              })()
             ) : (
               <div className="text-gray-500 italic">No orders available</div>
             )}

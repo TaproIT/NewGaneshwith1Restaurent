@@ -38,4 +38,6 @@ export interface Booking {
   totalRoomsCharges: number;
   totalOrdersBill: number;
   totalBill: number;
+  breakfast: string;
+  customerType: string;
 }
