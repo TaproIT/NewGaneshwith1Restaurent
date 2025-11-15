@@ -172,7 +172,8 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
     await qz.print(config, [
       { type: "raw", format: "plain", data: printData }
     ]);
-
+    
+    // add second print
     await qz.print(config, [
       { type: "raw", format: "plain", data: printData }
     ]);
