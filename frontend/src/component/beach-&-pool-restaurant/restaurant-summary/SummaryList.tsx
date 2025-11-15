@@ -38,7 +38,7 @@ export const RestaurantSummaryList: React.FC<{
         <div>Order Count</div>
       </div>
 
-      <ScrollArea className="w-full h-[calc(100vh-450px)]">
+      <ScrollArea className="w-full h-[calc(100vh-350px)]">
         <div className="pb-2 flex flex-col gap-2">
           {loading ? (
             Array.from({ length: 6 }).map((_, idx) => (
