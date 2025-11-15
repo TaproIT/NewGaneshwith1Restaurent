@@ -520,6 +520,9 @@ export const finalizeBookingBill = async (req, res) => {
         } = req.body || {};
 
         const checkOutById = req.user?.userId || req.user?._id;
+        const laundaryValue = laundary ? Number(laundary) : 0;
+        const spaValue = spa ? Number(spa) : 0;
+        const miniBarValue = miniBar ? Number(miniBar) : 0;
 
         const serviceCharge = 0;
 
@@ -588,20 +591,20 @@ export const finalizeBookingBill = async (req, res) => {
             });
         }
 
-        if (laundary <= 0) {
+        if (laundaryValue < 0) {
             return res.status(400).json({
                 message: "Invalid laundary. laundary must be a positive price value.",
                 details: { received:laundary },
             });
         }
 
-        if (spa <= 0) {
+        if (spaValue < 0) {
             return res.status(400).json({
                 message: "Invalid Spa. Spa must be a positive price value.",
                 details: { received: spa },
             });
         }
-        if (miniBar <= 0) {
+        if (miniBarValue < 0) {
             return res.status(400).json({
                 message: "Invalid mini bar. Mini bar must be a positive price value.",
                 details: { received: miniBar },
@@ -735,7 +738,7 @@ export const finalizeBookingBill = async (req, res) => {
         // const discountAmount = Number(subtotal) * discountRate;
         const discountAmount = Number(discount);
         const computedTotalBill =
-            Number(subtotal) + Number(miniBar) + Number(laundary) + Number(spa) + Number(tax) + Number(serviceCharge) - discountAmount;
+            Number(subtotal) + Number(miniBarValue) + Number(laundaryValue) + Number(spaValue) + Number(tax) + Number(serviceCharge) - discountAmount;
 
         if (toCents(totalBill) !== toCents(computedTotalBill)) {
             await session.abortTransaction();
