@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { printFinalBill } from "@/util/printCheckout"; // adjust path if different
 import type { OrganizedOrder, OrganizedRoom } from "@/types/details";
+import { convertAndFormatPrice } from "@/util/priceConverter";
 
 interface PaymentModalProps {
   open: boolean;
@@ -90,8 +91,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
     try {
       setLoading(true);
-
+      console.log(booking);
       const response = await api.post(`booking/final-billing/${booking.bookingId}/checkout`, payload);
+
+      console.log(response);
 
       if (response.status === 200) {
         toast.success("Payment processed successfully!");
@@ -110,7 +113,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         miniBar,
         laundary,
         detailRooms: billDetails.rooms,
-        detailOrders: billDetails.groupedOrders
+        detailOrders: billDetails.groupedOrders,
+        convertAndFormatPrice
       });
         onOpenChange(false);
         navigate("/checkouts");

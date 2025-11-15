@@ -18,7 +18,7 @@ export async function printFinalBill({
   laundary,
   additionalPrice,
   selectedPayment,
-  convertAndFormatPrice,
+  //convertAndFormatPrice,
   detailRooms,
   detailOrders,
 }: any) {
@@ -62,7 +62,7 @@ export async function printFinalBill({
     ?.map(
       (order: any) => `
         <tr class="row-line">
-          <td>${order.date} — ${order.type}</td>
+          <td>${order.date} — ${order.type} Restaurant</td>
           <td class="right">${order.displayTotal}</td>
         </tr>
       `
@@ -71,9 +71,9 @@ export async function printFinalBill({
 
   // ADDITIONAL CHARGES HTML
   const additionalHTML = `
-      ${spa ? `<tr class="row-line"><td>Spa</td><td class="right">${convertAndFormatPrice(spa)}</td></tr>` : ""}
-      ${miniBar ? `<tr class="row-line"><td>Mini Bar</td><td class="right">${convertAndFormatPrice(miniBar)}</td></tr>` : ""}
-      ${laundary ? `<tr class="row-line"><td>Laundry</td><td class="right">${convertAndFormatPrice(laundary)}</td></tr>` : ""}
+      ${spa ? `<tr class="row-line"><td>Spa</td><td class="right">LKR ${spa}.00</td></tr>` : ""}
+      ${miniBar ? `<tr class="row-line"><td>Mini Bar</td><td class="right">LKR ${miniBar}.00</td></tr>` : ""}
+      ${laundary ? `<tr class="row-line"><td>Laundry</td><td class="right">LKR ${laundary}.00</td></tr>` : ""}
       ${
         additionalPrice?.length
           ? additionalPrice
@@ -81,7 +81,7 @@ export async function printFinalBill({
                 (item: any) => `
           <tr class="row-line">
             <td>${item.name}</td>
-            <td class="right">${convertAndFormatPrice(item.price)}</td>
+            <td class="right">LKR ${item.price}.00</td>
           </tr>
         `
               )
@@ -143,7 +143,7 @@ export async function printFinalBill({
 
   <div class="center">
     <img src=${logoBase64} style="width:130px; margin-bottom:6px;" />
-    <div style="font-size: 17px; font-weight: bold;">Ganesh Garden Beach Cabanas & Restaurant</div>
+    <div style="font-size: 17px; font-weight: bold;">${booking.hotel}</div>
     <div>Marakolliya Beach, Tangalle, Sri Lanka</div>
     <div>Tel: +94 47 2242529</div>
     <hr/>
@@ -151,16 +151,17 @@ export async function printFinalBill({
 
   <div class="section-title">Guest Details</div>
   <table>
-    <tr class="row-line"><td>Booking ID</td><td class="right">#${booking?._id}</td></tr>
-    <tr class="row-line"><td>Customer</td><td class="right">${booking?.customerName}</td></tr>
-    <tr class="row-line"><td>Check-In</td><td class="right">${booking?.checkIn.split("T")[0]}</td></tr>
-    <tr class="row-line"><td>Check-Out</td><td class="right">${booking?.checkOut.split("T")[0]}</td></tr>
+    <tr class="row-line"><td>Booking ID</td><td class="right">#${booking?.bookingId}</td></tr>
+    <tr class="row-line"><td>Customer</td><td class="right">${booking?.guestName}</td></tr>
+     <tr class="row-line"><td>Customer Type</td><td class="right">#${booking?.customerType}</td></tr>
+    <tr class="row-line"><td>Check-In Date</td><td class="right">${booking?.checkIn.split("T")[0]}</td></tr>
+    <tr class="row-line"><td>Check-Out Date</td><td class="right">${booking?.checkOut.split("T")[0]}</td></tr>
   </table>
 
   <div class="section-title">Room Charges</div>
   <table>${roomChargesHTML}</table>
 
-  <div class="section-title">Orders</div>
+  <div class="section-title">Restaurant Bills</div>
   <table>${ordersHTML}</table>
 
   <div class="section-title">Additional Charges</div>
@@ -168,13 +169,13 @@ export async function printFinalBill({
 
   <div class="section-title">Summary</div>
   <table>
-    <tr><td>Subtotal</td><td class="right">${convertAndFormatPrice(subtotal)}</td></tr>
-    <tr><td>Tax</td><td class="right">${convertAndFormatPrice(tax)}</td></tr>
-    <tr><td>Service Charge</td><td class="right">${convertAndFormatPrice(serviceCharge)}</td></tr>
-    <tr><td>Discount</td><td class="right">-${convertAndFormatPrice(discount)}</td></tr>
+    <tr><td>Subtotal</td><td class="right">LKR ${subtotal}.00</td></tr>
+    <tr><td>Tax</td><td class="right">LKR ${tax}.00</td></tr>
+    <tr><td>Service Charge</td><td class="right">LKR ${serviceCharge}.00</td></tr>
+    <tr><td>Discount</td><td class="right">- LKR ${discount}.00</td></tr>
 
-    <tr class="total-row"><td>Total</td><td class="right">${convertAndFormatPrice(totalBill)}</td></tr>
-    <tr><td>Payment Method</td><td class="right">${selectedPayment}</td></tr>
+    <tr class="total-row"><td>Grand Total</td><td class="right">LKR ${totalBill}.00</td></tr>
+    <tr><td>Payment Method</td><td class="right">LKR ${selectedPayment}.00</td></tr>
   </table>
 
   <div class="footer">
@@ -187,6 +188,9 @@ export async function printFinalBill({
 </html>
 `;
 
+  console.log(html);
+
   const data = [{ type: "html", format: "plain", data: html }];
+  await qz.print(config, data);
   await qz.print(config, data);
 }
