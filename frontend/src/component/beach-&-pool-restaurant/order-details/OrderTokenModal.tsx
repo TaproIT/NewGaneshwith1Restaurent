@@ -81,109 +81,107 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
 
   /** Print formatted receipt via QZ Tray **/
   const printReceipt = async () => {
-  if (!window.qz) {
-    alert("QZ Tray not loaded yet!");
-    return;
-  }
-
-  const qz = window.qz;
-
-  try {
-    if (!qz.websocket.isActive()) {
-      await qz.websocket.connect();
-      console.log("Connected to QZ Tray");
+    if (!window.qz) {
+      alert("QZ Tray not loaded yet!");
+      return;
     }
 
-    const printerName = "POS80";
-    const config = qz.configs.create(printerName);
+    const qz = window.qz;
 
-    const ESC = "\x1B";
-    const GS = "\x1D";
+    try {
+      // Connect to QZ Tray if needed
+      if (!qz.websocket.isActive()) {
+        await qz.websocket.connect();
+        console.log("Connected to QZ Tray");
+      }
 
-    const totalWidth = 42;
-    const qtyWidth = 3;
-    const priceWidth = 9;
-    const maxNameLength = totalWidth - qtyWidth - priceWidth;
+      const printerName = "POS80";
+      const config = qz.configs.create(printerName);
+      const ESC = "\x1B";
+      const GS = "\x1D";
 
-    const headerLine =
-      "Item".padEnd(maxNameLength, " ") +
-      "Qty".padStart(qtyWidth, " ") +
-      "Price".padStart(priceWidth, " ");
+      // formatting constants (must match formatItemLine)
+      const totalWidth = 42;
+      const qtyWidth = 3;
+      const priceWidth = 9;
+      const maxNameLength = totalWidth - qtyWidth - priceWidth;
 
-    const allItems = [
-      ...(order.newOrderToken.foodOrders || []),
-      ...(order.newOrderToken.beverageOrders || []),
-    ];
+      // Build header row using same widths so labels line up with data
+      const headerLine =
+        "Item".padEnd(maxNameLength, " ") +
+        "Qty".padStart(qtyWidth, " ") +
+        "Price".padStart(priceWidth, " ");
 
-    const formattedItems = allItems
-      .map((item) =>
-        formatItemLine(item.title, item.quantity, item.price * item.quantity)
-      )
-      .join("\n");
+      // Collect items (food + beverage)
+      const allItems = [
+        ...(order.newOrderToken.foodOrders || []),
+        ...(order.newOrderToken.beverageOrders || []),
+      ];
 
-     const totalLabelWidth = totalWidth - 12; // leave 12 chars for amount
-     const padKey = (label: string) => label.padEnd(totalLabelWidth, " ");
-     const amountPad = (amt: number) =>
-       `${amt.toFixed(2)} LKR`.padStart(12, " ");
+      // Format each item: pass total price for that line (qty * unitPrice)
+      const formattedItems = allItems
+        .map((item: any) =>
+          formatItemLine(item.title, item.quantity, item.price * item.quantity)
+        )
+        .join("\n");
 
-     const totalLine =
-       padKey("TOTAL:") + amountPad(order.newOrderToken.tokenTotalBill);
+      // Totals line (use consistent spacing; amounts without commas)
+      const totalLabelWidth = totalWidth - 12; // leave 12 chars for amount
+      const padKey = (label: string) => label.padEnd(totalLabelWidth, " ");
+      const amountPad = (amt: number) => `${amt.toFixed(2)} LKR`.padStart(12, " ");
 
+      const totalLine = padKey("TOTAL:") + amountPad(order.newOrderToken.tokenTotalBill);
 
-    // FEED and CUT should be at the VERY END
-    const feedAndCut = "\n\n\n" + GS + "V" + "\x00";
-
-    const printData =
-      ESC + "@"
-      + ESC + "a" + "\x01"
-      + "==========================================\n"
-      + `${order.restaurantType === "Beach"
-          ? "GANESH GARDEN BEACH CABANA"
-          : "MARAKOLLIYA BEACH RESORT"}\n`
-      + `${order.restaurantType === "Beach"
-          ? "MAHI MAHI SEA FOOD RESTAURANT"
-          : "SUNSET POOL BAR & RESTAURANT"}\n`
-      + "Tangalle \n"
-      + "==========================================\n"
-      + ESC + "a" + "\x00"
-      + `Order Number : ${order.orderNumber}\n`
-      + `Order Token  : ${order.orderTokens.length + 1}\n`
-      + `Customer Type: ${order.customerType}\n`
-      + `Date         : ${new Date().toLocaleString()}\n`
-      + `TP           : ${
-          order.restaurantType === "Beach"
-            ? "+94 472242529 / +94 705505705"
-            : "+94 472244822 / +94 705505705"
-        }\n`
-      + "-".repeat(totalWidth) + "\n"
-      + headerLine + "\n"
-      + "-".repeat(totalWidth) + "\n"
-      + formattedItems + "\n"
-      + "-".repeat(totalWidth) + "\n"
-      + totalLine + "\n"
-      + "=".repeat(totalWidth) + "\n"
-      + ESC + "a" + "\x01"
-      + "       Thank you! Come again!       \n"
-      + feedAndCut; // <- has feed + cut
-
-    // -------------------------------
-    // PRINT TWO SEPARATE RECEIPTS
-    // -------------------------------
-    await qz.print(config, [
-      { type: "raw", format: "plain", data: printData }
-    ]);
-
-    await qz.print(config, [
-      { type: "raw", format: "plain", data: printData }
-    ]);
-
-    console.log("✅ Two separate receipts printed with separate cuts!");
-  } catch (err) {
-    console.error("❌ Printing error:", err);
-    alert("Print failed! Check console for details.");
-  }
-};
-
+      // Build full print string
+      const printData =
+        ESC +
+        "@" +
+        ESC +
+        "a" +
+        "\x01" + // center
+        "==========================================\n" +
+        `${order.restaurantType === "Beach"? "GANESH GARDEN BEACH CABANA" : "MARAKOLLIYA BEACH RESORT"}\n` +
+        `${order.restaurantType === "Beach"? "MAHI MAHI SEA FOOD RESTAURANT" : "SUNSET POOL BAR & RESTAURANT"}\n` +
+        "Tangalle \n"+
+        "==========================================\n" +
+        ESC +
+        "a" +
+        "\x00" + // left
+        `Order Number : ${order.orderNumber}\n` +
+        `Order Token  : ${order.orderTokens.length + 1}\n` +
+        `Customer Type: ${order.customerType}\n` +
+        `Date         : ${new Date().toLocaleString()}\n` +
+        `TP           : ${order.restaurantType === "Beach"? "+94 472242529 / +94 705505705" : "+94 472244822 / +94 705505705"}\n` +
+        "-".repeat(totalWidth) +
+        "\n" +
+        headerLine +
+        "\n" +
+        "-".repeat(totalWidth) +
+        "\n" +
+        formattedItems +
+        "\n" +
+        "-".repeat(totalWidth) +
+        "\n" +
+        totalLine +
+        "\n" +
+        "=".repeat(totalWidth) +
+        "\n" +
+        ESC +
+        "a" +
+        "\x01" +
+        "       Thank you! Come again!       \n\n\n" +
+        "              \n\n\n" +
+        GS +
+        "V" +
+        "\x00"; // cut
+      await qz.print(config, [{ type: "raw", format: "plain", data: printData }]);
+      await qz.print(config, [{ type: "raw", format: "plain", data: printData }]);
+      console.log("✅ Print job sent successfully to POS80!");
+    } catch (err) {
+      console.error("❌ Printing error:", err);
+      alert("Print failed! Check console for details.");
+    }
+  };
 
   /** Handle Print, Save & Refresh **/
   const handlePrint = async () => {
