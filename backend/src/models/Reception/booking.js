@@ -80,6 +80,7 @@ const bookingSchema = new mongoose.Schema(
                     enum: ["LKR", "USD", "EUR"],
                     default: "LKR"
                 },
+                currencyRate: { type: Number},
                 night: { type: Number},
 
                 finalRoomTotalPrice: { type: Number },
