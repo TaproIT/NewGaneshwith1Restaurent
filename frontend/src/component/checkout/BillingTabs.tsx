@@ -6,12 +6,34 @@ import { useRates } from "@/context/RateContext";
 import { convertAndFormatPrice } from "@/util/priceConverter";
 import { api } from "@/api/axios";
 
-interface Props {
-  booking: Booking;
+interface OrganizedRoom {
+  roomNo: string | number;
+  nights: number;
+  perDayPrice: number;
+  currency: string;
+  finalPrice: number;
+  displayPrice: string;
+  lkrRate: number | null;
 }
 
-const BillingTabs: React.FC<Props> = ({ booking }) => {
-  const [activeTab, setActiveTab] = useState<"summary" | "details">("summary");
+interface OrganizedOrder {
+  date: string;
+  type: string;
+  total: number;
+  displayTotal: string;
+}
+
+interface Props {
+  booking: Booking;
+  onDetailsReady?: (details: {
+    rooms: OrganizedRoom[];
+    groupedOrders: OrganizedOrder[];
+  }) => void;
+}
+
+const BillingTabs: React.FC<Props> = ({ booking, onDetailsReady }) => {
+  const [activeTab, setActiveTab] =
+    useState<"summary" | "details">("summary");
   const [usd, setUsd] = useState<number>();
   const [eur, setEur] = useState<number>();
 
@@ -39,7 +61,7 @@ const BillingTabs: React.FC<Props> = ({ booking }) => {
         setUsd(data.usd);
         setEur(data.eur);
       } catch (error) {
-        console.error("Failed to fetch rates:", error);
+        console.error("Failed to fetch currency values:", error);
       }
     };
 
@@ -47,10 +69,69 @@ const BillingTabs: React.FC<Props> = ({ booking }) => {
   }, []);
 
   const getLkrRate = (cur: string) => {
-    if (cur === "USD") return usd;
-    if (cur === "EUR") return eur;
+    if (cur === "USD") return usd ?? null;
+    if (cur === "EUR") return eur ?? null;
     return null;
   };
+
+  // -----------------------------
+  // ORGANIZE DATA & SEND TO PARENT
+  // -----------------------------
+  useEffect(() => {
+    if (!booking) return;
+
+    // --------- ORGANIZE ROOMS ---------
+    const roomDetails: OrganizedRoom[] =
+      booking.roomDetails?.map((room) => ({
+        roomNo: room.roomNo,
+        nights: room.nights,
+        perDayPrice: room.perDayPrice,
+        currency: room.currency,
+        finalPrice: room.finalRoomTotalPrice,
+        displayPrice: convertAndFormatPrice(
+          room.finalRoomTotalPrice,
+          rates,
+          displayCurrency
+        ),
+        lkrRate: getLkrRate(room.currency),
+      })) || [];
+
+    // --------- GROUP ORDERS BY DATE + TYPE ---------
+    const grouped: Record<
+      string,
+      { date: string; type: string; total: number }
+    > = {};
+
+    booking.orderDetails?.forEach((order) => {
+      const date = order.updatedAt.split("T")[0];
+      const key = `${date}-${order.restaurantType}`;
+
+      if (!grouped[key]) {
+        grouped[key] = {
+          date,
+          type: order.restaurantType,
+          total: 0,
+        };
+      }
+
+      grouped[key].total += order.totalBill;
+    });
+
+    const groupedOrders: OrganizedOrder[] = Object.values(grouped).map((item) => ({
+      ...item,
+      displayTotal: convertAndFormatPrice(
+        item.total,
+        rates,
+        displayCurrency
+      ),
+    }));
+
+    // SEND TO PARENT
+    onDetailsReady?.({
+      rooms: roomDetails,
+      groupedOrders,
+    });
+  }, [booking, rates, displayCurrency, usd, eur]);
 
   return (
     <>
@@ -70,7 +151,7 @@ const BillingTabs: React.FC<Props> = ({ booking }) => {
         </Button>
       </div>
 
-      {/* SUMMARY TAB */}
+      {/* ================= SUMMARY TAB ================= */}
       {activeTab === "summary" && (
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
@@ -85,7 +166,7 @@ const BillingTabs: React.FC<Props> = ({ booking }) => {
         </div>
       )}
 
-      {/* DETAILS TAB */}
+      {/* ================= DETAILS TAB ================= */}
       {activeTab === "details" && (
         <div className="space-y-4 text-sm h-40 overflow-y-auto">
           {/* ROOM DETAILS */}
@@ -124,7 +205,9 @@ const BillingTabs: React.FC<Props> = ({ booking }) => {
                 );
               })
             ) : (
-              <div className="text-gray-500 italic">No rooms available</div>
+              <div className="text-gray-500 italic">
+                No rooms available
+              </div>
             )}
           </div>
 
@@ -133,7 +216,7 @@ const BillingTabs: React.FC<Props> = ({ booking }) => {
             <div className="font-medium mb-2">Orders</div>
             {booking.orderDetails?.length ? (
               (() => {
-                // Group by date + restaurantType
+                // GROUP LOGIC ALREADY DONE IN USEEFFECT
                 const grouped: Record<
                   string,
                   { date: string; type: string; total: number }
@@ -154,9 +237,8 @@ const BillingTabs: React.FC<Props> = ({ booking }) => {
                   grouped[key].total += order.totalBill;
                 });
 
-                // Render grouped results
                 return Object.values(grouped).map((item, index) => (
-                  <div key={index} className="flex flex-col">
+                  <div key={index} className="flex flex-col mb-1">
                     <div>{item.date}</div>
                     <div className="flex justify-between">
                       <span>{item.type}</span>
