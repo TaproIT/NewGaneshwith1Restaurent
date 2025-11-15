@@ -821,7 +821,15 @@ export const cancelOrder = async (req, res) => {
 
 export const getDailyRestaurantTotals = async (req, res) => {
   try {
-    const { startDate, endDate } = req.query;
+    const { startDate, endDate, restaurantType } = req.query;
+
+    console.log(restaurantType);
+
+    const { userId } = req.user;
+
+    const restaurant = await getRestaurantTypeByUserRole(userId);
+
+    console.log("res",restaurant);
 
     if (!startDate || !endDate ) {
       return res.status(400).json({
@@ -837,7 +845,7 @@ export const getDailyRestaurantTotals = async (req, res) => {
     const data = await Order.aggregate([
       {
         $match: {
-          restaurantType: RestaurantTypes.BEACH.value, // Use the given restaurant
+          restaurantType: restaurantType? restaurantType : restaurant,
           createdAt: { $gte: start, $lte: end }
         }
       },

@@ -1,7 +1,7 @@
 import { fetchRestaurantSummary } from "@/api/order/get-restaurant-summary-api";
 import type { RestaurantSummary } from "@/component/beach-&-pool-restaurant/restaurant-summary-model";
 import { createSlice } from "@reduxjs/toolkit";
-import { act } from "react";
+
 
 const initialState: RestaurantSummary = {
     startDate: "",

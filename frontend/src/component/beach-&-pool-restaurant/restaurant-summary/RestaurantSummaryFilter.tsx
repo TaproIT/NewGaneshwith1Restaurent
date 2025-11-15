@@ -1,7 +1,7 @@
 import { fetchRestaurantSummary } from "@/api/order/get-restaurant-summary-api";
 import type { AppDispatch, RootState } from "@/app/store";
 import { DatePicker } from "@/component/DatePicker";
-import { Button } from "@/components/ui/button";
+//import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate } from "@/lib/order-util";
 import React, { useEffect } from "react";
@@ -24,7 +24,7 @@ export const RestaurantSummaryFilterAndCount: React.FC = () => {
     formatDateLocal(today)
   );
 
-  const [localCustomerType, setLocalCustomerType] = React.useState("");
+  //const [localCustomerType, setLocalCustomerType] = React.useState("");
 
   // --- REDUX DATA (only API results)
   const { totalIncome, checkInIncome, walkInIncome, summaryList, fetchRestaurantSummaryStatus } = useSelector(
@@ -45,17 +45,17 @@ export const RestaurantSummaryFilterAndCount: React.FC = () => {
     setLocalEndDate(date.toISOString().split("T")[0]);
   };
 
-  const handleCustomerTypeChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    setLocalCustomerType(e.target.value);
-  };
+  // const handleCustomerTypeChange = (
+  //   e: React.ChangeEvent<HTMLSelectElement>
+  // ) => {
+  //   setLocalCustomerType(e.target.value);
+  // };
 
   // --- FETCH WHEN LOCAL FILTERS CHANGE ----------------
   
-  const handleFilter = () => {
+  // const handleFilter = () => {
 
-  }
+  // }
 
   useEffect(() => {
     dispatch(
@@ -64,7 +64,7 @@ export const RestaurantSummaryFilterAndCount: React.FC = () => {
         endDate: localEndDate,
       })
     );
-  }, [localStartDate, localEndDate, localCustomerType, dispatch]);
+  }, [localStartDate, localEndDate, dispatch]);
 
   // --- ERROR HANDLING --------------------------------
 

@@ -17,7 +17,7 @@ export const fetchRestaurantSummary = createAsyncThunk<
   { state: RootState }
 >(
   "restaurantSummary/fetchRestaurantSummary",
-  async (filters:RestaurantSummaryFilters, { getState, rejectWithValue }) => {
+  async (filters:RestaurantSummaryFilters, { rejectWithValue }) => {
     try {
       //const { dailyOrderSummary } = getState();
 
