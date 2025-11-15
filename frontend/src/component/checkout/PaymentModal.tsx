@@ -8,6 +8,7 @@ import { api } from "@/api/axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { printFinalBill } from "@/util/printCheckout"; // adjust path if different
+import type { OrganizedOrder, OrganizedRoom } from "@/types/details";
 
 interface PaymentModalProps {
   open: boolean;
@@ -22,6 +23,13 @@ interface PaymentModalProps {
   discount: number;
   totalBill: number;
   additionalPrice: { name: string; price: number }[];
+  spa: number;
+  laundary: number;
+  miniBar: number;
+  billDetails: {
+    rooms: OrganizedRoom[];
+    groupedOrders: OrganizedOrder[];
+  };
 }
 
 const PaymentModal: React.FC<PaymentModalProps> = ({
@@ -37,6 +45,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   discount,
   totalBill,
   additionalPrice,
+  miniBar,
+  spa,
+  laundary,
+  billDetails,
 }) => {
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -71,6 +83,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       discount,
       totalBill,
       paymentMethod: selectedPayment,
+      spa,
+      miniBar,
+      laundary,
     };
 
     try {
@@ -91,6 +106,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         selectedPayment,
         totalRoomCharge,
         totalOrdersPrice,
+        spa,
+        miniBar,
+        laundary,
+        detailRooms: billDetails.rooms,
+        detailOrders: billDetails.groupedOrders
       });
         onOpenChange(false);
         navigate("/checkouts");

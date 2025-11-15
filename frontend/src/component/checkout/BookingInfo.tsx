@@ -8,15 +8,22 @@ interface Props {
   booking: Booking;
   discount: number; // stored internally in LKR
   setDiscount: (value: number) => void; // callback to update internal discount (LKR)
+  subtotal: number;
 }
 
-const BookingInfo: React.FC<Props> = ({ booking, discount, setDiscount }) => {
-
+const BookingInfo: React.FC<Props> = ({
+  booking,
+  discount,
+  setDiscount,
+  subtotal,
+}) => {
   return (
     <>
-      <div className="font-semibold text-xl mb-4 text-center">Checkout Details</div>
+      <div className="font-semibold text-xl mb-4 text-center">
+        Checkout Details
+      </div>
 
-      <div className="text-sm text-gray-600 space-y-2">
+      <div className="text-sm text-gray-600 space-y-2 my-2">
         <div className="flex justify-between">
           <span>Booking Id</span>
           <span>{booking.bookingId}</span>
@@ -30,6 +37,16 @@ const BookingInfo: React.FC<Props> = ({ booking, discount, setDiscount }) => {
           <span>{booking.hotel}</span>
         </div>
         <div className="flex justify-between">
+          <span>Breakfast</span>
+          <span>{booking.breakfast}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Booking Type</span>
+          <span>{booking.customerType}</span>
+        </div>
+
+        {/* Existing Checked In / Checked Out */}
+        <div className="flex justify-between">
           <span>Checked In</span>
           <span>{booking.checkInDateLocal}</span>
         </div>
@@ -39,21 +56,21 @@ const BookingInfo: React.FC<Props> = ({ booking, discount, setDiscount }) => {
         </div>
       </div>
 
-      <div className="my-5 flex items-center justify-between">
-        <Label>Discount %</Label>
+      <div className="my-2 flex items-center justify-between">
+        <Label>Discount Amount</Label>
         <input
-  type="number"
-  min={0}
-  max={100}
-  value={discount}
-  onChange={(e) => {
-    const value = Number(e.target.value);
-    if (value >= 0 && value <= 100) {
-      setDiscount(value);
-    }
-  }}
-  className="border px-2 py-1 rounded w-24 text-right"
-/>
+          type="number"
+          min={0}
+          max={100}
+          value={discount}
+          onChange={(e) => {
+            const value = Number(e.target.value);
+            if (value >= 0 && value <= subtotal) {
+              setDiscount(value);
+            }
+          }}
+          className="border px-2 py-1 rounded w-24 text-right"
+        />
       </div>
     </>
   );

@@ -141,15 +141,17 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
         "\x01" + // center
         "==========================================\n" +
         `${order.restaurantType === "Beach"? "GANESH GARDEN BEACH CABANA" : "MARAKOLLIYA BEACH RESORT"}\n` +
-        `${order.restaurantType === "Beach"? "MAHI MAHI SEA FOOD RESTAURANT" : "SUNSET POOL BAR & RESTAURANT"}      \n` +
+        `${order.restaurantType === "Beach"? "MAHI MAHI SEA FOOD RESTAURANT" : "SUNSET POOL BAR & RESTAURANT"}\n` +
         "Tangalle \n"+
         "==========================================\n" +
         ESC +
         "a" +
         "\x00" + // left
-        `Order Token : ${order.orderTokens.length + 1}\n` +
-        `Date        : ${new Date().toLocaleString()}\n` +
-        `TP ${order.restaurantType === "Beach"? "+94 47 22 42 529" : "+94 47 22 44 822"}\n` +
+        `Order Number : ${order.orderNumber}\n` +
+        `Order Token  : ${order.orderTokens.length + 1}\n` +
+        `Customer Type: ${order.customerType}\n` +
+        `Date         : ${new Date().toLocaleString()}\n` +
+        `TP           : ${order.restaurantType === "Beach"? "+94 472242529 / +94 705505705" : "+94 472244822 / +94 705505705"}\n` +
         "-".repeat(totalWidth) +
         "\n" +
         headerLine +
