@@ -18,7 +18,7 @@ export async function printFinalBill({
   laundary,
   additionalPrice,
   selectedPayment,
-  convertAndFormatPrice,
+  //convertAndFormatPrice,
   detailRooms,
   detailOrders,
 }: any) {
