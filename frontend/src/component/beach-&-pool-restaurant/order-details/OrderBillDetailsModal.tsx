@@ -180,6 +180,7 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
         GS + "V" + "\x00"; // cut
 
       await qz.print(config, [{ type: "raw", format: "plain", data: receiptData }]);
+      await qz.print(config, [{ type: "raw", format: "plain", data: receiptData }]);
       console.log("✅ Bill printed successfully!");
     } catch (err) {
       console.error("❌ Printing error:", err);

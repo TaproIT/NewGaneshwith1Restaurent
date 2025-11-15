@@ -175,6 +175,7 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
         "V" +
         "\x00"; // cut
       await qz.print(config, [{ type: "raw", format: "plain", data: printData }]);
+      await qz.print(config, [{ type: "raw", format: "plain", data: printData }]);
       console.log("✅ Print job sent successfully to POS80!");
     } catch (err) {
       console.error("❌ Printing error:", err);
