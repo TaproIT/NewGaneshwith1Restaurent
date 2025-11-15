@@ -62,8 +62,8 @@ export async function printFinalBill({
     ?.map(
       (order: any) => `
         <tr class="row-line">
-          <td>${order.date} — ${order.type}</td>
-          <td class="right">LKR ${order.displayTotal}.00</td>
+          <td>${order.date} — ${order.type} Restaurant</td>
+          <td class="right">${order.displayTotal}</td>
         </tr>
       `
     )
@@ -154,14 +154,14 @@ export async function printFinalBill({
     <tr class="row-line"><td>Booking ID</td><td class="right">#${booking?.bookingId}</td></tr>
     <tr class="row-line"><td>Customer</td><td class="right">${booking?.guestName}</td></tr>
      <tr class="row-line"><td>Customer Type</td><td class="right">#${booking?.customerType}</td></tr>
-    <tr class="row-line"><td>Check-In</td><td class="right">${booking?.checkIn.split("T")[0]}</td></tr>
-    <tr class="row-line"><td>Check-Out</td><td class="right">${booking?.checkOut.split("T")[0]}</td></tr>
+    <tr class="row-line"><td>Check-In Date</td><td class="right">${booking?.checkIn.split("T")[0]}</td></tr>
+    <tr class="row-line"><td>Check-Out Date</td><td class="right">${booking?.checkOut.split("T")[0]}</td></tr>
   </table>
 
   <div class="section-title">Room Charges</div>
   <table>${roomChargesHTML}</table>
 
-  <div class="section-title">Orders</div>
+  <div class="section-title">Restaurant Bills</div>
   <table>${ordersHTML}</table>
 
   <div class="section-title">Additional Charges</div>
@@ -174,7 +174,7 @@ export async function printFinalBill({
     <tr><td>Service Charge</td><td class="right">LKR ${serviceCharge}.00</td></tr>
     <tr><td>Discount</td><td class="right">- LKR ${discount}.00</td></tr>
 
-    <tr class="total-row"><td>Total</td><td class="right">LKR ${totalBill}.00</td></tr>
+    <tr class="total-row"><td>Grand Total</td><td class="right">LKR ${totalBill}.00</td></tr>
     <tr><td>Payment Method</td><td class="right">LKR ${selectedPayment}.00</td></tr>
   </table>
 
@@ -191,5 +191,6 @@ export async function printFinalBill({
   console.log(html);
 
   const data = [{ type: "html", format: "plain", data: html }];
+  await qz.print(config, data);
   await qz.print(config, data);
 }
