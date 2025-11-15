@@ -3,7 +3,7 @@ import FoodOrderItem from "../models/order/food-order-item-model.js";
 import Order from "../models/order/order-model.js";
 import OrderToken from "../models/order/order-token-model.js";
 import RestaurantTable from "../models/order/restaurant-table-model.js";
-import { OrderStatuses, PaymentMethods, ServiceTypes, TableStatuses } from "../utils/enums/order-related-enums.js";
+import { CustomerTypes, OrderStatuses, PaymentMethods, RestaurantTypes, ServiceTypes, TableStatuses } from "../utils/enums/order-related-enums.js";
 import { generateOrderNumber, generateTokenId } from "../utils/order-util.js";
 import { sendErrorResponse, sendSuccessResponse } from "../utils/response-util.js";
 import mongoose from "mongoose";
@@ -818,6 +818,109 @@ export const cancelOrder = async (req, res) => {
     return sendErrorResponse(res, 500, "Internal Server Error", error.message);
   }
 };
+
+export const getDailyRestaurantTotals = async (req, res) => {
+  try {
+    const { startDate, endDate, restaurantType } = req.query;
+
+    console.log(restaurantType);
+
+    const { userId } = req.user;
+
+    const restaurant = await getRestaurantTypeByUserRole(userId);
+
+    console.log("res",restaurant);
+
+    if (!startDate || !endDate ) {
+      return res.status(400).json({
+        status: "fail",
+        message: "startDate, endDate and restaurantType are required"
+      });
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+
+    const data = await Order.aggregate([
+      {
+        $match: {
+          restaurantType: restaurantType? restaurantType : restaurant,
+          createdAt: { $gte: start, $lte: end }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
+            day: { $dayOfMonth: "$createdAt" },
+            customerType: "$customerType"   // ← grouped by date + customerType
+          },
+          totalSubTotal: { $sum: "$subTotal" },
+          totalServiceCharge: { $sum: "$serviceCharge" },
+          totalBill: { $sum: "$totalBill" },
+          orderCount: { $sum: 1 }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          customerType: "$_id.customerType",
+          date: {
+            $dateToString: {
+              format: "%Y-%m-%d",
+              date: {
+                $dateFromParts: {
+                  year: "$_id.year",
+                  month: "$_id.month",
+                  day: "$_id.day"
+                }
+              }
+            }
+          },
+          totalSubTotal: 1,
+          totalServiceCharge: 1,
+          totalBill: 1,
+          orderCount: 1
+        }
+      },
+      { $sort: { date: 1 } }
+    ]);
+
+    let totalIncome = 0;
+    let walkInIncome = 0;
+    let checkInIncome = 0;
+
+    data.map((dailySummary) => {
+       totalIncome += dailySummary.totalBill; 
+
+       if (dailySummary.customerType === CustomerTypes.WALK_IN.value) {
+            walkInIncome += dailySummary.totalBill;
+       } else {
+            checkInIncome += dailySummary.totalBill
+       }
+    })
+
+    return res.json({
+      status: "success",
+      restaurantType:RestaurantTypes.BEACH.value,
+      totalIncome : Math.round(totalIncome * 100) /100,
+      walkInIncome : Math.round(walkInIncome * 100) /100,
+      checkInIncome : Math.round(checkInIncome * 100) /100,
+      summaryList: data
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      status: "fail",
+      message: "Internal Server Error"
+    });
+  }
+};
+
+
 
 
 

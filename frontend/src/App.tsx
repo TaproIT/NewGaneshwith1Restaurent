@@ -25,6 +25,7 @@ import RoomConfig from "./pages/admin/RoomConfig";
 import CheckoutDetails from "./component/checkout/CheckoutDetails";
 import BookingUpdate from "./pages/reception/bookings/BookingUpdate";
 import Bookings from "./pages/reception/bookings/bookings";
+import RestaurantSummaryPage from "./pages/beach-restaurant/RestaurantSummaryPage";
 
 //import PrintButton from "./component/SamplePrint";
 
@@ -85,6 +86,10 @@ function App() {
               <Route
                 path="/restaurant/daily-summary"
                 element={<BeachRestaurantDailySummaryPage />}
+              />
+              <Route
+                path="/restaurant/summary"
+                element={<RestaurantSummaryPage />}
               />
 
               <Route
