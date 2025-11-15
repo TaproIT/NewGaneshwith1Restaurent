@@ -48,6 +48,7 @@ const navigationConfig = {
     { path: "/restaurant/menu/0", title: "Menu", icon: <NotepadText size={22} /> },
     { path: "/restaurant/hold", title: "Hold", icon: <PauseCircle size={22} /> },
     { path: "/restaurant/daily-summary", title: "Daily Summary", icon: <Newspaper size={22} /> },
+    { path: "/restaurant/summary", title: "Restaurant Summary", icon: <Newspaper size={22} /> },
   ],
   "Pool-Restaurant-Staff": [
     { path: "/restaurant/home", title: "Home", icon: <House size={22} /> },
@@ -55,6 +56,7 @@ const navigationConfig = {
     { path: "/restaurant/menu/0", title: "Menu", icon: <NotepadText size={22} /> },
     { path: "/restaurant/hold", title: "Hold", icon: <PauseCircle size={22} /> },
     { path: "/restaurant/daily-summary", title: "Daily Summary", icon: <Newspaper size={22} /> },
+    { path: "/restaurant/summary", title: "Restaurant Summary", icon: <Newspaper size={22} /> },
   ],
   "Beach-Restaurant-Admin": [
     { path: "/restaurant/home", title: "Home", icon: <House size={22} /> },
@@ -62,6 +64,7 @@ const navigationConfig = {
     { path: "/restaurant/menu/0", title: "Menu", icon: <NotepadText size={22} /> },
     { path: "/restaurant/hold", title: "Hold", icon: <PauseCircle size={22} /> },
     { path: "/restaurant/daily-summary", title: "Daily Summary", icon: <Newspaper size={22} /> },
+    { path: "/restaurant/summary", title: "Restaurant Summary", icon: <Newspaper size={22} /> },
   ],
   "Pool-Restaurant-Admin": [
     { path: "/restaurant/home", title: "Home", icon: <House size={22} /> },
@@ -95,6 +98,7 @@ const pathTitles = {
   "/restaurant/menu/0": "Menu",
   "/restaurant/hold": "Hold",
   "/restaurant/daily-summary": "Daily Summary",
+  "/restaurant/summary": "Restaurant Summary",
   "/admin/currency-config": "Currency Config",
   "/admin/user-config": "User Config",
   "/admin/room-config": "Room Config",
