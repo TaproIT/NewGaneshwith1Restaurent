@@ -36,6 +36,7 @@ const bookingSchema = new mongoose.Schema(
             type: String,
             required: true,
             enum: ['Ganesh Garden Beach Cabana', 'Marakolliya Beach Resort'],
+            set: v => v.trim(),
         },
         guestName: { type: String, required: true },
         uniqueBookingId: { type: String, required: true, unique: true },
@@ -79,6 +80,7 @@ const bookingSchema = new mongoose.Schema(
                     enum: ["LKR", "USD", "EUR"],
                     default: "LKR"
                 },
+                currencyRate: { type: Number},
                 night: { type: Number},
 
                 finalRoomTotalPrice: { type: Number },
@@ -119,6 +121,9 @@ const bookingSchema = new mongoose.Schema(
         subtotal: { type: Number, default: 0 },
         tax: { type: Number, default: 0 },
         serviceCharge: { type: Number, default: 0 },
+        miniBar:{ type: Number, default: 0 },
+        laundary: { type: Number, default: 0 },
+        spa: { type: Number, default: 0 },
         discount: { type: Number, default: 0 },
 
         // Master total for the booking

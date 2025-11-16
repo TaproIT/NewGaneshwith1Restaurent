@@ -7,16 +7,18 @@ import { io, Socket } from "socket.io-client";
 import RoomGrid from "../room/RoomGrid";
 import RoomDetails from "../room/RoomDetails";
 import type { Room } from "@/types/roomTypes";
-import { addRoom } from "@/features/onboarding/onboardingSlice";
+import { addRoom, resetSteps } from "@/features/onboarding/onboardingSlice";
 import { api } from "@/api/axios";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate} from "react-router-dom";
 import RoomGridSkeleton from "../skeleton/RoomGridSkeleton";
 import type { BookedRoom } from "@/types/guestDataTypes";
+import type { OldRoom } from "@/features/switch-rooms/removedRooms";
 
 const SOCKET_URL = import.meta.env.SOCKET_URL;
 
 const Step02 = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
+  const navigate = useNavigate();
   const [loadingRooms, setLoadingRooms] = useState(true);
   const [selectedRooms, setSelectedRooms] = useState<Room[]>([]);
   const [viewedRoom, setViewedRoom] = useState<Room | null>(null);
@@ -32,9 +34,10 @@ const Step02 = () => {
     (state: RootState) => state.onboarding.step01Data
   );
   const [updatedRooms, setUpdatedRooms] = useState<BookedRoom[]>([]);
-  // const removedRooms = useSelector(
-  //   (state: RootState) => state.removedRooms.oldRooms
-  // );
+  const [isWhatsappAvailable, setIsWhatsappAvailable] = useState(false);
+  const [isEmailAvailable, setIsEmailAvailable] = useState(false);
+  
+  const totalOldRoomsPrice = removedRooms?.reduce((sum: number, room: OldRoom) => sum + room.finalRoomTotalPrice, 0);
 
   const socketRef = useRef<Socket | null>(null);
 
@@ -126,8 +129,6 @@ const Step02 = () => {
     if (loadingBooking || roomIds.length === 0) return;
     setLoadingBooking(true);
 
-    console.log(updatedRooms);
-
     try {
       // Use Redux currentRooms for price/currency updates
       const selectedRoomsData = updatedRooms.filter((r) =>
@@ -156,12 +157,37 @@ const Step02 = () => {
       if (!bookingId) {
         const booking = await api.post("/booking", bookingData);
         setWhatsAppBookingId(booking.data.bookingId);
+        // ✅ Check if we have at least one contact option before opening modal
+        const hasContact =
+          bookingData.whatsapp?.trim() !== "" ||
+          bookingData.email?.trim() !== "";
+
+        const hasWhatsapp = bookingData.whatsapp?.trim() !== "";
+        const hasEmail = bookingData.email?.trim() !== "";
+
+        setIsWhatsappAvailable(hasWhatsapp);
+        setIsEmailAvailable(hasEmail);
+
+        if (hasContact) {
+          setIsModalOpen(true);
+        } else {
+          dispatch(resetSteps())
+        }
       } else {
         const payload = {
           oldRooms: removedRooms,
-          newRooms: selectedRoomsData.map((r) => r.roomNo),
+          newRooms: updatedRooms.map((r) => ({
+            roomNo: r.roomNo,
+            perDayPrice: r.price, // in LKR internally, you can convert if needed
+            currency: r.currency,
+          })),
         };
         await api.put(`/booking/${bookingId}/switch-rooms`, payload);
+        navigate("/onboarding", {
+      state: {
+        oldRooms: [], // pass the array directly
+      },
+    });
       }
 
       roomIds.forEach((id) => socketRef.current?.emit("unlockRoom", id));
@@ -169,10 +195,16 @@ const Step02 = () => {
       setSelectedRooms([]);
       setViewedRoom(null);
       toast.success("Rooms booked successfully!");
-      setIsModalOpen(true);
-    } catch (err) {
+      // setIsModalOpen(true);
+    } catch (err: any) {
       console.error("Failed to book rooms:", err);
-      toast.error("Booking failed!");
+
+      // Extract message from server or fallback to generic error
+      const message =
+        err?.response?.data?.message || // Axios error from backend
+        (err instanceof Error ? err.message : String(err)); // JS error fallback
+
+      toast.error(`Booking failed: ${message}`);
     } finally {
       setTimeout(() => setLoadingBooking(false), 1500);
     }
@@ -227,6 +259,9 @@ const Step02 = () => {
           whatsAppId={whatsAppBookingId}
           loadingBooking={loadingBooking}
           onUpdateRooms={(rooms: BookedRoom[]) => setUpdatedRooms(rooms)}
+          isWhatsappAvailable={isWhatsappAvailable}
+          isEmailAvailable={isEmailAvailable}
+          totalOldRoomsPrice={totalOldRoomsPrice}
         />
       </div>
     </div>

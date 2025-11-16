@@ -4,15 +4,17 @@ import { ArrowRightLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import usdFlag from "@/assets/Images/usd.webp";
 import lkrFlag from "@/assets/Images/lkr.webp";
+import euroFlag from "@/assets/Images/euro.png";
 import { toast } from "react-toastify";
 import { api } from "@/api/axios";
 
 const CurrencyConverter = () => {
-  const [lkrValue, setLkrValue] = useState<string>("");
-  const [exchangeRate, setExchangeRate] = useState<number>(0);
+  const [usdValue, setUsdValue] = useState<string>(""); // LKR per 1 USD
+  const [eurValue, setEurValue] = useState<string>(""); // LKR per 1 EUR
   const [exchangeRateId, setExchangeRateId] = useState<string>("");
+  const [loading, setLoading] = useState(false)
 
-  // Fetch exchange rate on mount
+  // Fetch rates
   useEffect(() => {
     const fetchExchangeRate = async () => {
       try {
@@ -21,78 +23,74 @@ const CurrencyConverter = () => {
 
         if (data.length > 0) {
           const rate = data[0];
-          setExchangeRate(rate.lkr);
-          setLkrValue(rate.lkr.toString());
+          setUsdValue(rate.usd?.toString() || "");
+          setEurValue(rate.eur?.toString() || "");
           setExchangeRateId(rate._id);
         } else {
-          toast.info("No exchange rate found — please enter a new value.");
+          toast.info("No exchange rate found — please enter new values.");
         }
       } catch (error) {
         console.error("Failed to fetch exchange rate:", error);
-        toast.error("Failed to fetch exchange rate");
+        toast.error("Failed to fetch exchange rates");
       }
     };
 
     fetchExchangeRate();
   }, []);
 
-  // Handle numeric input
-  const handleLkrChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // numeric input restrict
+  const handleNumberInput = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setter: React.Dispatch<React.SetStateAction<string>>
+  ) => {
     const value = e.target.value;
     if (value === "" || /^\d*\.?\d*$/.test(value)) {
-      setLkrValue(value);
+      setter(value);
     }
   };
 
-  // Save or create exchange rate
   const handleSave = async () => {
-    if (!lkrValue) {
-      toast.error("Please enter a valid LKR value");
+    if (!usdValue || !eurValue) {
+      toast.error("Please enter both USD and EURO values");
       return;
     }
 
+    const payload = {
+      usd: parseFloat(usdValue),
+      eur: parseFloat(eurValue),
+    };
+
+    setLoading(true)
+
     try {
       if (exchangeRateId) {
-        // UPDATE existing exchange rate
-        await api.put(`/currency-values/${exchangeRateId}`, {
-          lkr: parseFloat(lkrValue),
-          usd: 1,
-        });
-        toast.success("Exchange rate updated successfully!");
+        await api.put(`/currency-values/${exchangeRateId}`, payload);
+        toast.success("Exchange rates updated successfully!");
       } else {
-        // CREATE new exchange rate
-        const postResponse = await api.post("/currency-values", {
-          lkr: parseFloat(lkrValue),
-          usd: 1,
-        });
-        const createdRate = postResponse.data.data;
-
-        setExchangeRateId(createdRate._id);
-        toast.success("Exchange rate created successfully!");
+        const createResponse = await api.post("/currency-values", payload);
+        setExchangeRateId(createResponse.data.data._id);
+        toast.success("Exchange rates created successfully!");
       }
-
-      setExchangeRate(parseFloat(lkrValue));
     } catch (error) {
       console.error("Failed to save exchange rate:", error);
       toast.error("Failed to save exchange rate");
+    } finally {
+      setLoading(false)
     }
   };
 
   return (
     <div className="flex flex-col gap-10 items-center justify-center mt-10">
-      <div className="flex flex-col py-15 px-12 bg-Ash rounded-lg justify-center items-center gap-15">
+      <div className="flex flex-col py-10 px-12 bg-Ash rounded-lg justify-center items-center gap-15">
+
+        {/* USD Section */}
         <div className="flex justify-between gap-10 items-center">
-          {/* LKR Input */}
           <div className="flex gap-2 items-center">
-            <img
-              src={lkrFlag}
-              alt="lkrFlag"
-              className="w-8 h-8 rounded-full object-cover"
-            />
+            <img src={lkrFlag} alt="lkrFlag" className="w-8 h-8 rounded-full object-cover" />
             <div>LKR</div>
             <Input
-              value={lkrValue}
-              onChange={handleLkrChange}
+              value={usdValue}
+              onChange={(e) => handleNumberInput(e, setUsdValue)}
               className="border-black w-28"
               placeholder="0.00"
             />
@@ -100,13 +98,8 @@ const CurrencyConverter = () => {
 
           <ArrowRightLeft className="rounded-full bg-Primary_blue h-7 w-7 p-1 text-white" />
 
-          {/* USD Fixed Input */}
           <div className="flex gap-2 items-center">
-            <img
-              src={usdFlag}
-              alt="usdFlag"
-              className="w-8 h-8 rounded-full object-cover"
-            />
+            <img src={usdFlag} alt="usdFlag" className="w-8 h-8 rounded-full object-cover" />
             <div>USD</div>
             <Input
               value={1}
@@ -116,16 +109,47 @@ const CurrencyConverter = () => {
           </div>
         </div>
 
+        {/* EURO Section */}
+        <div className="flex justify-between gap-10 items-center">
+          <div className="flex gap-2 items-center">
+            <img src={lkrFlag} alt="lkrFlag" className="w-8 h-8 rounded-full object-cover" />
+            <div>LKR</div>
+            <Input
+              value={eurValue}
+              onChange={(e) => handleNumberInput(e, setEurValue)}
+              className="border-black w-28"
+              placeholder="0.00"
+            />
+          </div>
+
+          <ArrowRightLeft className="rounded-full bg-Primary_blue h-7 w-7 p-1 text-white" />
+
+          <div className="flex gap-2 items-center">
+            <img src={euroFlag} alt="usdFlag" className="w-8 h-8 rounded-full object-cover" />
+            <div>EURO</div>
+            <Input
+              value={1}
+              readOnly
+              className="border-black w-28 cursor-not-allowed"
+            />
+          </div>
+        </div>
+
         <Button className="bg-Primary_blue text-white w-50" onClick={handleSave}>
-          {exchangeRateId ? "Update Exchange Rate" : "Save Exchange Rate"}
+          {loading ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> : "Update Exchange Rates"}
         </Button>
       </div>
 
-      {exchangeRate > 0 && (
-        <div className="flex flex-col gap-4">
-          <div className="font-medium">Indicative Exchange Rate</div>
-          <div className="p-4 border border-Ash rounded-lg text-Primary_blue font-medium">
-            1 USD = {exchangeRate} LKR
+      {(usdValue || eurValue) && (
+        <div className="flex flex-col gap-4 justify-center">
+          <div className="font-medium text-center">Indicative Exchange Rate</div>
+          <div className="flex items-center gap-5">
+            <div className="p-4 border border-Ash rounded-lg text-Primary_blue font-medium">
+              1 USD = {usdValue || "-"} LKR
+            </div>
+            <div className="p-4 border border-Ash rounded-lg text-Primary_blue font-medium">
+              1 EURO = {eurValue || "-"} LKR
+            </div>
           </div>
         </div>
       )}

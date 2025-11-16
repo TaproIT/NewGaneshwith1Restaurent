@@ -52,6 +52,7 @@ export interface BeverageItem {
   isEnableBeverage: boolean;
   liquor?: [{beverage:string, amount:number}] | []; 
   initialStock: number;
+  runningStock: number;
   note: string;
 }
 
@@ -69,6 +70,7 @@ export interface ExtraBeverageItem {
   isEnableBeverage: boolean;
   liquor?: [{beverage:string, amount:number}] | []; 
   initialStock: number;
+  runningStock: number;
   note: string;
 }
 

@@ -1,21 +1,21 @@
 import type { Booking } from "@/types/guestDetails";
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useRates } from "@/context/RateContext";
 import { convertAndFormatPrice } from "@/util/priceConverter";
 
 interface OldRoom {
   roomNo: string;
-  discountPrice: number; // stored internally in LKR
-  finalRoomTotalPrice: number; // stored in LKR
+  discountPrice: number;
+  finalRoomTotalPrice: number;
+  currency: string;
 }
 
 interface SwitchRoomCollectionProps {
   guestDetails: Booking | null;
-  onTotalChange?: (total: number) => void; // callback for total
-  onRemoveRoom?: (oldRoom: OldRoom) => void; // callback for deleted room
+  onTotalChange?: (total: number) => void;
+  onRemoveRoom?: (oldRoom: OldRoom) => void;
   switchRoom?: boolean;
 }
 
@@ -28,24 +28,42 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
   const { rates, loading } = useRates();
   const { displayCurrency } = useCurrency();
 
-  // Internal state in LKR
+  // Calculate length of stay (from checkIn to today)
+  const getLengthOfStay = () => {
+    if (!guestDetails?.checkIn) return 1; // default 1 day
+    const checkInDate = new Date(guestDetails.checkIn);
+    const today = new Date();
+    const diffTime = Math.max(today.getTime() - checkInDate.getTime(), 0);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays || 1; // avoid zero
+  };
+
+  const lengthOfStay = getLengthOfStay();
+
+  // Initial room state
   const [rooms, setRooms] = useState(
-    guestDetails?.activeRooms.map((r) => ({
-      ...r,
-      discountPrice: 0, // in LKR
-      finalRoomTotalPrice: r.roomTotalPrice, // in LKR
-    })) || []
+    guestDetails?.activeRooms.map((r) => {
+      const roomTotalPrice = r.perDayPrice * lengthOfStay;
+      return {
+        ...r,
+        discountPrice: 0,
+        finalRoomTotalPrice: roomTotalPrice,
+      };
+    }) || []
   );
 
-  console.log(guestDetails)
-  // Sync with guestDetails when it changes
+  // Update rooms when guestDetails change
   useEffect(() => {
     if (!guestDetails?.activeRooms) return setRooms([]);
-    const updatedRooms = guestDetails.activeRooms.map((r) => ({
-      ...r,
-      discountPrice: 0,
-      finalRoomTotalPrice: r.roomTotalPrice,
-    }));
+    const lengthOfStay = getLengthOfStay();
+    const updatedRooms = guestDetails.activeRooms.map((r) => {
+      const roomTotalPrice = r.perDayPrice * lengthOfStay;
+      return {
+        ...r,
+        discountPrice: 0,
+        finalRoomTotalPrice: roomTotalPrice,
+      };
+    });
     setRooms(updatedRooms);
 
     if (onTotalChange) {
@@ -55,30 +73,19 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
       );
       onTotalChange(total);
     }
-  }, [guestDetails, onTotalChange]);
+  }, [guestDetails]);
 
   if (!rooms.length || loading) return null;
 
-  // Convert input from USD/LKR to internal LKR
-  const currencyToLKR = (amount: number) => {
-    if (displayCurrency === "USD") {
-      const rate = rates["LKR_USD"] || 1;
-      return amount / rate; // convert USD -> LKR
-    }
-    return amount; // LKR
-  };
-
   const handleDiscountChange = (roomNo: string, value: number) => {
-    const discountLKR = currencyToLKR(value);
-
     setRooms((prev) => {
       const updatedRooms = prev.map((room) =>
         room.roomNo === roomNo
           ? {
               ...room,
-              discountPrice: discountLKR,
+              discountPrice: value,
               finalRoomTotalPrice: Math.max(
-                room.roomTotalPrice - discountLKR,
+                room.perDayPrice * lengthOfStay - value,
                 0
               ),
             }
@@ -114,7 +121,9 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
       roomNo: room.roomNo,
       discountPrice: room.discountPrice,
       finalRoomTotalPrice: room.finalRoomTotalPrice,
+      currency: room.currency,
     };
+
     if (onRemoveRoom) onRemoveRoom(oldRoom);
   };
 
@@ -122,7 +131,6 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
     <div>
       <ul className="flex flex-col gap-5 mt-2">
         {rooms.map((room) => {
-          // Display values in selected currency
           const perDayPriceDisplay = convertAndFormatPrice(
             room.perDayPrice,
             rates,
@@ -134,10 +142,11 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
             displayCurrency
           );
 
-          // Show discount input in selected currency
           const discountInputValue =
             displayCurrency === "USD"
               ? room.discountPrice * (rates["LKR_USD"] || 1)
+              : displayCurrency === "EUR"
+              ? room.discountPrice * (rates["LKR_EUR"] || 1)
               : room.discountPrice;
 
           return (
@@ -174,24 +183,49 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
 
               {/* Discount Input */}
               {switchRoom && (
-                <div className="mt-4 flex items-center justify-between">
-                  <label className="text-sm text-gray-600 font-medium">
-                    Discount
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={
-                      displayCurrency === "USD"
-                        ? room.roomTotalPrice * (rates["LKR_USD"] || 1)
-                        : room.roomTotalPrice
-                    }
-                    value={discountInputValue}
-                    onChange={(e) =>
-                      handleDiscountChange(room.roomNo, Number(e.target.value))
-                    }
-                    className="border rounded-lg px-2 py-1 w-[130px] bg-white shadow-sm focus:ring focus:ring-Primary_blue/40 outline-none text-sm"
-                  />
+                <div className="flex items-center gap-3 justify-between bg-white p-3 rounded-xl shadow-sm border">
+                  <div className="flex flex-col">
+                    <label className="text-xs text-gray-500 mb-1">
+                      Currency
+                    </label>
+                    <select
+                      value={room.currency}
+                      onChange={(e) =>
+                        setRooms((prev) =>
+                          prev.map((r) =>
+                            r.roomNo === room.roomNo
+                              ? { ...r, currency: e.target.value }
+                              : r
+                          )
+                        )
+                      }
+                      disabled
+                      className="border rounded-lg px-2 py-1 bg-white text-sm focus:ring-2 focus:ring-Primary_blue focus:outline-none cursor-not-allowed"
+                    >
+                      <option value="LKR">LKR</option>
+                      <option value="USD">USD</option>
+                      <option value="EUR">EUR</option>
+                    </select>
+                  </div>
+
+                  <div className="flex flex-col w-full">
+                    <label className="text-xs text-gray-500 mb-1">
+                      Discount
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={room.perDayPrice * lengthOfStay}
+                      value={discountInputValue}
+                      onChange={(e) => {
+                        const inputValue = Number(e.target.value);
+                        const maxValue = room.perDayPrice * lengthOfStay;
+                        const validValue = Math.min(inputValue, maxValue); // prevent going above max
+                        handleDiscountChange(room.roomNo, validValue);
+                      }}
+                      className="border rounded-lg px-2 py-1 bg-white text-sm w-full focus:ring-2 focus:ring-Primary_blue focus:outline-none"
+                    />
+                  </div>
                 </div>
               )}
 
@@ -200,20 +234,16 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
                 <span>Final Total</span>
                 <span className="truncate max-w-[140px]">
                   {finalTotalDisplay}
+                  <div className="text-[11px] text-right text-gray-400">
+                Per Day × {lengthOfStay} Days
+              </div>
                 </span>
               </div>
 
-              {/* Delete Button */}
+              {/* Remove Button */}
               {switchRoom && (
                 <div className="flex justify-end mt-3">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="hover:bg-red-100 rounded-full"
-                    onClick={() => handleRemoveRoom(room)}
-                  >
-                    <Trash2 className="text-red-500" />
-                  </Button>
+                  <Button onClick={() => handleRemoveRoom(room)}>Update</Button>
                 </div>
               )}
             </li>

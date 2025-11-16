@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +24,7 @@ import {
 import { addNewOrderTokenToOrder } from "@/api/order/add-new-order-token-to-order-api";
 import { fetchOrderById } from "@/api/order/get-order-data-api";
 import { toast } from "react-toastify";
+import { Loader2 } from "lucide-react";
 
 interface OrderTokenDialogProps {
   id: string;
@@ -32,6 +33,8 @@ interface OrderTokenDialogProps {
 export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
   const dispatch = useDispatch<AppDispatch>();
   const order = useSelector((state: RootState) => state.order);
+
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     // Dynamically load QZ Tray
@@ -138,15 +141,17 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
         "\x01" + // center
         "==========================================\n" +
         `${order.restaurantType === "Beach"? "GANESH GARDEN BEACH CABANA" : "MARAKOLLIYA BEACH RESORT"}\n` +
-        `${order.restaurantType === "Beach"? "MAHI MAHI SEA FOOD RESTAURANT" : "SUNSET POOL BAR & RESTAURANT"}      \n` +
+        `${order.restaurantType === "Beach"? "MAHI MAHI SEA FOOD RESTAURANT" : "SUNSET POOL BAR & RESTAURANT"}\n` +
         "Tangalle \n"+
         "==========================================\n" +
         ESC +
         "a" +
         "\x00" + // left
-        `Order Token : ${order.orderTokens.length + 1}\n` +
-        `Date        : ${new Date().toLocaleString()}\n` +
-        `TP ${order.restaurantType === "Beach"? "+94 47 22 42 529" : "+94 47 22 44 822"}\n` +
+        `Order Number : ${order.orderNumber}\n` +
+        `Order Token  : ${order.orderTokens.length + 1}\n` +
+        `Customer Type: ${order.customerType}\n` +
+        `Date         : ${new Date().toLocaleString()}\n` +
+        `TP           : ${order.restaurantType === "Beach"? "+94 472242529 / +94 705505705" : "+94 472244822 / +94 705505705"}\n` +
         "-".repeat(totalWidth) +
         "\n" +
         headerLine +
@@ -170,6 +175,7 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
         "V" +
         "\x00"; // cut
       await qz.print(config, [{ type: "raw", format: "plain", data: printData }]);
+      await qz.print(config, [{ type: "raw", format: "plain", data: printData }]);
       console.log("✅ Print job sent successfully to POS80!");
     } catch (err) {
       console.error("❌ Printing error:", err);
@@ -180,14 +186,27 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
   /** Handle Print, Save & Refresh **/
   const handlePrint = async () => {
     try {
+      setLoading(true);
+
       await printReceipt();
+
       dispatch(setIsPrintedForNewOrderToken(true));
+
       await dispatch(addNewOrderTokenToOrder({ orderId: id })).unwrap();
+
       await dispatch(fetchOrderById(id)).unwrap();
+      
+      setLoading(false);
+
       toast.success("Order updated successfully!");
+
       dispatch(closeOrderTokenModal());
+
     } catch (err: any) {
       console.error("❌ Printing error:", err);
+
+      setLoading(false);
+
       toast.error("Printing failed. Check printer/QZ Tray connection.");
     }
   };
@@ -208,13 +227,17 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
 
         <div className="flex flex-col">
           <div className="px-3 flex justify-between text-[0.875rem] text-[#444444] font-[500]">
-            <span className="font-medium">Token {order.orderTokens.length + 1}</span>
+            <span className="font-medium">
+              Token {order.orderTokens.length + 1}
+            </span>
             <span>{order.serviceType}</span>
           </div>
 
           {order.restaurantTable?._id && (
             <div className="my-5 px-3 flex justify-between text-[0.75rem]">
-              <span className="font-medium">Table : {order.restaurantTable.name}</span>
+              <span className="font-medium">
+                Table : {order.restaurantTable.name}
+              </span>
             </div>
           )}
 
@@ -228,7 +251,9 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
                 <TableHead className="text-[0.75rem] text-center border-r border-gray-300">
                   Qty
                 </TableHead>
-                <TableHead className="text-[0.75rem] text-center">Price</TableHead>
+                <TableHead className="text-[0.75rem] text-center">
+                  Price
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -272,8 +297,19 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
           </div>
 
           <div className="my-3 px-3 flex">
-            <Button onClick={handlePrint} className="!w-full cursor-pointer">
-              Print
+            <Button
+              onClick={handlePrint}
+              disabled={loading}
+              className="!w-full cursor-pointer"
+            >
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Processing...
+                </div>
+              ) : (
+                "Print"
+              )}
             </Button>
           </div>
         </div>

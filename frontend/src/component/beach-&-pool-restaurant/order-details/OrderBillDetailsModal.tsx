@@ -17,6 +17,7 @@ import { updateOrderBillDetails } from "@/api/order/update-order-bill-details";
 import { PaymentMethods } from "@/lib/enums/order-related-enums";
 import { useNavigate } from "react-router-dom";
 import { updateBookingDetailsWithOrderId } from "@/api/order/update-booking-details-with-order-id-api";
+import { Loader2 } from "lucide-react";
 
 interface OrderTokenDialogProps {
   id: string;
@@ -34,6 +35,7 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
   const [discount, setDiscount] = useState(0);
   const [step, setStep] = useState(1);
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();
 
   const paymentMethods = Object.values(PaymentMethods);
@@ -92,7 +94,8 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
       toast.error("QZ Tray not loaded yet!");
       return;
     }
-
+    
+    // configure qz
     const qz = window.qz;
     try {
       if (!qz.websocket.isActive()) {
@@ -122,30 +125,34 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
         ESC + "a" + "\x01" + // center
         "==========================================\n" +
        `${order.restaurantType === "Beach"? "GANESH GARDEN BEACH CABANA" : "MARAKOLLIYA BEACH RESORT"}\n` +
-        `${order.restaurantType === "Beach"? "MAHI MAHI SEA FOOD RESTAURANT" : "SUNSET POOL BAR & RESTAURANT"}      \n` +
+        `${order.restaurantType === "Beach"? "MAHI MAHI SEA FOOD RESTAURANT" : "SUNSET POOL BAR & RESTAURANT"}\n` +
         "Tangalle \n"+
         "==========================================\n" +
         ESC + "a" + "\x00" + // left align
-        `Date        : ${new Date().toLocaleString()}\n` +
-        `TP ${order.restaurantType === "Beach"? "+94 47 22 42 529" : "+94 47 22 44 822"}\n` +
-        `Order No: ${order.orderNumber}\n` +
-        `Service Type: ${order.serviceType}\n` +
-        `Customer: ${order.guestName || "Walk-in"}\n` +
-        `${order.roomNumber  !== "0" ? `Room No: ${order.roomNumber}\n`:""}` +
+        `Order No     : ${order.orderNumber}\n` +
+        `Service Type : ${order.serviceType}\n` +
+        `Customer Type: ${order.customerType}\n` +
+        `Customer     : ${order.guestName || "Walk-in"}\n` +
+        `${order.roomNumber  !== "0" ? `Room No      : ${order.roomNumber}\n`:""}` +
+        `Date         : ${new Date().toLocaleString()}\n` +
+        `TP           : ${order.restaurantType === "Beach"? "+94 472242529 / +94 705505705" : "+94 472244822 / +94 705505705"}\n` +
         "-".repeat(totalWidth) + "\n";
+      
+      receiptData += itemHeader + "\n";
+      receiptData += "-".repeat(totalWidth) + "\n";
 
       // Token-wise printing
       (order.orderTokens || []).forEach((token: any) => {
         receiptData += ` \n`;
-        receiptData += "-".repeat(totalWidth) + "\n";
+        //receiptData += "-".repeat(totalWidth) + "\n";
 
         const allItems = [
           ...(token.foodOrders || []),
           ...(token.beverageOrders || []),
         ];
 
-        receiptData += itemHeader + "\n";
-        receiptData += "-".repeat(totalWidth) + "\n";
+        // receiptData += itemHeader + "\n";
+        // receiptData += "-".repeat(totalWidth) + "\n";
 
         receiptData += allItems
           .map((item: any) =>
@@ -168,10 +175,11 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
 
       receiptData +=
         ESC + "a" + "\x01" + // center
-        "       Thank you! Come again!\n\n\n" +
+         "       Thank you! Come again!       \n\n\n" +
         "      \n\n\n" +
         GS + "V" + "\x00"; // cut
 
+      await qz.print(config, [{ type: "raw", format: "plain", data: receiptData }]);
       await qz.print(config, [{ type: "raw", format: "plain", data: receiptData }]);
       console.log("✅ Bill printed successfully!");
     } catch (err) {
@@ -199,14 +207,19 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
     };
 
     try {
+      setLoading(true);
       await dispatch(updateOrderBillDetails(orderData)).unwrap();
       if (orderData.paymentMethod === PaymentMethods.ROOM.value) {
         await dispatch(updateBookingDetailsWithOrderId(bookingData)).unwrap();
       }
       await printReceipt();
+      setLoading(false);
       toast.success("Order payment processed & printed!");
+      dispatch(closeOrderBillDetailsModal());
       navigate("/restaurant/home");
     } catch (err: any) {
+      setLoading(false);
+      dispatch(closeOrderBillDetailsModal());
       toast.error(
         err?.message || "Unable to complete the payment. Please try again."
       );
@@ -223,7 +236,6 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
         return;
       }
       updateOrderDetails();
-      dispatch(closeOrderBillDetailsModal());
     }
   };
 
@@ -276,7 +288,9 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
                       className="flex justify-between text-xs py-1 last:border-none"
                     >
                       <span className="w-[60%] break-words">{item.title}</span>
-                      <span className="w-[20%] text-center">{item.quantity}</span>
+                      <span className="w-[20%] text-center">
+                        {item.quantity}
+                      </span>
                       <span className="w-[20%] text-right">
                         {(item.price * item.quantity).toFixed(2)}
                       </span>
@@ -348,11 +362,27 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
             </div>
 
             <div className="flex justify-between mt-6">
-              <Button variant="outline" onClick={handleBack} className="w-[48%]">
+              <Button
+                variant="outline"
+                onClick={handleBack}
+                className="w-[48%]"
+              >
                 Back
               </Button>
-              <Button onClick={handleNext} className="w-[48%]">
-                Confirm & Print
+
+              <Button
+                onClick={handleNext}
+                disabled={loading}
+                className="w-[48%] cursor-pointer"
+              >
+                {loading ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Processing...
+                  </div>
+                ) : (
+                  "Confirm & Print"
+                )}
               </Button>
             </div>
           </>

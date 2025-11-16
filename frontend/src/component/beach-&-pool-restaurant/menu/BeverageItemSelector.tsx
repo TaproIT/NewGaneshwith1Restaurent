@@ -84,13 +84,16 @@ const BeverageItemSelector: React.FC<BeverageItemSelectorProps> = ({ beverageIte
   }, [dispatch, beverageItem]);
   
   return (
-    <div  
-     className={`p-1 flex flex-col gap-1 rounded-sm cursor-pointer ${isSelectedItem ? "border-1 border-Primary_blue":"border"}`}
-     onClick={handleSelection}
-     >
+    <div
+      className={`p-1 flex flex-col gap-1 rounded-sm cursor-pointer ${
+        isSelectedItem ? "border-1 border-Primary_blue" : "border"
+      }`}
+      onClick={handleSelection}
+    >
       {/* Beverage item name */}
-      <div className="py-7 px-2 h-[90px] max-h-[90px] flex items-center justify-center text-[#444444] text-[0.95rem] text-center font-medium capitalize bg-[#F4F4F4] rounded-sm">
+      <div className="py-7 px-2 h-[90px] max-h-[90px] flex flex-col items-center justify-center text-[#444444] text-[0.95rem] text-center font-medium capitalize bg-[#F4F4F4] rounded-sm">
         {beverageItem.beverageName}
+        {!beverageItem.extraBeverageCategory && ( <span className="text-red-600">{beverageItem.runningStock} in stock</span>)}
       </div>
 
       {/* Price and Add button */}

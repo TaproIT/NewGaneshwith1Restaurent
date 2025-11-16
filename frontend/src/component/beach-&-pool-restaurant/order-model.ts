@@ -97,6 +97,11 @@ export interface FetchAvailableBookedRoomsStatus {
    loading: boolean;
 }
 
+export interface CancelOrderStatus {
+   error: string | null;
+   loading: boolean;
+}
+
 export interface Order{
   _id: string;
   orderNumber: number;
@@ -133,4 +138,5 @@ export interface Order{
   updateBookingDetailsStatus: UpdateBookingDetailsStatus;
   addNewOrderTokenStatus: AddNewOrderTokenStatus;
   fetchAvailableBookedRoomsStatus: FetchAvailableBookedRoomsStatus;
+  cancelOrderStatus: CancelOrderStatus;
 }

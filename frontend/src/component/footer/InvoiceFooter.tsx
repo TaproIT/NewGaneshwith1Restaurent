@@ -15,6 +15,9 @@ interface InvoiceFooterProps {
   invoice?: boolean;
   selectedRooms: Room[];
   updatedRooms?: BookedRoom[];
+  isWhatsappAvailable?: boolean;
+  isEmailAvailable?: boolean;
+  totalOldRoomsPrice?: number;
 
   // values
   totalPrice: number;
@@ -64,6 +67,9 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
   loadingBooking,
   loading,
   updatedRooms,
+  isEmailAvailable,
+  isWhatsappAvailable,
+  totalOldRoomsPrice,
 }) => {
   const [loadingSwitch, setLoadingSwitch] = useState(false);
 
@@ -124,29 +130,63 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
         </div>
       )}
 
-      <div className="mt-2 grid grid-cols-3 text-gray whitespace-nowrap text-sm">
-        <div>Total Bill</div>
-        <div>:</div>
-        <div className="text-left">
-          {checkout ? (
-            convertAmount(totalBill)
-          ) : invoice ? (
-            convertAmount(invoiceFinalBill)
-          ) : switchRoom ? (
-            convertAmount(totalPrice)
-          ) : (
-            <div>
-              {updatedRooms?.[0]?.currency === "USD"
-                ? `$ ${grandTotal}`
-                : updatedRooms?.[0]?.currency === "EUR"
-                ? `€ ${grandTotal}`
-                : updatedRooms?.[0]?.currency === "LKR"
-                ? `LKR ${grandTotal}`
-                : grandTotal}
+      {/* Old Rooms Bill */}
+      {totalOldRoomsPrice && (
+        <div className="mt-4 ">
+          <div className="grid grid-cols-3 items-center text-gray-700 whitespace-nowrap text-sm font-medium">
+            <div>Old Rooms Bill</div>
+            <div className="text-center">:</div>
+            <div className="text-left font-semibold text-gray-800">
+              {checkout ? (
+                convertAmount(totalBill)
+              ) : invoice ? (
+                convertAmount(invoiceFinalBill)
+              ) : switchRoom ? (
+                convertAmount(totalPrice)
+              ) : (
+                <div>
+                  {updatedRooms?.[0]?.currency === "USD"
+                    ? `$ ${totalOldRoomsPrice}`
+                    : updatedRooms?.[0]?.currency === "EUR"
+                    ? `€ ${totalOldRoomsPrice}`
+                    : updatedRooms?.[0]?.currency === "LKR"
+                    ? `LKR ${totalOldRoomsPrice}`
+                    : totalOldRoomsPrice}
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Total Bill */}
+      {!switchRoom && (
+        <div className={`${totalOldRoomsPrice ? "" : "mt-2"}`}>
+          <div className="grid grid-cols-3 items-center text-gray-700 whitespace-nowrap text-sm font-medium">
+            <div>Total Bill</div>
+            <div className="text-center">:</div>
+            <div className="text-left font-semibold text-gray-800">
+              {checkout ? (
+                convertAmount(totalBill)
+              ) : invoice ? (
+                convertAmount(invoiceFinalBill)
+              ) : switchRoom ? (
+                convertAmount(totalPrice)
+              ) : (
+                <div>
+                  {updatedRooms?.[0]?.currency === "USD"
+                    ? `$ ${grandTotal + (totalOldRoomsPrice || 0)}`
+                    : updatedRooms?.[0]?.currency === "EUR"
+                    ? `€ ${grandTotal + (totalOldRoomsPrice || 0)}`
+                    : updatedRooms?.[0]?.currency === "LKR"
+                    ? `LKR ${grandTotal + (totalOldRoomsPrice || 0)}`
+                    : grandTotal + (totalOldRoomsPrice || 0)}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal */}
       <QrCodeModal
@@ -155,6 +195,8 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
         onWhatsApp={handleWhatsApp}
         onEmail={handleEmail}
         loading={loading}
+        isWhatsappAvailable={isWhatsappAvailable}
+        isEmailAvailable={isEmailAvailable}
       />
 
       {!invoice && !checkout && (
