@@ -25,6 +25,7 @@ const navigationConfig = {
     { path: "/admin/currency-config", title: "Currency Config", icon: <Banknote size={22} /> },
     { path: "/admin/user-config", title: "User Config", icon: <User size={22} /> },
     { path: "/admin/room-config", title: "Room Config", icon: <User size={22} /> },
+    { path: "/admin/reports", title: "Reports", icon: <NotebookText size={22} /> },
   ],
   "Admin": [
     { path: "/admin/dashboard", title: "Dashboard", icon: <House size={22} /> },
@@ -33,7 +34,7 @@ const navigationConfig = {
     { path: "/admin/currency-config", title: "Currency Config", icon: <Banknote size={22} /> },
     { path: "/admin/user-config", title: "User Config", icon: <User size={22} /> },
     { path: "/admin/room-config", title: "Room Config", icon: <Warehouse size={22} /> },
-    { path: "/admin/reports", title: "Room Config", icon: <NotebookText size={22} /> },
+    { path: "/admin/reports", title: "Reports", icon: <NotebookText size={22} /> },
   ],
   "Reception": [
     { path: "/onboarding", title: "Onboarding", icon: <UserRoundPlus size={22} /> },
@@ -43,6 +44,7 @@ const navigationConfig = {
     { path: "/checkouts", title: "Checkouts", icon: <CircleArrowRight size={22} /> },
     { path: "/invoice", title: "Invoice", icon: <BookText size={22} /> },
     // { path: "/room-config", title: "Room Config", icon: <Warehouse size={22} /> },
+    { path: "/reports", title: "Reports", icon: <NotebookText size={22} /> },
   ],
   "Beach-Restaurant-Staff": [
     { path: "/restaurant/home", title: "Home", icon: <House size={22} /> },
@@ -108,6 +110,7 @@ const pathTitles = {
   "/checkout-details": "Checkout Details",
   "/bookings": "Bookings",
   "/admin/reports": "Reports",
+  "/reports": "Reports",
 };
 
 const getSidebarFromPath = (path: string): string => {
@@ -117,7 +120,8 @@ const getSidebarFromPath = (path: string): string => {
       path.startsWith("/bookings/:id") ||
       path.startsWith("/switch-rooms") ||
       path.startsWith("/checkouts") ||
-      path.startsWith("/invoice"))
+      path.startsWith("/invoice") ||
+      path.startsWith("/reports"))
     return "Reception";
   if (path.startsWith("/beverage-inventory"))
     return "Beverage-Inventory";
