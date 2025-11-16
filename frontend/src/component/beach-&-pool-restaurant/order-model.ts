@@ -49,6 +49,12 @@ export interface AvailableBookedRoom {
    bookingId: string;
 }
 
+export interface CheckOutUser {
+   _id: string;
+   name: string;
+   userRole: string;
+}
+
 export type TableStatus = "Selected" | "Empty" | "Reserved";
 
 export interface OrderInitialDataStatus {
@@ -91,6 +97,11 @@ export interface FetchAvailableBookedRoomsStatus {
    loading: boolean;
 }
 
+export interface CancelOrderStatus {
+   error: string | null;
+   loading: boolean;
+}
+
 export interface Order{
   _id: string;
   orderNumber: number;
@@ -117,6 +128,7 @@ export interface Order{
   serviceCharge: number;
   totalBill: number; 
   paymentMethod: string;
+  checkOutUser: CheckOutUser | null;
   isOrderBillDetailsOpen: boolean;
   orderInitialDataStatus: OrderInitialDataStatus; 
   fetchOrderDataStatus: FetchOrderDataStatus;
@@ -126,4 +138,5 @@ export interface Order{
   updateBookingDetailsStatus: UpdateBookingDetailsStatus;
   addNewOrderTokenStatus: AddNewOrderTokenStatus;
   fetchAvailableBookedRoomsStatus: FetchAvailableBookedRoomsStatus;
+  cancelOrderStatus: CancelOrderStatus;
 }

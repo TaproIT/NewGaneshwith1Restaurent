@@ -112,15 +112,15 @@ const Sidebar: React.FC<SidebarProps> = ({
         </nav>
       </div>
 
-      <div>
+      <div className="border-t-2">
         {(userRole === "Admin" || userRole === "Super-Admin") && activeSidebar !== "Admin" && (
           <button onClick={() => navigate("/admin/dashboard")}
-                  className="flex items-center gap-2 p-3 rounded-lg w-full hover:bg-primary hover:text-white mt-4">
-            <House size={22} /> {!isCollapsed && <span>Back to Admin</span>}
+                  className="flex items-center gap-2 p-2 rounded-lg w-full hover:bg-primary hover:text-white mt-4 text-sm">
+            <House size={16} /> {!isCollapsed && <span>Back to Admin</span>}
           </button>
         )}
-        <button onClick={handleLogout} className="flex items-center gap-2 p-3 rounded-lg w-full hover:bg-danger hover:text-white">
-          <LogOut size={22} /> {!isCollapsed && <span>Logout</span>}
+        <button onClick={handleLogout} className="flex text-sm items-center gap-2 p-2 rounded-lg w-full hover:bg-danger hover:text-white">
+          <LogOut size={16} /> {!isCollapsed && <span>Logout</span>}
         </button>
       </div>
     </div>

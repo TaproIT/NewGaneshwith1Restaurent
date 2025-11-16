@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
@@ -8,6 +8,8 @@ import { api } from "@/api/axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { printFinalBill } from "@/util/printCheckout"; // adjust path if different
+import type { OrganizedOrder, OrganizedRoom } from "@/types/details";
+import { convertAndFormatPrice } from "@/util/priceConverter";
 
 interface PaymentModalProps {
   open: boolean;
@@ -22,6 +24,13 @@ interface PaymentModalProps {
   discount: number;
   totalBill: number;
   additionalPrice: { name: string; price: number }[];
+  spa: number;
+  laundary: number;
+  miniBar: number;
+  billDetails: {
+    rooms: OrganizedRoom[];
+    groupedOrders: OrganizedOrder[];
+  };
 }
 
 const PaymentModal: React.FC<PaymentModalProps> = ({
@@ -37,10 +46,22 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   discount,
   totalBill,
   additionalPrice,
+  miniBar,
+  spa,
+  laundary,
+  billDetails,
 }) => {
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+   useEffect(() => {
+      // Dynamically load QZ Tray
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/qz-tray/qz-tray.js";
+      script.onload = () => console.log("QZ Tray script loaded");
+      document.body.appendChild(script);
+    }, []);
 
   const paymentMethods = Object.values(PaymentMethods).filter(
     (method) => method.value !== "Room"
@@ -63,12 +84,17 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       discount,
       totalBill,
       paymentMethod: selectedPayment,
+      spa,
+      miniBar,
+      laundary,
     };
 
     try {
       setLoading(true);
-
+      console.log(booking);
       const response = await api.post(`booking/final-billing/${booking.bookingId}/checkout`, payload);
+
+      console.log(response);
 
       if (response.status === 200) {
         toast.success("Payment processed successfully!");
@@ -83,6 +109,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         selectedPayment,
         totalRoomCharge,
         totalOrdersPrice,
+        spa,
+        miniBar,
+        laundary,
+        detailRooms: billDetails.rooms,
+        detailOrders: billDetails.groupedOrders,
+        convertAndFormatPrice
       });
         onOpenChange(false);
         navigate("/checkouts");

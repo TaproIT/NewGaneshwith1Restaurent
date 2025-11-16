@@ -79,6 +79,10 @@ const orderSchema = new mongoose.Schema({
   bookingId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Booking",
+  },
+  checkOutUser: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
   }
   // orderProgressStatus: {
   //   type: Number,

@@ -23,6 +23,11 @@ import CurrencyConfig from "./pages/admin/CurrencyConfig";
 import UserConfig from "./pages/admin/UserConfig";
 import RoomConfig from "./pages/admin/RoomConfig";
 import CheckoutDetails from "./component/checkout/CheckoutDetails";
+import BookingUpdate from "./pages/reception/bookings/BookingUpdate";
+import Bookings from "./pages/reception/bookings/bookings";
+import RestaurantSummaryPage from "./pages/beach-restaurant/RestaurantSummaryPage";
+
+//import PrintButton from "./component/SamplePrint";
 
 function App() {
   return (
@@ -59,6 +64,8 @@ function App() {
               <Route path="/checkout-details" element={<CheckoutDetails />} />
               <Route path="/invoice" element={<Invoice />} />
               <Route path="/room-config" element={<RoomConfig />} />
+              <Route path="/bookings" element={<Bookings />} />
+              <Route path="/bookings/:id" element={<BookingUpdate />} />
 
               <Route
                 path="/restaurant/home"
@@ -80,6 +87,10 @@ function App() {
                 path="/restaurant/daily-summary"
                 element={<BeachRestaurantDailySummaryPage />}
               />
+              <Route
+                path="/restaurant/summary"
+                element={<RestaurantSummaryPage />}
+              />
 
               <Route
                 path="/beverage-inventory/dashboard"
@@ -99,6 +110,7 @@ function App() {
         </CurrencyProvider>
       </RateProvider>
     </Router>
+    // <PrintButton />
   );
 }
 

@@ -22,6 +22,7 @@ import extraBeverageRoutes from "./src/routes/ExtraBeverageRoutes/extra-beverage
 import { adminRoutes } from "./src/routes/Admin/user-handelling-routes.js";
 import currencyValueRoutes from "./src/routes/currency-value-routes.js";
 import dashboardRoutes from "./src/routes/dashboardRoutes.js";
+import reportRoutes from "./src/routes/Excel/room-report.js";
 
 // Load env variables
 dotenv.config();
@@ -105,6 +106,9 @@ app.use("/api/v1/currency-values", currencyValueRoutes);
 
 // monthly-summary
 app.use("/api/v1/hotel-dashboard", dashboardRoutes);
+
+//Reports
+app.use("/api/v1/reports", reportRoutes);
 
 // --- Socket.io ---
 const io = new Server(server, {

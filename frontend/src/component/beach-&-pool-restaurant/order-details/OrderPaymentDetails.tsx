@@ -1,9 +1,11 @@
 import { addNewOrderTokenToOrder } from '@/api/order/add-new-order-token-to-order-api';
+import { cancelOrder } from '@/api/order/cancel-order-api';
 import { fetchOrderById } from '@/api/order/get-order-data-api';
 import { type AppDispatch, type RootState } from '@/app/store';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
+import { setSelectedHoldOrderId } from '@/features/beach-restaurant/holdOrderSlice';
 import {
   openOrderBillDetailsModal,
   openOrderTokenModal,
@@ -48,12 +50,17 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
 
  const handleHoldClick = async () => {
    try {
+    console.log(newOrderToken);
+    const hasHoldToken = ( newOrderToken.beverageOrders.length > 0 || newOrderToken.foodOrders.length > 0 )
      dispatch(setIsPrintedForNewOrderToken(false));
 
-     await dispatch(addNewOrderTokenToOrder({ orderId: order._id })).unwrap();
-     await dispatch(fetchOrderById(order._id)).unwrap();
+     if(hasHoldToken) {
+        await dispatch(addNewOrderTokenToOrder({ orderId: order._id })).unwrap();
+        await dispatch(fetchOrderById(order._id)).unwrap();
+     }
 
      toast.success("Order token held successfully");
+     dispatch(setSelectedHoldOrderId(""));
      navigate(`/restaurant/home`);
    } catch (err: any) {
      toast.error(
@@ -69,6 +76,20 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
    const handleProceedPayment = () => {
      dispatch(openOrderBillDetailsModal());
   };
+
+  const handleCancelOrder = async() => {
+     try {
+       if (order._id) {
+         await dispatch(cancelOrder({ orderId: order._id }));
+         toast.success("Order canceled successfully");
+         navigate(`/restaurant/home`);
+       }
+     } catch (err:any) {
+         toast.error(
+        err?.message || "Error canceling order token. Please try again."
+     );
+     }
+  }
 
   // Recalculate token subtotal and total bill when order tokens or charges change
   useEffect(() => {
@@ -128,7 +149,10 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
            // Skeletons while loading
            <div className="px-6 2xl:px-8 w-full flex flex-col gap-3">
              {[...Array(5)].map((_, i) => (
-               <div key={i} className="my-0 h-4 grid grid-cols-5 gap-1 items-center">
+               <div
+                 key={i}
+                 className="my-0 h-4 grid grid-cols-5 gap-1 items-center"
+               >
                  <Skeleton className="h-4 w-20 col-span-2" />
                  <div className="col-span-3 flex items-center justify-between">
                    <p>:</p>
@@ -144,7 +168,7 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
            </div>
          ) : (
            // Actual Payment Details
-           <div className="py-3 flex flex-col gap-3">
+           <div className="pt-3 flex flex-col gap-3">
              {/* Payment Details */}
              <div className="px-6 2xl:px-8 w-full flex flex-col gap-1 text-[0.75rem] text-[#444444] font-normal">
                <div className="grid grid-cols-5 gap-2">
@@ -196,15 +220,25 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
              ) : (
                <div className="px-3 2xl:px-5 w-full flex flex-col gap-1.5">
                  {isHoldOrder ? (
-                   <Button
-                     className="mt-5 !w-full !h-8 border-[#0A869D] cursor-pointer"
-                     onClick={handleProceedPaymentClick}
-                   >
-                     Proceed to payment
-                   </Button>
+                   <>
+                     <Button
+                       className="mt-5 !w-full !h-8 text-[#0A869D] border-[#0A869D] cursor-pointer"
+                       disabled={order.orderTokens.length > 0}
+                       onClick={handleCancelOrder}
+                       variant="outline"
+                     >
+                       Cancel order
+                     </Button>
+                     <Button
+                       className="mt-2 !w-full !h-8 border-[#0A869D] cursor-pointer"
+                       onClick={handleProceedPaymentClick}
+                     >
+                       Proceed to menu
+                     </Button>
+                   </>
                  ) : (
                    <div className="grid grid-cols-2 gap-1">
-                      <Button
+                     <Button
                        variant="outline"
                        className="col-span-1 !w-full !h-8 border-[#0A869D] cursor-pointer"
                        disabled={isDisabled}
@@ -216,15 +250,19 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
                      <Button
                        variant="outline"
                        className="col-span-1 !w-full !h-8 border-[#0A869D] cursor-pointer"
-                       disabled={isDisabled}
+                       //disabled={isDisabled}
                        onClick={handleHoldClick}
                      >
                        Hold
                      </Button>
-                     
+
                      <Button
                        className="col-span-2 !w-full !h-8 cursor-pointer"
-                       disabled={(order.orderTokens.length === 0) || (order.newOrderToken.beverageOrders.length > 0 || order.newOrderToken.foodOrders.length > 0)}
+                       disabled={
+                         order.orderTokens.length === 0 ||
+                         order.newOrderToken.beverageOrders.length > 0 ||
+                         order.newOrderToken.foodOrders.length > 0
+                       }
                        onClick={handleProceedPayment}
                      >
                        Proceed To Payment

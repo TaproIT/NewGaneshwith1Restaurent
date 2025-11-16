@@ -12,7 +12,8 @@ import {
   ShieldCheck, User, UserRoundPlus, Users,
   RepeatIcon, BookText, House, Table2, NotepadText,
   PauseCircle, Newspaper, Banknote,
-  Warehouse
+  Warehouse,
+  BookOpen
 } from "lucide-react";
 
 const navigationConfig = {
@@ -35,10 +36,11 @@ const navigationConfig = {
   "Reception": [
     { path: "/onboarding", title: "Onboarding", icon: <UserRoundPlus size={22} /> },
     { path: "/room-availability", title: "Room Availability", icon: <ShieldCheck size={22} /> },
+    { path: "/bookings", title: "Bookings", icon: <BookOpen size={22} /> },
     { path: "/switch-rooms", title: "Switch Rooms", icon: <RepeatIcon size={22} /> },
     { path: "/checkouts", title: "Checkouts", icon: <CircleArrowRight size={22} /> },
     { path: "/invoice", title: "Invoice", icon: <BookText size={22} /> },
-    { path: "/room-config", title: "Room Config", icon: <Warehouse size={22} /> },
+    // { path: "/room-config", title: "Room Config", icon: <Warehouse size={22} /> },
   ],
   "Beach-Restaurant-Staff": [
     { path: "/restaurant/home", title: "Home", icon: <House size={22} /> },
@@ -46,6 +48,7 @@ const navigationConfig = {
     { path: "/restaurant/menu/0", title: "Menu", icon: <NotepadText size={22} /> },
     { path: "/restaurant/hold", title: "Hold", icon: <PauseCircle size={22} /> },
     { path: "/restaurant/daily-summary", title: "Daily Summary", icon: <Newspaper size={22} /> },
+    { path: "/restaurant/summary", title: "Restaurant Summary", icon: <Newspaper size={22} /> },
   ],
   "Pool-Restaurant-Staff": [
     { path: "/restaurant/home", title: "Home", icon: <House size={22} /> },
@@ -53,6 +56,23 @@ const navigationConfig = {
     { path: "/restaurant/menu/0", title: "Menu", icon: <NotepadText size={22} /> },
     { path: "/restaurant/hold", title: "Hold", icon: <PauseCircle size={22} /> },
     { path: "/restaurant/daily-summary", title: "Daily Summary", icon: <Newspaper size={22} /> },
+    { path: "/restaurant/summary", title: "Restaurant Summary", icon: <Newspaper size={22} /> },
+  ],
+  "Beach-Restaurant-Admin": [
+    { path: "/restaurant/home", title: "Home", icon: <House size={22} /> },
+    { path: "/restaurant/tables/0", title: "Tables", icon: <Table2 size={22} /> },
+    { path: "/restaurant/menu/0", title: "Menu", icon: <NotepadText size={22} /> },
+    { path: "/restaurant/hold", title: "Hold", icon: <PauseCircle size={22} /> },
+    { path: "/restaurant/daily-summary", title: "Daily Summary", icon: <Newspaper size={22} /> },
+    { path: "/restaurant/summary", title: "Restaurant Summary", icon: <Newspaper size={22} /> },
+  ],
+  "Pool-Restaurant-Admin": [
+    { path: "/restaurant/home", title: "Home", icon: <House size={22} /> },
+    { path: "/restaurant/tables/0", title: "Tables", icon: <Table2 size={22} /> },
+    { path: "/restaurant/menu/0", title: "Menu", icon: <NotepadText size={22} /> },
+    { path: "/restaurant/hold", title: "Hold", icon: <PauseCircle size={22} /> },
+    { path: "/restaurant/daily-summary", title: "Daily Summary", icon: <Newspaper size={22} /> },
+    { path: "/restaurant/summary", title: "Restaurant Summary", icon: <Newspaper size={22} /> },
   ],
   "Beverage-Inventory": [
     { path: "/beverage-inventory/dashboard", title: "Dashboard", icon: <House size={22} /> },
@@ -79,15 +99,19 @@ const pathTitles = {
   "/restaurant/menu/0": "Menu",
   "/restaurant/hold": "Hold",
   "/restaurant/daily-summary": "Daily Summary",
+  "/restaurant/summary": "Restaurant Summary",
   "/admin/currency-config": "Currency Config",
   "/admin/user-config": "User Config",
   "/admin/room-config": "Room Config",
   "/checkout-details": "Checkout Details",
+  "/bookings": "Bookings",
 };
 
 const getSidebarFromPath = (path: string): string => {
   if (path.startsWith("/onboarding") ||
       path.startsWith("/room-availability") ||
+      path.startsWith("/bookings") ||
+      path.startsWith("/bookings/:id") ||
       path.startsWith("/switch-rooms") ||
       path.startsWith("/checkouts") ||
       path.startsWith("/invoice"))

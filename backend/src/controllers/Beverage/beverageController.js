@@ -414,7 +414,6 @@ export const deleteBeverage = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Beverage not found" });
     }
-    bev.status = "deleted";
     bev.isVisible = false;
     bev.deletedAt = new Date();
     await bev.save();
@@ -436,32 +435,25 @@ export const deleteBeverage = async (req, res) => {
 export const getAllBeverages = async (req, res) => {
   try {
     const {
-      includeDeleted = "false",
       category,
       year,
       month,
       date, // optional day filter
-      //restaurantType
     } = req.query;
 
-    //const { userId } = req.user;
-
-    //const defaultRestaurantType = await getRestaurantTypeByUserRole(userId);
-
-    //const resolvedRestaurantType = restaurantType || defaultRestaurantType;
-
+    // Base filter: only visible beverages
     const filter = {
-      //...(restaurantType ? { resolvedRestaurantType } : {}),
-      ...(includeDeleted !== "true" ? { status: "active" } : {}),
+      isVisible: true, // ✅ Only include visible beverages
       ...(category ? { category } : {}),
     };
 
-    // if year + month provided, fetch only relevant histories
     let beverages;
+
+    // If year + month provided, filter by that month in history
     if (year && month) {
       beverages = await Beverage.find({
         ...filter,
-        history: {
+        historyQuantity: {
           $elemMatch: {
             year: Number(year),
             month: Number(month),
@@ -472,7 +464,6 @@ export const getAllBeverages = async (req, res) => {
       beverages = await Beverage.find(filter).lean();
     }
 
-    // 🚨 check for not found
     if (!beverages || beverages.length === 0) {
       return res.status(404).json({
         success: false,
@@ -480,7 +471,7 @@ export const getAllBeverages = async (req, res) => {
       });
     }
 
-    // post-processing: attach the meta info
+    // If monthly data requested, attach meta info
     if (year && month) {
       const y = Number(year);
       const m = Number(month);
@@ -494,23 +485,22 @@ export const getAllBeverages = async (req, res) => {
           : null;
 
       for (const it of beverages) {
-        const hist = (it.history || []).find((h) => h.year === y && h.month === m);
+        const hist = (it.historyQuantity || []).find(
+            (h) => h.year === y && h.month === m
+        );
+
         if (hist) {
           it.meta = {
             month: {
               year: y,
               month: m,
-              openingStock: hist.openingStock,
-              totalRestocked: hist.totalRestocked,
-              totalRemoved: hist.totalRemoved,
-              totalPurchased: hist.totalPurchased,
-              totalInStock: hist.totalInStock,
-              availableAfterPurchases: hist.availableAfterPurchases,
+              oldStock: hist.oldStock,
+              purchasedStock: hist.purchasedStock,
+              newStock: hist.newStock,
               lastUpdateAt: hist.lastUpdateAt,
             },
           };
 
-          // If a specific day is requested
           if (dayStart && dayEnd) {
             const inRange = (d) => {
               const x = new Date(d);
@@ -518,13 +508,11 @@ export const getAllBeverages = async (req, res) => {
             };
             it.meta.day = {
               date,
+              // example — if you later have event arrays
               restocked: (hist.restockEvents || [])
                   .filter((e) => inRange(e.date))
                   .reduce((s, e) => s + e.quantity, 0),
               removed: (hist.removalEvents || [])
-                  .filter((e) => inRange(e.date))
-                  .reduce((s, e) => s + e.quantity, 0),
-              purchased: (hist.purchaseEvents || [])
                   .filter((e) => inRange(e.date))
                   .reduce((s, e) => s + e.quantity, 0),
             };
@@ -537,6 +525,29 @@ export const getAllBeverages = async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(400).json({ success: false, message: err.message });
+  }
+};
+
+export const getAllBeveragesWithMinimalDetails = async (req, res) => {
+  try {
+    const beverages = await Beverage.find({ isVisible: true })
+        .select("beverageName price runningStock category volume isVisible") // ✅ Only these fields
+        .lean();
+
+    if (!beverages || beverages.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No visible beverages found",
+      });
+    }
+
+    return res.json({ success: true, data: beverages });
+  } catch (err) {
+    console.error("Error fetching beverages:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching beverages",
+    });
   }
 };
 
@@ -622,7 +633,7 @@ export const getOneBeverage = async (req, res) => {
   try {
     const { id } = req.params;
     const bev = await Beverage.findById(id);
-    if (!bev || bev.status === "deleted") {
+    if (!bev) {
       return res
         .status(404)
         .json({ success: false, message: "Beverage not found" });

@@ -18,5 +18,13 @@ export const userRoles = Object.freeze({
   POOL_RESTAURANT_STAFF: {
     value: "Pool-Restaurant-Staff",
     label: "Pool Restaurant Staff",
-  }
+  },
+  BEACH_RESTAURANT_ADMIN: {
+    value: "Beach-Restaurant-Admin",
+    label: "Beach Restaurant Admin",
+  },
+  POOL_RESTAURANT_ADMIN: {
+    value: "Pool-Restaurant-Admin",
+    label: "Pool Restaurant Admin",
+  },
 });

@@ -7,15 +7,18 @@ import { io, Socket } from "socket.io-client";
 import RoomGrid from "../room/RoomGrid";
 import RoomDetails from "../room/RoomDetails";
 import type { Room } from "@/types/roomTypes";
-import { addRoom } from "@/features/onboarding/onboardingSlice";
+import { addRoom, resetSteps } from "@/features/onboarding/onboardingSlice";
 import { api } from "@/api/axios";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate} from "react-router-dom";
 import RoomGridSkeleton from "../skeleton/RoomGridSkeleton";
+import type { BookedRoom } from "@/types/guestDataTypes";
+import type { OldRoom } from "@/features/switch-rooms/removedRooms";
 
 const SOCKET_URL = import.meta.env.SOCKET_URL;
 
 const Step02 = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
+  const navigate = useNavigate();
   const [loadingRooms, setLoadingRooms] = useState(true);
   const [selectedRooms, setSelectedRooms] = useState<Room[]>([]);
   const [viewedRoom, setViewedRoom] = useState<Room | null>(null);
@@ -25,14 +28,16 @@ const Step02 = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const daysStayed = location.state?.daysStayed;
-  const removedRooms = location.state?.oldRooms
+  const removedRooms = location.state?.oldRooms;
   const [loadingBooking, setLoadingBooking] = useState(false);
-const guestDetails = useSelector(
+  const guestDetails = useSelector(
     (state: RootState) => state.onboarding.step01Data
   );
-  // const removedRooms = useSelector(
-  //   (state: RootState) => state.removedRooms.oldRooms
-  // );
+  const [updatedRooms, setUpdatedRooms] = useState<BookedRoom[]>([]);
+  const [isWhatsappAvailable, setIsWhatsappAvailable] = useState(false);
+  const [isEmailAvailable, setIsEmailAvailable] = useState(false);
+  
+  const totalOldRoomsPrice = removedRooms?.reduce((sum: number, room: OldRoom) => sum + room.finalRoomTotalPrice, 0);
 
   const socketRef = useRef<Socket | null>(null);
 
@@ -72,24 +77,26 @@ const guestDetails = useSelector(
 
   // Fetch bookingId when removedRooms changes
   useEffect(() => {
-  if (!removedRooms || removedRooms.length === 0) return; // no removed rooms
+    if (!removedRooms || removedRooms.length === 0) return; // no removed rooms
 
-  const firstRoomNo = removedRooms[0]?.roomNo;
+    const firstRoomNo = removedRooms[0]?.roomNo;
 
-  const fetchBooking = async () => {
-    try {
-      const res = await api.get(`/booking/active-rooms-with-prices/${firstRoomNo}`);
-      setBookingId(res.data.bookingId);
-    } catch (err) {
-      console.error("Failed to fetch booking:", err);
+    const fetchBooking = async () => {
+      try {
+        const res = await api.get(
+          `/booking/active-rooms-with-prices/${firstRoomNo}`
+        );
+        setBookingId(res.data.bookingId);
+      } catch (err) {
+        console.error("Failed to fetch booking:", err);
+      }
+    };
+
+    // Only fetch if bookingId is empty
+    if (!bookingId) {
+      fetchBooking();
     }
-  };
-
-  // Only fetch if bookingId is empty
-  if (!bookingId) {
-    fetchBooking();
-  }
-}, [removedRooms, bookingId]);
+  }, [removedRooms, bookingId]);
 
   // Handle selecting/unselecting rooms
   const handleRoomClick = (room: Room) => {
@@ -119,67 +126,105 @@ const guestDetails = useSelector(
 
   // Booking / switch rooms
   const handleBook = async (roomIds: string[]) => {
-  if (loadingBooking || roomIds.length === 0) return;
-  setLoadingBooking(true);
+    if (loadingBooking || roomIds.length === 0) return;
+    setLoadingBooking(true);
 
-  try {
-    const selectedRoomsData = rooms.filter((room) => roomIds.includes(room._id || ""));
+    try {
+      // Use Redux currentRooms for price/currency updates
+      const selectedRoomsData = updatedRooms.filter((r) =>
+        roomIds.includes(r.roomNo)
+      );
 
-    setRooms((prev) =>
-      prev.map((r) =>
-        roomIds.includes(r._id || "") ? { ...r, isBooked: true } : r
-      )
-    );
+      // Update rooms state visually
+      setRooms((prev) =>
+        prev.map((r) =>
+          roomIds.includes(r._id || "") ? { ...r, isBooked: true } : r
+        )
+      );
 
-    selectedRoomsData.forEach((room) => dispatch(addRoom(room.no)));
+      // Add rooms to onboarding slice if not exists
+      selectedRoomsData.forEach(
+        (room) => dispatch(addRoom(room)) // Make sure room has { roomNo, price, currency }
+      );
 
-    const bookingData = {
-      ...guestDetails,
-      currentRooms: selectedRoomsData.map((r) => r.no),
-      bookingDate: new Date().toISOString(),
-    };
-
-    if (!bookingId) {
-      const booking = await api.post("/booking", bookingData);
-      setWhatsAppBookingId(booking.data.bookingId);
-    } else {
-      const payload = {
-        oldRooms: removedRooms,
-        newRooms: selectedRoomsData.map((room) => room.no),
+      // Prepare booking payload
+      const bookingData = {
+        ...guestDetails,
+        currentRooms: updatedRooms,
+        bookingDate: new Date().toISOString(),
       };
-      await api.put(`/booking/${bookingId}/switch-rooms`, payload);
+
+      if (!bookingId) {
+        const booking = await api.post("/booking", bookingData);
+        setWhatsAppBookingId(booking.data.bookingId);
+        // ✅ Check if we have at least one contact option before opening modal
+        const hasContact =
+          bookingData.whatsapp?.trim() !== "" ||
+          bookingData.email?.trim() !== "";
+
+        const hasWhatsapp = bookingData.whatsapp?.trim() !== "";
+        const hasEmail = bookingData.email?.trim() !== "";
+
+        setIsWhatsappAvailable(hasWhatsapp);
+        setIsEmailAvailable(hasEmail);
+
+        if (hasContact) {
+          setIsModalOpen(true);
+        } else {
+          dispatch(resetSteps())
+        }
+      } else {
+        const payload = {
+          oldRooms: removedRooms,
+          newRooms: updatedRooms.map((r) => ({
+            roomNo: r.roomNo,
+            perDayPrice: r.price, // in LKR internally, you can convert if needed
+            currency: r.currency,
+          })),
+        };
+        await api.put(`/booking/${bookingId}/switch-rooms`, payload);
+        navigate("/onboarding", {
+      state: {
+        oldRooms: [], // pass the array directly
+      },
+    });
+      }
+
+      roomIds.forEach((id) => socketRef.current?.emit("unlockRoom", id));
+
+      setSelectedRooms([]);
+      setViewedRoom(null);
+      toast.success("Rooms booked successfully!");
+      // setIsModalOpen(true);
+    } catch (err: any) {
+      console.error("Failed to book rooms:", err);
+
+      // Extract message from server or fallback to generic error
+      const message =
+        err?.response?.data?.message || // Axios error from backend
+        (err instanceof Error ? err.message : String(err)); // JS error fallback
+
+      toast.error(`Booking failed: ${message}`);
+    } finally {
+      setTimeout(() => setLoadingBooking(false), 1500);
     }
+  };
 
-    roomIds.forEach((id) => socketRef.current?.emit("unlockRoom", id));
-
-    setSelectedRooms([]);
-    setViewedRoom(null);
-    toast.success("Rooms booked successfully!");
-    setIsModalOpen(true);
-  } catch (err) {
-    console.error("Failed to book rooms:", err);
-    toast.error("Booking failed!");
-  } finally {
-    setTimeout(() => setLoadingBooking(false), 1500);
-  }
-};
-
-
-  const grandTotal = selectedRooms.reduce(
-    (sum, room) =>
-      sum + (guestDetails.lengthOfStay || daysStayed) * room.perDayPrice,
+  const grandTotal = updatedRooms.reduce(
+    (sum, room) => sum + room.totalPrice,
     0
   );
 
+  console.log(updatedRooms);
+
   const handleCloseModal = () => {
-  setIsModalOpen(false); // close the modal
+    setIsModalOpen(false); // close the modal
 
-  // Refresh page after a short delay
-  setTimeout(() => {
-    window.location.reload();
-  }, 100); // 100ms delay ensures modal visually closes first
-};
-
+    // Refresh page after a short delay
+    setTimeout(() => {
+      window.location.reload();
+    }, 100); // 100ms delay ensures modal visually closes first
+  };
 
   return (
     <div className="grid grid-cols-4 gap-5">
@@ -213,6 +258,10 @@ const guestDetails = useSelector(
           totalDays={daysStayed}
           whatsAppId={whatsAppBookingId}
           loadingBooking={loadingBooking}
+          onUpdateRooms={(rooms: BookedRoom[]) => setUpdatedRooms(rooms)}
+          isWhatsappAvailable={isWhatsappAvailable}
+          isEmailAvailable={isEmailAvailable}
+          totalOldRoomsPrice={totalOldRoomsPrice}
         />
       </div>
     </div>

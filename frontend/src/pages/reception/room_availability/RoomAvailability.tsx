@@ -7,11 +7,14 @@ import type { RootState } from "@/app/store";
 import { api } from "@/api/axios";
 import { useLocation } from "react-router-dom";
 import RoomGridSkeleton from "@/component/skeleton/RoomGridSkeleton";
+import { useDispatch } from "react-redux";
+import { clearBooking } from "@/features/booking/bookingSlice";
 
 const RoomAvailability = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loadingRooms, setLoadingRooms] = useState(true);
   const [viewedRoom, setViewedRoom] = useState<Room | null>(null);
+  const dispatch = useDispatch()
 
   const location = useLocation(); // detect route change
 
@@ -21,6 +24,7 @@ const RoomAvailability = () => {
 
   const handleRoomClick = (room: Room) => {
     setViewedRoom(room); // only set viewed room, no selection or booking
+    dispatch(clearBooking());
   };
 
   const guestDetails = useSelector(

@@ -23,6 +23,21 @@ export interface UpdateExtraBeverageItemStatus {
      error: string | null
 }
 
+export interface DeleteExtraBeverageItemStatus {
+     loading: boolean,
+     error: string | null
+}
+
+export interface UpdateExtraBeverageCategoryStatus {
+     loading: boolean,
+     error: string | null
+}
+
+export interface DeleteExtraBeverageCategoryStatus {
+     loading: boolean,
+     error: string | null
+}
+
 export interface BeverageItem {
   _id: string;
   beverageName: string;
@@ -37,6 +52,7 @@ export interface BeverageItem {
   isEnableBeverage: boolean;
   liquor?: [{beverage:string, amount:number}] | []; 
   initialStock: number;
+  runningStock: number;
   note: string;
 }
 
@@ -54,6 +70,7 @@ export interface ExtraBeverageItem {
   isEnableBeverage: boolean;
   liquor?: [{beverage:string, amount:number}] | []; 
   initialStock: number;
+  runningStock: number;
   note: string;
 }
 
@@ -89,4 +106,7 @@ export interface BeverageItems {
   addBeverageItemStatus: AddBeverageItemStatus;
   addExtraBeverageItemStatus: AddExtraBeverageItemStatus;
   updateExtraBeverageItemStatus: UpdateExtraBeverageItemStatus;
+  deleteExtraBeverageItemStatus: DeleteExtraBeverageItemStatus;
+  updateExtraBeverageCategoryStatus: UpdateExtraBeverageCategoryStatus;
+  deleteExtraBeverageCategoryStatus: DeleteExtraBeverageCategoryStatus;
 }
