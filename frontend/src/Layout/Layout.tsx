@@ -13,7 +13,8 @@ import {
   RepeatIcon, BookText, House, Table2, NotepadText,
   PauseCircle, Newspaper, Banknote,
   Warehouse,
-  BookOpen
+  BookOpen,
+  NotebookText
 } from "lucide-react";
 
 const navigationConfig = {
@@ -32,6 +33,7 @@ const navigationConfig = {
     { path: "/admin/currency-config", title: "Currency Config", icon: <Banknote size={22} /> },
     { path: "/admin/user-config", title: "User Config", icon: <User size={22} /> },
     { path: "/admin/room-config", title: "Room Config", icon: <Warehouse size={22} /> },
+    { path: "/admin/reports", title: "Room Config", icon: <NotebookText size={22} /> },
   ],
   "Reception": [
     { path: "/onboarding", title: "Onboarding", icon: <UserRoundPlus size={22} /> },
@@ -105,6 +107,7 @@ const pathTitles = {
   "/admin/room-config": "Room Config",
   "/checkout-details": "Checkout Details",
   "/bookings": "Bookings",
+  "/admin/reports": "Reports",
 };
 
 const getSidebarFromPath = (path: string): string => {
