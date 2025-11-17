@@ -120,6 +120,7 @@ const getSidebarFromPath = (path: string): string => {
       path.startsWith("/bookings/:id") ||
       path.startsWith("/switch-rooms") ||
       path.startsWith("/checkouts") ||
+      path.startsWith("/checkout-details") ||
       path.startsWith("/invoice") ||
       path.startsWith("/reports"))
     return "Reception";
