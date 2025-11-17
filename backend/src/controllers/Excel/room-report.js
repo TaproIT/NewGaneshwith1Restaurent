@@ -132,8 +132,6 @@ export const saveRoomReports = async (req, res) => {
     }
 };
 
-
-
 export const exportRoomReportsToExcel = async (req, res) => {
     try {
         const { start, end } = req.query;
@@ -180,9 +178,27 @@ export const exportRoomReportsToExcel = async (req, res) => {
 
         reports.forEach(r => {
             worksheet.addRow({
-                ...r,
+                bookingId: r.bookingId,
+                hotel: r.hotel,
+                guestName: r.guestName,
+                roomNo: r.roomNo,
+
                 checkIn: r.checkIn ? r.checkIn.toISOString().split("T")[0] : "",
                 checkOut: r.checkOut ? r.checkOut.toISOString().split("T")[0] : "",
+
+                perDayPrice: r.perDayPrice?.toFixed(2),
+                currencyRate: r.currencyRate?.toFixed(2),
+                nights: r.nights,
+                totalRoomPrice: r.totalRoomPrice?.toFixed(2),
+                totalGuests: r.totalGuests,
+                breakfast: r.breakfast,
+
+                bookingCommission: r.bookingCommission?.toFixed(2),
+                totalBreakfastPrice: r.totalBreakfastPrice?.toFixed(2),
+
+                grossTotal: r.grossTotal?.toFixed(2),
+                serviceCharge: r.serviceCharge?.toFixed(2),
+                netIncome: r.netIncome?.toFixed(2),
             });
         });
 
