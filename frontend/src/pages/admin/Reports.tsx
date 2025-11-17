@@ -49,8 +49,8 @@ const Reports: React.FC = () => {
 
       const formattedBookings = apiBookings.map((b) => ({
         ...b,
-        bookingCommission: null, // start as null
-        totalBreakfastPrice: null, // start as null
+        bookingCommission: null,
+        totalBreakfastPrice: null,
         grossTotal: b.totalRoomPrice,
       }));
 
@@ -85,7 +85,7 @@ const Reports: React.FC = () => {
     );
   };
 
-  // Generate reports (save current bookings)
+  // Save reports locally
   const generateReports = () => {
     setSavedReports([...savedReports, ...bookings]);
     toast.success("Saved successfully!");
@@ -103,7 +103,7 @@ const Reports: React.FC = () => {
 
     try {
       const res = await api.get(`/reports/export/?start=${start}&end=${end}`, {
-        responseType: "blob", // Important for file download
+        responseType: "blob",
       });
 
       const url = window.URL.createObjectURL(new Blob([res.data]));
@@ -126,7 +126,7 @@ const Reports: React.FC = () => {
       <h2 className="text-xl font-semibold mb-4">Reports</h2>
 
       {/* Date Range Selector + Buttons */}
-      <Card className="mb-6">
+      <Card className="mb-2">
         <CardContent className="p-4">
           <div className="flex flex-col md:flex-row items-end gap-4 justify-between">
             <div className="flex flex-col md:flex-row gap-4 items-end">
@@ -191,6 +191,18 @@ const Reports: React.FC = () => {
           </thead>
 
           <tbody>
+            {/* No data row */}
+            {bookings.length === 0 && savedReports.length === 0 && (
+              <tr>
+                <td
+                  colSpan={13}
+                  className="p-6 text-center italic text-gray-500"
+                >
+                  No data available
+                </td>
+              </tr>
+            )}
+
             {/* Editable bookings */}
             {bookings.map((b) => (
               <tr key={b.bookingId} className="border-b">
@@ -257,7 +269,7 @@ const Reports: React.FC = () => {
               </tr>
             ))}
 
-            {/* Saved reports (read-only) */}
+            {/* Saved reports */}
             {savedReports.map((b) => (
               <tr key={`saved-${b.bookingId}`} className="border-b bg-gray-50">
                 <td className="p-3">{b.roomNo}</td>
