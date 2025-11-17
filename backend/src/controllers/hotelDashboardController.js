@@ -9,7 +9,7 @@ export const getMonthlySummary = async (req, res) => {
         const startOfMonth = dayjs().startOf("month").toDate();
         const endOfMonth = dayjs().endOf("month").toDate();
 
-        // Total guests registered for Hotel A and Hotel B
+        // Aggregate total guests per hotel
         const bookings = await Booking.aggregate([
             {
                 $match: {
@@ -24,35 +24,35 @@ export const getMonthlySummary = async (req, res) => {
             },
         ]);
 
-        const hotelA = bookings.find((b) => b._id === "Hotel A");
-        const hotelB = bookings.find((b) => b._id === "Hotel B");
+        const hotelGanesh = bookings.find((b) => b._id === "Ganesh Garden Beach Cabana");
+        const hotelMarakolliya = bookings.find((b) => b._id === "Marakolliya Beach Resort");
 
-        //  Total available rooms (not booked + not under maintenance)
+        // Total available rooms (not booked + not under maintenance)
         const totalAvailableRooms = await Room.countDocuments({
             isBooked: false,
             isMaintenance: false,
         });
 
-        //  Total invoices generated in the current month
+        // Total invoices generated in the current month
         const totalInvoices = await Invoice.countDocuments({
             createdAt: { $gte: startOfMonth, $lte: endOfMonth },
         });
 
-        // Final response
         res.status(200).json({
             month: dayjs().format("MMMM YYYY"),
             totalGuests: {
-                hotelA: hotelA ? hotelA.totalGuests : 0,
-                hotelB: hotelB ? hotelB.totalGuests : 0,
+                ganeshGardenBeachCabana: hotelGanesh ? hotelGanesh.totalGuests : 0,
+                marakolliyaBeachResort: hotelMarakolliya ? hotelMarakolliya.totalGuests : 0,
             },
             totalAvailableRooms,
             totalInvoices,
         });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Server Error" });
+        console.error("Monthly summary error:", err);
+        res.status(500).json({ message: "Server Error", error: err.message });
     }
 };
+
 
 export const getMonthlyGuestRegistrations = async (req, res) => {
     try {

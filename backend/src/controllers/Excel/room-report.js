@@ -1,6 +1,7 @@
 import Booking from "../../models/Reception/booking.js";
 import RoomReport from "../../models/Excel/roomReportSchema.js";
 import ExcelJS from "exceljs";
+import mongoose from "mongoose";
 
 export const getBookingAndRoomReports = async (req, res) => {
     try {
@@ -75,40 +76,54 @@ export const getBookingAndRoomReports = async (req, res) => {
     }
 };
 
-
 export const saveRoomReports = async (req, res) => {
     try {
-        const reports = req.body; // Expecting array of room report objects
+        const reports = req.body;
 
         if (!Array.isArray(reports) || reports.length === 0) {
             return res.status(400).json({ success: false, message: "No report data provided" });
         }
 
-        // Optional: delete all previous reports
-        await RoomReport.deleteMany({});
+        let updatedCount = 0;
+        let createdCount = 0;
 
-        // Prepare reports with calculations
-        const preparedReports = reports.map(r => {
+        for (const r of reports) {
+            // Validate bookingId
+            if (!r.bookingId || !mongoose.Types.ObjectId.isValid(r.bookingId)) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Invalid bookingId for guest: ${r.guestName}`
+                });
+            }
+
             // Calculate financials
             const grossTotal = (r.totalRoomPrice || 0) - (r.bookingCommission || 0) - (r.totalBreakfastPrice || 0);
             const serviceCharge = grossTotal / 11;
             const netIncome = serviceCharge * 10;
 
-            return {
+            const reportData = {
                 ...r,
                 grossTotal,
                 serviceCharge,
                 netIncome
             };
-        });
 
-        // Save new reports with calculated values
-        const savedReports = await RoomReport.insertMany(preparedReports);
+            const existingReport = await RoomReport.findOne({ bookingId: r.bookingId });
 
-        return res.status(201).json({
+            if (existingReport) {
+                await RoomReport.updateOne({ bookingId: r.bookingId }, { $set: reportData });
+                updatedCount++;
+            } else {
+                await RoomReport.create(reportData);
+                createdCount++;
+            }
+        }
+
+        return res.status(200).json({
             success: true,
-            message: "Room reports saved successfully",
-            savedCount: savedReports.length,
+            message: "Room reports processed successfully",
+            updatedCount,
+            createdCount
         });
 
     } catch (err) {
