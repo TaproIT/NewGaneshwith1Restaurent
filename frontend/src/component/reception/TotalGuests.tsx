@@ -18,8 +18,8 @@ const TotalGuests: React.FC<TotalGuestsProps> = ({ monthlySummary }) => {
             Total Guests Registered
           </div>
           <div className="text-Primary_orange font-bold text-2xl text-right">
-            {(monthlySummary?.totalGuests?.hotelA ?? 0) +
-              (monthlySummary?.totalGuests?.hotelB ?? 0)}
+            {(monthlySummary?.totalGuests?.ganeshGardenBeachCabana ?? 0) +
+              (monthlySummary?.totalGuests?.marakolliyaBeachResort ?? 0)}
           </div>
         </div>
       </div>
@@ -29,14 +29,14 @@ const TotalGuests: React.FC<TotalGuestsProps> = ({ monthlySummary }) => {
           <div className="col-span-2">Ganesh Garden Beach Cabana</div>
           <div className="col-span-1">:</div>
           <div className="col-span-1">
-            {monthlySummary?.totalGuests?.hotelA ?? 0}
+            {monthlySummary?.totalGuests?.ganeshGardenBeachCabana ?? 0}
           </div>
         </div>
         <div className="grid-cols-4 text-[#6F6868] text-[14px] font-medium grid">
           <div className="col-span-2">Marakolliya Beach Resort</div>
           <div className="col-span-1">:</div>
           <div className="col-span-1">
-            {monthlySummary?.totalGuests?.hotelB ?? 0}
+            {monthlySummary?.totalGuests?.marakolliyaBeachResort ?? 0}
           </div>
         </div>
       </div>
