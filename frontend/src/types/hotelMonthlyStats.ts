@@ -1,8 +1,9 @@
 export interface HotelMonthlyStats {
   month: string;
   monthNumber: number;
-  hotelA: number;
-  hotelB: number;
+  ganeshGardenBeachCabana: number;
+  marakolliyaBeachResort
+: number;
 }
 
 export type HotelMonthlyStatsArray = HotelMonthlyStats[];

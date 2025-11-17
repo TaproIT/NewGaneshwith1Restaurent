@@ -51,14 +51,14 @@ const MonthlyGuestRegistration: React.FC<MonthlyGuestRegistrationProps> = ({
     const monthData = monthlyGuestsSummary?.find(
       (item) => item.monthNumber === index + 1
     );
-    return monthData?.hotelA ?? 0;
+    return monthData?.ganeshGardenBeachCabana ?? 0;
   });
 
   const hotelBData = labels.map((_, index) => {
     const monthData = monthlyGuestsSummary?.find(
       (item) => item.monthNumber === index + 1
     );
-    return monthData?.hotelB ?? 0;
+    return monthData?.marakolliyaBeachResort ?? 0;
   });
 
   // Chart data

@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 type Booking = {
   bookingId: string;
   guestName: string;
+  hotel: string;
   roomNo: string;
   checkIn: string;
   checkOut: string;
@@ -25,17 +26,20 @@ type Booking = {
 
 const Reports: React.FC = () => {
   const [date, setDate] = useState<{ from: Date | null; to: Date | null }>({
-    from: new Date("2025-01-01"),
-    to: new Date("2025-01-04"),
+    from: null,
+    to: null,
   });
 
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [savedReports, setSavedReports] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch reports from API
+  // Fetch reports
   const fetchReports = async () => {
-    if (!date.from || !date.to) return;
+    if (!date.from || !date.to) {
+      toast.error("Please select both start and end dates.");
+      return;
+    }
 
     const start = format(date.from, "yyyy-MM-dd");
     const end = format(date.to, "yyyy-MM-dd");
@@ -47,6 +51,7 @@ const Reports: React.FC = () => {
       const apiBookings: Booking[] = res.data.bookings || [];
       const apiSavedReports: Booking[] = res.data.savedReports || [];
 
+      // Set bookingCommission & totalBreakfastPrice to null initially
       const formattedBookings = apiBookings.map((b) => ({
         ...b,
         bookingCommission: null,
@@ -64,7 +69,7 @@ const Reports: React.FC = () => {
     setLoading(false);
   };
 
-  // Update bookingCommission or totalBreakfastPrice
+  // Update fields
   const updateBookingField = (
     bookingId: string,
     field: "totalBreakfastPrice" | "bookingCommission",
@@ -85,13 +90,54 @@ const Reports: React.FC = () => {
     );
   };
 
-  // Save reports locally
-  const generateReports = () => {
-    setSavedReports([...savedReports, ...bookings]);
-    toast.success("Saved successfully!");
+  // SAVE TO BACKEND
+  const saveToBackend = async () => {
+    if (bookings.length === 0) {
+      toast.error("No data available to save!");
+      return;
+    }
+
+    // Must fill fields
+    for (const b of bookings) {
+      if (b.bookingCommission === null || b.totalBreakfastPrice === null) {
+        toast.error(
+          "Please fill Booking Commission and Breakfast Price for all rows."
+        );
+        return;
+      }
+    }
+
+    const payload = bookings.map((b) => ({
+      bookingId: b.bookingId,
+      hotel: b.hotel,
+      guestName: b.guestName,
+      roomNo: b.roomNo,
+      checkIn: b.checkIn,
+      checkOut: b.checkOut,
+      perDayPrice: b.perDayPrice,
+      currencyRate: 1,
+      nights: b.nights,
+      totalRoomPrice: b.totalRoomPrice,
+      totalGuests: b.totalGuests,
+      breakfast: "Included",
+      bookingCommission: b.bookingCommission,
+      totalBreakfastPrice: b.totalBreakfastPrice,
+      grossTotal: b.grossTotal,
+      serviceCharge: b.serviceCharge,
+      netIncome: b.netIncome,
+    }));
+
+    try {
+      const res = await api.post("/reports", payload);
+      toast.success("Reports saved successfully!");
+      setSavedReports((prev) => [...prev, ...bookings]);
+      setBookings([]);
+    } catch (err) {
+      toast.error("Failed to save reports!");
+      console.error(err);
+    }
   };
 
-  // Download Excel via API
   const downloadExcel = async () => {
     if (!date.from || !date.to) {
       toast.error("Please select a date range first!");
@@ -125,9 +171,9 @@ const Reports: React.FC = () => {
     <div className="p-6 rounded-2xl bg-mainWhite">
       <h2 className="text-xl font-semibold mb-4">Reports</h2>
 
-      {/* Date Range Selector + Buttons */}
+      {/* DATE PICKER + BUTTONS */}
       <Card className="mb-2">
-        <CardContent className="p-4">
+        <CardContent className="p-2 py-0">
           <div className="flex flex-col md:flex-row items-end gap-4 justify-between">
             <div className="flex flex-col md:flex-row gap-4 items-end">
               <div className="flex flex-col">
@@ -160,7 +206,7 @@ const Reports: React.FC = () => {
             </div>
 
             <div className="flex gap-2 mt-2 md:mt-0">
-              <Button onClick={generateReports}>Save</Button>
+              <Button onClick={saveToBackend}>Save</Button>
               <Button onClick={downloadExcel} variant="outline">
                 Download Excel
               </Button>
@@ -169,8 +215,8 @@ const Reports: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Reports Table */}
-      <div className="h-[400px] overflow-auto rounded-xl border">
+      {/* TABLE */}
+      <div className="h-[350px] overflow-auto rounded-xl border">
         <table className="w-full text-sm">
           <thead className="bg-gray-100 sticky top-0 z-10">
             <tr>
@@ -191,19 +237,15 @@ const Reports: React.FC = () => {
           </thead>
 
           <tbody>
-            {/* No data row */}
             {bookings.length === 0 && savedReports.length === 0 && (
               <tr>
-                <td
-                  colSpan={13}
-                  className="p-6 text-center italic text-gray-500"
-                >
+                <td colSpan={13} className="p-6 text-center italic text-gray-500">
                   No data available
                 </td>
               </tr>
             )}
 
-            {/* Editable bookings */}
+            {/* Editable rows */}
             {bookings.map((b) => (
               <tr key={b.bookingId} className="border-b">
                 <td className="p-3">{b.roomNo}</td>
@@ -228,20 +270,18 @@ const Reports: React.FC = () => {
                     onChange={(e) => {
                       let value =
                         e.target.value === "" ? null : Number(e.target.value);
+
                       if (value !== null) {
                         if (value < 0) value = 0;
                         if (value > b.grossTotal) value = b.grossTotal;
                       }
-                      updateBookingField(
-                        b.bookingId,
-                        "bookingCommission",
-                        value
-                      );
+
+                      updateBookingField(b.bookingId, "bookingCommission", value);
                     }}
                   />
                 </td>
 
-                {/* Total Breakfast Price */}
+                {/* Breakfast Price */}
                 <td className="p-3">
                   <Input
                     type="number"
@@ -250,10 +290,12 @@ const Reports: React.FC = () => {
                     onChange={(e) => {
                       let value =
                         e.target.value === "" ? null : Number(e.target.value);
+
                       if (value !== null) {
                         if (value < 0) value = 0;
                         if (value > b.grossTotal) value = b.grossTotal;
                       }
+
                       updateBookingField(
                         b.bookingId,
                         "totalBreakfastPrice",
