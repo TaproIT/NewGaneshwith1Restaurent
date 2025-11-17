@@ -1,6 +1,7 @@
 import Booking from "../../models/Reception/booking.js";
 import RoomReport from "../../models/Excel/roomReportSchema.js";
 import ExcelJS from "exceljs";
+import mongoose from "mongoose";
 
 export const getBookingAndRoomReports = async (req, res) => {
     try {
