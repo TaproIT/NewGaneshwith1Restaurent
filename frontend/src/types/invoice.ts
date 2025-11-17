@@ -14,6 +14,15 @@ export interface Invoice {
   createdAt: string;
   updatedAt: string;
   __v: number;
+  hotelType: string;
+  currencyType: string;
+  selectedRooms: SelectedRoom[]
+}
+
+export interface SelectedRoom {
+  count: number;
+  perDayPrice: number;
+  type: string;
 }
 
 export interface DecimalValue {
