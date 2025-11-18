@@ -1799,3 +1799,53 @@ export const getAllActiveBookings = async (req, res) => {
         return res.status(500).json({ message: "Failed to fetch active bookings." });
     }
 };
+
+export const getCompletedBookings = async (req, res) => {
+    try {
+        const bookings = await Booking.find(
+            { isCheckOut: true },
+            {
+                _id: 1,
+                uniqueBookingId: 1,
+                totalBill: 1
+            }
+        );
+
+        return res.status(200).json({
+            success: true,
+            count: bookings.length,
+            data: bookings
+        });
+
+    } catch (error) {
+        console.error("Error fetching bookings:", error);
+        res.status(500).json({ success: false, message: "Server Error", error });
+    }
+};
+
+export const getBookingByIdIfCheckedOut = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const booking = await Booking.findOne({
+            _id: id,
+            isCheckOut: true
+        });
+
+        if (!booking) {
+            return res.status(404).json({
+                success: false,
+                message: "No checked-out booking found with this ID"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: booking
+        });
+
+    } catch (error) {
+        console.error("Error retrieving booking:", error);
+        res.status(500).json({ success: false, message: "Server Error", error });
+    }
+};
