@@ -1700,15 +1700,21 @@ export const getBookingById = async (req, res) => {
 
 export const getAllActiveBookings = async (req, res) => {
     try {
-        const { searchTerm } = req.body;
+        const { searchTerm, page = 1, limit = 10 } = req.body;
+
+        const pageNumber = parseInt(page, 10) || 1;
+        const pageSize = parseInt(limit, 10) || 10;
+        const skip = (pageNumber - 1) * pageSize;
+
         let bookings = [];
 
-        // 1️⃣ If searchTerm provided → search separately in three fields
+        // 1️⃣ If searchTerm is provided → search separately
         if (searchTerm && searchTerm.trim() !== "") {
-            const searchRegex = new RegExp(searchTerm.trim(), "i"); // case-insensitive
+            const searchRegex = new RegExp(searchTerm.trim(), "i");
+
             const searchResults = [];
 
-            // Search 1: uniqueBookingId
+            // Search 1: by uniqueBookingId
             const byBookingId = await Booking.find({
                 isCheckOut: false,
                 uniqueBookingId: { $regex: searchRegex },
@@ -1720,7 +1726,7 @@ export const getAllActiveBookings = async (req, res) => {
                 .lean();
             searchResults.push(...byBookingId);
 
-            // Search 2: currentRooms.roomNo
+            // Search 2: by roomNo
             const byRoom = await Booking.find({
                 isCheckOut: false,
                 "currentRooms.roomNo": { $regex: searchRegex },
@@ -1732,7 +1738,7 @@ export const getAllActiveBookings = async (req, res) => {
                 .lean();
             searchResults.push(...byRoom);
 
-            // Search 3: guestName
+            // Search 3: by guestName
             const byGuestName = await Booking.find({
                 isCheckOut: false,
                 guestName: { $regex: searchRegex },
@@ -1744,33 +1750,50 @@ export const getAllActiveBookings = async (req, res) => {
                 .lean();
             searchResults.push(...byGuestName);
 
-            // Remove duplicates (by _id)
+            // Remove duplicates
             const uniqueBookings = Array.from(
                 new Map(searchResults.map((b) => [b._id.toString(), b])).values()
             );
 
+            // Sort by newest
             bookings = uniqueBookings.sort(
                 (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
             );
+
+            // Pagination slice
+            const paginated = bookings.slice(skip, skip + pageSize);
+
+            return res.status(200).json({
+                count: bookings.length,
+                page: pageNumber,
+                limit: pageSize,
+                totalPages: Math.ceil(bookings.length / pageSize),
+                bookings: paginated,
+            });
+
         } else {
-            // 2️⃣ No search term → return all active bookings
-            bookings = await Booking.find({ isCheckOut: false })
+            // 2️⃣ No search → simple find with pagination
+            const total = await Booking.countDocuments({ isCheckOut: false });
+
+            const records = await Booking.find({ isCheckOut: false })
                 .populate("currentRooms.roomId", "no perDayPrice facilities isBooked")
                 .populate("roomsHistory.roomId", "no perDayPrice")
                 .populate("updatesHistory.updateUserId", "fullName email")
                 .populate("orders.oderId")
                 .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(pageSize)
                 .lean();
+
+            return res.status(200).json({
+                count: total,
+                page: pageNumber,
+                limit: pageSize,
+                totalPages: Math.ceil(total / pageSize),
+                bookings: records,
+            });
         }
 
-        if (!bookings.length) {
-            return res.status(404).json({ message: "No active bookings found." });
-        }
-
-        return res.status(200).json({
-            count: bookings.length,
-            bookings,
-        });
     } catch (error) {
         console.error("Error fetching active bookings:", error);
         return res.status(500).json({ message: "Failed to fetch active bookings." });

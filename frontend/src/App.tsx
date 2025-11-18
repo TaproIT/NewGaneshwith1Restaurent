@@ -26,6 +26,7 @@ import CheckoutDetails from "./component/checkout/CheckoutDetails";
 import BookingUpdate from "./pages/reception/bookings/BookingUpdate";
 import Bookings from "./pages/reception/bookings/bookings";
 import RestaurantSummaryPage from "./pages/beach-restaurant/RestaurantSummaryPage";
+import Reports from "./pages/admin/Reports";
 
 //import PrintButton from "./component/SamplePrint";
 
@@ -66,6 +67,7 @@ function App() {
               <Route path="/room-config" element={<RoomConfig />} />
               <Route path="/bookings" element={<Bookings />} />
               <Route path="/bookings/:id" element={<BookingUpdate />} />
+              <Route path="/reports" element={<Reports />} />
 
               <Route
                 path="/restaurant/home"
@@ -104,6 +106,7 @@ function App() {
               <Route path="/admin/currency-config" element={<CurrencyConfig />} />
               <Route path="/admin/user-config" element={<UserConfig />} />
               <Route path="/admin/room-config" element={<RoomConfig />} />
+              <Route path="/admin/reports" element={<Reports />} />
             </Route>
             {/* <Route path="/menu" element={<ProtectedRoute><Menu /></ProtectedRoute>} /> */}
           </Routes>
