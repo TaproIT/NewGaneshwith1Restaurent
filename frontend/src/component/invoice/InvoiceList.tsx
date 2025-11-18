@@ -12,8 +12,11 @@ const InvoiceList = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
-  const [searchText, setSearchText] = useState(""); // ✅ new search state
+  const [searchText, setSearchText] = useState("");
   const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
+
+  // ✅ new state to track printing row
+  const [printingId, setPrintingId] = useState<string | null>(null);
 
   // ✅ Load QZ Tray
   useEffect(() => {
@@ -32,6 +35,7 @@ const InvoiceList = () => {
         `/invoice?fromDate=${fromDate}&toDate=${toDate}&searchText=${searchText}`
       );
       setInvoices(res.data.data.invoices || []);
+      console.log(res.data.data.invoices);
     } catch (error) {
       toast.error("Failed to load invoices");
     } finally {
@@ -39,19 +43,19 @@ const InvoiceList = () => {
     }
   };
 
-  // ✅ Refetch when date range changes
+  // Refetch on date change
   useEffect(() => {
     fetchInvoices();
   }, [fromDate, toDate]);
 
-  // ✅ Debounced search
+  // Debounced search
   useEffect(() => {
     if (!fromDate || !toDate) return;
     if (typingTimeout) clearTimeout(typingTimeout);
 
     const timeout = setTimeout(() => {
       fetchInvoices();
-    }, 500); // debounce 0.5s
+    }, 500);
 
     setTypingTimeout(timeout);
   }, [searchText]);
@@ -119,20 +123,34 @@ const InvoiceList = () => {
                       <td className="py-2 px-4">{index + 1}</td>
                       <td className="py-2 px-4">{inv.invoiceNumber}</td>
                       <td className="py-2 px-4">{inv.customerName || "N/A"}</td>
-                      <td className="py-2 px-4">
-                        {inv.travelAgentName || "N/A"}
-                      </td>
+                      <td className="py-2 px-4">{inv.travelAgentName || "N/A"}</td>
                       <td className="py-2 px-4">{inv.numberOfMembers}</td>
                       <td className="py-2 px-4">{inv.total.$numberDecimal}</td>
                       <td className="py-2 px-4">
                         {new Date(inv.createdAt).toLocaleDateString()}
                       </td>
+
                       <td className="py-2 px-4 text-center">
                         <Button
-                          onClick={() => printInvoice(inv)}
-                          className="px-3 py-1 text-white text-xs rounded-md"
+                          disabled={printingId === inv._id}
+                          onClick={async () => {
+                            setPrintingId(inv._id);
+                            try {
+                              await printInvoice(inv);
+                              toast.success("Printed successfully");
+                            } catch (error) {
+                              toast.error("Print failed");
+                            } finally {
+                              setPrintingId(null);
+                            }
+                          }}
+                          className={`px-3 py-1 text-white text-xs rounded-md ${
+                            printingId === inv._id
+                              ? "opacity-50 cursor-not-allowed"
+                              : ""
+                          }`}
                         >
-                          Print
+                          {printingId === inv._id ? "Printing..." : "Print"}
                         </Button>
                       </td>
                     </tr>
