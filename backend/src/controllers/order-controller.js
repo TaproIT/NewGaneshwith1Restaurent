@@ -205,8 +205,13 @@ export const addOrderToken = async (req, res) => {
 
   try {
     const { id } = req.params; // order id
+    const { userId } = req.user;
+
     const { newOrderToken, subTotal, tax, discount, serviceCharge, totalBill } =
       req.body.data;
+    
+    const restaurantType = await getRestaurantTypeByUserRole(userId);
+
     const order = await Order.findById(id);
     if (!order) {
       await session.abortTransaction();
@@ -251,6 +256,8 @@ export const addOrderToken = async (req, res) => {
             }
           }
 
+          foodData.restaurantType = restaurantType;
+
           const foodItem = new FoodOrderItem(foodData);
           await foodItem.save({ session });
           foodOrderIds.push(foodItem._id);
@@ -290,6 +297,8 @@ export const addOrderToken = async (req, res) => {
               }
             }
           }
+
+          beverageData.restaurantType = restaurantType;
 
           const beverageItem = new BeverageOrderItem(beverageData);
           await beverageItem.save({ session });
@@ -349,6 +358,8 @@ export const addOrderToken = async (req, res) => {
             }
           }
 
+          foodData.restaurantType = restaurantType;
+
           const foodItem = new FoodOrderItem(foodData);
           await foodItem.save({ session });
           foodOrderIds.push(foodItem._id);
@@ -389,8 +400,11 @@ export const addOrderToken = async (req, res) => {
             }
           }
 
+          beverageData.restaurantType = restaurantType;
+
           const beverageItem = new BeverageOrderItem(beverageData);
           await beverageItem.save({ session });
+        
           beverageOrderIds.push(beverageItem._id);
         }
       }
@@ -832,6 +846,158 @@ export const getOrderSummary = async (req, res) => {
   }
 };
 
+// export const getBeverageSoldSummary = async (req, res) => {
+//   try {
+//     const { startDate, endDate } = req.query;
+
+//     if (!startDate || !endDate) {
+//       return res.status(400).json({
+//         status: "fail",
+//         message: "startDate and endDate are required",
+//       });
+//     }
+
+//     const start = new Date(startDate);
+//     const end = new Date(endDate);
+//     end.setHours(23, 59, 59, 999); // Include full end day
+
+//     // Aggregate total quantity per beverage
+//     const result = await BeverageOrderItem.aggregate([
+//       {
+//         $match: {
+//           createdAt: { $gte: start, $lte: end },
+//         },
+//       },
+//       {
+//         $group: {
+//           _id: "$beverageId",
+//           beverageId: { $first: "$beverageId" },
+//           title: { $first: "$title" },
+//           category: { $first: "$category" },
+//           totalQuantity: { $sum: "$quantity" },
+//         },
+//       },
+//     ]);
+
+//     // Separate arrays
+//     const hardLiquors = result.filter(
+//       (item) => item.category === BeverageCategories.HARD_LIQUOR.value
+//     );
+
+//     const softDrinks = result.filter(
+//       (item) => item.category === BeverageCategories.SOFT_DRINKS.value
+//     );
+
+//     const others = result.filter(
+//       (item) =>
+//         item.category !== BeverageCategories.HARD_LIQUOR.value &&
+//         item.category !== BeverageCategories.SOFT_DRINKS.value
+//     );
+
+//     // Calculate total quantities
+//     const hardLiquorTotal = hardLiquors.reduce(
+//       (sum, item) => sum + item.totalQuantity,
+//       0
+//     );
+
+//     const softDrinkTotal = softDrinks.reduce(
+//       (sum, item) => sum + item.totalQuantity,
+//       0
+//     );
+
+//     return res.status(200).json({
+//       status: "success",
+//       data: {
+//         hardLiquors,
+//         softDrinks,
+//         others,
+//         hardLiquorTotal,
+//         softDrinkTotal,
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Error getting beverage totals:", error);
+//     return res.status(500).json({
+//       status: "error",
+//       message: "Server error while fetching totals",
+//     });
+//   }
+// };
+
+
+
+// export const getLiquorSummaryForOtherItems = async (req, res) => {
+//   try {
+//     const { startDate, endDate } = req.query;
+
+//     if (!startDate || !endDate) {
+//       return sendErrorResponse(res, 400, "startDate and endDate are required");
+//     }
+
+//     const start = new Date(startDate);
+//     const end = new Date(endDate);
+//     end.setHours(23, 59, 59, 999);
+
+//     // Fetch BeverageOrderItems excluding HARD_LIQUOR and SOFT_DRINKS
+//     const beverageOrders = await BeverageOrderItem.find({
+//       createdAt: { $gte: start, $lte: end },
+//       category: { $nin: [BeverageCategories.HARD_LIQUOR.value, BeverageCategories.SOFT_DRINKS.value] },
+//       "liquor.0": { $exists: true },
+//     }).lean();
+
+//     // Fetch FoodOrderItems that have liquor
+//     const foodOrders = await FoodOrderItem.find({
+//       createdAt: { $gte: start, $lte: end },
+//       "liquor.0": { $exists: true },
+//     }).lean();
+
+//     // Combine both arrays
+//     const combinedOrders = [...beverageOrders, ...foodOrders];
+
+//     // Flatten all liquor entries
+//     const allLiquors = combinedOrders.flatMap(order =>
+//       order.liquor.map(l => ({
+//         liquorId: l.liquorId,
+//         liquorName: l.liquorName,
+//         amount: l.amount || 0,
+//       }))
+//     );
+
+//     // Group by liquorId + liquorName
+//     const summaryMap = new Map();
+//     allLiquors.forEach(l => {
+//       const key = `${l.liquorId}-${l.liquorName}`;
+//       if (summaryMap.has(key)) {
+//         summaryMap.set(key, summaryMap.get(key) + l.amount);
+//       } else {
+//         summaryMap.set(key, l.amount);
+//       }
+//     });
+
+//     // Prepare summary array
+//     const summary = Array.from(summaryMap, ([key, totalAmount]) => {
+//       const [liquorId, liquorName] = key.split("-");
+//       return { liquorId, liquorName, totalAmount };
+//     });
+
+//     // Total liquor amount
+//     const totalLiquorAmount = summary.reduce((sum, item) => sum + item.totalAmount, 0);
+
+//     return sendSuccessResponse(res, 200, "Liquor summary for other items retrieved successfully", {
+//       dateRange: {
+//         from: start.toLocaleString("en-CA", { timeZone: "Asia/Colombo" }),
+//         to: end.toLocaleString("en-CA", { timeZone: "Asia/Colombo" }),
+//       },
+//       summary,
+//       totalLiquorAmount,
+//     });
+//   } catch (error) {
+//     console.error("Error fetching liquor summary for other items:", error);
+//     return sendErrorResponse(res, 500, "Server error while fetching liquor summary for other items");
+//   }
+// };
+
+
 export const getBeverageSoldSummary = async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
@@ -845,60 +1011,60 @@ export const getBeverageSoldSummary = async (req, res) => {
 
     const start = new Date(startDate);
     const end = new Date(endDate);
-    end.setHours(23, 59, 59, 999); // Include full end day
+    end.setHours(23, 59, 59, 999);
 
-    // Aggregate total quantity per beverage
+    // Aggregate total quantity per beverage & restaurant type
     const result = await BeverageOrderItem.aggregate([
-      {
-        $match: {
-          createdAt: { $gte: start, $lte: end },
-        },
-      },
+      { $match: { createdAt: { $gte: start, $lte: end } } },
       {
         $group: {
-          _id: "$beverageId",
+          _id: { beverageId: "$beverageId", restaurantType: "$restaurantType" },
           beverageId: { $first: "$beverageId" },
           title: { $first: "$title" },
           category: { $first: "$category" },
+          restaurantType: { $first: "$restaurantType" },
           totalQuantity: { $sum: "$quantity" },
         },
       },
     ]);
 
-    // Separate arrays
-    const hardLiquors = result.filter(
-      (item) => item.category === BeverageCategories.HARD_LIQUOR.value
-    );
+    // Helper to filter by category and restaurant type
+    const filterByCategoryAndType = (category, type) =>
+      result.filter(
+        (item) => item.category === category && item.restaurantType === type
+      );
 
-    const softDrinks = result.filter(
-      (item) => item.category === BeverageCategories.SOFT_DRINKS.value
-    );
+    const summaryByRestaurantType = {};
 
-    const others = result.filter(
-      (item) =>
-        item.category !== BeverageCategories.HARD_LIQUOR.value &&
-        item.category !== BeverageCategories.SOFT_DRINKS.value
-    );
-
-    // Calculate total quantities
-    const hardLiquorTotal = hardLiquors.reduce(
-      (sum, item) => sum + item.totalQuantity,
-      0
-    );
-
-    const softDrinkTotal = softDrinks.reduce(
-      (sum, item) => sum + item.totalQuantity,
-      0
-    );
+    Object.values(RestaurantTypes).forEach((type) => {
+      summaryByRestaurantType[type.value] = {
+        hardLiquors: filterByCategoryAndType(BeverageCategories.HARD_LIQUOR.value, type.value),
+        softDrinks: filterByCategoryAndType(BeverageCategories.SOFT_DRINKS.value, type.value),
+        others: result.filter(
+          (item) =>
+            item.category !== BeverageCategories.HARD_LIQUOR.value &&
+            item.category !== BeverageCategories.SOFT_DRINKS.value &&
+            item.restaurantType === type.value
+        ),
+        hardLiquorTotal: filterByCategoryAndType(BeverageCategories.HARD_LIQUOR.value, type.value).reduce(
+          (sum, item) => sum + item.totalQuantity,
+          0
+        ),
+        softDrinkTotal: filterByCategoryAndType(BeverageCategories.SOFT_DRINKS.value, type.value).reduce(
+          (sum, item) => sum + item.totalQuantity,
+          0
+        ),
+      };
+    });
 
     return res.status(200).json({
       status: "success",
       data: {
-        hardLiquors,
-        softDrinks,
-        others,
-        hardLiquorTotal,
-        softDrinkTotal,
+        summaryByRestaurantType,
+        dateRange: {
+          from: start.toISOString(),
+          to: end.toISOString(),
+        },
       },
     });
   } catch (error) {
@@ -922,7 +1088,7 @@ export const getLiquorSummaryForOtherItems = async (req, res) => {
     const end = new Date(endDate);
     end.setHours(23, 59, 59, 999);
 
-    // Fetch BeverageOrderItems excluding HARD_LIQUOR and SOFT_DRINKS
+    // Fetch BeverageOrderItems excluding HARD_LIQUOR and SOFT_DRINKS that have liquor
     const beverageOrders = await BeverageOrderItem.find({
       createdAt: { $gte: start, $lte: end },
       category: { $nin: [BeverageCategories.HARD_LIQUOR.value, BeverageCategories.SOFT_DRINKS.value] },
@@ -938,42 +1104,54 @@ export const getLiquorSummaryForOtherItems = async (req, res) => {
     // Combine both arrays
     const combinedOrders = [...beverageOrders, ...foodOrders];
 
-    // Flatten all liquor entries
-    const allLiquors = combinedOrders.flatMap(order =>
-      order.liquor.map(l => ({
-        liquorId: l.liquorId,
-        liquorName: l.liquorName,
-        amount: l.amount || 0,
-      }))
-    );
+    const summaryByRestaurantType = {};
 
-    // Group by liquorId + liquorName
-    const summaryMap = new Map();
-    allLiquors.forEach(l => {
-      const key = `${l.liquorId}-${l.liquorName}`;
-      if (summaryMap.has(key)) {
-        summaryMap.set(key, summaryMap.get(key) + l.amount);
-      } else {
-        summaryMap.set(key, l.amount);
-      }
+    // Initialize restaurant types
+    Object.values(RestaurantTypes).forEach((type) => {
+      summaryByRestaurantType[type.value] = {
+        summary: [],
+        totalLiquorAmount: 0,
+      };
     });
 
-    // Prepare summary array
-    const summary = Array.from(summaryMap, ([key, totalAmount]) => {
-      const [liquorId, liquorName] = key.split("-");
-      return { liquorId, liquorName, totalAmount };
-    });
+    // Group liquors by restaurant type and liquorId + liquorName
+    Object.values(RestaurantTypes).forEach((type) => {
+      const ordersByType = combinedOrders.filter(order => order.restaurantType === type.value);
 
-    // Total liquor amount
-    const totalLiquorAmount = summary.reduce((sum, item) => sum + item.totalAmount, 0);
+      const allLiquors = ordersByType.flatMap(order =>
+        order.liquor.map(l => ({
+          liquorId: l.liquorId,
+          liquorName: l.liquorName,
+          amount: l.amount || 0,
+        }))
+      );
+
+      const summaryMap = new Map();
+      allLiquors.forEach(l => {
+        const key = `${l.liquorId}-${l.liquorName}`;
+        if (summaryMap.has(key)) {
+          summaryMap.set(key, summaryMap.get(key) + l.amount);
+        } else {
+          summaryMap.set(key, l.amount);
+        }
+      });
+
+      const summary = Array.from(summaryMap, ([key, totalAmount]) => {
+        const [liquorId, liquorName] = key.split("-");
+        return { liquorId, liquorName, totalAmount };
+      });
+
+      const totalLiquorAmount = summary.reduce((sum, item) => sum + item.totalAmount, 0);
+
+      summaryByRestaurantType[type.value] = { summary, totalLiquorAmount };
+    });
 
     return sendSuccessResponse(res, 200, "Liquor summary for other items retrieved successfully", {
       dateRange: {
         from: start.toLocaleString("en-CA", { timeZone: "Asia/Colombo" }),
         to: end.toLocaleString("en-CA", { timeZone: "Asia/Colombo" }),
       },
-      summary,
-      totalLiquorAmount,
+      summaryByRestaurantType,
     });
   } catch (error) {
     console.error("Error fetching liquor summary for other items:", error);

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { RestaurantTypes } from "../../utils/enums/order-related-enums.js";
 
 const beverageOrderItemSchema = new mongoose.Schema({
   beverageId: {
@@ -28,6 +29,9 @@ const beverageOrderItemSchema = new mongoose.Schema({
       amount: { type: Number },
     },
   ],
+  restaurantType: {
+    type:String, required:true, enum : [RestaurantTypes.BEACH.value, RestaurantTypes.POOL.value]
+  }
 },
 { timestamps: true }
 );
