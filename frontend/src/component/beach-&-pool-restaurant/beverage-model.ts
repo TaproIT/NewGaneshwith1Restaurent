@@ -50,7 +50,7 @@ export interface BeverageItem {
     name: string;
   }
   isEnableBeverage: boolean;
-  liquor?: [{beverage:string, amount:number}] | []; 
+  liquor?: { beverage: { _id: string; beverageName: string;  price: number;}, amount: number; }[] | []; 
   initialStock: number;
   runningStock: number;
   note: string;
@@ -66,9 +66,9 @@ export interface ExtraBeverageItem {
   extraBeverageCategory?: {
     _id: string;
     name: string;
-  }
+  };
   isEnableBeverage: boolean;
-  liquor?: [{beverage:string, amount:number}] | []; 
+  liquor?: { beverage: { _id: string; beverageName: string;  price: number;}, amount: number; }[] | []; 
   initialStock: number;
   runningStock: number;
   note: string;
@@ -80,6 +80,7 @@ export interface SelectedBeverageItem {
   beverageName: string;
   category: string;
   price: number;
+  liquor?: {beverage:{_id:string, beverageName: string, price: number}, amount:number}[] | []; 
 }
 
 export interface SelectedExtraBeverageItem {
@@ -88,7 +89,7 @@ export interface SelectedExtraBeverageItem {
   category: string;
   price: number;
   isEnableBeverage:boolean;
-  liquor?: [{beverage:{_id:string, beverageName: string, price: number}, amount:number}] | []; 
+  liquor?: {beverage:{_id:string, beverageName: string, price: number}, amount:number}[] | []; 
 }
 
 export interface BeverageItems {

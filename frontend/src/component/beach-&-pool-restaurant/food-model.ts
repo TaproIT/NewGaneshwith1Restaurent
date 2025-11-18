@@ -38,7 +38,7 @@ export interface SelectedFoodItem {
   category: string;
   price: number;
   isEnableBeverage:boolean;
-  liquor?: [{beverage:string, amount:number}] | []; 
+  liquor?: [{ beverage: { id: string; beverageName: string; }; amount: number; }] | []; 
 }
 
 export interface FoodItems {
