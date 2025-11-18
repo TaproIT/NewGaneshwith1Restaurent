@@ -9,6 +9,10 @@ const beverageOrderItemSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  category: {
+    type: String,
+    required: true,
+  },
   quantity: {
     type: Number,
     required: true,
@@ -17,7 +21,16 @@ const beverageOrderItemSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-});
+  liquor: [
+    {
+      liquorId: { type: String },
+      liquorName: { type: String },
+      amount: { type: Number },
+    },
+  ],
+},
+{ timestamps: true }
+);
 
 const BeverageOrderItem = mongoose.model("BeverageOrderItem", beverageOrderItemSchema);
 

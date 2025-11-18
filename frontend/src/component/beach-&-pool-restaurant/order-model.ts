@@ -10,6 +10,7 @@ export interface OrderFoodItem {
 export interface OrderBeverageItem {
    beverageId: string;
    title: string;
+   category: string;
    price: number;
    quantity: number;
    isEnableBeverage?:Boolean;

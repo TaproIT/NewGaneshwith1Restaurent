@@ -88,7 +88,7 @@ export interface SelectedExtraBeverageItem {
   category: string;
   price: number;
   isEnableBeverage:boolean;
-  liquor?: [{beverage:string, amount:number}] | []; 
+  liquor?: [{beverage:{_id:string, beverageName: string, price: number}, amount:number}] | []; 
 }
 
 export interface BeverageItems {
