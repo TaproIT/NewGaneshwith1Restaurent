@@ -20,31 +20,34 @@ const TotalCustomers: React.FC<Props> = ({ summary, range }) => {
       (t) => t.customerType.toLowerCase() === "walk-in"
     )?.count ?? 0;
 
-    const formatDate = (dateString: string): string => {
-  // Extract date part before the comma
-  const datePart = dateString.split(",")[0];
-  const date = new Date(datePart);
+  const formatDate = (dateString: string): string => {
+    const datePart = dateString.split(",")[0];
+    const date = new Date(datePart);
 
-  const day = date.getDate();
-  const month = date.toLocaleString("en-US", { month: "long" });
+    const day = date.getDate();
+    const month = date.toLocaleString("en-US", { month: "long" });
 
-  // Add ordinal suffix (st, nd, rd, th)
-  const getOrdinalSuffix = (n: number) => {
-    if (n > 3 && n < 21) return "th";
-    switch (n % 10) {
-      case 1: return "st";
-      case 2: return "nd";
-      case 3: return "rd";
-      default: return "th";
-    }
+    const getOrdinalSuffix = (n: number) => {
+      if (n > 3 && n < 21) return "th";
+      switch (n % 10) {
+        case 1:
+          return "st";
+        case 2:
+          return "nd";
+        case 3:
+          return "rd";
+        default:
+          return "th";
+      }
+    };
+
+    return `${day.toString().padStart(2, "0")}${getOrdinalSuffix(
+      day
+    )} ${month}`;
   };
 
-  return `${day.toString().padStart(2, "0")}${getOrdinalSuffix(day)} ${month}`;
-};
-
-
-    const fromDate = formatDate(range.from);
-    const toDate = formatDate(range.to);
+  const fromDate = formatDate(range.from);
+  const toDate = formatDate(range.to);
 
   return (
     <div className="p-4 bg-mainWhite rounded-2xl flex gap-4 flex-col">
@@ -65,7 +68,9 @@ const TotalCustomers: React.FC<Props> = ({ summary, range }) => {
 
       {/* Breakdown section */}
       <div className="flex flex-col gap-1">
-        <div className="text-sm font-medium text-[#6F6868] pb-2">{fromDate} - {toDate}</div>
+        <div className="text-sm font-medium text-[#6F6868] pb-2">
+          {fromDate} - {toDate}
+        </div>
         <div className="grid grid-cols-4 text-[#6F6868] text-[14px] font-medium">
           <div className="col-span-2">Checked-In</div>
           <div className="col-span-1 text-center">:</div>

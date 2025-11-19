@@ -3,6 +3,79 @@ import RoomReport from "../../models/Excel/roomReportSchema.js";
 import ExcelJS from "exceljs";
 import mongoose from "mongoose";
 
+// export const getBookingAndRoomReports = async (req, res) => {
+//     try {
+//         let { start, end } = req.query;
+//
+//         let dateFilter = {};
+//
+//         // Apply filters ONLY if both dates provided
+//         if (start && end) {
+//             dateFilter.roomsHistory = {
+//                 $elemMatch: {
+//                     switchOutDate: {
+//                         $gte: new Date(start),
+//                         $lte: new Date(end)
+//                     }
+//                 }
+//             };
+//         }
+//
+//         // 1️⃣ Fetch checked-out bookings with date filter
+//         const bookings = await Booking.find({
+//             isCheckOut: true,
+//             ...dateFilter
+//         }).lean();
+//
+//         // 2️⃣ Map extracted room reports
+//         const bookingReports = bookings
+//             .flatMap(b =>
+//                 b.roomsHistory
+//                     .filter(room =>
+//                         start && end
+//                             ? room.switchOutDate >= new Date(start) &&
+//                             room.switchOutDate <= new Date(end)
+//                             : true
+//                     )
+//                     .map(room => ({
+//                         bookingId: b._id,
+//                         hotel: b.hotel,
+//                         guestName: b.guestName,
+//                         roomNo: room.roomNo,
+//                         checkIn: room.switchInDate,
+//                         checkOut: room.switchOutDate,
+//                         perDayPrice: room.perDayPrice,
+//                         currencyRate: room.currencyRate,
+//                         nights: room.night,
+//                         totalRoomPrice: room.finalRoomTotalPrice,
+//                         totalGuests: b.totalGuests,
+//                         breakfast: b.breakfast,
+//                         // Calculations
+//                         grossTotal: room.finalRoomTotalPrice,
+//                         serviceCharge: room.finalRoomTotalPrice * 0.10,
+//                         netIncome: room.finalRoomTotalPrice - room.finalRoomTotalPrice * 0.10
+//                     }))
+//             );
+//
+//         // 3️⃣ Fetch roomReports saved earlier
+//         const savedReports = await RoomReport.find(
+//             start && end
+//                 ? { checkOut: { $gte: new Date(start), $lte: new Date(end) } }
+//                 : {}
+//         ).lean();
+//
+//         return res.status(200).json({
+//             success: true,
+//             bookings: bookingReports,
+//             savedReports
+//         });
+//
+//     } catch (err) {
+//         console.error("GET report failed:", err);
+//         res.status(500).json({ message: "Server Error", error: err.message });
+//     }
+// };
+
 export const getBookingAndRoomReports = async (req, res) => {
     try {
         let { start, end } = req.query;
@@ -21,43 +94,52 @@ export const getBookingAndRoomReports = async (req, res) => {
             };
         }
 
-        // 1️⃣ Fetch checked-out bookings with date filter
+        // 1️⃣ Fetch checked-out bookings
         const bookings = await Booking.find({
             isCheckOut: true,
             ...dateFilter
         }).lean();
 
-        // 2️⃣ Map extracted room reports
-        const bookingReports = bookings
-            .flatMap(b =>
-                b.roomsHistory
-                    .filter(room =>
-                        start && end
-                            ? room.switchOutDate >= new Date(start) &&
-                            room.switchOutDate <= new Date(end)
-                            : true
-                    )
-                    .map(room => ({
+        // 2️⃣ Create final bookingReports array (with ROUNDED prices)
+        const bookingReports = bookings.flatMap(b =>
+            b.roomsHistory
+                .filter(room =>
+                    start && end
+                        ? room.switchOutDate >= new Date(start) &&
+                        room.switchOutDate <= new Date(end)
+                        : true
+                )
+                .map(room => {
+                    const total = room.finalRoomTotalPrice || 0;
+                    const service = total * 0.10;
+                    const net = total - service;
+
+                    return {
                         bookingId: b._id,
                         hotel: b.hotel,
                         guestName: b.guestName,
                         roomNo: room.roomNo,
                         checkIn: room.switchInDate,
                         checkOut: room.switchOutDate,
-                        perDayPrice: room.perDayPrice,
-                        currencyRate: room.currencyRate,
+
+                        // 🔥 ROUNDED FIELDS
+                        perDayPrice: Number(room.perDayPrice?.toFixed(2)),
+                        currencyRate: Number(room.currencyRate?.toFixed(2)),
+                        totalRoomPrice: Number(total.toFixed(2)),
+
                         nights: room.night,
-                        totalRoomPrice: room.finalRoomTotalPrice,
                         totalGuests: b.totalGuests,
                         breakfast: b.breakfast,
-                        // Calculations
-                        grossTotal: room.finalRoomTotalPrice,
-                        serviceCharge: room.finalRoomTotalPrice * 0.10,
-                        netIncome: room.finalRoomTotalPrice - room.finalRoomTotalPrice * 0.10
-                    }))
-            );
 
-        // 3️⃣ Fetch roomReports saved earlier
+                        // 🔥 ROUNDED CALCULATIONS
+                        grossTotal: Number(total.toFixed(2)),
+                        serviceCharge: Number(service.toFixed(2)),
+                        netIncome: Number(net.toFixed(2))
+                    };
+                })
+        );
+
+        // 3️⃣ Fetch ALL saved Room Report documents
         const savedReports = await RoomReport.find(
             start && end
                 ? { checkOut: { $gte: new Date(start), $lte: new Date(end) } }
@@ -66,8 +148,8 @@ export const getBookingAndRoomReports = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            bookings: bookingReports,
-            savedReports
+            bookings: bookingReports,  // rounded values
+            reports: savedReports
         });
 
     } catch (err) {
@@ -75,6 +157,7 @@ export const getBookingAndRoomReports = async (req, res) => {
         res.status(500).json({ message: "Server Error", error: err.message });
     }
 };
+
 
 export const saveRoomReports = async (req, res) => {
     try {
