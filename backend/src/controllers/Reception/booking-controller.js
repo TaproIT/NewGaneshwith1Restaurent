@@ -1801,7 +1801,7 @@ export const getAllActiveBookings = async (req, res) => {
 };
 export const getCompletedBookings = async (req, res) => {
     try {
-        const bookings = await Booking.find(
+        let bookings = await Booking.find(
             { isCheckOut: true },
             {
                 _id: 1,
@@ -1811,9 +1811,11 @@ export const getCompletedBookings = async (req, res) => {
                 totalGuests: 1,
                 checkIn: 1,
                 checkOut: 1,
-                "currentRooms.roomNo": 1 // return only roomNo from currentRooms array
+                "currentRooms.roomNo": 1
             }
-        );
+        ).lean();
+
+        bookings.sort((a, b) => new Date(b.checkOut) - new Date(a.checkOut));
 
         return res.status(200).json({
             success: true,
@@ -1827,7 +1829,6 @@ export const getCompletedBookings = async (req, res) => {
     }
 };
 
-
 export const getBookingByIdIfCheckedOut = async (req, res) => {
     try {
         const { id } = req.params;
@@ -1835,7 +1836,12 @@ export const getBookingByIdIfCheckedOut = async (req, res) => {
         const booking = await Booking.findOne({
             _id: id,
             isCheckOut: true
-        });
+        })
+            .populate({
+                path: "orders.oderId",
+                model: "Order"
+            })
+            .lean();
 
         if (!booking) {
             return res.status(404).json({
@@ -1844,9 +1850,19 @@ export const getBookingByIdIfCheckedOut = async (req, res) => {
             });
         }
 
+        const orderDetails = booking.orders.map(o => ({
+            ...o.oderId,
+            orderDate: o.date
+        }));
+
+        delete booking.orders;
+
         return res.status(200).json({
             success: true,
-            data: booking
+            data: {
+                ...booking,
+                orderDetails
+            }
         });
 
     } catch (error) {
@@ -1854,3 +1870,5 @@ export const getBookingByIdIfCheckedOut = async (req, res) => {
         res.status(500).json({ success: false, message: "Server Error", error });
     }
 };
+
+
