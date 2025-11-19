@@ -14,7 +14,9 @@ type CompletedBooking = Booking & {
 
 const Bookings: React.FC = () => {
   const [activeBookings, setActiveBookings] = useState<Booking[]>([]);
-  const [completedBookings, setCompletedBookings] = useState<CompletedBooking[]>([]);
+  const [completedBookings, setCompletedBookings] = useState<
+    CompletedBooking[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -29,7 +31,11 @@ const Bookings: React.FC = () => {
   // =============================
   // Fetch active bookings
   // =============================
-  const fetchActiveBookings = async (term = "", pageNumber = 1, pageSize = limit) => {
+  const fetchActiveBookings = async (
+    term = "",
+    pageNumber = 1,
+    pageSize = limit
+  ) => {
     setLoading(true);
     try {
       const res = await api.post("/booking/get-all-active-bookings", {
@@ -49,12 +55,18 @@ const Bookings: React.FC = () => {
   // =============================
   // Fetch completed bookings
   // =============================
-  const fetchCompletedBookings = async () => {
+  const fetchCompletedBookings = async (
+    term = "",
+    pageNumber = 1,
+    pageSize = limit
+  ) => {
     setLoading(true);
     try {
-      const res = await api.get("/booking/completed");
+      const res = await api.get(
+        `/booking/completed?searchTerm=${term}&page=${pageNumber}&limit=${pageSize}`
+      );
       setCompletedBookings(res.data.data || []);
-      console.log(res.data)
+      console.log(res.data);
     } catch (error) {
       console.error("Failed to fetch completed bookings:", error);
     } finally {
@@ -67,7 +79,7 @@ const Bookings: React.FC = () => {
   // =============================
   const loadBookings = () => {
     if (showCompleted) {
-      fetchCompletedBookings();
+      fetchCompletedBookings(searchTerm.trim(), page, limit);
     } else {
       fetchActiveBookings(searchTerm.trim(), page, limit);
     }
@@ -88,16 +100,24 @@ const Bookings: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between md:items-end mb-4 gap-3">
         <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-          <Button onClick={() => {
+          <Button
+            onClick={() => {
               setShowCompleted(false);
               setPage(1);
             }}
-            variant={showCompleted ? "outline" : "default"}>Bookings</Button>
-          <Button onClick={() => {
+            variant={showCompleted ? "outline" : "default"}
+          >
+            Bookings
+          </Button>
+          <Button
+            onClick={() => {
               setShowCompleted(true);
               setPage(1);
             }}
-            variant={showCompleted ? "default" : "outline"}>Completed Checkouts</Button>
+            variant={showCompleted ? "default" : "outline"}
+          >
+            Completed Checkouts
+          </Button>
         </h2>
 
         <div className="flex gap-2 items-center">
@@ -129,51 +149,66 @@ const Bookings: React.FC = () => {
                   <th className="py-3 px-4 text-left">Rooms</th>
                   <th className="py-3 px-4 text-left">Guest Name</th>
                   <th className="py-3 px-4 text-left">Guest Count</th>
-                  {showCompleted && <th className="py-3 px-4 text-left">Check Out</th>}
-                  {showCompleted && <th className="py-3 px-4 text-left">Total Bill</th>}
+                  {showCompleted && (
+                    <th className="py-3 px-4 text-left">Check Out</th>
+                  )}
+                  {showCompleted && (
+                    <th className="py-3 px-4 text-left">Total Bill</th>
+                  )}
                   <th className="py-3 px-4 text-center">Action</th>
                 </tr>
               </thead>
 
               <tbody>
-                {(showCompleted ? completedBookings : activeBookings).length > 0 ? (
-                  (showCompleted ? completedBookings : activeBookings).map((bk, index) => (
-                    <tr
-                      key={bk._id}
-                      className="border-b hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="py-3 px-4">
-                        {(page - 1) * limit + index + 1}
-                      </td>
-                      <td className="py-3 px-4">{bk.uniqueBookingId}</td>
-                      <td className="py-3 px-4">
-                        {bk.currentRooms?.map((r) => r.roomNo).join(", ") || "-"}
-                      </td>
-                      <td className="py-3 px-4">{bk.guestName}</td>
-                      <td className="py-3 px-4">{bk.totalGuests}</td>
-                      {showCompleted && <td className="py-3 px-4">{new Date(bk.checkOut).toLocaleString()}</td>}
-                      {showCompleted && <td className="py-3 px-4">{bk.totalBill?.toFixed(2)}</td>}
-                      <td className="py-3 px-4 text-center">
-                        <Button
-  onClick={() => {
-    if (showCompleted) {
-      navigate("/completed-checkout-details", {
-        state: {
-          id: bk._id,
-          isCompleted: true,
-        },
-      });
-    } else {
-      navigate(`/bookings/${bk._id}`);
-    }
-  }}
->
-  {showCompleted ? "View" : "Update"}
-</Button>
-
-                      </td>
-                    </tr>
-                  ))
+                {(showCompleted ? completedBookings : activeBookings).length >
+                0 ? (
+                  (showCompleted ? completedBookings : activeBookings).map(
+                    (bk, index) => (
+                      <tr
+                        key={bk._id}
+                        className="border-b hover:bg-gray-50 transition-colors"
+                      >
+                        <td className="py-3 px-4">
+                          {(page - 1) * limit + index + 1}
+                        </td>
+                        <td className="py-3 px-4">{bk.uniqueBookingId}</td>
+                        <td className="py-3 px-4">
+                          {bk.currentRooms?.map((r) => r.roomNo).join(", ") ||
+                            "-"}
+                        </td>
+                        <td className="py-3 px-4">{bk.guestName}</td>
+                        <td className="py-3 px-4">{bk.totalGuests}</td>
+                        {showCompleted && (
+                          <td className="py-3 px-4">
+                            {new Date(bk.checkOut).toLocaleString()}
+                          </td>
+                        )}
+                        {showCompleted && (
+                          <td className="py-3 px-4">
+                            {bk.totalBill?.toFixed(2)}
+                          </td>
+                        )}
+                        <td className="py-3 px-4 text-center">
+                          <Button
+                            onClick={() => {
+                              if (showCompleted) {
+                                navigate("/completed-checkout-details", {
+                                  state: {
+                                    id: bk._id,
+                                    isCompleted: true,
+                                  },
+                                });
+                              } else {
+                                navigate(`/bookings/${bk._id}`);
+                              }
+                            }}
+                          >
+                            {showCompleted ? "View" : "Update"}
+                          </Button>
+                        </td>
+                      </tr>
+                    )
+                  )
                 ) : (
                   <tr>
                     <td
