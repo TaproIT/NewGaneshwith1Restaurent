@@ -17,9 +17,9 @@ export const fetchDailyOrderSummary = createAsyncThunk<
   { state: RootState }
 >(
   "dailyOrderSummary/fetchDailyOrderSummary",
-  async (filter:DailySummaryFilters, { getState, rejectWithValue }) => {
+  async (filter:DailySummaryFilters, {  rejectWithValue }) => {
     try {
-      const { dailyOrderSummary } = getState();
+      //const { dailyOrderSummary } = getState();
 
       const response = await api.get(
         `/order/daily-summary?startDate=${filter.startDate}&endDate=${filter.endDate}&restaurantType=${filter.restaurantType}`
