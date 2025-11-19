@@ -237,7 +237,6 @@ const BookingUpdate = () => {
                       <Select
                         onValueChange={field.onChange}
                         value={field.value}
-                        disabled
                       >
                         <FormControl className="w-72">
                           <SelectTrigger>
@@ -269,7 +268,6 @@ const BookingUpdate = () => {
                       <FormLabel className="w-32">Breakfast</FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        disabled
                         value={field.value}
                       >
                         <FormControl className="w-72">

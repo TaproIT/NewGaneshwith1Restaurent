@@ -13,6 +13,7 @@ export interface DailyOrderToken {
 export interface DailyOrder{
    _id: string;
    orderNumber: string;
+   roomNumber?: string;
    serviceType: string;
    customerType: string;
    orderTokens: DailyOrderToken[];

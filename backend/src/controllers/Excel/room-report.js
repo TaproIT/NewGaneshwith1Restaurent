@@ -7,67 +7,79 @@ export const getBookingAndRoomReports = async (req, res) => {
     try {
         let { start, end } = req.query;
 
+        let startDate = start ? new Date(start + "T00:00:00.000Z") : null;
+        let endDate = end ? new Date(end + "T23:59:59.999Z") : null;
+
         let dateFilter = {};
 
-        // Apply filters ONLY if both dates provided
-        if (start && end) {
+        if (startDate && endDate) {
             dateFilter.roomsHistory = {
                 $elemMatch: {
                     switchOutDate: {
-                        $gte: new Date(start),
-                        $lte: new Date(end)
+                        $gte: startDate,
+                        $lte: endDate
                     }
                 }
             };
         }
 
-        // 1️⃣ Fetch checked-out bookings with date filter
+        // 1️⃣ Fetch checked-out bookings
         const bookings = await Booking.find({
             isCheckOut: true,
             ...dateFilter
         }).lean();
 
-        // 2️⃣ Map extracted room reports
-        const bookingReports = bookings
-            .flatMap(b =>
-                b.roomsHistory
-                    .filter(room =>
-                        start && end
-                            ? room.switchOutDate >= new Date(start) &&
-                            room.switchOutDate <= new Date(end)
-                            : true
-                    )
-                    .map(room => ({
+        // 2️⃣ Build bookingReports
+        let bookingReports = bookings.flatMap(b =>
+            b.roomsHistory
+                .filter(room =>
+                    startDate && endDate
+                        ? room.switchOutDate >= startDate &&
+                        room.switchOutDate <= endDate
+                        : true
+                )
+                .map(room => {
+                    const total = room.finalRoomTotalPrice || 0;
+                    const service = total * 0.10;
+                    const net = total - service;
+
+                    return {
                         bookingId: b._id,
                         hotel: b.hotel,
                         guestName: b.guestName,
                         roomNo: room.roomNo,
                         checkIn: room.switchInDate,
                         checkOut: room.switchOutDate,
-                        perDayPrice: room.perDayPrice,
-                        currencyRate: room.currencyRate,
+
+                        // Removed orderDetails
+
+                        perDayPrice: Number(room.perDayPrice?.toFixed(2)),
+                        currencyRate: Number(room.currencyRate?.toFixed(2)),
+                        totalRoomPrice: Number(total.toFixed(2)),
+
                         nights: room.night,
-                        totalRoomPrice: room.finalRoomTotalPrice,
                         totalGuests: b.totalGuests,
                         breakfast: b.breakfast,
-                        // Calculations
-                        grossTotal: room.finalRoomTotalPrice,
-                        serviceCharge: room.finalRoomTotalPrice * 0.10,
-                        netIncome: room.finalRoomTotalPrice - room.finalRoomTotalPrice * 0.10
-                    }))
-            );
 
-        // 3️⃣ Fetch roomReports saved earlier
+                        grossTotal: Number(total.toFixed(2)),
+                        serviceCharge: Number(service.toFixed(2)),
+                        netIncome: Number(net.toFixed(2))
+                    };
+                })
+        );
+
+        bookingReports.sort((a, b) => new Date(b.checkOut) - new Date(a.checkOut));
+
         const savedReports = await RoomReport.find(
-            start && end
-                ? { checkOut: { $gte: new Date(start), $lte: new Date(end) } }
+            startDate && endDate
+                ? { checkOut: { $gte: startDate, $lte: endDate } }
                 : {}
         ).lean();
 
         return res.status(200).json({
             success: true,
             bookings: bookingReports,
-            savedReports
+            reports: savedReports
         });
 
     } catch (err) {
@@ -75,6 +87,7 @@ export const getBookingAndRoomReports = async (req, res) => {
         res.status(500).json({ message: "Server Error", error: err.message });
     }
 };
+
 
 export const saveRoomReports = async (req, res) => {
     try {

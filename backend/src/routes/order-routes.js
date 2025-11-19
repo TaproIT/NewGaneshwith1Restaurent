@@ -1,7 +1,24 @@
 import express from "express";
 import { verifyTokenNotBlacklisted } from "../middleware/check-black-list-token.js";
 import { authenticateToken } from "../middleware/verify-token.js";
-import { addOrderToken, addTable, cancelOrder, exportRestaurantSummaryExcel, getAllTables, getDailyOrdersSummary, getDailyRestaurantTotals, getHoldOrders, getOrderDetails, getOrderSummary, getTableById, selectTableForOrder, setInitialOrderDetails, updateOrderBillDetails, updateTable } from "../controllers/order-controller.js";
+import {
+  addOrderToken,
+  addTable,
+  cancelOrder,
+  exportRestaurantSummaryExcel, getAllTables,
+  getBeverageSoldSummary,
+  getDailyOrdersSummary,
+  getDailyRestaurantTotals,
+  getLiquorSummaryForOtherItems,
+  getHoldOrders,
+  getOrderDetails,
+  getOrderSummary,
+  getTableById,
+  selectTableForOrder,
+  setInitialOrderDetails,
+  updateOrderBillDetails,
+  updateTable,
+} from "../controllers/order-controller.js";
 import { authorizeRoles } from "../middleware/role-authorize.js";
 import { userRoles } from "../utils/enums/user-role.js";
 
@@ -170,6 +187,30 @@ router.get(
     userRoles.SUPER_ADMIN.value,
   ]),
   getOrderSummary
+);
+
+router.get(
+  "/beverage/sold-summary",
+  // verifyTokenNotBlacklisted,
+  // authenticateToken,
+  // authorizeRoles([
+  //   userRoles.ADMIN.value,
+  //   userRoles.SUPER_ADMIN.value,
+  //   userRoles.SUPER_ADMIN.value,
+  // ]),
+  getBeverageSoldSummary
+);
+
+router.get(
+  "/beverage/sold/liquor-summary",
+  // verifyTokenNotBlacklisted,
+  // authenticateToken,
+  // authorizeRoles([
+  //   userRoles.ADMIN.value,
+  //   userRoles.SUPER_ADMIN.value,
+  //   userRoles.SUPER_ADMIN.value,
+  // ]),
+  getLiquorSummaryForOtherItems
 );
 
 router.get(

@@ -1369,7 +1369,9 @@ export const updateBooking = async (req, res) => {
             kids,
             adults,
             checkOut,
-            updatedRooms
+            updatedRooms,
+            customerType,
+            breakfast
         } = req.body;
 
         const updateUserId = req.user?.userId || req.user?._id;
@@ -1401,6 +1403,8 @@ export const updateBooking = async (req, res) => {
         if (totalGuests != null) booking.totalGuests = totalGuests;
         if (kids != null) booking.kids = kids;
         if (adults != null) booking.adults = adults;
+        if(customerType != null) booking.customerType = customerType;
+        if(breakfast != null) booking.breakfast = breakfast;
 
         // ✅ Room price updates
         if (updatedRooms && Array.isArray(updatedRooms) && updatedRooms.length > 0) {
@@ -1799,3 +1803,144 @@ export const getAllActiveBookings = async (req, res) => {
         return res.status(500).json({ message: "Failed to fetch active bookings." });
     }
 };
+//
+// export const getCompletedBookings = async (req, res) => {
+//     try {
+//         let bookings = await Booking.find(
+//             { isCheckOut: true },
+//             {
+//                 _id: 1,
+//                 uniqueBookingId: 1,
+//                 totalBill: 1,
+//                 guestName: 1,
+//                 totalGuests: 1,
+//                 checkIn: 1,
+//                 checkOut: 1,
+//                 "currentRooms.roomNo": 1
+//             }
+//         ).lean();
+//
+//         bookings.sort((a, b) => new Date(b.checkOut) - new Date(a.checkOut));
+//
+//         return res.status(200).json({
+//             success: true,
+//             count: bookings.length,
+//             data: bookings
+//         });
+//
+//     } catch (error) {
+//         console.error("Error fetching bookings:", error);
+//         res.status(500).json({ success: false, message: "Server Error", error });
+//     }
+// };
+
+export const getCompletedBookings = async (req, res) => {
+    try {
+        let {
+            page = 1,
+            limit = 10,
+            searchTerm = ""
+        } = req.query;
+
+        page = parseInt(page);
+        limit = parseInt(limit);
+
+        const skip = (page - 1) * limit;
+
+        // Base filter (completed checkouts)
+        const filter = { isCheckOut: true };
+
+        // If searchTerm exists → apply OR condition
+        if (searchTerm && searchTerm.trim() !== "") {
+            const regex = new RegExp(searchTerm, "i");
+
+            filter.$or = [
+                { guestName: regex },
+                { uniqueBookingId: regex },
+                { "currentRooms.roomNo": regex }
+            ];
+        }
+
+        // Query + sort
+        const bookings = await Booking.find(
+            filter,
+            {
+                _id: 1,
+                uniqueBookingId: 1,
+                totalBill: 1,
+                guestName: 1,
+                totalGuests: 1,
+                checkIn: 1,
+                checkOut: 1,
+                "currentRooms.roomNo": 1
+            }
+        )
+            .sort({ checkOut: -1 }) // latest first
+            .skip(skip)
+            .limit(limit)
+            .lean();
+
+        const total = await Booking.countDocuments(filter);
+
+        return res.status(200).json({
+            success: true,
+            count: bookings.length,
+            total,
+            currentPage: page,
+            totalPages: Math.ceil(total / limit),
+            data: bookings
+        });
+
+    } catch (error) {
+        console.error("Error fetching bookings:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Server Error",
+            error
+        });
+    }
+};
+
+export const getBookingByIdIfCheckedOut = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const booking = await Booking.findOne({
+            _id: id,
+            isCheckOut: true
+        })
+            .populate({
+                path: "orders.oderId",
+                model: "Order"
+            })
+            .lean();
+
+        if (!booking) {
+            return res.status(404).json({
+                success: false,
+                message: "No checked-out booking found with this ID"
+            });
+        }
+
+        const orderDetails = booking.orders.map(o => ({
+            ...o.oderId,
+            orderDate: o.date
+        }));
+
+        delete booking.orders;
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                ...booking,
+                orderDetails
+            }
+        });
+
+    } catch (error) {
+        console.error("Error retrieving booking:", error);
+        res.status(500).json({ success: false, message: "Server Error", error });
+    }
+};
+
+

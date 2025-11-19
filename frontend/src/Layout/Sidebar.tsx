@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Logo from "../assets/Images/Logos/main_logo.png";
 import {
@@ -33,6 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false)
 
   const sidebarItems = navigationConfig[activeSidebar] ?? navigationConfig["Admin"];
 
@@ -53,6 +54,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const handleLogout = async () => {
+    setLoading(true)
     try {
       const token = localStorage.getItem("authToken");
       if (!token) {
@@ -70,7 +72,9 @@ const Sidebar: React.FC<SidebarProps> = ({
     } catch (error: any) {
       console.error(error);
       toast.error(error.response?.data?.message || "Logout failed");
-    }
+    } finally {
+    setLoading(false)
+  }
   };
 
   return (
@@ -120,7 +124,15 @@ const Sidebar: React.FC<SidebarProps> = ({
           </button>
         )}
         <button onClick={handleLogout} className="flex text-sm items-center gap-2 p-2 rounded-lg w-full hover:bg-danger hover:text-white">
-          <LogOut size={16} /> {!isCollapsed && <span>Logout</span>}
+  {loading ? (
+    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+  ) : (
+    <LogOut size={16} />
+  )}
+  
+  {!isCollapsed && (
+    <span>{loading ? "Processing..." : "Logout"}</span>
+  )}
         </button>
       </div>
     </div>

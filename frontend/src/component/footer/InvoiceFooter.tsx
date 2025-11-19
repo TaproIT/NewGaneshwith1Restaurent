@@ -180,7 +180,7 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
                     ? `€ ${grandTotal + (totalOldRoomsPrice || 0)}`
                     : updatedRooms?.[0]?.currency === "LKR"
                     ? `LKR ${grandTotal + (totalOldRoomsPrice || 0)}`
-                    : grandTotal + (totalOldRoomsPrice || 0)}
+                    : `LKR ${grandTotal + (totalOldRoomsPrice || 0)}`}
                 </div>
               )}
             </div>
@@ -203,7 +203,11 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
         <Button
           className="w-full"
           onClick={handleBookRooms}
-          disabled={loadingBooking}
+          disabled={
+  loadingBooking ||
+  (updatedRooms ?? []).some(room => !room.currency)
+}
+
         >
           {loadingBooking ? (
             <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
