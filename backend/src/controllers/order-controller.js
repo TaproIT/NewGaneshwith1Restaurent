@@ -823,20 +823,16 @@ export const cancelOrder = async (req, res) => {
 export const getDailyRestaurantTotals = async (req, res) => {
   try {
     const { startDate, endDate, restaurantType } = req.query;
-
-    console.log(restaurantType);
-
     const { userId } = req.user;
 
     const restaurant = await getRestaurantTypeByUserRole(userId);
 
-    console.log("res",restaurant);
-
-    if (!startDate || !endDate ) {
-      return res.status(400).json({
-        status: "fail",
-        message: "startDate, endDate and restaurantType are required"
-      });
+    if (!startDate || !endDate) {
+      return sendErrorResponse(
+        res,
+        400,
+        "startDate and endDate are required"
+      );
     }
 
     const start = new Date(startDate);
@@ -846,105 +842,7 @@ export const getDailyRestaurantTotals = async (req, res) => {
     const data = await Order.aggregate([
       {
         $match: {
-          restaurantType: restaurantType? restaurantType : restaurant,
-          createdAt: { $gte: start, $lte: end }
-        }
-      },
-      {
-        $group: {
-          _id: {
-            year: { $year: "$createdAt" },
-            month: { $month: "$createdAt" },
-            day: { $dayOfMonth: "$createdAt" },
-            customerType: "$customerType"   // ← grouped by date + customerType
-          },
-          totalSubTotal: { $sum: "$subTotal" },
-          totalServiceCharge: { $sum: "$serviceCharge" },
-          totalBill: { $sum: "$totalBill" },
-          orderCount: { $sum: 1 }
-        }
-      },
-      {
-        $project: {
-          _id: 0,
-          customerType: "$_id.customerType",
-          date: {
-            $dateToString: {
-              format: "%Y-%m-%d",
-              date: {
-                $dateFromParts: {
-                  year: "$_id.year",
-                  month: "$_id.month",
-                  day: "$_id.day"
-                }
-              }
-            }
-          },
-          totalSubTotal: 1,
-          totalServiceCharge: 1,
-          totalBill: 1,
-          orderCount: 1
-        }
-      },
-      { $sort: { date: 1 } }
-    ]);
-
-    let totalIncome = 0;
-    let walkInIncome = 0;
-    let checkInIncome = 0;
-
-    data.map((dailySummary) => {
-       totalIncome += dailySummary.totalBill; 
-
-       if (dailySummary.customerType === CustomerTypes.WALK_IN.value) {
-            walkInIncome += dailySummary.totalBill;
-       } else {
-            checkInIncome += dailySummary.totalBill
-       }
-    })
-
-    return res.json({
-      status: "success",
-      restaurantType:RestaurantTypes.BEACH.value,
-      totalIncome : Math.round(totalIncome * 100) /100,
-      walkInIncome : Math.round(walkInIncome * 100) /100,
-      checkInIncome : Math.round(checkInIncome * 100) /100,
-      summaryList: data
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      status: "fail",
-      message: "Internal Server Error"
-    });
-  }
-};
-
-export const exportRestaurantSummaryExcel = async (req, res) => {
-  try {
-    const { startDate, endDate, restaurantType } = req.query;
-    //const { userId } = req.user;
-
-    //const restaurant = await getRestaurantTypeByUserRole(userId);
-
-    if (!startDate || !endDate) {
-      return res.status(400).json({
-        status: "fail",
-        message: "startDate and endDate are required"
-      });
-    }
-
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    end.setHours(23, 59, 59, 999);
-
-    // ======= SAME AGGREGATION LOGIC =======
-    const summaryData = await Order.aggregate([
-      {
-        $match: {
-          //restaurantType: restaurantType ? restaurantType : restaurant,
-          restaurantType: RestaurantTypes.BEACH.value,
+          restaurantType: restaurantType ? restaurantType : restaurant,
           createdAt: { $gte: start, $lte: end }
         }
       },
@@ -987,61 +885,235 @@ export const exportRestaurantSummaryExcel = async (req, res) => {
       { $sort: { date: 1 } }
     ]);
 
-    // ======= CREATE EXCEL WORKBOOK =======
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Restaurant Summary");
+    let totalIncome = 0;
+    let walkInIncome = 0;
+    let checkInIncome = 0;
 
-    // Excel Header Row
-    worksheet.addRow([
+    data.forEach((dailySummary) => {
+      totalIncome += dailySummary.totalBill;
+
+      if (dailySummary.customerType === CustomerTypes.WALK_IN.value) {
+        walkInIncome += dailySummary.totalBill;
+      } else {
+        checkInIncome += dailySummary.totalBill;
+      }
+    });
+
+    const responseData = {
+      restaurantType: RestaurantTypes.BEACH.value,
+      totalIncome: Math.round(totalIncome * 100) / 100,
+      walkInIncome: Math.round(walkInIncome * 100) / 100,
+      checkInIncome: Math.round(checkInIncome * 100) / 100,
+      summaryList: data,
+    };
+
+    return sendSuccessResponse(
+      res,
+      200,
+      "Daily restaurant totals fetched successfully",
+      responseData
+    );
+
+  } catch (err) {
+    console.error(err);
+    return sendErrorResponse(
+      res,
+      500,
+      "Internal Server Error"
+    );
+  }
+};
+
+export const exportRestaurantSummaryExcel = async (req, res) => {
+  try {
+    const { startDate, endDate, restaurantType } = req.query;
+    const { userId } = req.user;
+
+    const defaultRestaurant = await getRestaurantTypeByUserRole(userId);
+
+    if (!startDate || !endDate) {
+      return sendErrorResponse(res, 400, "startDate and endDate are required");
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+
+    const summaryData = await Order.aggregate([
+      {
+        $match: {
+          restaurantType: restaurantType ? restaurantType : defaultRestaurant,
+          createdAt: { $gte: start, $lte: end },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
+            day: { $dayOfMonth: "$createdAt" },
+            customerType: "$customerType",
+          },
+          totalSubTotal: { $sum: "$subTotal" },
+          totalServiceCharge: { $sum: "$serviceCharge" },
+          totalBill: { $sum: "$totalBill" },
+          orderCount: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          customerType: "$_id.customerType",
+          date: {
+            $dateToString: {
+              format: "%Y-%m-%d",
+              date: {
+                $dateFromParts: {
+                  year: "$_id.year",
+                  month: "$_id.month",
+                  day: "$_id.day",
+                },
+              },
+            },
+          },
+          totalSubTotal: 1,
+          totalServiceCharge: 1,
+          totalBill: 1,
+          orderCount: 1,
+        },
+      },
+      { $sort: { date: 1 } },
+    ]);
+
+    // ===== Number Formatter =====
+    const formatNumber = (value) => {
+      return Number(value)
+        .toFixed(2)
+        .replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    };
+
+    // ===== Calculate Totals =====
+    let totalIncome = 0,
+      walkInIncome = 0,
+      checkInIncome = 0;
+
+    summaryData.forEach((item) => {
+      totalIncome += item.totalBill;
+
+      if (item.customerType === CustomerTypes.WALK_IN.value) {
+        walkInIncome += item.totalBill;
+      } else {
+        checkInIncome += item.totalBill;
+      }
+    });
+
+    // ===== Restaurant Long Title =====
+    const restaurantTitle =
+      restaurantType === "Beach"
+        ? "GANESH GARDEN BEACH CABANA - MAHI MAHI SEA FOOD RESTAURANT"
+        : "MARAKOLLIYA BEACH RESORT - SUNSET POOL BAR & RESTAURANT";
+
+    // CREATE EXCEL
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Restaurant Summary");
+
+    // MERGE TITLE AREA
+    sheet.mergeCells("A1:F2");
+
+    // Only set alignment, font, fill, and value on the **top-left cell**
+    const titleCell = sheet.getCell("A1");
+    titleCell.value = restaurantTitle;
+    titleCell.alignment = {
+      horizontal: "center",
+      vertical: "middle",
+      wrapText: true, // important for multiple lines
+    };
+    titleCell.font = { size: 16, bold: true };
+    titleCell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFFFF2CC" }, // light yellow
+    };
+
+    // Optional: Increase row heights for better vertical centering
+    sheet.getRow(1).height = 30;
+    sheet.getRow(2).height = 30;
+
+
+    // ===== SUMMARY TABLE (Left Side) =====
+    sheet.addRow([]);
+    sheet.addRow(["Summary", "Income"]);
+    sheet.addRow(["Check-In", formatNumber(checkInIncome)]);
+    sheet.addRow(["Walk-In", formatNumber(walkInIncome)]);
+    sheet.addRow(["Total", formatNumber(totalIncome)]);
+
+    // Bold header
+    sheet.getRow(3).eachCell((c) => (c.font = { bold: true }));
+
+    // Right align income column
+    sheet.getColumn(2).alignment = { horizontal: "right" };
+
+    // ===== Empty Row Gap =====
+    sheet.addRow([]);
+
+    // ===== MAIN TABLE HEADER =====
+    const headerRow = sheet.addRow([
       "Date",
       "Customer Type",
       "Sub Total",
       "Service Charge",
       "Total Bill",
-      "Order Count"
+      "Order Count",
     ]);
 
-    // ======= INSERT DATA ROWS =======
-    summaryData.forEach(item => {
-      worksheet.addRow([
+    headerRow.eachCell((cell) => {
+      cell.font = { bold: true };
+      cell.alignment = { horizontal: "center" };
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFDDEBF7" },
+      };
+    });
+
+    // ===== INSERT MAIN TABLE DATA =====
+    summaryData.forEach((item) => {
+      const row = sheet.addRow([
         item.date,
         item.customerType,
-        Number(item.totalSubTotal).toFixed(2),
-        Number(item.totalServiceCharge).toFixed(2),
-        Number(item.totalBill).toFixed(2),
-        item.orderCount
+        formatNumber(item.totalSubTotal),
+        formatNumber(item.totalServiceCharge),
+        formatNumber(item.totalBill),
+        item.orderCount,
       ]);
+
+      // Right-align numeric columns
+      row.getCell(3).alignment = { horizontal: "right" };
+      row.getCell(4).alignment = { horizontal: "right" };
+      row.getCell(5).alignment = { horizontal: "right" };
+      row.getCell(6).alignment = { horizontal: "right" };
     });
 
     // Auto column width
-    worksheet.columns.forEach(column => {
-      column.width = 20;
-    });
+    sheet.columns.forEach((col) => (col.width = 20));
 
-    // ======= SEND FILE AS DOWNLOAD =======
+    // Send Excel
     const fileName = `Restaurant-Summary-${startDate}-to-${endDate}.xlsx`;
-
     res.setHeader(
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     );
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename=${fileName}`
-    );
+    res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
 
     await workbook.xlsx.write(res);
     res.end();
-
   } catch (err) {
     console.error("Excel export error:", err);
-    res.status(500).json({
-      status: "fail",
-      message: "Unable to generate Excel",
-      error: err.message
-    });
+    return sendErrorResponse(res, 500, "Unable to generate Excel");
   }
 };
+
+
 
 
 

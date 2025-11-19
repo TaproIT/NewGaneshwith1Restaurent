@@ -31,5 +31,26 @@ export const  formatDate = (date: Date) => {
   })
 }
 
+export const formatToYMD = (input: Date | string | null | undefined) => {
+  const date = input instanceof Date ? input : new Date(input ?? new Date());
+
+  const year = date.getFullYear();
+  const day = String(date.getDate()).padStart(2, "0");
+
+  const months = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+  ];
+
+  const monthName = months[date.getMonth()];
+
+  return `${year} ${monthName} ${day}`;
+};
+
+export const formatNumber = (value: number): string => {
+  return value
+    .toFixed(2)
+    .replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+};
 
 
