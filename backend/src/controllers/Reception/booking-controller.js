@@ -1403,7 +1403,7 @@ export const updateBooking = async (req, res) => {
         if (totalGuests != null) booking.totalGuests = totalGuests;
         if (kids != null) booking.kids = kids;
         if (adults != null) booking.adults = adults;
-        if(customerType != null) booking.customerType;
+        if(customerType != null) booking.customerType = customerType;
         if(breakfast != null) booking.breakfast = breakfast;
 
         // ✅ Room price updates
