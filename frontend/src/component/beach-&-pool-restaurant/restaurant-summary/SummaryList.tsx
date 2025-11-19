@@ -33,9 +33,9 @@ export const RestaurantSummaryList: React.FC<{
       <div className="mb-2 grid grid-cols-6 gap-4 p-3 font-semibold text-[0.875rem] border rounded-lg">
         <div>Date</div>
         <div>Customer Type</div>
-        <div className="w-[70%] text-right">Sub Total</div>
-        <div className="w-[70%] text-right">Service Charge</div>
-        <div className="w-[70%] text-right">Total Bill</div>
+        <div className="w-[70%] text-right">Sub Total - {`(LKR)`}</div>
+        <div className="w-[100%] text-right">Service Charge - {`(LKR)`}</div>
+        <div className="w-[70%] text-right">Total Bill - {`(LKR)`}</div>
         <div className="w-[80%] text-right">Order Count</div>
       </div>
 

@@ -90,7 +90,7 @@ function App() {
                 element={<BeachRestaurantDailySummaryPage />}
               />
               <Route
-                path="/restaurant/summary"
+                path="/restaurant/report"
                 element={<RestaurantSummaryPage />}
               />
 
@@ -103,10 +103,14 @@ function App() {
                 element={<ManageInventory />}
               />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
-              <Route path="/admin/currency-config" element={<CurrencyConfig />} />
+              <Route
+                path="/admin/currency-config"
+                element={<CurrencyConfig />}
+              />
               <Route path="/admin/user-config" element={<UserConfig />} />
               <Route path="/admin/room-config" element={<RoomConfig />} />
               <Route path="/admin/reports" element={<Reports />} />
+              <Route path="/admin/restaurant/reports"element={<RestaurantSummaryPage />} />
             </Route>
             {/* <Route path="/menu" element={<ProtectedRoute><Menu /></ProtectedRoute>} /> */}
           </Routes>

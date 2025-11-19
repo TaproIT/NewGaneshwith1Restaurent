@@ -183,9 +183,9 @@ export const RestaurantSummaryFilterAndCount: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <p className="text-sm text-[#444444]">{item.label}</p>
+                  <p className="text-sm text-[#444444] text-center">{item.label}</p>
                   <div className="mt-1.5  py-1 w-full flex items-center justify-center bg-[#F4F4F4] rounded-md">
-                    <p className="text-sm">{formatNumber(item.value)}</p>
+                    <p className="text-sm">LKR {formatNumber(item.value)}</p>
                   </div>
                 </>
               )}

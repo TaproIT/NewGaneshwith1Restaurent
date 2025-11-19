@@ -83,7 +83,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           </button>
         </div>
 
-        <nav className="mt-10 space-y-4 text-gray w-full">
+        <nav className="mt-5 space-y-2 text-gray w-full">
           {sidebarItems.map((item) => {
             if ((userRole === "Admin" || userRole === "Super-Admin") && item.title === "Reception") {
               return (
