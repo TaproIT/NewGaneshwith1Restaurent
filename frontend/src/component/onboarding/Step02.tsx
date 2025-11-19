@@ -129,6 +129,12 @@ const Step02 = () => {
     if (loadingBooking || roomIds.length === 0) return;
     setLoadingBooking(true);
 
+    if ((updatedRooms ?? []).some(room => !room.currency )) {
+    toast.error("Please select a currency for all rooms before booking.");
+    setLoadingBooking(false);
+    return;
+  }
+
     try {
       // Use Redux currentRooms for price/currency updates
       const selectedRoomsData = updatedRooms.filter((r) =>
