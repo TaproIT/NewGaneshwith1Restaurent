@@ -7,12 +7,13 @@ import { setSelectedOrderId } from "@/features/beach-restaurant/dailySummarySlic
 import React, { useEffect } from "react";
 import { TicketX } from "lucide-react";
 import { CustomerTypes } from "@/lib/enums/order-related-enums";
+import { formatToYMD } from "@/lib/order-util";
 
 export const DailyOrdersList: React.FC<{ orders: DailyOrder[] }> = ({
   orders,
 }) => {
   const dispatch = useDispatch<AppDispatch>();
-  const { selectedOrderId, fetchDailyOrderSummaryStatus, summary, date } =
+  const { selectedOrderId, fetchDailyOrderSummaryStatus, summary, startDate, endDate } =
     useSelector((state: RootState) => state.dailyOrderSummary);
 
   const { loading } = fetchDailyOrderSummaryStatus;
@@ -43,7 +44,7 @@ export const DailyOrdersList: React.FC<{ orders: DailyOrder[] }> = ({
         ) : (
           <>
             <p>{totalTokens} Tokens</p>
-            <p>{date}</p>
+            <p>{formatToYMD(startDate ?? new Date())} - {formatToYMD(endDate ?? new Date())}</p>
           </>
         )}
       </div>

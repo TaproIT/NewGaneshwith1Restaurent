@@ -572,59 +572,141 @@ export const getHoldOrders = async (req, res) => {
   }
 };
 
+// export const getDailyOrdersSummary = async (req, res) => {
+//   try {
+//     const { date } = req.query; // expected format: YYYY-MM-DD
+
+//     const { userId } = req.user;
+
+//     const restaurantType = await getRestaurantTypeByUserRole(userId);
+
+//     if (!date) {
+//       return sendErrorResponse(res, 400, "Date is required");
+//     }
+
+//     // Build start/end of day 
+//     const start = new Date(date);
+//     const end = new Date(date);
+//     end.setDate(end.getDate() + 1);
+
+//     // Query orders within date range 
+//     const orders = await Order.find({
+//       createdAt: { $gte: start, $lt: end },
+//       restaurantType,
+//       orderStatus: OrderStatuses.COMPLETED.value
+//     })
+//       .populate({
+//         path: "orderTokens", 
+//         populate: [
+//           {
+//             path: "foodOrders",
+//             model: "FoodOrderItem",
+//           },
+//           {
+//             path: "beverageOrders",
+//             model: "BeverageOrderItem",
+//           },
+//         ],
+//       })
+//       .lean();
+
+//     // Summary counts 
+//     const dineInCount = orders.filter(
+//       (o) => o.serviceType === ServiceTypes.DINE_IN.value
+//     ).length;
+//     const saveToRoomCount = orders.filter(
+//       (o) => o.serviceType === ServiceTypes.SAVE_TO_ROOM.value
+//     ).length;
+//     const takeAwayCount = orders.filter(
+//       (o) => o.serviceType === ServiceTypes.TAKE_AWAY.value
+//     ).length;
+
+//     // Count total tokens across all orders
+//     const totalTokens = orders.reduce((sum, order) => sum + (order.orderTokens?.length || 0), 0);
+
+//     // Transform orders into DailyOrder format 
+//     const dailyOrders = orders.map((order) => ({
+//       _id: order._id.toString(),
+//       orderNumber: order.orderNumber,
+//       roomNumber: order.roomNumber,
+//       serviceType: order.serviceType,
+//       customerType: order.customerType,
+//       orderTokens: order.orderTokens.map((token) => ({
+//         tokenNumber: token.tokenNumber,
+//         orderedTime: token.createdAt?.toISOString() ?? "",
+//         orderItems: [...token.foodOrders?.map((item) => item.title), ...token.beverageOrders?.map((item) => item.title)] ?? [],
+//       })),
+//     }));
+
+//     return sendSuccessResponse(res, 200, "Daily order summary retrieved successfully", {
+//       date,
+//       summary: {
+//         dineInCount,
+//         saveToRoomCount,
+//         takeAwayCount,
+//         totalOrders: orders.length,
+//         totalTokens, // added here
+//       },
+//       orders: dailyOrders,
+//     });
+//   } catch (error) {
+//     console.error("Error fetching daily orders:", error);
+//     return sendErrorResponse(res, 500, "Internal server error");
+//   }
+// };
+
+
 export const getDailyOrdersSummary = async (req, res) => {
   try {
-    const { date } = req.query; // expected format: YYYY-MM-DD
-
+    const { startDate, endDate, restaurantType } = req.query; // YYYY-MM-DD
     const { userId } = req.user;
 
-    const restaurantType = await getRestaurantTypeByUserRole(userId);
+    const defaultRestaurantType = await getRestaurantTypeByUserRole(userId);
 
-    if (!date) {
-      return sendErrorResponse(res, 400, "Date is required");
+    if (!startDate || !endDate) {
+      return sendErrorResponse(res, 400, "Start date and end date are required");
     }
 
-    // Build start/end of day 
-    const start = new Date(date);
-    const end = new Date(date);
-    end.setDate(end.getDate() + 1);
+    // Build start date = 00:00:00 and end date = next day 00:00:00
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    end.setDate(end.getDate() + 1); // include full endDate day
 
-    // Query orders within date range 
+    // Find orders within range
     const orders = await Order.find({
       createdAt: { $gte: start, $lt: end },
-      restaurantType,
-      orderStatus: OrderStatuses.COMPLETED.value
+      restaurantType: restaurantType || defaultRestaurantType,
+      orderStatus: OrderStatuses.COMPLETED.value,
     })
       .populate({
-        path: "orderTokens", 
+        path: "orderTokens",
         populate: [
-          {
-            path: "foodOrders",
-            model: "FoodOrderItem",
-          },
-          {
-            path: "beverageOrders",
-            model: "BeverageOrderItem",
-          },
+          { path: "foodOrders", model: "FoodOrderItem" },
+          { path: "beverageOrders", model: "BeverageOrderItem" },
         ],
       })
       .lean();
 
-    // Summary counts 
+    // Summary counts
     const dineInCount = orders.filter(
       (o) => o.serviceType === ServiceTypes.DINE_IN.value
     ).length;
+
     const saveToRoomCount = orders.filter(
       (o) => o.serviceType === ServiceTypes.SAVE_TO_ROOM.value
     ).length;
+
     const takeAwayCount = orders.filter(
       (o) => o.serviceType === ServiceTypes.TAKE_AWAY.value
     ).length;
 
-    // Count total tokens across all orders
-    const totalTokens = orders.reduce((sum, order) => sum + (order.orderTokens?.length || 0), 0);
+    // Count total tokens
+    const totalTokens = orders.reduce(
+      (sum, order) => sum + (order.orderTokens?.length || 0),
+      0
+    );
 
-    // Transform orders into DailyOrder format 
+    // Prepare daily order list
     const dailyOrders = orders.map((order) => ({
       _id: order._id.toString(),
       orderNumber: order.orderNumber,
@@ -634,23 +716,32 @@ export const getDailyOrdersSummary = async (req, res) => {
       orderTokens: order.orderTokens.map((token) => ({
         tokenNumber: token.tokenNumber,
         orderedTime: token.createdAt?.toISOString() ?? "",
-        orderItems: [...token.foodOrders?.map((item) => item.title), ...token.beverageOrders?.map((item) => item.title)] ?? [],
+        orderItems: [
+          ...token.foodOrders?.map((item) => item.title),
+          ...token.beverageOrders?.map((item) => item.title),
+        ],
       })),
     }));
 
-    return sendSuccessResponse(res, 200, "Daily order summary retrieved successfully", {
-      date,
-      summary: {
-        dineInCount,
-        saveToRoomCount,
-        takeAwayCount,
-        totalOrders: orders.length,
-        totalTokens, // added here
-      },
-      orders: dailyOrders,
-    });
+    return sendSuccessResponse(
+      res,
+      200,
+      "Order summary retrieved successfully",
+      {
+        startDate,
+        endDate,
+        summary: {
+          dineInCount,
+          saveToRoomCount,
+          takeAwayCount,
+          totalOrders: orders.length,
+          totalTokens,
+        },
+        orders: dailyOrders,
+      }
+    );
   } catch (error) {
-    console.error("Error fetching daily orders:", error);
+    console.error("Error fetching order summary:", error);
     return sendErrorResponse(res, 500, "Internal server error");
   }
 };

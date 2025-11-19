@@ -21,6 +21,8 @@ export interface DailyOrder{
 
 export interface DailyOrderSummary {
   date: string;
+  startDate: Date | undefined,
+  endDate: Date | undefined,
   summary: {
     dineInCount: number;
     takeAwayCount: number;
