@@ -18,6 +18,7 @@ interface SelectedRoomsListProps {
 interface EditableRoom extends Room {
   perDayPrice: number;
   currency: SupportedCurrency;
+  perDayCurrency: SupportedCurrency;
 }
 
 const SelectedRoomsList: React.FC<SelectedRoomsListProps> = ({
@@ -39,7 +40,8 @@ const SelectedRoomsList: React.FC<SelectedRoomsListProps> = ({
     const roomsWithCurrency: EditableRoom[] = selectedRooms.map((r) => ({
       ...r,
       perDayPrice: r.perDayPrice || r.price || 0,
-      currency: (r.currency as SupportedCurrency) || "LKR",
+      currency: null as unknown as SupportedCurrency,
+      perDayCurrency: (r.currency as SupportedCurrency) || "LKR",
     }));
     setEditableRooms(roomsWithCurrency);
 
@@ -118,7 +120,7 @@ const SelectedRoomsList: React.FC<SelectedRoomsListProps> = ({
             <div className="flex items-center justify-between text-gray">
               <h2 className="text-sm font-medium">Room-{room.no}</h2>
               <div className="text-lg font-medium text-Primary_blue">
-                {room.currency} {room.price ? room.price : room.perDayPrice}
+                {room.currency ? room.currency : room.perDayCurrency} {room.price ? room.price : room.perDayPrice}
               </div>
             </div>
 
@@ -143,12 +145,13 @@ const SelectedRoomsList: React.FC<SelectedRoomsListProps> = ({
                 <div className="flex flex-col">
                   <label className="text-xs text-gray-500 mb-1">Currency</label>
                   <select
-                    value={room.currency}
+                    value={room.currency ?? ""}
                     onChange={(e) =>
                       handleCurrencyChange(e.target.value as SupportedCurrency)
                     }
                     className="border rounded-lg px-2 py-1 bg-white text-sm focus:ring-2 focus:ring-Primary_blue focus:outline-none"
                   >
+                    <option value="">Select</option>
                     <option value="LKR">LKR</option>
                     <option value="USD">USD</option>
                     <option value="EUR">EUR</option>
@@ -179,7 +182,7 @@ const SelectedRoomsList: React.FC<SelectedRoomsListProps> = ({
                 className="col-span-2 text-left truncate max-w-[140px] text-sm cursor-pointer"
                 // title={totalPriceDisplay}
               >
-                {room.currency} {room.perDayPrice * lengthOfStay}
+                {room.currency ? room.currency : room.perDayCurrency} {room.perDayPrice * lengthOfStay}
               </span>
             </div>
 
