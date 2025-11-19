@@ -13,6 +13,7 @@ export interface DailyOrderToken {
 export interface DailyOrder{
    _id: string;
    orderNumber: string;
+   paymentMethod: string;
    roomNumber?: string;
    serviceType: string;
    customerType: string;
@@ -21,6 +22,8 @@ export interface DailyOrder{
 
 export interface DailyOrderSummary {
   date: string;
+  startDate: Date | undefined,
+  endDate: Date | undefined,
   summary: {
     dineInCount: number;
     takeAwayCount: number;
