@@ -52,11 +52,11 @@ export async function printFinalBill({
         <tr class="row-line">
           <td>
             Room ${room.roomNo} 
-            (${room.nights} × ${room.perDayPrice} ${room.currency}${
+            (${room.nights || room.night} × ${room.perDayPrice} ${room.currency}${
         room.lkrRate ? ` × ${room.lkrRate} LKR` : ""
       })
           </td>
-          <td class="right">${room.displayPrice}</td>
+          <td class="right">LKR ${room.displayPrice || formatPrice(room.finalRoomTotalPrice)}</td>
         </tr>
       `
     )
@@ -70,20 +70,28 @@ export async function printFinalBill({
       (order: any) => `
         <tr class="row-line">
           <td>${order.date} — ${order.type} Restaurant</td>
-          <td class="right">${order.displayTotal}</td>
+          <td class="right">LKR ${order.displayTotal || formatPrice(order.total)}</td>
         </tr>
       `
     )
     .join("") || "";
+
+    // Filter out spa, miniBar, laundary items from additionalPrice list
+const filteredAdditional = additionalPrice?.filter((item: any) => {
+  const name = item.name?.toLowerCase();
+  return name !== "spa" && name !== "mini bar" && name !== "laundry";
+}) || [];
+
 
   // ADDITIONAL CHARGES HTML
   const additionalHTML = `
       ${spa ? `<tr class="row-line"><td>Spa</td><td class="right">LKR ${formatPrice(spa)}</td></tr>` : ""}
       ${miniBar ? `<tr class="row-line"><td>Mini Bar</td><td class="right">LKR ${formatPrice(miniBar)}</td></tr>` : ""}
       ${laundary ? `<tr class="row-line"><td>Laundry</td><td class="right">LKR ${formatPrice(laundary)}</td></tr>` : ""}
+
       ${
-        additionalPrice?.length
-          ? additionalPrice
+        filteredAdditional.length
+          ? filteredAdditional
               .map(
                 (item: any) => `
           <tr class="row-line">
@@ -95,7 +103,8 @@ export async function printFinalBill({
               .join("")
           : ""
       }
-  `;
+`;
+
 
   const html = `
 <!DOCTYPE html>
@@ -158,7 +167,7 @@ export async function printFinalBill({
 
   <div class="section-title">Guest Details</div>
   <table>
-    <tr class="row-line"><td>Booking ID</td><td class="right">#${booking?.bookingId}</td></tr>
+    <tr class="row-line"><td>Booking ID</td><td class="right">#${booking?.bookingId || booking.uniqueBookingId}</td></tr>
     <tr class="row-line"><td>Customer</td><td class="right">${booking?.guestName}</td></tr>
      <tr class="row-line"><td>Customer Type</td><td class="right">#${booking?.customerType}</td></tr>
     <tr class="row-line"><td>Check-In Date</td><td class="right">${booking?.checkIn.split("T")[0]}</td></tr>
@@ -182,7 +191,7 @@ export async function printFinalBill({
     <tr><td>Discount</td><td class="right">- LKR ${formatPrice(discount)}</td></tr>
 
     <tr class="total-row"><td>Grand Total</td><td class="right">LKR ${formatPrice(totalBill)}</td></tr>
-    <tr><td>Payment Method</td><td class="right">LKR ${formatPrice(selectedPayment)}</td></tr>
+    <tr><td>Payment Method</td><td class="right">${selectedPayment}</td></tr>
   </table>
 
   <div class="footer">

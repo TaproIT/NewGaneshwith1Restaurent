@@ -27,6 +27,7 @@ import BookingUpdate from "./pages/reception/bookings/BookingUpdate";
 import Bookings from "./pages/reception/bookings/bookings";
 import RestaurantSummaryPage from "./pages/beach-restaurant/RestaurantSummaryPage";
 import Reports from "./pages/admin/Reports";
+import CheckoutCompletedDetails from "./component/checkout/CheckoutCompletedDetails";
 
 //import PrintButton from "./component/SamplePrint";
 
@@ -63,6 +64,7 @@ function App() {
               <Route path="/switch-rooms" element={<SwitchRooms />} />
               <Route path="/checkouts" element={<Checkouts />} />
               <Route path="/checkout-details" element={<CheckoutDetails />} />
+              <Route path="/completed-checkout-details" element={<CheckoutCompletedDetails />} />
               <Route path="/invoice" element={<Invoice />} />
               <Route path="/room-config" element={<RoomConfig />} />
               <Route path="/bookings" element={<Bookings />} />
