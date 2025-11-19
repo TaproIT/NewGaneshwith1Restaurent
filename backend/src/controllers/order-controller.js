@@ -9,6 +9,7 @@ import { sendErrorResponse, sendSuccessResponse } from "../utils/response-util.j
 import mongoose from "mongoose";
 import { getRestaurantTypeByUserRole } from "../utils/user-util.js";
 import { updateBeverageQuantityManually, updateBeverageVolumeManually } from "../utils/beverageStock.js";
+import ExcelJS from "exceljs";
 
 export const setInitialOrderDetails = async (req, res) => {
     try{
@@ -916,6 +917,128 @@ export const getDailyRestaurantTotals = async (req, res) => {
     res.status(500).json({
       status: "fail",
       message: "Internal Server Error"
+    });
+  }
+};
+
+export const exportRestaurantSummaryExcel = async (req, res) => {
+  try {
+    const { startDate, endDate, restaurantType } = req.query;
+    //const { userId } = req.user;
+
+    //const restaurant = await getRestaurantTypeByUserRole(userId);
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({
+        status: "fail",
+        message: "startDate and endDate are required"
+      });
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+
+    // ======= SAME AGGREGATION LOGIC =======
+    const summaryData = await Order.aggregate([
+      {
+        $match: {
+          //restaurantType: restaurantType ? restaurantType : restaurant,
+          restaurantType: RestaurantTypes.BEACH.value,
+          createdAt: { $gte: start, $lte: end }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
+            day: { $dayOfMonth: "$createdAt" },
+            customerType: "$customerType"
+          },
+          totalSubTotal: { $sum: "$subTotal" },
+          totalServiceCharge: { $sum: "$serviceCharge" },
+          totalBill: { $sum: "$totalBill" },
+          orderCount: { $sum: 1 }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          customerType: "$_id.customerType",
+          date: {
+            $dateToString: {
+              format: "%Y-%m-%d",
+              date: {
+                $dateFromParts: {
+                  year: "$_id.year",
+                  month: "$_id.month",
+                  day: "$_id.day"
+                }
+              }
+            }
+          },
+          totalSubTotal: 1,
+          totalServiceCharge: 1,
+          totalBill: 1,
+          orderCount: 1
+        }
+      },
+      { $sort: { date: 1 } }
+    ]);
+
+    // ======= CREATE EXCEL WORKBOOK =======
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Restaurant Summary");
+
+    // Excel Header Row
+    worksheet.addRow([
+      "Date",
+      "Customer Type",
+      "Sub Total",
+      "Service Charge",
+      "Total Bill",
+      "Order Count"
+    ]);
+
+    // ======= INSERT DATA ROWS =======
+    summaryData.forEach(item => {
+      worksheet.addRow([
+        item.date,
+        item.customerType,
+        Number(item.totalSubTotal).toFixed(2),
+        Number(item.totalServiceCharge).toFixed(2),
+        Number(item.totalBill).toFixed(2),
+        item.orderCount
+      ]);
+    });
+
+    // Auto column width
+    worksheet.columns.forEach(column => {
+      column.width = 20;
+    });
+
+    // ======= SEND FILE AS DOWNLOAD =======
+    const fileName = `Restaurant-Summary-${startDate}-to-${endDate}.xlsx`;
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=${fileName}`
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
+
+  } catch (err) {
+    console.error("Excel export error:", err);
+    res.status(500).json({
+      status: "fail",
+      message: "Unable to generate Excel",
+      error: err.message
     });
   }
 };
