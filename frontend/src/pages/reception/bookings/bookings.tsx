@@ -6,23 +6,33 @@ import type { Booking } from "@/types/bookingUpdate";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
+type CompletedBooking = Booking & {
+  checkIn: string;
+  checkOut: string;
+  totalBill: number;
+};
+
 const Bookings: React.FC = () => {
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [activeBookings, setActiveBookings] = useState<Booking[]>([]);
+  const [completedBookings, setCompletedBookings] = useState<
+    CompletedBooking[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Pagination state
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10); // 🔥 User can change rows per page
+  const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
+
+  const [showCompleted, setShowCompleted] = useState(false); // 🔥 Toggle state
 
   const navigate = useNavigate();
 
   // =============================
-  // 🔥 Fetch bookings from API
+  // Fetch active bookings
   // =============================
-  const fetchBookings = async (
-    term: string = "",
+  const fetchActiveBookings = async (
+    term = "",
     pageNumber = 1,
     pageSize = limit
   ) => {
@@ -33,43 +43,83 @@ const Bookings: React.FC = () => {
         page: pageNumber,
         limit: pageSize,
       });
-
-      const data = res.data.bookings || res.data.data || [];
-      setBookings(data);
-
+      setActiveBookings(res.data.bookings || res.data.data || []);
       setTotalPages(res.data.totalPages || 1);
     } catch (error) {
-      console.error("Failed to fetch bookings:", error);
+      console.error("Failed to fetch active bookings:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Load when page changes
-  useEffect(() => {
-    fetchBookings(searchTerm.trim(), page, limit);
-  }, [page]);
+  // =============================
+  // Fetch completed bookings
+  // =============================
+  const fetchCompletedBookings = async (
+    term = "",
+    pageNumber = 1,
+    pageSize = limit
+  ) => {
+    setLoading(true);
+    try {
+      const res = await api.get(
+        `/booking/completed?searchTerm=${term}&page=${pageNumber}&limit=${pageSize}`
+      );
+      setCompletedBookings(res.data.data || []);
+      console.log(res.data);
+    } catch (error) {
+      console.error("Failed to fetch completed bookings:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Load when limit changes → reset to first page
+  // =============================
+  // Load bookings based on toggle
+  // =============================
+  const loadBookings = () => {
+    if (showCompleted) {
+      fetchCompletedBookings(searchTerm.trim(), page, limit);
+    } else {
+      fetchActiveBookings(searchTerm.trim(), page, limit);
+    }
+  };
+
   useEffect(() => {
-    setPage(1);
-    fetchBookings(searchTerm.trim(), 1, limit);
-  }, [limit]);
+    loadBookings();
+  }, [page, limit, showCompleted]);
 
   // Search handler
   const handleSearch = () => {
     setPage(1);
-    fetchBookings(searchTerm.trim(), 1, limit);
+    loadBookings();
   };
 
   return (
     <div className="p-6 rounded-2xl bg-mainWhite h-[calc(100vh-140px)] overflow-hidden">
-
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between md:items-end mb-4 gap-3">
-        <h2 className="text-xl font-semibold text-gray-800">Bookings</h2>
+        <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+          <Button
+            onClick={() => {
+              setShowCompleted(false);
+              setPage(1);
+            }}
+            variant={showCompleted ? "outline" : "default"}
+          >
+            Bookings
+          </Button>
+          <Button
+            onClick={() => {
+              setShowCompleted(true);
+              setPage(1);
+            }}
+            variant={showCompleted ? "default" : "outline"}
+          >
+            Completed Checkouts
+          </Button>
+        </h2>
 
-        {/* Search Input */}
         <div className="flex gap-2 items-center">
           <input
             type="text"
@@ -87,7 +137,6 @@ const Bookings: React.FC = () => {
 
       {/* Table */}
       <Card className="rounded-lg border border-gray-200 shadow-sm h-full overflow-y-auto pt-0">
-
         {loading ? (
           <UserTableSkeleton />
         ) : (
@@ -100,37 +149,70 @@ const Bookings: React.FC = () => {
                   <th className="py-3 px-4 text-left">Rooms</th>
                   <th className="py-3 px-4 text-left">Guest Name</th>
                   <th className="py-3 px-4 text-left">Guest Count</th>
+                  {showCompleted && (
+                    <th className="py-3 px-4 text-left">Check Out</th>
+                  )}
+                  {showCompleted && (
+                    <th className="py-3 px-4 text-left">Total Bill</th>
+                  )}
                   <th className="py-3 px-4 text-center">Action</th>
                 </tr>
               </thead>
 
               <tbody>
-                {bookings.length > 0 ? (
-                  bookings.map((bk, index) => (
-                    <tr
-                      key={bk._id}
-                      className="border-b hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="py-3 px-4">
-                        {(page - 1) * limit + index + 1}
-                      </td>
-                      <td className="py-3 px-4">{bk.uniqueBookingId}</td>
-                      <td className="py-3 px-4">
-                        {bk.currentRooms?.map((r) => r.roomNo).join(", ") || "-"}
-                      </td>
-                      <td className="py-3 px-4">{bk.guestName}</td>
-                      <td className="py-3 px-4">{bk.totalGuests}</td>
-                      <td className="py-3 px-4 text-center">
-                        <Button onClick={() => navigate(`/bookings/${bk._id}`)}>
-                          Update
-                        </Button>
-                      </td>
-                    </tr>
-                  ))
+                {(showCompleted ? completedBookings : activeBookings).length >
+                0 ? (
+                  (showCompleted ? completedBookings : activeBookings).map(
+                    (bk, index) => (
+                      <tr
+                        key={bk._id}
+                        className="border-b hover:bg-gray-50 transition-colors"
+                      >
+                        <td className="py-3 px-4">
+                          {(page - 1) * limit + index + 1}
+                        </td>
+                        <td className="py-3 px-4">{bk.uniqueBookingId}</td>
+                        <td className="py-3 px-4">
+                          {bk.currentRooms?.map((r) => r.roomNo).join(", ") ||
+                            "-"}
+                        </td>
+                        <td className="py-3 px-4">{bk.guestName}</td>
+                        <td className="py-3 px-4">{bk.totalGuests}</td>
+                        {showCompleted && (
+                          <td className="py-3 px-4">
+                            {new Date(bk.checkOut).toLocaleString()}
+                          </td>
+                        )}
+                        {showCompleted && (
+                          <td className="py-3 px-4">
+                            {bk.totalBill?.toFixed(2)}
+                          </td>
+                        )}
+                        <td className="py-3 px-4 text-center">
+                          <Button
+                            onClick={() => {
+                              if (showCompleted) {
+                                navigate("/completed-checkout-details", {
+                                  state: {
+                                    id: bk._id,
+                                    isCompleted: true,
+                                  },
+                                });
+                              } else {
+                                navigate(`/bookings/${bk._id}`);
+                              }
+                            }}
+                          >
+                            {showCompleted ? "View" : "Update"}
+                          </Button>
+                        </td>
+                      </tr>
+                    )
+                  )
                 ) : (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={showCompleted ? 8 : 6}
                       className="text-center py-8 text-gray-500 italic"
                     >
                       No bookings found.
@@ -140,10 +222,8 @@ const Bookings: React.FC = () => {
               </tbody>
             </table>
 
-            {/* Pagination Bar */}
+            {/* Pagination */}
             <div className="flex justify-between items-center p-4 border-t bg-white">
-
-              {/* Limit Dropdown */}
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600">Rows per page:</span>
                 <select
@@ -158,7 +238,6 @@ const Bookings: React.FC = () => {
                 </select>
               </div>
 
-              {/* Pagination Buttons */}
               <div className="flex items-center gap-4">
                 <Button
                   disabled={page === 1}
@@ -180,11 +259,9 @@ const Bookings: React.FC = () => {
                   Next
                 </Button>
               </div>
-
             </div>
           </>
         )}
-
       </Card>
     </div>
   );
