@@ -74,6 +74,7 @@ const BeverageItemSelector: React.FC<BeverageItemSelectorProps> = ({ beverageIte
   const handleAddClick = useCallback(() => {
     const orderBeverageItem: OrderBeverageItem = {
       beverageId: beverageItem._id,
+      category: beverageItem.extraBeverageCategory?.name || (beverageItem.category ?? ""),
       title: beverageItem.beverageName,
       price: beverageItem.price, 
       quantity: 1,
