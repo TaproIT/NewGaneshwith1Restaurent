@@ -774,6 +774,7 @@ export const getDailyOrdersSummary = async (req, res) => {
       _id: order._id.toString(),
       orderNumber: order.orderNumber,
       roomNumber: order.roomNumber,
+      paymentMethod: order.paymentMethod,
       serviceType: order.serviceType,
       customerType: order.customerType,
       orderTokens: order.orderTokens.map((token) => ({
