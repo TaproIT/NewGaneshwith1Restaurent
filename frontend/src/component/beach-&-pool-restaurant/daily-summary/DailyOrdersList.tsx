@@ -7,12 +7,13 @@ import { setSelectedOrderId } from "@/features/beach-restaurant/dailySummarySlic
 import React, { useEffect } from "react";
 import { TicketX } from "lucide-react";
 import { CustomerTypes } from "@/lib/enums/order-related-enums";
+import { formatToYMD } from "@/lib/order-util";
 
 export const DailyOrdersList: React.FC<{ orders: DailyOrder[] }> = ({
   orders,
 }) => {
   const dispatch = useDispatch<AppDispatch>();
-  const { selectedOrderId, fetchDailyOrderSummaryStatus, summary, date } =
+  const { selectedOrderId, fetchDailyOrderSummaryStatus, summary, startDate, endDate } =
     useSelector((state: RootState) => state.dailyOrderSummary);
 
   const { loading } = fetchDailyOrderSummaryStatus;
@@ -43,15 +44,16 @@ export const DailyOrdersList: React.FC<{ orders: DailyOrder[] }> = ({
         ) : (
           <>
             <p>{totalTokens} Tokens</p>
-            <p>{date}</p>
+            <p>{formatToYMD(startDate ?? new Date())} - {formatToYMD(endDate ?? new Date())}</p>
           </>
         )}
       </div>
 
       {/* Header Row */}
-      <div className="mb-2 grid grid-cols-8 gap-4 p-3 font-semibold text-[0.875rem] border rounded-lg">
+      <div className="mb-2 grid grid-cols-9 gap-4 p-3 font-semibold text-[0.875rem] border rounded-lg">
         <div className="col-span-1">Order Number</div>
-         <div className="col-span-1">Room Number</div>
+        <div className="col-span-1">Room Number</div>
+        <div className="col-span-1">Payment Method</div>
         <div className="col-span-1">Token Numbers</div>
         <div className="col-span-4">Food Items</div>
         <div className="col-span-1">Service Type</div>
@@ -102,7 +104,7 @@ export const DailyOrdersList: React.FC<{ orders: DailyOrder[] }> = ({
                 <div
                   key={order._id}
                   onClick={() => dispatch(setSelectedOrderId(order._id))}
-                  className={`grid grid-cols-8 gap-4 p-3 text-sm border-2 rounded-lg cursor-pointer transition-colors
+                  className={`grid grid-cols-9 gap-4 p-3 text-sm border-2 rounded-lg cursor-pointer transition-colors
                     ${
                       isSelected
                         ? "bg-[#F4F4F4] border-[#444444]"
@@ -116,6 +118,10 @@ export const DailyOrdersList: React.FC<{ orders: DailyOrder[] }> = ({
 
                    <div className="col-span-1 flex items-center">
                     {order.roomNumber !== "0" ? order.roomNumber : "No"}
+                  </div>
+
+                   <div className="col-span-1 flex items-center">
+                    {order.paymentMethod}
                   </div>
 
                   {/* Token Numbers */}

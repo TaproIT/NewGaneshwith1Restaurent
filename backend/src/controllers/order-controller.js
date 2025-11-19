@@ -9,6 +9,7 @@ import { sendErrorResponse, sendSuccessResponse } from "../utils/response-util.j
 import mongoose from "mongoose";
 import { getRestaurantTypeByUserRole } from "../utils/user-util.js";
 import { updateBeverageQuantityManually, updateBeverageVolumeManually } from "../utils/beverageStock.js";
+import ExcelJS from "exceljs";
 
 export const setInitialOrderDetails = async (req, res) => {
     try{
@@ -634,85 +635,177 @@ export const getHoldOrders = async (req, res) => {
   }
 };
 
+// export const getDailyOrdersSummary = async (req, res) => {
+//   try {
+//     const { date } = req.query; // expected format: YYYY-MM-DD
+
+//     const { userId } = req.user;
+
+//     const restaurantType = await getRestaurantTypeByUserRole(userId);
+
+//     if (!date) {
+//       return sendErrorResponse(res, 400, "Date is required");
+//     }
+
+//     // Build start/end of day 
+//     const start = new Date(date);
+//     const end = new Date(date);
+//     end.setDate(end.getDate() + 1);
+
+//     // Query orders within date range 
+//     const orders = await Order.find({
+//       createdAt: { $gte: start, $lt: end },
+//       restaurantType,
+//       orderStatus: OrderStatuses.COMPLETED.value
+//     })
+//       .populate({
+//         path: "orderTokens", 
+//         populate: [
+//           {
+//             path: "foodOrders",
+//             model: "FoodOrderItem",
+//           },
+//           {
+//             path: "beverageOrders",
+//             model: "BeverageOrderItem",
+//           },
+//         ],
+//       })
+//       .lean();
+
+//     // Summary counts 
+//     const dineInCount = orders.filter(
+//       (o) => o.serviceType === ServiceTypes.DINE_IN.value
+//     ).length;
+//     const saveToRoomCount = orders.filter(
+//       (o) => o.serviceType === ServiceTypes.SAVE_TO_ROOM.value
+//     ).length;
+//     const takeAwayCount = orders.filter(
+//       (o) => o.serviceType === ServiceTypes.TAKE_AWAY.value
+//     ).length;
+
+//     // Count total tokens across all orders
+//     const totalTokens = orders.reduce((sum, order) => sum + (order.orderTokens?.length || 0), 0);
+
+//     // Transform orders into DailyOrder format 
+//     const dailyOrders = orders.map((order) => ({
+//       _id: order._id.toString(),
+//       orderNumber: order.orderNumber,
+//       roomNumber: order.roomNumber,
+//       serviceType: order.serviceType,
+//       customerType: order.customerType,
+//       orderTokens: order.orderTokens.map((token) => ({
+//         tokenNumber: token.tokenNumber,
+//         orderedTime: token.createdAt?.toISOString() ?? "",
+//         orderItems: [...token.foodOrders?.map((item) => item.title), ...token.beverageOrders?.map((item) => item.title)] ?? [],
+//       })),
+//     }));
+
+//     return sendSuccessResponse(res, 200, "Daily order summary retrieved successfully", {
+//       date,
+//       summary: {
+//         dineInCount,
+//         saveToRoomCount,
+//         takeAwayCount,
+//         totalOrders: orders.length,
+//         totalTokens, // added here
+//       },
+//       orders: dailyOrders,
+//     });
+//   } catch (error) {
+//     console.error("Error fetching daily orders:", error);
+//     return sendErrorResponse(res, 500, "Internal server error");
+//   }
+// };
+
+
 export const getDailyOrdersSummary = async (req, res) => {
   try {
-    const { date } = req.query; // expected format: YYYY-MM-DD
-
+    const { startDate, endDate, restaurantType } = req.query; // YYYY-MM-DD
     const { userId } = req.user;
 
-    const restaurantType = await getRestaurantTypeByUserRole(userId);
+    const defaultRestaurantType = await getRestaurantTypeByUserRole(userId);
 
-    if (!date) {
-      return sendErrorResponse(res, 400, "Date is required");
+    if (!startDate || !endDate) {
+      return sendErrorResponse(res, 400, "Start date and end date are required");
     }
 
-    // Build start/end of day 
-    const start = new Date(date);
-    const end = new Date(date);
-    end.setDate(end.getDate() + 1);
+    // Build start date = 00:00:00 and end date = next day 00:00:00
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    end.setDate(end.getDate() + 1); // include full endDate day
 
-    // Query orders within date range 
+    // Find orders within range
     const orders = await Order.find({
       createdAt: { $gte: start, $lt: end },
-      restaurantType,
-      orderStatus: OrderStatuses.COMPLETED.value
+      restaurantType: restaurantType || defaultRestaurantType,
+      orderStatus: OrderStatuses.COMPLETED.value,
     })
       .populate({
-        path: "orderTokens", 
+        path: "orderTokens",
         populate: [
-          {
-            path: "foodOrders",
-            model: "FoodOrderItem",
-          },
-          {
-            path: "beverageOrders",
-            model: "BeverageOrderItem",
-          },
+          { path: "foodOrders", model: "FoodOrderItem" },
+          { path: "beverageOrders", model: "BeverageOrderItem" },
         ],
       })
       .lean();
 
-    // Summary counts 
+    // Summary counts
     const dineInCount = orders.filter(
       (o) => o.serviceType === ServiceTypes.DINE_IN.value
     ).length;
+
     const saveToRoomCount = orders.filter(
       (o) => o.serviceType === ServiceTypes.SAVE_TO_ROOM.value
     ).length;
+
     const takeAwayCount = orders.filter(
       (o) => o.serviceType === ServiceTypes.TAKE_AWAY.value
     ).length;
 
-    // Count total tokens across all orders
-    const totalTokens = orders.reduce((sum, order) => sum + (order.orderTokens?.length || 0), 0);
+    // Count total tokens
+    const totalTokens = orders.reduce(
+      (sum, order) => sum + (order.orderTokens?.length || 0),
+      0
+    );
 
-    // Transform orders into DailyOrder format 
+    // Prepare daily order list
     const dailyOrders = orders.map((order) => ({
       _id: order._id.toString(),
       orderNumber: order.orderNumber,
       roomNumber: order.roomNumber,
+      paymentMethod: order.paymentMethod,
       serviceType: order.serviceType,
       customerType: order.customerType,
       orderTokens: order.orderTokens.map((token) => ({
         tokenNumber: token.tokenNumber,
         orderedTime: token.createdAt?.toISOString() ?? "",
-        orderItems: [...token.foodOrders?.map((item) => item.title), ...token.beverageOrders?.map((item) => item.title)] ?? [],
+        orderItems: [
+          ...token.foodOrders?.map((item) => item.title),
+          ...token.beverageOrders?.map((item) => item.title),
+        ],
       })),
     }));
 
-    return sendSuccessResponse(res, 200, "Daily order summary retrieved successfully", {
-      date,
-      summary: {
-        dineInCount,
-        saveToRoomCount,
-        takeAwayCount,
-        totalOrders: orders.length,
-        totalTokens, // added here
-      },
-      orders: dailyOrders,
-    });
+    return sendSuccessResponse(
+      res,
+      200,
+      "Order summary retrieved successfully",
+      {
+        startDate,
+        endDate,
+        summary: {
+          dineInCount,
+          saveToRoomCount,
+          takeAwayCount,
+          totalOrders: orders.length,
+          totalTokens,
+        },
+        orders: dailyOrders,
+      }
+    );
   } catch (error) {
-    console.error("Error fetching daily orders:", error);
+    console.error("Error fetching order summary:", error);
     return sendErrorResponse(res, 500, "Internal server error");
   }
 };
@@ -1198,20 +1291,16 @@ export const cancelOrder = async (req, res) => {
 export const getDailyRestaurantTotals = async (req, res) => {
   try {
     const { startDate, endDate, restaurantType } = req.query;
-
-    console.log(restaurantType);
-
     const { userId } = req.user;
 
     const restaurant = await getRestaurantTypeByUserRole(userId);
 
-    console.log("res",restaurant);
-
-    if (!startDate || !endDate ) {
-      return res.status(400).json({
-        status: "fail",
-        message: "startDate, endDate and restaurantType are required"
-      });
+    if (!startDate || !endDate) {
+      return sendErrorResponse(
+        res,
+        400,
+        "startDate and endDate are required"
+      );
     }
 
     const start = new Date(startDate);
@@ -1221,7 +1310,7 @@ export const getDailyRestaurantTotals = async (req, res) => {
     const data = await Order.aggregate([
       {
         $match: {
-          restaurantType: restaurantType? restaurantType : restaurant,
+          restaurantType: restaurantType ? restaurantType : restaurant,
           createdAt: { $gte: start, $lte: end }
         }
       },
@@ -1231,7 +1320,7 @@ export const getDailyRestaurantTotals = async (req, res) => {
             year: { $year: "$createdAt" },
             month: { $month: "$createdAt" },
             day: { $dayOfMonth: "$createdAt" },
-            customerType: "$customerType"   // ← grouped by date + customerType
+            customerType: "$customerType"
           },
           totalSubTotal: { $sum: "$subTotal" },
           totalServiceCharge: { $sum: "$serviceCharge" },
@@ -1268,33 +1357,231 @@ export const getDailyRestaurantTotals = async (req, res) => {
     let walkInIncome = 0;
     let checkInIncome = 0;
 
-    data.map((dailySummary) => {
-       totalIncome += dailySummary.totalBill; 
+    data.forEach((dailySummary) => {
+      totalIncome += dailySummary.totalBill;
 
-       if (dailySummary.customerType === CustomerTypes.WALK_IN.value) {
-            walkInIncome += dailySummary.totalBill;
-       } else {
-            checkInIncome += dailySummary.totalBill
-       }
-    })
-
-    return res.json({
-      status: "success",
-      restaurantType:RestaurantTypes.BEACH.value,
-      totalIncome : Math.round(totalIncome * 100) /100,
-      walkInIncome : Math.round(walkInIncome * 100) /100,
-      checkInIncome : Math.round(checkInIncome * 100) /100,
-      summaryList: data
+      if (dailySummary.customerType === CustomerTypes.WALK_IN.value) {
+        walkInIncome += dailySummary.totalBill;
+      } else {
+        checkInIncome += dailySummary.totalBill;
+      }
     });
+
+    const responseData = {
+      restaurantType: RestaurantTypes.BEACH.value,
+      totalIncome: Math.round(totalIncome * 100) / 100,
+      walkInIncome: Math.round(walkInIncome * 100) / 100,
+      checkInIncome: Math.round(checkInIncome * 100) / 100,
+      summaryList: data,
+    };
+
+    return sendSuccessResponse(
+      res,
+      200,
+      "Daily restaurant totals fetched successfully",
+      responseData
+    );
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({
-      status: "fail",
-      message: "Internal Server Error"
-    });
+    return sendErrorResponse(
+      res,
+      500,
+      "Internal Server Error"
+    );
   }
 };
+
+export const exportRestaurantSummaryExcel = async (req, res) => {
+  try {
+    const { startDate, endDate, restaurantType } = req.query;
+    const { userId } = req.user;
+
+    const defaultRestaurant = await getRestaurantTypeByUserRole(userId);
+
+    if (!startDate || !endDate) {
+      return sendErrorResponse(res, 400, "startDate and endDate are required");
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+
+    const summaryData = await Order.aggregate([
+      {
+        $match: {
+          restaurantType: restaurantType ? restaurantType : defaultRestaurant,
+          createdAt: { $gte: start, $lte: end },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
+            day: { $dayOfMonth: "$createdAt" },
+            customerType: "$customerType",
+          },
+          totalSubTotal: { $sum: "$subTotal" },
+          totalServiceCharge: { $sum: "$serviceCharge" },
+          totalBill: { $sum: "$totalBill" },
+          orderCount: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          customerType: "$_id.customerType",
+          date: {
+            $dateToString: {
+              format: "%Y-%m-%d",
+              date: {
+                $dateFromParts: {
+                  year: "$_id.year",
+                  month: "$_id.month",
+                  day: "$_id.day",
+                },
+              },
+            },
+          },
+          totalSubTotal: 1,
+          totalServiceCharge: 1,
+          totalBill: 1,
+          orderCount: 1,
+        },
+      },
+      { $sort: { date: 1 } },
+    ]);
+
+    // ===== Number Formatter =====
+    const formatNumber = (value) => {
+      return Number(value)
+        .toFixed(2)
+        .replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    };
+
+    // ===== Calculate Totals =====
+    let totalIncome = 0,
+      walkInIncome = 0,
+      checkInIncome = 0;
+
+    summaryData.forEach((item) => {
+      totalIncome += item.totalBill;
+
+      if (item.customerType === CustomerTypes.WALK_IN.value) {
+        walkInIncome += item.totalBill;
+      } else {
+        checkInIncome += item.totalBill;
+      }
+    });
+
+    // ===== Restaurant Long Title =====
+    const restaurantTitle =
+      restaurantType === "Beach"
+        ? "GANESH GARDEN BEACH CABANA - MAHI MAHI SEA FOOD RESTAURANT"
+        : "MARAKOLLIYA BEACH RESORT - SUNSET POOL BAR & RESTAURANT";
+
+    // CREATE EXCEL
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Restaurant Summary");
+
+    // MERGE TITLE AREA
+    sheet.mergeCells("A1:F2");
+
+    // Only set alignment, font, fill, and value on the **top-left cell**
+    const titleCell = sheet.getCell("A1");
+    titleCell.value = restaurantTitle;
+    titleCell.alignment = {
+      horizontal: "center",
+      vertical: "middle",
+      wrapText: true, // important for multiple lines
+    };
+    titleCell.font = { size: 16, bold: true };
+    titleCell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFFFF2CC" }, // light yellow
+    };
+
+    // Optional: Increase row heights for better vertical centering
+    sheet.getRow(1).height = 30;
+    sheet.getRow(2).height = 30;
+
+
+    // ===== SUMMARY TABLE (Left Side) =====
+    sheet.addRow([]);
+    sheet.addRow(["Summary", "Income"]);
+    sheet.addRow(["Check-In", formatNumber(checkInIncome)]);
+    sheet.addRow(["Walk-In", formatNumber(walkInIncome)]);
+    sheet.addRow(["Total", formatNumber(totalIncome)]);
+
+    // Bold header
+    sheet.getRow(3).eachCell((c) => (c.font = { bold: true }));
+
+    // Right align income column
+    sheet.getColumn(2).alignment = { horizontal: "right" };
+
+    // ===== Empty Row Gap =====
+    sheet.addRow([]);
+
+    // ===== MAIN TABLE HEADER =====
+    const headerRow = sheet.addRow([
+      "Date",
+      "Customer Type",
+      "Sub Total",
+      "Service Charge",
+      "Total Bill",
+      "Order Count",
+    ]);
+
+    headerRow.eachCell((cell) => {
+      cell.font = { bold: true };
+      cell.alignment = { horizontal: "center" };
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFDDEBF7" },
+      };
+    });
+
+    // ===== INSERT MAIN TABLE DATA =====
+    summaryData.forEach((item) => {
+      const row = sheet.addRow([
+        item.date,
+        item.customerType,
+        formatNumber(item.totalSubTotal),
+        formatNumber(item.totalServiceCharge),
+        formatNumber(item.totalBill),
+        item.orderCount,
+      ]);
+
+      // Right-align numeric columns
+      row.getCell(3).alignment = { horizontal: "right" };
+      row.getCell(4).alignment = { horizontal: "right" };
+      row.getCell(5).alignment = { horizontal: "right" };
+      row.getCell(6).alignment = { horizontal: "right" };
+    });
+
+    // Auto column width
+    sheet.columns.forEach((col) => (col.width = 20));
+
+    // Send Excel
+    const fileName = `Restaurant-Summary-${startDate}-to-${endDate}.xlsx`;
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error("Excel export error:", err);
+    return sendErrorResponse(res, 500, "Unable to generate Excel");
+  }
+};
+
+
 
 
 

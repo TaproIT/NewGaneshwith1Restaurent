@@ -5,7 +5,7 @@ import {
   addOrderToken,
   addTable,
   cancelOrder,
-  getAllTables,
+  exportRestaurantSummaryExcel, getAllTables,
   getBeverageSoldSummary,
   getDailyOrdersSummary,
   getDailyRestaurantTotals,
@@ -256,6 +256,22 @@ router.get(
     userRoles.POOL_RESTAURANT_ADMIN.value,
   ]),
   getDailyRestaurantTotals
+);
+
+
+router.get(
+  "/restaurant/excel-report",
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  authorizeRoles([
+    userRoles.BEACH_RESTAURANT_STAFF.value,
+    userRoles.POOL_RESTAURANT_STAFF.value,
+    userRoles.ADMIN.value,
+    userRoles.SUPER_ADMIN.value,
+    userRoles.BEACH_RESTAURANT_ADMIN.value,
+    userRoles.POOL_RESTAURANT_ADMIN.value,
+  ]),
+  exportRestaurantSummaryExcel
 );
 
 
