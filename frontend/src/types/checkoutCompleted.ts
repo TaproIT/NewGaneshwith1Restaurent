@@ -69,7 +69,7 @@ export interface CompletedBooking {
   roomsHistory: RoomsHistory[];
   additionalPriceItems: any[];
   updatesHistory: UpdateHistory[];
-  orders: any[];
+  orderDetails: any[];
   uniqueBookingId: string;
   createdAt: string;
   updatedAt: string;

@@ -8,6 +8,7 @@ import { useRates } from "@/context/RateContext";
 import type { CompletedBooking } from "@/types/checkoutCompleted";
 import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { printFinalBill } from "@/util/printCheckout";
 
 interface Charge {
   name: string;
@@ -18,6 +19,7 @@ const CheckoutCompletedDetails: React.FC = () => {
   const [booking, setBooking] = useState<CompletedBooking | null>(null);
   const { state } = useLocation();
   const { id: bookingId } = state || {};
+
 
   const { rates } = useRates();
   const { displayCurrency } = useCurrency();
@@ -37,6 +39,14 @@ const CheckoutCompletedDetails: React.FC = () => {
     if (bookingId) fetchCheckout();
   }, [bookingId]);
 
+  useEffect(() => {
+      // Dynamically load QZ Tray
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/qz-tray/qz-tray.js";
+      script.onload = () => console.log("QZ Tray script loaded");
+      document.body.appendChild(script);
+    }, []);
+
   if (!booking) return <CheckoutSkeleton />;
 
   const subtotal = booking.subtotal;
@@ -48,22 +58,26 @@ const CheckoutCompletedDetails: React.FC = () => {
   // -----------------------------
   // Additional Charges (Read-only)
   // -----------------------------
-  const spaCharge = booking.spa || 0;
-  const laundryCharge = booking.laundary || 0;
-  const miniBarCharge = booking.miniBar || 0;
+  // Read values
+const spaCharge = booking.spa || 0;
+const laundryCharge = booking.laundary || 0;
+const miniBarCharge = booking.miniBar || 0;
+const extraItems = booking.additionalPriceItems || [];
 
-  const additionalCharges: Charge[] = [
-    ...(spaCharge ? [{ name: "Spa", price: spaCharge }] : []),
-    ...(laundryCharge ? [{ name: "Laundry", price: laundryCharge }] : []),
-    ...(miniBarCharge ? [{ name: "Mini Bar", price: miniBarCharge }] : []),
-  ];
+// Merge into one array
+const additionalCharges: Charge[] = [
+  ...(spaCharge ? [{ name: "Spa", price: spaCharge }] : []),
+  ...(laundryCharge ? [{ name: "Laundry", price: laundryCharge }] : []),
+  ...(miniBarCharge ? [{ name: "Mini Bar", price: miniBarCharge }] : []),
+  ...extraItems,      // <-- required to show items from API
+];
 
   // -----------------------------
   // Group orders by date + type for Detail Bill
   // -----------------------------
   const groupedOrders = (() => {
     const grouped: Record<string, { date: string; type: string; total: number }> = {};
-    booking.orders?.forEach((order) => {
+    booking.orderDetails?.forEach((order) => {
       const date = order.updatedAt.split("T")[0];
       const key = `${date}-${order.restaurantType}`;
       if (!grouped[key]) grouped[key] = { date, type: order.restaurantType, total: 0 };
@@ -71,6 +85,46 @@ const CheckoutCompletedDetails: React.FC = () => {
     });
     return Object.values(grouped);
   })();
+
+const totalBill = total;
+const additionalPrice = additionalCharges;
+const totalRoomCharge = booking.finalAllRoomsTotalPrice;
+const totalOrdersPrice = booking.totalOrdersBill;
+
+const spa = booking.spa || 0;
+const miniBar = booking.miniBar || 0;
+const laundary = booking.laundary || 0;
+
+// If API gives payment method
+const selectedPayment = booking.paymentMethod || "N/A";
+
+// Detail sections
+const detailRooms = booking.roomsHistory || [];
+const detailOrders = groupedOrders;
+
+// Print function
+const handlePrint = () => {
+  printFinalBill({
+    booking,
+    subtotal,
+    tax,
+    serviceCharge,
+    discount,
+    totalBill,
+    additionalPrice,
+    selectedPayment,
+    totalRoomCharge,
+    totalOrdersPrice,
+    spa,
+    miniBar,
+    laundary,
+    detailRooms,
+    detailOrders,
+    convertAndFormatPrice
+  });
+};
+
+console.log(booking)
 
   return (
     <div className="h-[calc(100vh-140px)] bg-white p-4 overflow-y-auto">
@@ -220,6 +274,8 @@ const CheckoutCompletedDetails: React.FC = () => {
             discount={discount}
             total={total}
           />
+
+          <Button onClick={handlePrint}>Print</Button>
         </div>
       </div>
     </div>

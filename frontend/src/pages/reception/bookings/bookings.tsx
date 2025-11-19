@@ -87,8 +87,17 @@ const Bookings: React.FC = () => {
     <div className="p-6 rounded-2xl bg-mainWhite h-[calc(100vh-140px)] overflow-hidden">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between md:items-end mb-4 gap-3">
-        <h2 className="text-xl font-semibold text-gray-800">
-          {showCompleted ? "Completed Bookings" : "Active Bookings"}
+        <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+          <Button onClick={() => {
+              setShowCompleted(false);
+              setPage(1);
+            }}
+            variant={showCompleted ? "outline" : "default"}>Bookings</Button>
+          <Button onClick={() => {
+              setShowCompleted(true);
+              setPage(1);
+            }}
+            variant={showCompleted ? "default" : "outline"}>Completed Checkouts</Button>
         </h2>
 
         <div className="flex gap-2 items-center">
@@ -103,17 +112,6 @@ const Bookings: React.FC = () => {
             }}
           />
           <Button onClick={handleSearch}>Search</Button>
-
-          {/* Toggle Button */}
-          <Button
-            onClick={() => {
-              setShowCompleted(!showCompleted);
-              setPage(1);
-            }}
-            variant="outline"
-          >
-            {showCompleted ? "Show Active" : "Show Completed"}
-          </Button>
         </div>
       </div>
 
