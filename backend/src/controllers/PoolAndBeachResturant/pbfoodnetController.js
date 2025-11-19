@@ -233,7 +233,7 @@ export const getAvailablePBFoodNets = async (req, res) => {
 
         const items = await PBFoodNet.find(filter)
             .populate("category")
-            .populate("liquor");
+            .populate("liquor.beverage", "beverageName price") ;
 
         if (!items || items.length === 0) {
             return res.status(404).json({ error: "No available items found" });

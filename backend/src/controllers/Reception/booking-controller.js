@@ -1799,7 +1799,6 @@ export const getAllActiveBookings = async (req, res) => {
         return res.status(500).json({ message: "Failed to fetch active bookings." });
     }
 };
-
 export const getCompletedBookings = async (req, res) => {
     try {
         const bookings = await Booking.find(
@@ -1807,7 +1806,12 @@ export const getCompletedBookings = async (req, res) => {
             {
                 _id: 1,
                 uniqueBookingId: 1,
-                totalBill: 1
+                totalBill: 1,
+                guestName: 1,
+                totalGuests: 1,
+                checkIn: 1,
+                checkOut: 1,
+                "currentRooms.roomNo": 1 // return only roomNo from currentRooms array
             }
         );
 
@@ -1822,6 +1826,7 @@ export const getCompletedBookings = async (req, res) => {
         res.status(500).json({ success: false, message: "Server Error", error });
     }
 };
+
 
 export const getBookingByIdIfCheckedOut = async (req, res) => {
     try {
