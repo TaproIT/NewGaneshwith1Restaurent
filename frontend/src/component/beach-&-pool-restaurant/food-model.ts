@@ -28,7 +28,7 @@ export interface FoodItem {
   isVisible: boolean;
   category: FoodCategory | null;
   isEnableBeverage: boolean;
-  liquor?: [{beverage:string, amount:number}] | []; // array of Beverage ObjectIds
+  liquor?: [{beverage:{id:string,beverageName:string}, amount:number}] | []; // array of Beverage ObjectIds
   fetchAllFoodItemsStatus: FetchAllFoodItemsStatus
 }
 
@@ -38,7 +38,7 @@ export interface SelectedFoodItem {
   category: string;
   price: number;
   isEnableBeverage:boolean;
-  liquor?: [{beverage:string, amount:number}] | []; 
+  liquor?: [{ beverage: { id: string; beverageName: string; }; amount: number; }] | []; 
 }
 
 export interface FoodItems {

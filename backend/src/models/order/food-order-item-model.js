@@ -1,29 +1,39 @@
 import mongoose from "mongoose";
+import { RestaurantTypes } from "../../utils/enums/order-related-enums.js";
 
-const foodOrderItemSchema = new mongoose.Schema({
-  foodId: {
-    type: String,
-    required: true,
+const foodOrderItemSchema = new mongoose.Schema(
+  {
+    foodId: {
+      type: String,
+      required: true,
+    },
+    title: {
+      type: String,
+      required: true,
+    },
+    quantity: {
+      type: Number,
+      required: true,
+    },
+    price: {
+      type: Number,
+      required: true,
+    },
+    liquor: [
+      {
+        liquorId: { type: String },
+        liquorName: { type: String },
+        amount: { type: Number },
+      },
+    ],
+    restaurantType: {
+      type: String,
+      required: true,
+      enum: [RestaurantTypes.BEACH.value, RestaurantTypes.POOL.value],
+    },
   },
-  title: {
-    type : String,
-    required: true
-  },
-  quantity: {
-    type: Number,
-    required: true,
-  },
-  price: {
-    type: Number,
-    required: true,
-  },
-  liquor: [
-         {
-             beverage: { type: mongoose.Schema.Types.ObjectId, ref: "Beverage", required: true },
-             amount: { type: Number, default: 0 },
-         },
-     ],
-});
+  { timestamps: true }
+);
 
 const FoodOrderItem = mongoose.model("FoodOrderItem", foodOrderItemSchema);
 

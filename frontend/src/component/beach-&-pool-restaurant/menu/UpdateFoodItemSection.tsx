@@ -21,7 +21,7 @@ import { fetchAllExtraBeverageCategories } from "@/api/order/get-extra-beverge-c
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { updateFoodItem } from "@/api/order/update-food-item-api";
 
-type Liqueur = { beverage: string; amount: number };
+//type Liqueur = { beverage: string; amount: number };
 
 
 export default function UpdateItemSection() {
@@ -56,7 +56,7 @@ export default function UpdateItemSection() {
   const [itemName, setItemName] = useState("");
   const [price, setPrice] = useState<number>(0);
   const [addLiqueur, setAddLiqueur] = useState(false);
-  const [liqueurs, setLiqueurs] = useState<Liqueur[]>([]);
+  const [liqueurs, setLiqueurs] = useState<any[]>([]);
 
   const isDisabled = !itemName.trim() || price <= 0;
 
@@ -162,6 +162,7 @@ export default function UpdateItemSection() {
   }
 }, [selectedFoodItem, selectedBeverageItem, selectedExtraBeverageItem, isUpdatedFoodItem]);
 
+
   if ( updateFoodItemLoading || updateExtraBeverageItemLoading || updateExtraBeverageCategoriesLoading) {
     return (
       <UpdateItemSkeleton />
@@ -231,18 +232,22 @@ export default function UpdateItemSection() {
                   <div key={index} className="relative border-b pb-6 mb-3">
                     <FormRow label="Liqueur :">
                       <Select
-                        value={liq.beverage}
-                        onValueChange={(val) =>
+                        value={liq.beverage?._id}
+                        onValueChange={(id) => {
+                          const selected = hardLiquors.find(
+                            (liquor) => liquor._id === id
+                          );
                           setLiqueurs((prev) =>
                             prev.map((l, i) =>
-                              i === index ? { ...l, beverage: val } : l
+                              i === index ? { ...l, beverage: selected } : l
                             )
-                          )
-                        }
+                          );
+                        }}
                       >
                         <SelectTrigger className="w-full text-[0.75rem] cursor-pointer">
                           <SelectValue placeholder="Select Name" />
                         </SelectTrigger>
+
                         <SelectContent className="text-[0.75rem]">
                           {hardLiquors.map((liquor) => (
                             <SelectItem
@@ -266,7 +271,7 @@ export default function UpdateItemSection() {
                           setLiqueurs((prev) =>
                             prev.map((l, i) =>
                               i === index
-                                ? { ...l, amount: Number(e.target.value) }
+                                ? { ...l, amount: Number(e.target.value) || 0 }
                                 : l
                             )
                           )
