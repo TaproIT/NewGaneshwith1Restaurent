@@ -47,7 +47,10 @@ export const formatToYMD = (input: Date | string | null | undefined) => {
   return `${year} ${monthName} ${day}`;
 };
 
-
-
+export const formatNumber = (value: number): string => {
+  return value
+    .toFixed(2)
+    .replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+};
 
 

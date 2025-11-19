@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CustomerTypes } from "@/lib/enums/order-related-enums";
+import { formatNumber } from "@/lib/order-util";
 
 type DailyCustomerSummary = {
   totalSubTotal: number;
@@ -32,10 +33,10 @@ export const RestaurantSummaryList: React.FC<{
       <div className="mb-2 grid grid-cols-6 gap-4 p-3 font-semibold text-[0.875rem] border rounded-lg">
         <div>Date</div>
         <div>Customer Type</div>
-        <div>Sub Total</div>
-        <div>Service Charge</div>
-        <div>Total Bill</div>
-        <div>Order Count</div>
+        <div className="w-[70%] text-right">Sub Total - {`(LKR)`}</div>
+        <div className="w-[100%] text-right">Service Charge - {`(LKR)`}</div>
+        <div className="w-[70%] text-right">Total Bill - {`(LKR)`}</div>
+        <div className="w-[80%] text-right">Order Count</div>
       </div>
 
       <ScrollArea className="w-full h-[calc(100vh-350px)]">
@@ -65,7 +66,7 @@ export const RestaurantSummaryList: React.FC<{
                 <div
                   key={index}
                   onClick={() => setSelectedRow(index.toString())}
-                  className={`grid grid-cols-6 gap-4 p-3 text-sm border rounded-lg cursor-pointer transition-colors 
+                  className={`grid grid-cols-6 gap-4 p-3 text-sm border rounded-lg cursor-pointer transition-colors
                     ${
                       isSelected
                         ? "bg-[#F4F4F4] border-[#444444]"
@@ -76,10 +77,10 @@ export const RestaurantSummaryList: React.FC<{
                 >
                   <div>{item.date}</div>
                   <div>{item.customerType}</div>
-                  <div>{item.totalSubTotal.toFixed(2)}</div>
-                  <div>{item.totalServiceCharge.toFixed(2)}</div>
-                  <div>{item.totalBill.toFixed(2)}</div>
-                  <div>{item.orderCount}</div>
+                  <div className="w-[70%] text-right">{formatNumber(item.totalSubTotal)}</div>
+                  <div className="w-[70%] text-right">{formatNumber(item.totalServiceCharge)}</div>
+                  <div className="w-[70%] text-right">{formatNumber(item.totalBill)}</div>
+                  <div className="w-[70%] text-right">{item.orderCount}</div>
                 </div>
               );
             })
