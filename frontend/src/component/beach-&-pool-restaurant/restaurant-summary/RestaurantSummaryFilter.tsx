@@ -1,72 +1,64 @@
 import { fetchRestaurantSummary } from "@/api/order/get-restaurant-summary-api";
 import type { AppDispatch, RootState } from "@/app/store";
 import { DatePicker } from "@/component/DatePicker";
-//import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatDate } from "@/lib/order-util";
+import { formatNumber, formatToYMD } from "@/lib/order-util";
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { RestaurantSummaryList } from "./SummaryList";
+import { DownloadExcelButton } from "./DownloadButton";
+import { RestaurantTypes } from "@/lib/enums/order-related-enums";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const RestaurantSummaryFilterAndCount: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
 
-  // --- LOCAL STATE (instead of Redux)
-  const today = new Date();
-  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-
-  const [localStartDate, setLocalStartDate] = React.useState(
-    formatDateLocal(firstDayOfMonth)
-  );
-
-  const [localEndDate, setLocalEndDate] = React.useState(
-    formatDateLocal(today)
-  );
-
-  //const [localCustomerType, setLocalCustomerType] = React.useState("");
-
-  // --- REDUX DATA (only API results)
   const { totalIncome, checkInIncome, walkInIncome, summaryList, fetchRestaurantSummaryStatus } = useSelector(
     (state: RootState) => state.restaurantSummary
   );
 
+  const { role } = useSelector(
+    (state: RootState) => state.user
+  );
+
+  const today = new Date();
+  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+  const [startDate, setStartDate] = React.useState(
+    formatToYMD(firstDayOfMonth)
+  );
+
+  const [endDate, setEndDate] = React.useState(
+    formatToYMD(today)
+  );
+
+  const [restaurantType, setRestaurantType] = React.useState<string>(RestaurantTypes.BEACH.value);
+
+  const isAdmin = (role === 'Super-Admin')  || (role === 'Admin') || (role === 'Reception');
+
   const { loading, error } = fetchRestaurantSummaryStatus;
 
-  // --- Handlers --------------------------------------
 
   const handleStartDateChange = (date: Date | undefined) => {
     if (!date) return;
-    setLocalStartDate(date.toISOString().split("T")[0]);
+    setStartDate(formatToYMD(date));
   };
 
   const handleEndDateChange = (date: Date | undefined) => {
     if (!date) return;
-    setLocalEndDate(date.toISOString().split("T")[0]);
+    setEndDate(formatToYMD(date));
   };
-
-  // const handleCustomerTypeChange = (
-  //   e: React.ChangeEvent<HTMLSelectElement>
-  // ) => {
-  //   setLocalCustomerType(e.target.value);
-  // };
-
-  // --- FETCH WHEN LOCAL FILTERS CHANGE ----------------
-  
-  // const handleFilter = () => {
-
-  // }
 
   useEffect(() => {
     dispatch(
       fetchRestaurantSummary({
-        startDate: localStartDate,
-        endDate: localEndDate,
+        startDate: startDate,
+        endDate: endDate,
+        restaurantType
       })
     );
-  }, [localStartDate, localEndDate, dispatch]);
-
-  // --- ERROR HANDLING --------------------------------
+  }, [startDate, endDate, dispatch, restaurantType]);
 
   useEffect(() => {
     if (error) toast.error(error || "Failed to fetch daily order summary");
@@ -74,15 +66,23 @@ export const RestaurantSummaryFilterAndCount: React.FC = () => {
 
   const summaryCounts = [
     { label: "Total Income", value: totalIncome },
-    { label: "Check IN Income", value: checkInIncome },
-    { label: "Walk IN Income", value: walkInIncome },
+    { label: "CheckIN Income", value: checkInIncome },
+    { label: "WalkIN Income", value: walkInIncome },
   ];
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="w-full grid grid-cols-5 gap-2">
+      <div
+        className={`w-full grid ${
+          isAdmin ? "grid-cols-12" : "grid-cols-6"
+        } gap-2`}
+      >
         {/* Start Date */}
-        <div className="col-span-1 pt-5 py-2 px-2 flex flex-col items-center justify-center bg-[#FEFEFE] rounded-md">
+        <div
+          className={`${
+            isAdmin ? "col-span-2" : "col-span-1"
+          } pt-5 py-2 px-2 flex flex-col items-center justify-center bg-[#FEFEFE] rounded-md`}
+        >
           {loading ? (
             <>
               <Skeleton className="h-4 w-24" />
@@ -91,11 +91,11 @@ export const RestaurantSummaryFilterAndCount: React.FC = () => {
           ) : (
             <>
               <p className="text-sm text-[#444444]">
-                Start: {formatDate(new Date(localStartDate))}
+                Start Date
               </p>
-              <div className="bg-[#F4F4F4] rounded-md">
+              <div className="mt-1.5 bg-[#F4F4F4] rounded-md">
                 <DatePicker
-                  defaultDate={new Date(localStartDate)}
+                  defaultDate={new Date(startDate)}
                   onDateChange={handleStartDateChange}
                 />
               </div>
@@ -104,7 +104,11 @@ export const RestaurantSummaryFilterAndCount: React.FC = () => {
         </div>
 
         {/* End Date */}
-        <div className="col-span-1 pt-5 py-2 px-2 flex flex-col items-center justify-center bg-[#FEFEFE] rounded-md">
+        <div
+          className={`${
+            isAdmin ? "col-span-2" : "col-span-1"
+          } pt-5 py-2 px-2 flex flex-col items-center justify-center bg-[#FEFEFE] rounded-md`}
+        >
           {loading ? (
             <>
               <Skeleton className="h-4 w-24" />
@@ -113,11 +117,11 @@ export const RestaurantSummaryFilterAndCount: React.FC = () => {
           ) : (
             <>
               <p className="text-sm text-[#444444]">
-                End: {formatDate(new Date(localEndDate))}
+                End Date
               </p>
-              <div className="bg-[#F4F4F4] rounded-md">
+              <div className="mt-1.5 bg-[#F4F4F4] rounded-md">
                 <DatePicker
-                  defaultDate={new Date(localEndDate)}
+                  defaultDate={new Date(endDate)}
                   onDateChange={handleEndDateChange}
                 />
               </div>
@@ -125,8 +129,12 @@ export const RestaurantSummaryFilterAndCount: React.FC = () => {
           )}
         </div>
 
-        {/* Customer Type */}
-        {/* <div className="col-span-1 pt-5 py-2 px-2 flex flex-col items-center justify-center bg-[#FEFEFE] rounded-md">
+        {/* Restaurant Type */}
+        <div
+          className={`${
+            isAdmin ? "col-span-2 " : "col-span-1 hidden"
+          } pt-5 py-2 px-2 flex flex-col items-center justify-center gap-2 bg-[#FEFEFE] rounded-md`}
+        >
           {loading ? (
             <>
               <Skeleton className="h-4 w-24" />
@@ -134,56 +142,68 @@ export const RestaurantSummaryFilterAndCount: React.FC = () => {
             </>
           ) : (
             <>
-              <p className="text-sm text-[#444444]">Customer Type</p>
-              <select
-                value={localCustomerType}
-                onChange={handleCustomerTypeChange}
-                className="py-2 px-2 w-full bg-[#F4F4F4] rounded-md text-sm"
+              <p className="text-[0.875rem] text-[#444444]">Restaurant Type</p>
+
+              <Select
+                value={restaurantType}
+                onValueChange={(value) => setRestaurantType(value)}
               >
-                <option value="">All</option>
-                <option value="CHECKED_IN">Checked In</option>
-                <option value="WALK_IN">Walk In</option>
-              </select>
+                <SelectTrigger className="w-full bg-[#F4F4F4] rounded-md text-sm cursor-pointer">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value={RestaurantTypes.BEACH.value}>
+                    {RestaurantTypes.BEACH.label}
+                  </SelectItem>
+                  <SelectItem value={RestaurantTypes.POOL.value}>
+                    {RestaurantTypes.POOL.value}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </>
           )}
-        </div> */}
+        </div>
 
         {/* Summary Cards */}
-        {summaryCounts.map((item, index) => (
-          <div
-            key={index}
-            className="col-span-1 pt-5 py-2 px-2 flex flex-col items-center justify-center bg-[#FEFEFE] rounded-md"
-          >
-            {loading ? (
-              <>
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-6 w-full" />
-              </>
-            ) : (
-              <>
-                <p className="text-sm text-[#444444]">{item.label}</p>
-                <div className="py-1 w-full flex items-center justify-center bg-[#F4F4F4] rounded-md">
-                  <p className="text-sm">{item.value}</p>
-                </div>
-              </>
-            )}
-          </div>
-        ))}
+        <div
+          className={`${
+            isAdmin ? "col-span-6" : "col-span-4"
+          } grid grid-cols-4 gap-2`}
+        >
+          {summaryCounts.map((item, index) => (
+            <div
+              key={index}
+              className="col-span-1 pt-5 py-2 px-2 flex flex-col items-center justify-center bg-[#FEFEFE] rounded-md"
+            >
+              {loading ? (
+                <>
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-6 w-full" />
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-[#444444] text-center">{item.label}</p>
+                  <div className="mt-1.5  py-1 w-full flex items-center justify-center bg-[#F4F4F4] rounded-md">
+                    <p className="text-sm">LKR {formatNumber(item.value)}</p>
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
 
-        {/* <Button className="" onClick={handleFilter}>
-            Filter
-        </Button> */}
+          <div
+            className={`${
+              isAdmin ? "col-span-1" : "col-span-1"
+            } flex items-center justify-end`}
+          >
+            <DownloadExcelButton startDate={startDate} endDate={endDate} restaurantType={restaurantType}  />
+          </div>
+        </div>
       </div>
-      
-      <RestaurantSummaryList summaryList={summaryList}  />
+
+      <RestaurantSummaryList summaryList={summaryList} loading={loading}/>
     </div>
   );
 };
-
-function formatDateLocal(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
 
