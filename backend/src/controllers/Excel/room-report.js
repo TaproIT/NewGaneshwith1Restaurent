@@ -3,92 +3,21 @@ import RoomReport from "../../models/Excel/roomReportSchema.js";
 import ExcelJS from "exceljs";
 import mongoose from "mongoose";
 
-// export const getBookingAndRoomReports = async (req, res) => {
-//     try {
-//         let { start, end } = req.query;
-//
-//         let dateFilter = {};
-//
-//         // Apply filters ONLY if both dates provided
-//         if (start && end) {
-//             dateFilter.roomsHistory = {
-//                 $elemMatch: {
-//                     switchOutDate: {
-//                         $gte: new Date(start),
-//                         $lte: new Date(end)
-//                     }
-//                 }
-//             };
-//         }
-//
-//         // 1️⃣ Fetch checked-out bookings with date filter
-//         const bookings = await Booking.find({
-//             isCheckOut: true,
-//             ...dateFilter
-//         }).lean();
-//
-//         // 2️⃣ Map extracted room reports
-//         const bookingReports = bookings
-//             .flatMap(b =>
-//                 b.roomsHistory
-//                     .filter(room =>
-//                         start && end
-//                             ? room.switchOutDate >= new Date(start) &&
-//                             room.switchOutDate <= new Date(end)
-//                             : true
-//                     )
-//                     .map(room => ({
-//                         bookingId: b._id,
-//                         hotel: b.hotel,
-//                         guestName: b.guestName,
-//                         roomNo: room.roomNo,
-//                         checkIn: room.switchInDate,
-//                         checkOut: room.switchOutDate,
-//                         perDayPrice: room.perDayPrice,
-//                         currencyRate: room.currencyRate,
-//                         nights: room.night,
-//                         totalRoomPrice: room.finalRoomTotalPrice,
-//                         totalGuests: b.totalGuests,
-//                         breakfast: b.breakfast,
-//                         // Calculations
-//                         grossTotal: room.finalRoomTotalPrice,
-//                         serviceCharge: room.finalRoomTotalPrice * 0.10,
-//                         netIncome: room.finalRoomTotalPrice - room.finalRoomTotalPrice * 0.10
-//                     }))
-//             );
-//
-//         // 3️⃣ Fetch roomReports saved earlier
-//         const savedReports = await RoomReport.find(
-//             start && end
-//                 ? { checkOut: { $gte: new Date(start), $lte: new Date(end) } }
-//                 : {}
-//         ).lean();
-//
-//         return res.status(200).json({
-//             success: true,
-//             bookings: bookingReports,
-//             savedReports
-//         });
-//
-//     } catch (err) {
-//         console.error("GET report failed:", err);
-//         res.status(500).json({ message: "Server Error", error: err.message });
-//     }
-// };
-
 export const getBookingAndRoomReports = async (req, res) => {
     try {
         let { start, end } = req.query;
 
+        let startDate = start ? new Date(start + "T00:00:00.000Z") : null;
+        let endDate = end ? new Date(end + "T23:59:59.999Z") : null;
+
         let dateFilter = {};
 
-        // Apply filters ONLY if both dates provided
-        if (start && end) {
+        if (startDate && endDate) {
             dateFilter.roomsHistory = {
                 $elemMatch: {
                     switchOutDate: {
-                        $gte: new Date(start),
-                        $lte: new Date(end)
+                        $gte: startDate,
+                        $lte: endDate
                     }
                 }
             };
@@ -100,13 +29,13 @@ export const getBookingAndRoomReports = async (req, res) => {
             ...dateFilter
         }).lean();
 
-        // 2️⃣ Create final bookingReports array (with ROUNDED prices)
-        const bookingReports = bookings.flatMap(b =>
+        // 2️⃣ Build bookingReports
+        let bookingReports = bookings.flatMap(b =>
             b.roomsHistory
                 .filter(room =>
-                    start && end
-                        ? room.switchOutDate >= new Date(start) &&
-                        room.switchOutDate <= new Date(end)
+                    startDate && endDate
+                        ? room.switchOutDate >= startDate &&
+                        room.switchOutDate <= endDate
                         : true
                 )
                 .map(room => {
@@ -122,7 +51,8 @@ export const getBookingAndRoomReports = async (req, res) => {
                         checkIn: room.switchInDate,
                         checkOut: room.switchOutDate,
 
-                        // 🔥 ROUNDED FIELDS
+                        // Removed orderDetails
+
                         perDayPrice: Number(room.perDayPrice?.toFixed(2)),
                         currencyRate: Number(room.currencyRate?.toFixed(2)),
                         totalRoomPrice: Number(total.toFixed(2)),
@@ -131,7 +61,6 @@ export const getBookingAndRoomReports = async (req, res) => {
                         totalGuests: b.totalGuests,
                         breakfast: b.breakfast,
 
-                        // 🔥 ROUNDED CALCULATIONS
                         grossTotal: Number(total.toFixed(2)),
                         serviceCharge: Number(service.toFixed(2)),
                         netIncome: Number(net.toFixed(2))
@@ -139,16 +68,17 @@ export const getBookingAndRoomReports = async (req, res) => {
                 })
         );
 
-        // 3️⃣ Fetch ALL saved Room Report documents
+        bookingReports.sort((a, b) => new Date(b.checkOut) - new Date(a.checkOut));
+
         const savedReports = await RoomReport.find(
-            start && end
-                ? { checkOut: { $gte: new Date(start), $lte: new Date(end) } }
+            startDate && endDate
+                ? { checkOut: { $gte: startDate, $lte: endDate } }
                 : {}
         ).lean();
 
         return res.status(200).json({
             success: true,
-            bookings: bookingReports,  // rounded values
+            bookings: bookingReports,
             reports: savedReports
         });
 
