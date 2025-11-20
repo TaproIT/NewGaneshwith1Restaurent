@@ -67,9 +67,28 @@ export const getBookingBillingSummary = async (req, res) => {
             : false;
         const requiresCutoff = checkOutIsFuture || anySwitchOutFuture;
 
-        const effectiveCheckOut = booking.checkOut
-            ? (requiresCutoff ? todaySOD : clampToTodayTZ(booking.checkOut, todaySOD))
-            : null;
+        // const effectiveCheckOut = booking.checkOut
+        //     ? (requiresCutoff ? todaySOD : clampToTodayTZ(booking.checkOut, todaySOD))
+        //     : null;
+        let effectiveCheckOut = null;
+
+        if (booking.checkOut) {
+            const co = sodTZ(booking.checkOut);
+
+            // If switchOut or checkout is future → force today
+            if (requiresCutoff) {
+                effectiveCheckOut = todaySOD;
+            }
+            // If checkout is PAST → also force today
+            else if (co.isBefore(todaySOD)) {
+                effectiveCheckOut = todaySOD;
+            }
+            // Otherwise normal clamping (future safe)
+            else {
+                effectiveCheckOut = clampToTodayTZ(booking.checkOut, todaySOD);
+            }
+        }
+
 
         const effectiveCheckIn = booking.checkIn ? dayjs(booking.checkIn).tz(TZ) : null;
 
@@ -104,13 +123,37 @@ export const getBookingBillingSummary = async (req, res) => {
 
             const effIn = rh.switchInDate ? clampToTodayTZ(rh.switchInDate, todaySOD) : null;
 
+            // let effOut;
+            // if (requiresCutoff) {
+            //     effOut = todaySOD;
+            // } else {
+            //     const rawOut = rh.switchOutDate ? rh.switchOutDate : (effectiveCheckOut ? effectiveCheckOut.toDate() : null);
+            //     effOut = rawOut ? clampToTodayTZ(rawOut, todaySOD) : null;
+            // }
+
             let effOut;
-            if (requiresCutoff) {
-                effOut = todaySOD;
+
+            if (rh.switchOutDate) {
+                const sw = sodTZ(rh.switchOutDate);
+
+                // SwitchOut is future → force today
+                if (sw.isAfter(todaySOD)) {
+                    effOut = todaySOD;
+                }
+                // SwitchOut is past → also force today
+                else if (sw.isBefore(todaySOD)) {
+                    effOut = todaySOD;
+                }
+                // SwitchOut is today → keep as-is
+                else {
+                    effOut = sw;
+                }
             } else {
-                const rawOut = rh.switchOutDate ? rh.switchOutDate : (effectiveCheckOut ? effectiveCheckOut.toDate() : null);
-                effOut = rawOut ? clampToTodayTZ(rawOut, todaySOD) : null;
+                // If there's no switchOut → fall back to effectiveCheckOut logic
+                const rawOut = effectiveCheckOut ? effectiveCheckOut : null;
+                effOut = rawOut ? rawOut : null;
             }
+
 
             const perDayPrice = Number(rh.perDayPrice) || 0;
             const currency = rh.currency || "LKR"; // 💱 determine currency of this price
