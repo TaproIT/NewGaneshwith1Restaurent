@@ -1410,7 +1410,12 @@ export const exportRestaurantSummaryExcel = async (req, res) => {
     const { startDate, endDate, restaurantType } = req.query;
     const { userId } = req.user;
 
-    const defaultRestaurant = await getRestaurantTypeByUserRole(userId);
+    const defaultRestaurantType = await getRestaurantTypeByUserRole(userId);
+
+     const finalRestaurantType =
+      restaurantType && restaurantType.trim() !== ""
+        ? restaurantType
+        : defaultRestaurantType;
 
     if (!startDate || !endDate) {
       return sendErrorResponse(res, 400, "startDate and endDate are required");
@@ -1423,8 +1428,9 @@ export const exportRestaurantSummaryExcel = async (req, res) => {
     const summaryData = await Order.aggregate([
       {
         $match: {
-          restaurantType: restaurantType ? restaurantType : defaultRestaurant,
+          restaurantType: finalRestaurantType,
           createdAt: { $gte: start, $lte: end },
+          orderStatus: OrderStatuses.COMPLETED.value,
         },
       },
       {
