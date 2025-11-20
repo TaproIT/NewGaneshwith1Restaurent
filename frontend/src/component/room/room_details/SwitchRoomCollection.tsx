@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useRates } from "@/context/RateContext";
-import { convertAndFormatPrice } from "@/util/priceConverter";
+// import { convertAndFormatPrice } from "@/util/priceConverter";
 
 interface OldRoom {
   roomNo: string;
@@ -33,12 +33,12 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
     if (!guestDetails?.checkIn) return 1; // default 1 day
     const checkInDate = new Date(guestDetails.checkIn);
     const today = new Date();
-    const diffTime = Math.max(today.getTime() - checkInDate.getTime(), 0);
+    const diffTime = Math.max(today.getTime() - checkInDate.getTime() - 1, 0);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays || 1; // avoid zero
   };
 
-  const lengthOfStay = getLengthOfStay();
+  const lengthOfStay = getLengthOfStay() -1 || 1;
 
   // Initial room state
   const [rooms, setRooms] = useState(
@@ -55,7 +55,7 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
   // Update rooms when guestDetails change
   useEffect(() => {
     if (!guestDetails?.activeRooms) return setRooms([]);
-    const lengthOfStay = getLengthOfStay();
+    const lengthOfStay = getLengthOfStay() - 1 || 1;
     const updatedRooms = guestDetails.activeRooms.map((r) => {
       const roomTotalPrice = r.perDayPrice * lengthOfStay;
       return {
@@ -131,16 +131,16 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
     <div>
       <ul className="flex flex-col gap-5 mt-2">
         {rooms.map((room) => {
-          const perDayPriceDisplay = convertAndFormatPrice(
-            room.perDayPrice,
-            rates,
-            displayCurrency
-          );
-          const finalTotalDisplay = convertAndFormatPrice(
-            room.finalRoomTotalPrice,
-            rates,
-            displayCurrency
-          );
+          // const perDayPriceDisplay = convertAndFormatPrice(
+          //   room.perDayPrice,
+          //   rates,
+          //   displayCurrency
+          // );
+          // const finalTotalDisplay = convertAndFormatPrice(
+          //   room.finalRoomTotalPrice,
+          //   rates,
+          //   displayCurrency
+          // );
 
           const discountInputValue =
             displayCurrency === "USD"
@@ -160,7 +160,7 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
                   Room - {room.roomNo}
                 </h2>
                 <div className="text-base font-semibold text-Primary_blue">
-                  {perDayPriceDisplay}
+                  {room.currency} {room.perDayPrice}
                 </div>
               </div>
               <div className="text-[11px] text-right text-gray-400">
@@ -233,7 +233,7 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
               <div className="mt-4 flex justify-between text-sm font-medium text-gray-700 bg-white p-2 rounded-lg border">
                 <span>Final Total</span>
                 <span className="truncate max-w-[140px]">
-                  {finalTotalDisplay}
+                  {room.currency} {room.finalRoomTotalPrice}
                   <div className="text-[11px] text-right text-gray-400">
                 Per Day × {lengthOfStay} Days
               </div>

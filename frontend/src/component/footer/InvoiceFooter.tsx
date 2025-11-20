@@ -7,6 +7,7 @@ import { useRates } from "@/context/RateContext";
 import { convertAndFormatPrice } from "@/util/priceConverter";
 import { useNavigate } from "react-router-dom";
 import type { BookedRoom } from "@/types/guestDataTypes";
+import type { Booking } from "@/types/guestDetails";
 
 interface InvoiceFooterProps {
   readOnly?: boolean;
@@ -18,6 +19,7 @@ interface InvoiceFooterProps {
   isWhatsappAvailable?: boolean;
   isEmailAvailable?: boolean;
   totalOldRoomsPrice?: number;
+  guestDetails: Booking | null;
 
   // values
   totalPrice: number;
@@ -70,6 +72,7 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
   isEmailAvailable,
   isWhatsappAvailable,
   totalOldRoomsPrice,
+  guestDetails
 }) => {
   const [loadingSwitch, setLoadingSwitch] = useState(false);
 
@@ -94,6 +97,18 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
       setLoadingSwitch(false);
     }, 1500);
   };
+
+  const formatCurrency = (amount: number, currency: string | undefined) => {
+  switch (currency) {
+    case "USD":
+      return `$ ${amount}`;
+    case "EUR":
+      return `€ ${amount}`;
+    case "LKR":
+    default:
+      return `LKR ${amount}`;
+  }
+}
 
   return (
     <footer className="border-t px-6 py-3 text-gray sticky bottom-0 bg-mainWhite flex flex-col gap-4">
@@ -167,7 +182,7 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
             <div className="text-center">:</div>
             <div className="text-left font-semibold text-gray-800">
               {checkout ? (
-                convertAmount(totalBill)
+                formatCurrency(totalBill, guestDetails?.activeRooms[0]?.currency)
               ) : invoice ? (
                 convertAmount(invoiceFinalBill)
               ) : switchRoom ? (

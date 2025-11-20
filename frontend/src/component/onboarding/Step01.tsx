@@ -86,7 +86,7 @@ export default function Step01() {
     if (checkIn && checkOut) {
       const start = new Date(checkIn);
       const end = new Date(checkOut);
-      const diff = Math.max(end.getTime() - start.getTime(), 0);
+      const diff = Math.max(end.getTime() - start.getTime(), 1);
       const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
       const current = form.getValues("lengthOfStay");
       if (days !== current) {
