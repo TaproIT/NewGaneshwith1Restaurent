@@ -52,6 +52,7 @@ const RoomDetailsPanel: React.FC<RoomDetailsPanelProps> = ({
           <GuestDetailsCard
             guestDetails={bookingDetails.roomData}
             onDaysCalculated={onDaysCalculated}
+            checkout={checkout}
           />
         )
       )}
