@@ -53,14 +53,15 @@ const endOfLocalDayUTC = (d, offsetMin) => new Date(startOfLocalDayUTC(d, offset
 export const findActiveBookingByRoomNo = async (roomNo) => {
     const OFFSET_MIN = 5 * 60 + 30; // +05:30 for Sri Lanka
     const now = new Date();
-    const startOfTodayUTC = startOfLocalDayUTC(now, OFFSET_MIN);
+
+    // only needed for check-in validation (today or before)
     const startOfTomorrowUTC = endOfLocalDayUTC(now, OFFSET_MIN);
 
     const booking = await Booking.findOne({
-        currentRooms: { $elemMatch: { roomNo: String(roomNo), isActive: true } },
-        // isCheckOut removed
-        checkIn:  { $lt: startOfTomorrowUTC },
-        checkOut: { $gte: startOfTodayUTC },
+        currentRooms: {
+            $elemMatch: { roomNo: String(roomNo), isActive: true }
+        },
+        checkIn: { $lt: startOfTomorrowUTC }   // check-in is today or past date
     })
         .select('_id')
         .lean();
