@@ -291,6 +291,7 @@ const RoomDetails: React.FC<RoomDetailsProps> = ({
         isWhatsappAvailable={isWhatsappAvailable}
         isEmailAvailable={isEmailAvailable}
         totalOldRoomsPrice={totalOldRoomsPrice}
+        guestDetails={bookingDetails.roomData}
       />
     </div>
   );
