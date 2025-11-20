@@ -7,7 +7,7 @@ import type { RestaurantSummary } from "@/component/beach-&-pool-restaurant/rest
 interface RestaurantSummaryFilters {
     startDate: string;
     endDate: string;
-    restaurantType:string;
+    restaurantType?:string;
 }
 /**
  * Async thunk to fetch daily order summary
@@ -23,7 +23,7 @@ export const fetchRestaurantSummary = createAsyncThunk<
       //const { dailyOrderSummary } = getState();
 
       const response = await api.get(
-        `/order/restaurant/summary?startDate=${filters.startDate}&endDate=${filters.endDate}&restaurantType=${filters.restaurantType}`
+        `/order/restaurant/summary?startDate=${filters.startDate}&endDate=${filters.endDate}&restaurantType=${filters.restaurantType? filters.restaurantType : ""}`
       );
       console.log(response.data);
       return response.data.data as RestaurantSummary;

@@ -730,6 +730,13 @@ export const getDailyOrdersSummary = async (req, res) => {
       return sendErrorResponse(res, 400, "Start date and end date are required");
     }
 
+    console.log(restaurantType);
+
+    const finalRestaurantType =
+      restaurantType && restaurantType.trim() !== ""
+        ? restaurantType
+        : defaultRestaurantType;
+
     // Build start date = 00:00:00 and end date = next day 00:00:00
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -738,7 +745,7 @@ export const getDailyOrdersSummary = async (req, res) => {
     // Find orders within range
     const orders = await Order.find({
       createdAt: { $gte: start, $lt: end },
-      restaurantType: restaurantType || defaultRestaurantType,
+      restaurantType: finalRestaurantType,
       orderStatus: OrderStatuses.COMPLETED.value,
     })
       .populate({
@@ -1293,7 +1300,12 @@ export const getDailyRestaurantTotals = async (req, res) => {
     const { startDate, endDate, restaurantType } = req.query;
     const { userId } = req.user;
 
-    const restaurant = await getRestaurantTypeByUserRole(userId);
+    const defaultRestaurantType = await getRestaurantTypeByUserRole(userId);
+
+     const finalRestaurantType =
+      restaurantType && restaurantType.trim() !== ""
+        ? restaurantType
+        : defaultRestaurantType;
 
     if (!startDate || !endDate) {
       return sendErrorResponse(
@@ -1310,8 +1322,9 @@ export const getDailyRestaurantTotals = async (req, res) => {
     const data = await Order.aggregate([
       {
         $match: {
-          restaurantType: restaurantType ? restaurantType : restaurant,
-          createdAt: { $gte: start, $lte: end }
+          restaurantType: finalRestaurantType,
+          createdAt: { $gte: start, $lte: end },
+          orderStatus: OrderStatuses.COMPLETED.value,
         }
       },
       {

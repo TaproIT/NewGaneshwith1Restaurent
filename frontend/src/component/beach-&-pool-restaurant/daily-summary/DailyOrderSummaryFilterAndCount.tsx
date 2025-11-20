@@ -149,7 +149,7 @@ export const DailyOrderSummaryFilterAndCount: React.FC = () => {
   // Fetch summary when filters change
   useEffect(() => {
     if (startDate && endDate) {
-      dispatch(fetchDailyOrderSummary({ startDate, endDate, restaurantType }));
+      dispatch(fetchDailyOrderSummary({ startDate, endDate }));
     }
   }, [startDate, endDate, restaurantType, dispatch]);
 

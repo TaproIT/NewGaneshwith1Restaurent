@@ -55,7 +55,7 @@ export const RestaurantSummaryFilterAndCount: React.FC = () => {
       fetchRestaurantSummary({
         startDate: startDate,
         endDate: endDate,
-        restaurantType
+        restaurantType: isAdmin ? restaurantType : "",
       })
     );
   }, [startDate, endDate, dispatch, restaurantType]);

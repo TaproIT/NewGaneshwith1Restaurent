@@ -6,7 +6,7 @@ import type { RootState } from "@/app/store";
 interface DailySummaryFilters {
     startDate: string;
     endDate: string;
-    restaurantType: string;
+    restaurantType?: string;
 }
 /**
  * Async thunk to fetch daily order summary
@@ -22,7 +22,7 @@ export const fetchDailyOrderSummary = createAsyncThunk<
       //const { dailyOrderSummary } = getState();
 
       const response = await api.get(
-        `/order/daily-summary?startDate=${filter.startDate}&endDate=${filter.endDate}&restaurantType=${filter.restaurantType}`
+        `/order/daily-summary?startDate=${filter.startDate}&endDate=${filter.endDate}&restaurantType=${filter.restaurantType ? filter.restaurantType : ""}`
       );
 
       return response.data.data as DailyOrderSummary;
