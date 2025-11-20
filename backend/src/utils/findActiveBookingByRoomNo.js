@@ -61,6 +61,7 @@ export const findActiveBookingByRoomNo = async (roomNo) => {
         currentRooms: {
             $elemMatch: { roomNo: String(roomNo), isActive: true }
         },
+        isCheckOut: false,
         checkIn: { $lt: startOfTomorrowUTC }   // check-in is today or past date
     })
         .select('_id')
