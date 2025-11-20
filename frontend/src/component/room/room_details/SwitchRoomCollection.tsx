@@ -33,12 +33,12 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
     if (!guestDetails?.checkIn) return 1; // default 1 day
     const checkInDate = new Date(guestDetails.checkIn);
     const today = new Date();
-    const diffTime = Math.max(today.getTime() - checkInDate.getTime(), 0);
+    const diffTime = Math.max(today.getTime() - checkInDate.getTime() - 1, 0);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays || 1; // avoid zero
   };
 
-  const lengthOfStay = getLengthOfStay();
+  const lengthOfStay = getLengthOfStay() -1 || 1;
 
   // Initial room state
   const [rooms, setRooms] = useState(
@@ -55,7 +55,7 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
   // Update rooms when guestDetails change
   useEffect(() => {
     if (!guestDetails?.activeRooms) return setRooms([]);
-    const lengthOfStay = getLengthOfStay();
+    const lengthOfStay = getLengthOfStay() - 1 || 1;
     const updatedRooms = guestDetails.activeRooms.map((r) => {
       const roomTotalPrice = r.perDayPrice * lengthOfStay;
       return {

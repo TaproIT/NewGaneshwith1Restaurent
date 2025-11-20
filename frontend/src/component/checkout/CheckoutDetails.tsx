@@ -22,12 +22,12 @@ const CheckoutDetails: React.FC = () => {
   const [laundry, setLaundry] = useState(0);
   const [miniBar, setMiniBar] = useState(0);
   const [billDetails, setBillDetails] = useState<{
-  rooms: OrganizedRoom[];
-  groupedOrders: OrganizedOrder[];
-}>({
-  rooms: [],
-  groupedOrders: []
-});
+    rooms: OrganizedRoom[];
+    groupedOrders: OrganizedOrder[];
+  }>({
+    rooms: [],
+    groupedOrders: [],
+  });
 
   const id = useSelector(
     (state: RootState) => state.booking.roomData?.bookingId
@@ -73,10 +73,10 @@ const CheckoutDetails: React.FC = () => {
               setDiscount={setDiscount}
               subtotal={subtotal}
             />
-            <BillingTabs 
-  booking={booking}
-  onDetailsReady={(details) => setBillDetails(details)}
-/>
+            <BillingTabs
+              booking={booking}
+              onDetailsReady={(details) => setBillDetails(details)}
+            />
           </div>
         </div>
 
@@ -128,7 +128,7 @@ const CheckoutDetails: React.FC = () => {
         spa={spa}
         laundary={laundry}
         miniBar={miniBar}
-        billDetails={billDetails} 
+        billDetails={billDetails}
       />
     </div>
   );

@@ -98,14 +98,20 @@ export const createBooking = async (req, res) => {
 
         const checkInDate = dayjs(checkInSL).tz(TZ).startOf("day");
         const checkOutDate = dayjs(checkOutSL).tz(TZ).startOf("day");
-        const actualLengthOfStay = checkOutDate.diff(checkInDate, "day");
+        let actualLengthOfStay = checkOutDate.diff(checkInDate, "day");
+
+        // 🟩 FIX: If both dates are same day, treat as 1 night
+                if (actualLengthOfStay === 0) {
+                    actualLengthOfStay = 1;
+                }
+
 
         console.log("Check-in:", checkInDate.format(), "Check-out:", checkOutDate.format(), "Actual days:", actualLengthOfStay);
 
         // ✅ Validate that provided lengthOfStay matches actual date difference
         if (lengthOfStay !== actualLengthOfStay) {
             return res.status(400).json({
-                error: `Length of stay (${lengthOfStay} days) does not match the actual period between check-in and check-out (${actualLengthOfStay} days).`,
+                error: `Length of stay (${lengthOfStay}) does not match actual days (${actualLengthOfStay}).`,
             });
         }
 
