@@ -2,7 +2,6 @@ import Booking from "../../models/Reception/booking.js";
 import RoomReport from "../../models/Excel/roomReportSchema.js";
 import ExcelJS from "exceljs";
 import mongoose from "mongoose";
-
 export const getBookingAndRoomReports = async (req, res) => {
     try {
         let { start, end } = req.query;
@@ -23,14 +22,21 @@ export const getBookingAndRoomReports = async (req, res) => {
             };
         }
 
+        // 🔹 A) Get all bookingIds already in reports
+        const reported = await RoomReport.find().select("bookingId -_id").lean();
+        const reportedIds = new Set(reported.map(r => String(r.bookingId)));
+
         // 1️⃣ Fetch checked-out bookings
         const bookings = await Booking.find({
             isCheckOut: true,
             ...dateFilter
         }).lean();
 
-        // 2️⃣ Build bookingReports
-        let bookingReports = bookings.flatMap(b =>
+        // 🔹 B) Remove bookings that already have a report
+        const filteredBookings = bookings.filter(b => !reportedIds.has(String(b._id)));
+
+        // 2️⃣ Build bookingReports from FILTERED bookings
+        let bookingReports = filteredBookings.flatMap(b =>
             b.roomsHistory
                 .filter(room =>
                     startDate && endDate
@@ -50,8 +56,6 @@ export const getBookingAndRoomReports = async (req, res) => {
                         roomNo: room.roomNo,
                         checkIn: room.switchInDate,
                         checkOut: room.switchOutDate,
-
-                        // Removed orderDetails
 
                         perDayPrice: Number(room.perDayPrice?.toFixed(2)),
                         currencyRate: Number(room.currencyRate?.toFixed(2)),
@@ -78,7 +82,7 @@ export const getBookingAndRoomReports = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            bookings: bookingReports,
+            bookings: bookingReports, // now only NEW bookings
             reports: savedReports
         });
 
