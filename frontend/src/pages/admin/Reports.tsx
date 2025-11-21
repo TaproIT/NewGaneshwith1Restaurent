@@ -31,6 +31,7 @@ const Reports: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [savedReports, setSavedReports] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingSave, setLoadingSave] = useState(false);
 
   const fetchReports = async () => {
     if (!date.from || !date.to) {
@@ -45,7 +46,7 @@ const Reports: React.FC = () => {
     try {
       const res = await api.get(`/reports/?start=${start}&end=${end}`);
       const apiBookings: Booking[] = res.data.bookings || [];
-      const apiSavedReports: Booking[] = res.data.savedReports || [];
+      const apiSavedReports: Booking[] = res.data.reports || [];
 
       const formattedBookings = apiBookings.map((b) => ({
         ...b,
@@ -64,43 +65,71 @@ const Reports: React.FC = () => {
   };
 
   const updateBookingField = (
-    bookingId: string,
-    field: "bookingCommission" | "totalBreakfastPrice",
-    value: number | null
-  ) => {
-    setBookings((prev) =>
-      prev.map((b) => {
-        if (b.bookingId === bookingId) {
-          const updated = { ...b, [field]: value };
-          updated.grossTotal =
-            updated.totalRoomPrice -
-            (updated.bookingCommission || 0) -
-            (updated.totalBreakfastPrice || 0);
-          return updated;
-        }
-        return b;
-      })
-    );
-  };
+  bookingId: string,
+  field: "bookingCommission" | "totalBreakfastPrice",
+  value: number | null
+) => {
+  const updateFn = (list: Booking[]) =>
+    list.map((b) => {
+      if (b.bookingId === bookingId) {
+        const updated = { ...b, [field]: value };
+
+        updated.grossTotal =
+          updated.totalRoomPrice -
+          (updated.bookingCommission || 0) -
+          (updated.totalBreakfastPrice || 0);
+
+        updated.netIncome =
+          updated.grossTotal - (updated.serviceCharge || 0);
+
+        return updated;
+      }
+      return b;
+    });
+
+  // Update editable bookings
+  setBookings((prev) => updateFn(prev));
+
+  // Update saved reports too
+  setSavedReports((prev) => updateFn(prev));
+};
+
 
   const saveToBackend = async () => {
-    if (bookings.length === 0) return toast.error("No data available!");
-
-    for (const b of bookings) {
-      if (b.bookingCommission === null || b.totalBreakfastPrice === null)
-        return toast.error("Please fill all values");
+  // Validate only new bookings (saved already filled)
+  for (const b of bookings) {
+    if (b.bookingCommission === null || b.totalBreakfastPrice === null) {
+      return toast.error("Please fill all values");
     }
+  }
 
-    try {
-      const payload = bookings.map((b) => ({ ...b, currencyRate: 1, breakfast: "Included" }));
-      await api.post("/reports", payload);
-      toast.success("Reports saved successfully!");
-      setSavedReports((prev) => [...prev, ...bookings]);
-      setBookings([]);
-    } catch {
-      toast.error("Failed to save reports");
-    }
-  };
+  setLoadingSave(true);
+
+  try {
+    // Create unified array (savedReports + bookings)
+    const mergedData = [
+      ...savedReports,
+      ...bookings.map((b) => ({
+        ...b,
+        currencyRate: 1,
+        breakfast: "Included",
+      })),
+    ];
+
+    // Send to backend
+    await api.post("/reports", mergedData);
+
+    toast.success("Reports saved successfully!");
+
+    // Merge state too
+    setSavedReports(mergedData);
+    setBookings([]); // clear new ones
+  } catch {
+    toast.error("Failed to save reports");
+  } finally {
+    setLoadingSave(false);
+  }
+};
 
   const downloadExcel = async () => {
     if (!date.from || !date.to) return toast.error("Select date range!");
@@ -135,6 +164,7 @@ const Reports: React.FC = () => {
         onFetchReports={fetchReports}
         onSave={saveToBackend}
         onDownloadExcel={downloadExcel}
+        loadingSave={loadingSave}
       />
       <ReportsTable
         bookings={bookings}

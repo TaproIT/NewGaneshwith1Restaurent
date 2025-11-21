@@ -2,7 +2,6 @@ import Booking from "../../models/Reception/booking.js";
 import RoomReport from "../../models/Excel/roomReportSchema.js";
 import ExcelJS from "exceljs";
 import mongoose from "mongoose";
-
 export const getBookingAndRoomReports = async (req, res) => {
     try {
         let { start, end } = req.query;
@@ -23,14 +22,21 @@ export const getBookingAndRoomReports = async (req, res) => {
             };
         }
 
+        // 🔹 A) Get all bookingIds already in reports
+        const reported = await RoomReport.find().select("bookingId -_id").lean();
+        const reportedIds = new Set(reported.map(r => String(r.bookingId)));
+
         // 1️⃣ Fetch checked-out bookings
         const bookings = await Booking.find({
             isCheckOut: true,
             ...dateFilter
         }).lean();
 
-        // 2️⃣ Build bookingReports
-        let bookingReports = bookings.flatMap(b =>
+        // 🔹 B) Remove bookings that already have a report
+        const filteredBookings = bookings.filter(b => !reportedIds.has(String(b._id)));
+
+        // 2️⃣ Build bookingReports from FILTERED bookings
+        let bookingReports = filteredBookings.flatMap(b =>
             b.roomsHistory
                 .filter(room =>
                     startDate && endDate
@@ -50,8 +56,6 @@ export const getBookingAndRoomReports = async (req, res) => {
                         roomNo: room.roomNo,
                         checkIn: room.switchInDate,
                         checkOut: room.switchOutDate,
-
-                        // Removed orderDetails
 
                         perDayPrice: Number(room.perDayPrice?.toFixed(2)),
                         currencyRate: Number(room.currencyRate?.toFixed(2)),
@@ -78,7 +82,7 @@ export const getBookingAndRoomReports = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            bookings: bookingReports,
+            bookings: bookingReports, // now only NEW bookings
             reports: savedReports
         });
 
@@ -87,7 +91,63 @@ export const getBookingAndRoomReports = async (req, res) => {
         res.status(500).json({ message: "Server Error", error: err.message });
     }
 };
-
+//
+//
+// export const saveRoomReports = async (req, res) => {
+//     try {
+//         const reports = req.body;
+//
+//         if (!Array.isArray(reports) || reports.length === 0) {
+//             return res.status(400).json({ success: false, message: "No report data provided" });
+//         }
+//
+//         let updatedCount = 0;
+//         let createdCount = 0;
+//
+//         for (const r of reports) {
+//             // Validate bookingId
+//             if (!r.bookingId || !mongoose.Types.ObjectId.isValid(r.bookingId)) {
+//                 return res.status(400).json({
+//                     success: false,
+//                     message: `Invalid bookingId for guest: ${r.guestName}`
+//                 });
+//             }
+//
+//             // Calculate financials
+//             const grossTotal = (r.totalRoomPrice || 0) - (r.bookingCommission || 0) - (r.totalBreakfastPrice || 0);
+//             const serviceCharge = grossTotal / 11;
+//             const netIncome = serviceCharge * 10;
+//
+//             const reportData = {
+//                 ...r,
+//                 grossTotal,
+//                 serviceCharge,
+//                 netIncome
+//             };
+//
+//             const existingReport = await RoomReport.findOne({ bookingId: r.bookingId });
+//
+//             if (existingReport) {
+//                 await RoomReport.updateOne({ bookingId: r.bookingId }, { $set: reportData });
+//                 updatedCount++;
+//             } else {
+//                 await RoomReport.create(reportData);
+//                 createdCount++;
+//             }
+//         }
+//
+//         return res.status(200).json({
+//             success: true,
+//             message: "Room reports processed successfully",
+//             updatedCount,
+//             createdCount
+//         });
+//
+//     } catch (err) {
+//         console.error("POST saveRoomReports error:", err);
+//         return res.status(500).json({ success: false, message: "Server Error", error: err.message });
+//     }
+// };
 
 export const saveRoomReports = async (req, res) => {
     try {
@@ -109,8 +169,12 @@ export const saveRoomReports = async (req, res) => {
                 });
             }
 
-            // Calculate financials
-            const grossTotal = (r.totalRoomPrice || 0) - (r.bookingCommission || 0) - (r.totalBreakfastPrice || 0);
+            // Recalculate required financial fields
+            const grossTotal =
+                (r.totalRoomPrice || 0) -
+                (r.bookingCommission || 0) -
+                (r.totalBreakfastPrice || 0);
+
             const serviceCharge = grossTotal / 11;
             const netIncome = serviceCharge * 10;
 
@@ -118,15 +182,22 @@ export const saveRoomReports = async (req, res) => {
                 ...r,
                 grossTotal,
                 serviceCharge,
-                netIncome
+                netIncome,
+                updatedAt: new Date()
             };
 
+            // Check if report exists for this booking
             const existingReport = await RoomReport.findOne({ bookingId: r.bookingId });
 
             if (existingReport) {
-                await RoomReport.updateOne({ bookingId: r.bookingId }, { $set: reportData });
+                // ➤ Update existing report
+                await RoomReport.updateOne(
+                    { bookingId: r.bookingId },
+                    { $set: reportData }
+                );
                 updatedCount++;
             } else {
+                // ➤ Create as new report
                 await RoomReport.create(reportData);
                 createdCount++;
             }
@@ -141,21 +212,31 @@ export const saveRoomReports = async (req, res) => {
 
     } catch (err) {
         console.error("POST saveRoomReports error:", err);
-        return res.status(500).json({ success: false, message: "Server Error", error: err.message });
+        return res.status(500).json({
+            success: false,
+            message: "Server Error",
+            error: err.message
+        });
     }
 };
+
 
 export const exportRoomReportsToExcel = async (req, res) => {
     try {
         const { start, end } = req.query;
 
-        const filter = {};
-        if (start && end) {
-            filter.checkOut = {
-                $gte: new Date(start),
-                $lte: new Date(end)
-            };
+        const filter = { checkOut: { $exists: true } };
+
+        if (start) {
+            filter.checkOut.$gte = new Date(start); // start of day
         }
+
+        if (end) {
+            const endDate = new Date(end);
+            endDate.setHours(23, 59, 59, 999); // include entire end day
+            filter.checkOut.$lte = endDate;
+        }
+
 
         const reports = await RoomReport.find(filter).lean();
 
