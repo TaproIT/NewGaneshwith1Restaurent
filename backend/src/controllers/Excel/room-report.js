@@ -225,13 +225,18 @@ export const exportRoomReportsToExcel = async (req, res) => {
     try {
         const { start, end } = req.query;
 
-        const filter = {};
-        if (start && end) {
-            filter.checkOut = {
-                $gte: new Date(start),
-                $lte: new Date(end)
-            };
+        const filter = { checkOut: { $exists: true } };
+
+        if (start) {
+            filter.checkOut.$gte = new Date(start); // start of day
         }
+
+        if (end) {
+            const endDate = new Date(end);
+            endDate.setHours(23, 59, 59, 999); // include entire end day
+            filter.checkOut.$lte = endDate;
+        }
+
 
         const reports = await RoomReport.find(filter).lean();
 
