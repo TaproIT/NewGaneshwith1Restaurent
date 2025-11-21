@@ -13,6 +13,7 @@ type ReportsHeaderProps = {
   onFetchReports: () => void;
   onSave: () => void;
   onDownloadExcel: () => void;
+  loadingSave: boolean;
 };
 
 const ReportsHeader: React.FC<ReportsHeaderProps> = ({
@@ -22,6 +23,7 @@ const ReportsHeader: React.FC<ReportsHeaderProps> = ({
   onFetchReports,
   onSave,
   onDownloadExcel,
+  loadingSave,
 }) => {
   return (
     <Card className="mb-2">
@@ -53,12 +55,12 @@ const ReportsHeader: React.FC<ReportsHeaderProps> = ({
             </div>
 
             <Button onClick={onFetchReports} disabled={loading}>
-              {loading ? "Loading..." : "Load Reports"}
+              {loading ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> : "Load Reports"}
             </Button>
           </div>
 
           <div className="flex gap-2 mt-2 md:mt-0">
-            <Button onClick={onSave}>Save</Button>
+            <Button onClick={onSave}>{loadingSave ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> : "Save"}</Button>
             <Button onClick={onDownloadExcel} variant="outline">
               Download Excel
             </Button>
