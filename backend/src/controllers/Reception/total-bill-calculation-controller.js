@@ -643,18 +643,16 @@ export const finalizeBookingBill = async (req, res) => {
         // booking.checkOut = newCheckoutDate;
 
         // Today at noon in SL, stored as UTC
-        const todayNoonUTC = todaySOD.add(12, "hour").utc().toDate();
+            // Always update checkout to Sri Lanka local noon
+        const todayNoonSL = dayjs().tz(TZ).toDate();
 
-// Only update if the current checkout is before today
-        if (dayjs(booking.checkOut).tz(TZ).isBefore(todaySOD)) {
+            // Store old checkout if it exists
+        if (booking.checkOut) {
             booking.oldCheckOutDate = booking.checkOut;
             booking.oldCheckOutDateStatus = true;
-            booking.checkOut = todayNoonUTC;
-        } else {
-            // Keep original checkout if it's today or in future
-            booking.checkOut = booking.checkOut;
         }
 
+        booking.checkOut = todayNoonSL;
 
         // booking.roomsHistory = (booking.roomsHistory || []).map((rh) => {
         //     rh.switchOutDate = newCheckoutDate;
