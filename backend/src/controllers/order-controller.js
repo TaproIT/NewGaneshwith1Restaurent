@@ -10,6 +10,9 @@ import mongoose from "mongoose";
 import { getRestaurantTypeByUserRole } from "../utils/user-util.js";
 import { updateBeverageQuantityManually, updateBeverageVolumeManually } from "../utils/beverageStock.js";
 import ExcelJS from "exceljs";
+import PBFoodNet from "../models/PoolAndBeachResturant/PBFoodNet.js";
+import ExtraBeverage from "../models/ExtraBeverages/extra-beverage-model.js";
+import Beverage from "../models/Beverage/beverage.js";
 
 export const setInitialOrderDetails = async (req, res) => {
     try{
@@ -200,6 +203,272 @@ export const selectTableForOrder = async (req, res) => {
   }
 };
 
+// export const addOrderToken = async (req, res) => {
+//   const session = await Order.startSession();
+//   session.startTransaction();
+
+//   try {
+//     const { id } = req.params; // order id
+//     const { userId } = req.user;
+
+//     const { newOrderToken, subTotal, tax, discount, serviceCharge, totalBill } =
+//       req.body.data;
+    
+//     const restaurantType = await getRestaurantTypeByUserRole(userId);
+
+//     const order = await Order.findById(id);
+//     if (!order) {
+//       await session.abortTransaction();
+//       return sendErrorResponse(res, 404, "Order not found");
+//     }
+
+//     let orderToken;
+
+//     // Updating an existing token
+//     if (newOrderToken._id) {
+//       orderToken = await OrderToken.findById(newOrderToken._id);
+//       if (!orderToken) {
+//         await session.abortTransaction();
+//         return sendErrorResponse(res, 404, "Order token not found");
+//       }
+
+//       const foodOrderIds = [];
+//       if (newOrderToken.foodOrders?.length) {
+//          for (const food of newOrderToken.foodOrders) {
+//           const { _id, ...foodData } = food;
+          
+//           foodData.liquor = [];
+
+//           if (newOrderToken.isPrinted) {
+//             const liquors = food.liquor;
+
+//             if (liquors.length > 0) {
+//               for (const liquor of liquors) {
+//                 updateBeverageVolumeManually(
+//                   liquor.beverage._id,
+//                   liquor.amount * food.quantity
+//                 );
+
+//                  const liquorData = {
+//                   liquorId: liquor.beverage._id,
+//                   liquorName: liquor.beverage.beverageName,
+//                   amount: liquor.amount * food.quantity,
+//                 };
+//                 // Push transformed liquor
+//                 foodData.liquor.push(liquorData); 
+//               }
+//             }
+//           }
+
+//           foodData.restaurantType = restaurantType;
+
+//           const foodItem = new FoodOrderItem(foodData);
+//           await foodItem.save({ session });
+//           foodOrderIds.push(foodItem._id);
+//         }
+//       }
+
+//       const beverageOrderIds = [];
+//       if (newOrderToken.beverageOrders?.length) {
+//         for (const beverage of newOrderToken.beverageOrders) {
+//           const { _id, ...beverageData } = beverage;
+
+//           // Reset liquor array to remove incoming raw structure
+//           beverageData.liquor = [];
+
+//           if (newOrderToken.isPrinted) {
+//             await updateBeverageQuantityManually(
+//               beverage.beverageId,
+//               beverage.quantity
+//             );
+
+//             const liquors = beverage.liquor || [];
+
+//             if (liquors.length > 0) {
+//               for (const liquor of liquors) {
+//                 await updateBeverageVolumeManually(
+//                   liquor.beverage._id,
+//                   liquor.amount * beverage.quantity
+//                 );
+
+//                 const liquorData = {
+//                   liquorId: liquor.beverage._id,
+//                   liquorName: liquor.beverage.beverageName,
+//                   amount: liquor.amount * beverage.quantity,
+//                 };
+//                 // Push transformed liquor
+//                 beverageData.liquor.push(liquorData);
+//               }
+//             }
+//           }
+
+//           beverageData.restaurantType = restaurantType;
+
+//           const beverageItem = new BeverageOrderItem(beverageData);
+//           await beverageItem.save({ session });
+//           beverageOrderIds.push(beverageItem._id);
+//         }
+//       }
+
+//       orderToken.foodOrders = foodOrderIds;
+//       orderToken.beverageOrders = beverageOrderIds;
+//       orderToken.isPrinted = newOrderToken.isPrinted;
+//       orderToken.tokenSubTotal = newOrderToken.tokenSubTotal;
+//       orderToken.tokenTax = newOrderToken.tokenTax;
+//       orderToken.tokenDiscount = newOrderToken.tokenDiscount;
+//       orderToken.tokenServiceCharge = newOrderToken.tokenServiceCharge;
+//       orderToken.tokenTotalBill = newOrderToken.tokenTotalBill;
+
+//       await orderToken.save({ session });
+
+//       if (newOrderToken.isPrinted) {
+//         if (!order.orderTokens.includes(orderToken._id)) {
+//           order.orderTokens.push(orderToken._id);
+//         }
+//         order.holdOrderToken = null;
+//       } else {
+//         order.holdOrderToken = orderToken._id;
+//       }
+//     }
+
+//     // Creating a brand new token
+//     else {
+//       const foodOrderIds = [];
+
+// if (newOrderToken.foodOrders?.length) {
+//   for (const food of newOrderToken.foodOrders) {
+//     const { _id, ...foodData } = food;
+
+//     console.log(food);
+//     console.log("f");
+
+//     // Initialize liquor array
+//     foodData.liquor = [];
+
+//     // Calculate subtotal
+//     foodData.subTotal = food.price * food.quantity;
+
+//     if (newOrderToken.isPrinted) {
+//       const liquors = food.liquor;
+
+//       if (liquors.length > 0) {
+//         for (const liquor of liquors) {
+//           updateBeverageVolumeManually(
+//             liquor.beverage._id,
+//             liquor.amount * food.quantity
+//           );
+
+//           const liquorData = {
+//             liquorId: liquor.beverage._id,
+//             liquorName: liquor.beverage.beverageName,
+//             amount: liquor.amount * food.quantity,
+//           };
+
+//           foodData.liquor.push(liquorData);
+//         }
+//       }
+//     }
+
+//     foodData.restaurantType = restaurantType;
+
+//     const foodItem = new FoodOrderItem(foodData);
+//     await foodItem.save({ session });
+//     foodOrderIds.push(foodItem._id);
+//   }
+// }
+
+
+//       const beverageOrderIds = [];
+//       if (newOrderToken.beverageOrders?.length) {
+//         for (const beverage of newOrderToken.beverageOrders) {
+//           const { _id, ...beverageData } = beverage;
+
+//           // Reset liquor array to remove incoming raw structure
+//           beverageData.liquor = [];
+
+//           if (newOrderToken.isPrinted) {
+//             await updateBeverageQuantityManually(
+//               beverage.beverageId,
+//               beverage.quantity
+//             );
+
+//             const liquors = beverage.liquor || [];
+
+//             if (liquors.length > 0) {
+//               for (const liquor of liquors) {
+//                 await updateBeverageVolumeManually(
+//                   liquor.beverage._id,
+//                   liquor.amount * beverage.quantity
+//                 );
+
+//                 const liquorData = {
+//                   liquorId: liquor.beverage._id,
+//                   liquorName: liquor.beverage.beverageName,
+//                   amount: liquor.amount * beverage.quantity,
+//                 };
+//                 // Push transformed liquor
+//                 beverageData.liquor.push(liquorData);
+//               }
+//             }
+//           }
+
+//           beverageData.restaurantType = restaurantType;
+
+//           const beverageItem = new BeverageOrderItem(beverageData);
+//           await beverageItem.save({ session });
+        
+//           beverageOrderIds.push(beverageItem._id);
+//         }
+//       }
+
+
+//       const tokenId = generateTokenId(order.orderNumber);
+//       orderToken = new OrderToken({
+//         tokenId,
+//         tokenNumber: newOrderToken.tokenNumber,
+//         foodOrders: foodOrderIds,
+//         beverageOrders: beverageOrderIds,
+//         isPrinted: newOrderToken.isPrinted,
+//         tokenSubTotal: newOrderToken.tokenSubTotal,
+//         tokenTax: newOrderToken.tokenTax,
+//         tokenDiscount: newOrderToken.tokenDiscount,
+//         tokenServiceCharge: newOrderToken.tokenServiceCharge,
+//         tokenTotalBill: newOrderToken.tokenTotalBill,
+//       });
+
+//       await orderToken.save({ session });
+
+//       if (orderToken.isPrinted) {
+//         order.orderTokens.push(orderToken._id);
+//         order.holdOrderToken = null;
+//       } else {
+//         order.holdOrderToken = orderToken._id;
+//       }
+//     }
+
+//     // Update order totals
+//     order.subTotal = subTotal;
+//     order.tax = tax;
+//     order.discount = discount;
+//     order.serviceCharge = serviceCharge;
+//     order.totalBill = totalBill;
+
+//     await order.save({ session });
+
+//     await session.commitTransaction();
+
+//     return sendSuccessResponse(res, 201, "Order token added successfully", {
+//       order,
+//     });
+//   } catch (error) {
+//     await session.abortTransaction();
+//     return sendErrorResponse(res, 500, "Internal Server Error", error.message);
+//   } finally {
+//     session.endSession();
+//    }
+// };
+
+
 export const addOrderToken = async (req, res) => {
   const session = await Order.startSession();
   session.startTransaction();
@@ -210,7 +479,9 @@ export const addOrderToken = async (req, res) => {
 
     const { newOrderToken, subTotal, tax, discount, serviceCharge, totalBill } =
       req.body.data;
-    
+
+    console.log(subTotal);
+
     const restaurantType = await getRestaurantTypeByUserRole(userId);
 
     const order = await Order.findById(id);
@@ -219,45 +490,228 @@ export const addOrderToken = async (req, res) => {
       return sendErrorResponse(res, 404, "Order not found");
     }
 
+    // ==========================================================
+    // 1. BACKEND SUBTOTAL CALCULATION (Security Check)
+    // ==========================================================
+    let backEndTokenSubTotal = 0;
+    let backEndTokenServiceCharge = 0;
+    let backEndTokenTotalBill = 0;
+
+    // ==========================================================
+    // CALCULATE FOOD SUBTOTAL USING PRICE FROM DB
+    // ==========================================================
+    if (newOrderToken.foodOrders?.length) {
+      for (const food of newOrderToken.foodOrders) {
+        // Fetch real price from PBFoodNet
+        const foodItem = await PBFoodNet.findById(food.foodId);
+
+        if (!foodItem) {
+          await session.abortTransaction();
+          return sendErrorResponse(
+            res,
+            400,
+            `Food item not found: ${food.foodId}`
+          );
+        }
+
+        console.log(foodItem);
+
+        const realPrice = Number(foodItem.price);
+        const quantity = Number(food.quantity);
+
+        backEndTokenSubTotal += realPrice * quantity;
+      }
+    }
+
+    // ==========================================================
+    // CALCULATE BEVERAGE SUBTOTAL USING CORRECT MODEL
+    // ==========================================================
+    if (newOrderToken.beverageOrders?.length) {
+      for (const bev of newOrderToken.beverageOrders) {
+        let realPrice = 0;
+        const quantity = Number(bev.quantity);
+
+        // Try loading from Beverage model (hard liquor / soft drinks)
+        const beverageItem = await Beverage.findById(bev.beverageId);
+
+        if (beverageItem) {
+          // If found → category must be hard liquor or soft drinks
+          realPrice = Number(beverageItem.price);
+        } else {
+          // Otherwise → must be ExtraBeverage model
+          const extraBeverage = await ExtraBeverage.findById(bev.beverageId);
+
+          if (!extraBeverage) {
+            await session.abortTransaction();
+            return sendErrorResponse(
+              res,
+              400,
+              `Beverage item not found: ${bev.beverageId}`
+            );
+          }
+
+          realPrice = Number(extraBeverage.price);
+        }
+
+        backEndTokenSubTotal += realPrice * quantity;
+      }
+    }
+
+    // ==========================================================
+    // SERVICE CHARGE & TOTAL BILL
+    // ==========================================================
+    backEndTokenServiceCharge = backEndTokenSubTotal * 0.1;
+
+    backEndTokenTotalBill = backEndTokenServiceCharge + backEndTokenSubTotal;
+
+     if (
+      Number(backEndTokenSubTotal.toFixed(2)) !==
+      Number(newOrderToken.tokenSubTotal.toFixed(2))
+    ) {
+      await session.abortTransaction();
+      return sendErrorResponse(
+        res,
+        400,
+        `Subtotal mismatch! Frontend: ${newOrderToken.tokenSubTotal}, Backend: ${backEndTokenSubTotal}`
+      );
+    }
+
+    if (
+      Number(backEndTokenServiceCharge.toFixed(2)) !==
+      Number(newOrderToken.tokenServiceCharge.toFixed(2))
+    ) {
+      await session.abortTransaction();
+      return sendErrorResponse(
+        res,
+        400,
+        `Service charge mismatch! Frontend: ${newOrderToken.tokenServiceCharge}, Backend: ${backEndTokenServiceCharge}`
+      );
+    }
+
+    if (
+      Number(backEndTokenTotalBill.toFixed(2)) !==
+      Number(newOrderToken.tokenTotalBill.toFixed(2))
+    ) {
+      await session.abortTransaction();
+      return sendErrorResponse(
+        res,
+        400,
+        `Total mismatch! Frontend: ${newOrderToken.tokenTotalBill}, Backend: ${backEndTokenTotalBill}`
+      );
+    }
+
+
+    // ==========================================================
+    // EXTRA VALIDATION: VERIFY (all existing tokens subtotal + new token subtotal)
+    // ==========================================================
+
+    // 1. Load all EXISTING printed order tokens of this order
+    const existingTokens = await OrderToken.find({
+      _id: { $in: order.orderTokens },
+    });
+
+    // 2. Calculate backend subtotal of existing tokens
+    let existingTokensSubTotal = 0;
+
+    let existingTokensServiceCharge = 0;
+
+    let existingTokensTotalBill = 0;
+
+    for (const token of existingTokens) {
+      existingTokensSubTotal += Number(token.tokenSubTotal || 0);
+      existingTokensServiceCharge += Number(token.tokenServiceCharge || 0);
+      existingTokensTotalBill += Number(token.tokenTotalBill || 0);
+    }
+
+    // 3. Total subtotal = existing tokens subtotal + new token subtotal
+    const grandBackEndSubTotal = existingTokensSubTotal + backEndTokenSubTotal;
+
+    const grandBackEndServiceCharge =
+      existingTokensServiceCharge + backEndTokenServiceCharge;
+
+    const grandBackEndTotalBill =
+      existingTokensTotalBill + backEndTokenTotalBill;
+
+    // 4. Compare with subtotal coming from frontend
+    if (
+      Number(grandBackEndSubTotal.toFixed(2)) !== Number(subTotal.toFixed(2))
+    ) {
+      await session.abortTransaction();
+      return sendErrorResponse(
+        res,
+        400,
+        `Order subtotal mismatch! Frontend total: ${subTotal}, Backend total: ${grandBackEndSubTotal}`
+      );
+    }
+
+    if (
+      Number(grandBackEndServiceCharge.toFixed(2)) !==
+      Number(serviceCharge.toFixed(2))
+    ) {
+      await session.abortTransaction();
+      return sendErrorResponse(
+        res,
+        400,
+        `Order service charge mismatch! Frontend total: ${serviceCharge}, Backend total: ${grandBackEndServiceCharge}`
+      );
+    }
+
+    if (
+      Number(grandBackEndTotalBill.toFixed(2)) !== Number(totalBill.toFixed(2))
+    ) {
+      await session.abortTransaction();
+      return sendErrorResponse(
+        res,
+        400,
+        `Order total bill mismatch! Frontend total: ${totalBill}, Backend total: ${grandBackEndTotalBill}`
+      );
+    }
+   
+    // ==========================================================
+    // 2. PROCESS ORDER TOKEN (Create/Update)
+    // ==========================================================
+
     let orderToken;
 
-    // Updating an existing token
+    // ----------------------------------------------------------
+    // UPDATING AN EXISTING TOKEN
+    // ----------------------------------------------------------
     if (newOrderToken._id) {
       orderToken = await OrderToken.findById(newOrderToken._id);
+
       if (!orderToken) {
         await session.abortTransaction();
         return sendErrorResponse(res, 404, "Order token not found");
       }
 
       const foodOrderIds = [];
+
       if (newOrderToken.foodOrders?.length) {
-         for (const food of newOrderToken.foodOrders) {
+        for (const food of newOrderToken.foodOrders) {
           const { _id, ...foodData } = food;
-          
           foodData.liquor = [];
+          foodData.restaurantType = restaurantType;
 
+          // Subtotal per food item
+          foodData.subTotal = food.price * food.quantity;
+
+          // Beverage volume updates if printed
           if (newOrderToken.isPrinted) {
-            const liquors = food.liquor;
+            const liquors = food.liquor || [];
 
-            if (liquors.length > 0) {
-              for (const liquor of liquors) {
-                updateBeverageVolumeManually(
-                  liquor.beverage._id,
-                  liquor.amount * food.quantity
-                );
+            for (const liquor of liquors) {
+              updateBeverageVolumeManually(
+                liquor.beverage._id,
+                liquor.amount * food.quantity
+              );
 
-                 const liquorData = {
-                  liquorId: liquor.beverage._id,
-                  liquorName: liquor.beverage.beverageName,
-                  amount: liquor.amount * food.quantity,
-                };
-                // Push transformed liquor
-                foodData.liquor.push(liquorData); 
-              }
+              foodData.liquor.push({
+                liquorId: liquor.beverage._id,
+                liquorName: liquor.beverage.beverageName,
+                amount: liquor.amount * food.quantity,
+              });
             }
           }
-
-          foodData.restaurantType = restaurantType;
 
           const foodItem = new FoodOrderItem(foodData);
           await foodItem.save({ session });
@@ -265,13 +719,19 @@ export const addOrderToken = async (req, res) => {
         }
       }
 
+      // ----------------------------------------------------------
+      // BEVERAGE ORDERS (UPDATE)
+      // ----------------------------------------------------------
       const beverageOrderIds = [];
+
       if (newOrderToken.beverageOrders?.length) {
         for (const beverage of newOrderToken.beverageOrders) {
           const { _id, ...beverageData } = beverage;
-
-          // Reset liquor array to remove incoming raw structure
           beverageData.liquor = [];
+          beverageData.restaurantType = restaurantType;
+
+          // Subtotal per beverage item
+          beverageData.subTotal = beverage.price * beverage.quantity;
 
           if (newOrderToken.isPrinted) {
             await updateBeverageQuantityManually(
@@ -281,25 +741,19 @@ export const addOrderToken = async (req, res) => {
 
             const liquors = beverage.liquor || [];
 
-            if (liquors.length > 0) {
-              for (const liquor of liquors) {
-                await updateBeverageVolumeManually(
-                  liquor.beverage._id,
-                  liquor.amount * beverage.quantity
-                );
+            for (const liquor of liquors) {
+              await updateBeverageVolumeManually(
+                liquor.beverage._id,
+                liquor.amount * beverage.quantity
+              );
 
-                const liquorData = {
-                  liquorId: liquor.beverage._id,
-                  liquorName: liquor.beverage.beverageName,
-                  amount: liquor.amount * beverage.quantity,
-                };
-                // Push transformed liquor
-                beverageData.liquor.push(liquorData);
-              }
+              beverageData.liquor.push({
+                liquorId: liquor.beverage._id,
+                liquorName: liquor.beverage.beverageName,
+                amount: liquor.amount * beverage.quantity,
+              });
             }
           }
-
-          beverageData.restaurantType = restaurantType;
 
           const beverageItem = new BeverageOrderItem(beverageData);
           await beverageItem.save({ session });
@@ -307,6 +761,7 @@ export const addOrderToken = async (req, res) => {
         }
       }
 
+      // Update token data
       orderToken.foodOrders = foodOrderIds;
       orderToken.beverageOrders = beverageOrderIds;
       orderToken.isPrinted = newOrderToken.isPrinted;
@@ -328,38 +783,38 @@ export const addOrderToken = async (req, res) => {
       }
     }
 
-    // Creating a brand new token
+    // ----------------------------------------------------------
+    // CREATING A NEW TOKEN
+    // ----------------------------------------------------------
     else {
       const foodOrderIds = [];
-      
+
       if (newOrderToken.foodOrders?.length) {
         for (const food of newOrderToken.foodOrders) {
           const { _id, ...foodData } = food;
-          
+
           foodData.liquor = [];
+          foodData.restaurantType = restaurantType;
+
+          // Subtotal per item
+          foodData.subTotal = food.price * food.quantity;
 
           if (newOrderToken.isPrinted) {
-            const liquors = food.liquor;
+            const liquors = food.liquor || [];
 
-            if (liquors.length > 0) {
-              for (const liquor of liquors) {
-                updateBeverageVolumeManually(
-                  liquor.beverage._id,
-                  liquor.amount * food.quantity
-                );
+            for (const liquor of liquors) {
+              updateBeverageVolumeManually(
+                liquor.beverage._id,
+                liquor.amount * food.quantity
+              );
 
-                 const liquorData = {
-                  liquorId: liquor.beverage._id,
-                  liquorName: liquor.beverage.beverageName,
-                  amount: liquor.amount * food.quantity,
-                };
-                // Push transformed liquor
-                foodData.liquor.push(liquorData); 
-              }
+              foodData.liquor.push({
+                liquorId: liquor.beverage._id,
+                liquorName: liquor.beverage.beverageName,
+                amount: liquor.amount * food.quantity,
+              });
             }
           }
-
-          foodData.restaurantType = restaurantType;
 
           const foodItem = new FoodOrderItem(foodData);
           await foodItem.save({ session });
@@ -368,12 +823,16 @@ export const addOrderToken = async (req, res) => {
       }
 
       const beverageOrderIds = [];
+
       if (newOrderToken.beverageOrders?.length) {
         for (const beverage of newOrderToken.beverageOrders) {
           const { _id, ...beverageData } = beverage;
 
-          // Reset liquor array to remove incoming raw structure
           beverageData.liquor = [];
+          beverageData.restaurantType = restaurantType;
+
+          // Subtotal per beverage item
+          beverageData.subTotal = beverage.price * beverage.quantity;
 
           if (newOrderToken.isPrinted) {
             await updateBeverageQuantityManually(
@@ -383,35 +842,28 @@ export const addOrderToken = async (req, res) => {
 
             const liquors = beverage.liquor || [];
 
-            if (liquors.length > 0) {
-              for (const liquor of liquors) {
-                await updateBeverageVolumeManually(
-                  liquor.beverage._id,
-                  liquor.amount * beverage.quantity
-                );
+            for (const liquor of liquors) {
+              await updateBeverageVolumeManually(
+                liquor.beverage._id,
+                liquor.amount * beverage.quantity
+              );
 
-                const liquorData = {
-                  liquorId: liquor.beverage._id,
-                  liquorName: liquor.beverage.beverageName,
-                  amount: liquor.amount * beverage.quantity,
-                };
-                // Push transformed liquor
-                beverageData.liquor.push(liquorData);
-              }
+              beverageData.liquor.push({
+                liquorId: liquor.beverage._id,
+                liquorName: liquor.beverage.beverageName,
+                amount: liquor.amount * beverage.quantity,
+              });
             }
           }
 
-          beverageData.restaurantType = restaurantType;
-
           const beverageItem = new BeverageOrderItem(beverageData);
           await beverageItem.save({ session });
-        
           beverageOrderIds.push(beverageItem._id);
         }
       }
 
-
       const tokenId = generateTokenId(order.orderNumber);
+
       orderToken = new OrderToken({
         tokenId,
         tokenNumber: newOrderToken.tokenNumber,
@@ -435,7 +887,9 @@ export const addOrderToken = async (req, res) => {
       }
     }
 
-    // Update order totals
+    // ==========================================================
+    // 3. UPDATE ORDER TOTALS
+    // ==========================================================
     order.subTotal = subTotal;
     order.tax = tax;
     order.discount = discount;
@@ -454,17 +908,85 @@ export const addOrderToken = async (req, res) => {
     return sendErrorResponse(res, 500, "Internal Server Error", error.message);
   } finally {
     session.endSession();
-   }
+  }
 };
+
+// export const updateOrderBillDetails = async (req, res) => {
+//   try {
+//     const {userId} = req.user;
+//     const { id } = req.params;
+//     const {
+//       subTotal,
+//       tax,
+//       discount,
+//       serviceCharge,
+//       totalBill,
+//       paymentMethod,
+//     } = req.body;
+
+//     // Validate payment method
+//     if (
+//       paymentMethod &&
+//       ![
+//         PaymentMethods.CASH.value,
+//         PaymentMethods.CARD.value,
+//         PaymentMethods.FREE_BILL.value,
+//         PaymentMethods.ROOM.value,
+//       ].includes(paymentMethod)
+//     ) {
+//       return sendErrorResponse(res, 400, "Invalid payment method");
+//     }
+
+//     // Find and update the order
+//     const order = await Order.findByIdAndUpdate(
+//       id,
+//       {
+//         subTotal,
+//         tax,
+//         discount,
+//         serviceCharge,
+//         totalBill,
+//         paymentMethod,
+//         orderStatus: OrderStatuses.COMPLETED.value,
+//         checkOutUser: userId
+//       },
+//       { new: true, runValidators: true }
+//     );
+
+//     if (!order) {
+//       return sendErrorResponse(res, 404, "Order not found");
+//     }
+
+//     // If order has a restaurant table, update that table’s status to EMPTY
+//     if (order.restaurantTable) {
+//       await RestaurantTable.findByIdAndUpdate(
+//         order.restaurantTable,
+//         { status: TableStatuses.EMPTY.value },
+//         { new: true }
+//       );
+//     }
+
+//     return sendSuccessResponse(
+//       res,
+//       200,
+//       "Order billing details updated successfully",
+//       { order }
+//     );
+//   } catch (error) {
+//     console.error("Error updating order bill:", error);
+//     return sendErrorResponse(res, 500, "Internal Server Error", error.message);
+//   }
+// };
 
 export const updateOrderBillDetails = async (req, res) => {
   try {
-    const {userId} = req.user;
+    const { userId } = req.user;
     const { id } = req.params;
+
     const {
       subTotal,
-      tax,
-      discount,
+      tax = 0,
+      discount = 0,
       serviceCharge,
       totalBill,
       paymentMethod,
@@ -483,15 +1005,43 @@ export const updateOrderBillDetails = async (req, res) => {
       return sendErrorResponse(res, 400, "Invalid payment method");
     }
 
-    // Find and update the order
-    const order = await Order.findByIdAndUpdate(
+    // Fetch order safely
+    const order = await Order.findById(id);
+    if (!order) {
+      return sendErrorResponse(res, 404, "Order not found");
+    }
+
+    // ---------------------------------------------------
+    // 🔍 BACKEND CALCULATE EXPECTED TOTAL
+    // ---------------------------------------------------
+
+    // total = subTotal + serviceCharge + tax − discount
+    const backendTotal = Number(
+      subTotal + serviceCharge + tax - discount
+    );
+
+    // ---------------------------------------------------
+    // ❗COMPARE FRONTEND TOTAL VS BACKEND TOTAL
+    // ---------------------------------------------------
+    if (backendTotal !== totalBill) {
+      return sendErrorResponse(
+        res,
+        400,
+        `Total bill mismatch! Frontend: ${totalBill}, Backend: ${backendTotal}`
+      );
+    }
+
+    // ---------------------------------------------------
+    // 👍 Update order if values are correct
+    // ---------------------------------------------------
+    const updatedOrder = await Order.findByIdAndUpdate(
       id,
       {
         subTotal,
         tax,
         discount,
         serviceCharge,
-        totalBill,
+        totalBill: backendTotal,
         paymentMethod,
         orderStatus: OrderStatuses.COMPLETED.value,
         checkOutUser: userId
@@ -499,16 +1049,11 @@ export const updateOrderBillDetails = async (req, res) => {
       { new: true, runValidators: true }
     );
 
-    if (!order) {
-      return sendErrorResponse(res, 404, "Order not found");
-    }
-
-    // If order has a restaurant table, update that table’s status to EMPTY
-    if (order.restaurantTable) {
+    // If linked table exists, mark table as EMPTY
+    if (updatedOrder.restaurantTable) {
       await RestaurantTable.findByIdAndUpdate(
-        order.restaurantTable,
-        { status: TableStatuses.EMPTY.value },
-        { new: true }
+        updatedOrder.restaurantTable,
+        { status: TableStatuses.EMPTY.value }
       );
     }
 
@@ -516,8 +1061,9 @@ export const updateOrderBillDetails = async (req, res) => {
       res,
       200,
       "Order billing details updated successfully",
-      { order }
+      { order: updatedOrder }
     );
+
   } catch (error) {
     console.error("Error updating order bill:", error);
     return sendErrorResponse(res, 500, "Internal Server Error", error.message);
