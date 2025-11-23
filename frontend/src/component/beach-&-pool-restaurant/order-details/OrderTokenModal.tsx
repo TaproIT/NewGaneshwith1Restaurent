@@ -188,11 +188,11 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
     try {
       setLoading(true);
 
-      await printReceipt();
-
       dispatch(setIsPrintedForNewOrderToken(true));
 
       await dispatch(addNewOrderTokenToOrder({ orderId: id })).unwrap();
+
+      await printReceipt();
 
       await dispatch(fetchOrderById(id)).unwrap();
       
@@ -207,7 +207,7 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
 
       setLoading(false);
 
-      toast.error("Printing failed. Check printer/QZ Tray connection.");
+      toast.error("Printing failed");
     }
   };
 

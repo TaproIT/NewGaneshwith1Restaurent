@@ -121,10 +121,34 @@ const ReportsTable: React.FC<ReportsTableProps> = ({
               <td className="p-3">{b.totalRoomPrice}</td>
 
               <td className="p-3">
-                <Input type="number" value={b.bookingCommission ?? 0} disabled />
+                <Input
+                  type="number"
+                  value={b.bookingCommission ?? ""}
+                  placeholder="Enter value here"
+                  onChange={(e) => {
+                    let value = e.target.value === "" ? null : Number(e.target.value);
+                    if (value !== null) {
+                      if (value < 0) value = 0;
+                      if (value > b.grossTotal) value = b.grossTotal;
+                    }
+                    updateBookingField(b.bookingId, "bookingCommission", value);
+                  }}
+                />
               </td>
               <td className="p-3">
-                <Input type="number" value={b.totalBreakfastPrice ?? 0} disabled />
+                <Input
+                  type="number"
+                  value={b.totalBreakfastPrice ?? ""}
+                  placeholder="Enter value here"
+                  onChange={(e) => {
+                    let value = e.target.value === "" ? null : Number(e.target.value);
+                    if (value !== null) {
+                      if (value < 0) value = 0;
+                      if (value > b.grossTotal) value = b.grossTotal;
+                    }
+                    updateBookingField(b.bookingId, "totalBreakfastPrice", value);
+                  }}
+                />
               </td>
 
               <td className="p-3">{b.grossTotal}</td>
