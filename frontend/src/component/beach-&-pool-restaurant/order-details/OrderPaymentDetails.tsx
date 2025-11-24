@@ -12,6 +12,7 @@ import {
   setIsPrintedForNewOrderToken,
   setServiceCharge,
   setSubTotal,
+  setTokenServiceCharge,
   setTokenSubTotal,
   setTokenTotalBill,
   setTotalBill,
@@ -102,7 +103,7 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
 
     dispatch(setTokenSubTotal(tokenSubTotal));
 
-    dispatch(setServiceCharge(tokenSubTotal*0.1));
+    dispatch(setTokenServiceCharge(tokenSubTotal * 0.1));
 
     const tokenTotalBill =
       tokenSubTotal +
@@ -119,6 +120,8 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
         : tokenSubTotal;
 
     dispatch(setSubTotal(subTotal));
+
+    dispatch(setServiceCharge(subTotal*0.1));
 
     const totalBill =
       order.subTotal + order.tax + order.discount + order.serviceCharge;

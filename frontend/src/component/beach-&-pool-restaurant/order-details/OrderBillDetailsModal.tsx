@@ -88,6 +88,8 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
     return [firstLine, ...otherLines].join("\n");
   }
 
+  const isFreeBill = selectedPayment === PaymentMethods.FREE_BILL.value;
+
   /** ------------------ Print Receipt ------------------ **/
   const printReceipt = async () => {
     if (!window.qz) {
@@ -168,10 +170,10 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
       const amountPad = (amt: number) => `${amt.toFixed(2)} LKR`.padStart(12, " ");
 
       receiptData += "-".repeat(totalWidth) + "\n";
-      receiptData += padKey("Subtotal:") + amountPad(subTotal) + "\n";
-      receiptData += padKey("Service (10%):") + amountPad(serviceCharge) + "\n";
-      receiptData += padKey(`Discount (${discount}%):`) + amountPad(-discountAmount) + "\n";
-      receiptData += padKey("TOTAL BILL:") + amountPad(totalBill) + "\n";
+      receiptData += padKey("Subtotal:") + amountPad(isFreeBill ? 0 : subTotal) + "\n";
+      receiptData += padKey("Service (10%):") + amountPad(isFreeBill ? 0 : serviceCharge) + "\n";
+      receiptData += padKey(`Discount (${discount}%):`) + amountPad(isFreeBill ? 0 : -discountAmount) + "\n";
+      receiptData += padKey("TOTAL BILL:") + amountPad(isFreeBill? 0 : totalBill) + "\n";
       receiptData += "=".repeat(totalWidth) + "\n";
 
       receiptData +=
@@ -179,6 +181,8 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
          "       Thank you! Come again!       \n\n\n" +
         "      \n\n\n" +
         GS + "V" + "\x00"; // cut
+
+      console.log(receiptData);
 
       await qz.print(config, [{ type: "raw", format: "plain", data: receiptData }]);
       await qz.print(config, [{ type: "raw", format: "plain", data: receiptData }]);
