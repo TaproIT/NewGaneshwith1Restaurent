@@ -480,8 +480,6 @@ export const addOrderToken = async (req, res) => {
     const { newOrderToken, subTotal, tax, discount, serviceCharge, totalBill } =
       req.body.data;
 
-    console.log(subTotal);
-
     const restaurantType = await getRestaurantTypeByUserRole(userId);
 
     const order = await Order.findById(id);
@@ -513,8 +511,6 @@ export const addOrderToken = async (req, res) => {
             `Food item not found: ${food.foodId}`
           );
         }
-
-        console.log(foodItem);
 
         const realPrice = Number(foodItem.price);
         const quantity = Number(food.quantity);
@@ -1003,6 +999,37 @@ export const updateOrderBillDetails = async (req, res) => {
       ].includes(paymentMethod)
     ) {
       return sendErrorResponse(res, 400, "Invalid payment method");
+    }
+
+    if (paymentMethod === PaymentMethods.FREE_BILL.value) {
+      const updatedOrder = await Order.findByIdAndUpdate(
+        id,
+        {
+          subTotal:0,
+          tax:0,
+          discount:0,
+          serviceCharge:0,
+          totalBill:0,
+          paymentMethod,
+          orderStatus: OrderStatuses.COMPLETED.value,
+          checkOutUser: userId,
+        },
+        { new: true, runValidators: true }
+      );
+
+      // If linked table exists, mark table as EMPTY
+      if (updatedOrder.restaurantTable) {
+        await RestaurantTable.findByIdAndUpdate(updatedOrder.restaurantTable, {
+          status: TableStatuses.EMPTY.value,
+        });
+      }
+
+      return sendSuccessResponse(
+        res,
+        200,
+        "Order billing details updated successfully",
+        { order: updatedOrder }
+      );
     }
 
     // Fetch order safely
