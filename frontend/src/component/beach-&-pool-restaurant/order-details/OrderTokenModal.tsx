@@ -150,6 +150,7 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
         `Order Number : ${order.orderNumber}\n` +
         `Order Token  : ${order.orderTokens.length + 1}\n` +
         `Customer Type: ${order.customerType}\n` +
+        `${order.roomNumber  !== "0" ? `Room No       : ${order.roomNumber}\n`:""}` + 
         `Date         : ${new Date().toLocaleString()}\n` +
         `TP           : ${order.restaurantType === "Beach"? "+94 472242529 / +94 705505705" : "+94 472244822 / +94 705505705"}\n` +
         "-".repeat(totalWidth) +
@@ -174,6 +175,7 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
         GS +
         "V" +
         "\x00"; // cut
+      console.log(printData);
       await qz.print(config, [{ type: "raw", format: "plain", data: printData }]);
       await qz.print(config, [{ type: "raw", format: "plain", data: printData }]);
       console.log("✅ Print job sent successfully to POS80!");
