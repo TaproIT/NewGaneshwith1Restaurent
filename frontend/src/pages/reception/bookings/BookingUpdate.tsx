@@ -100,7 +100,7 @@ const BookingUpdate = () => {
   // Handle room price update change
   const updateRoomPrice = (index: number, value: string) => {
     const updated = [...roomsForUpdate];
-    updated[index].newPrice = Number(value);
+    updated[index].newPrice = value;
     setRoomsForUpdate(updated);
   };
 
@@ -524,6 +524,7 @@ const BookingUpdate = () => {
                     placeholder="New Price"
                     className="w-40"
                     value={room.newPrice}
+                    step="0.01"
                     min={0}
                     onChange={(e) =>
                       updateRoomPrice(index, e.target.value)
