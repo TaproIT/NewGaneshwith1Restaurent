@@ -4,16 +4,17 @@ export interface OrderFoodItem {
    price: number;
    quantity: number;
    isEnableBeverage?:Boolean;
-   liquor?: [{beverage:string, amount:number}] | []; 
+   liquor?: { beverage: { id: string; beverageName: string; }; amount: number; }[] | []; 
 }
 
 export interface OrderBeverageItem {
    beverageId: string;
    title: string;
+   category: string;
    price: number;
    quantity: number;
    isEnableBeverage?:Boolean;
-   liquor?: [{beverage:string, amount:number}] | [];
+   liquor?: {beverage:{_id:string, beverageName: string, price: number}, amount:number} [] | [];
 }
 
 export interface OrderTokenType {

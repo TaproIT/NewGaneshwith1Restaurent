@@ -1,6 +1,6 @@
 export interface TotalGuests {
-  hotelA: number;
-  hotelB: number;
+  ganeshGardenBeachCabana: number;
+  marakolliyaBeachResort: number;
 }
 
 // Define the main data structure

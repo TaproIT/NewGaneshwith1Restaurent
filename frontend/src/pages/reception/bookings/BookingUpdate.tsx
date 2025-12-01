@@ -33,6 +33,7 @@ const BookingUpdate = () => {
   const [updateLoading, setUpdateLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [roomNumbers, setRoomNumbers] = useState<string[]>([]);
+  const [roomsForUpdate, setRoomsForUpdate] = useState<any[]>([]);
   const navigate = useNavigate();
   const [isWhatsappAvailable, setIsWhatsappAvailable] = useState(false);
   const [isEmailAvailable, setIsEmailAvailable] = useState(false);
@@ -59,21 +60,31 @@ const BookingUpdate = () => {
 
   const { watch, setValue } = form;
 
-  // Update totalGuests automatically
   const adults = watch("adults");
   const kids = watch("kids");
+
   useEffect(() => {
     setValue("totalGuests", adults + kids);
   }, [adults, kids, setValue]);
 
+  // Fetch booking
   useEffect(() => {
     const fetchBooking = async () => {
       try {
         const res = await api.get(`/booking/get-booking/${id}`);
+
         form.reset(res.data.booking);
-        // Store room numbers for modal
+
         const rooms = res.data.booking.currentRooms.map((r: any) => r.roomNo);
         setRoomNumbers(rooms);
+
+        // Prepare room update structure
+        const prepared = res.data.booking.currentRooms.map((r: any) => ({
+          roomNo: r.roomNo,
+          newPrice: r.price,
+          currency: r.currency, // Currency remains the same
+        }));
+        setRoomsForUpdate(prepared);
       } catch (error) {
         const message =
           (error as any)?.response?.data?.message ||
@@ -86,21 +97,29 @@ const BookingUpdate = () => {
     fetchBooking();
   }, [id, form]);
 
+  // Handle room price update change
+  const updateRoomPrice = (index: number, value: string) => {
+    const updated = [...roomsForUpdate];
+    updated[index].newPrice = value;
+    setRoomsForUpdate(updated);
+  };
+
+  // Submit update
   const onSubmit = async (data: Booking) => {
     setUpdateLoading(true);
     try {
-      const res = await api.put(`/booking/${id}/update-booking`, data);
+      const payload = {
+        ...data,
+        updatedRooms: roomsForUpdate, // <--- IMPORTANT
+      };
+
+      const res = await api.put(`/booking/${id}/update-booking`, payload);
       toast.success("Booking Updated Successfully");
 
-      // Update room numbers in case they changed
       const updatedRooms = res.data.booking.currentRooms.map(
         (r: any) => r.roomNo
       );
       setRoomNumbers(updatedRooms);
-
-      // ✅ Check if we have at least one contact option before opening modal
-      const hasContact =
-        data.whatsapp?.trim() !== "" || data.email?.trim() !== "";
 
       const hasWhatsapp = data.whatsapp?.trim() !== "";
       const hasEmail = data.email?.trim() !== "";
@@ -108,10 +127,9 @@ const BookingUpdate = () => {
       setIsWhatsappAvailable(hasWhatsapp);
       setIsEmailAvailable(hasEmail);
 
-      if (hasContact) {
+      if (hasWhatsapp || hasEmail) {
         setIsModalOpen(true);
       } else {
-        // No contact info — just go back to bookings page
         navigate("/bookings");
       }
     } catch (error) {
@@ -219,7 +237,6 @@ const BookingUpdate = () => {
                       <Select
                         onValueChange={field.onChange}
                         value={field.value}
-                        disabled
                       >
                         <FormControl className="w-72">
                           <SelectTrigger>
@@ -251,7 +268,6 @@ const BookingUpdate = () => {
                       <FormLabel className="w-32">Breakfast</FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        disabled
                         value={field.value}
                       >
                         <FormControl className="w-72">
@@ -490,6 +506,34 @@ const BookingUpdate = () => {
                   </FormItem>
                 )}
               />
+            </div>
+
+            {/* -------------------- ROOM PRICE UPDATE -------------------- */}
+            <div className="p-4 border rounded-xl bg-gray-50">
+              <h2 className="font-semibold text-lg mb-3">Room Price Update</h2>
+
+              {roomsForUpdate.map((room, index) => (
+                <div
+                  key={room.roomNo}
+                  className="flex items-center gap-5 mb-3 p-3 border rounded-lg bg-white"
+                >
+                  <div className="w-32 font-medium">Room {room.roomNo}</div>
+
+                  <Input
+                    type="number"
+                    placeholder="New Price"
+                    className="w-40"
+                    value={room.newPrice}
+                    step="0.01"
+                    min={0}
+                    onChange={(e) =>
+                      updateRoomPrice(index, e.target.value)
+                    }
+                  />
+
+                  <div className="font-medium">{room.currency}</div>
+                </div>
+              ))}
             </div>
 
             {/* Continue Button */}

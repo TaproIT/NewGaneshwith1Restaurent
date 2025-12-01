@@ -67,9 +67,28 @@ export const getBookingBillingSummary = async (req, res) => {
             : false;
         const requiresCutoff = checkOutIsFuture || anySwitchOutFuture;
 
-        const effectiveCheckOut = booking.checkOut
-            ? (requiresCutoff ? todaySOD : clampToTodayTZ(booking.checkOut, todaySOD))
-            : null;
+        // const effectiveCheckOut = booking.checkOut
+        //     ? (requiresCutoff ? todaySOD : clampToTodayTZ(booking.checkOut, todaySOD))
+        //     : null;
+        let effectiveCheckOut = null;
+
+        if (booking.checkOut) {
+            const co = sodTZ(booking.checkOut);
+
+            // If switchOut or checkout is future → force today
+            if (requiresCutoff) {
+                effectiveCheckOut = todaySOD;
+            }
+            // If checkout is PAST → also force today
+            else if (co.isBefore(todaySOD)) {
+                effectiveCheckOut = todaySOD;
+            }
+            // Otherwise normal clamping (future safe)
+            else {
+                effectiveCheckOut = clampToTodayTZ(booking.checkOut, todaySOD);
+            }
+        }
+
 
         const effectiveCheckIn = booking.checkIn ? dayjs(booking.checkIn).tz(TZ) : null;
 
@@ -104,13 +123,37 @@ export const getBookingBillingSummary = async (req, res) => {
 
             const effIn = rh.switchInDate ? clampToTodayTZ(rh.switchInDate, todaySOD) : null;
 
+            // let effOut;
+            // if (requiresCutoff) {
+            //     effOut = todaySOD;
+            // } else {
+            //     const rawOut = rh.switchOutDate ? rh.switchOutDate : (effectiveCheckOut ? effectiveCheckOut.toDate() : null);
+            //     effOut = rawOut ? clampToTodayTZ(rawOut, todaySOD) : null;
+            // }
+
             let effOut;
-            if (requiresCutoff) {
-                effOut = todaySOD;
+
+            if (rh.switchOutDate) {
+                const sw = sodTZ(rh.switchOutDate);
+
+                // SwitchOut is future → force today
+                if (sw.isAfter(todaySOD)) {
+                    effOut = todaySOD;
+                }
+                // SwitchOut is past → also force today
+                else if (sw.isBefore(todaySOD)) {
+                    effOut = todaySOD;
+                }
+                // SwitchOut is today → keep as-is
+                else {
+                    effOut = sw;
+                }
             } else {
-                const rawOut = rh.switchOutDate ? rh.switchOutDate : (effectiveCheckOut ? effectiveCheckOut.toDate() : null);
-                effOut = rawOut ? clampToTodayTZ(rawOut, todaySOD) : null;
+                // If there's no switchOut → fall back to effectiveCheckOut logic
+                const rawOut = effectiveCheckOut ? effectiveCheckOut : null;
+                effOut = rawOut ? rawOut : null;
             }
+
 
             const perDayPrice = Number(rh.perDayPrice) || 0;
             const currency = rh.currency || "LKR"; // 💱 determine currency of this price
@@ -449,20 +492,20 @@ export const finalizeBookingBill = async (req, res) => {
             });
         }
 
-        if (!isCheckOutValid) {
-            await session.abortTransaction();
-            return res.status(400).json({
-                message:
-                    "Invalid check-out date. It must be today or a future date relative to the current local date.",
-                details: {
-                    checkOutUTC: booking.checkOut,
-                    todayUTC: todaySOD.toDate().toISOString(),
-                    checkOutLocal: checkOutSOD.format("YYYY-MM-DD HH:mm z"),
-                    todayLocal: todaySOD.format("YYYY-MM-DD HH:mm z"),
-                    timezone: TZ,
-                },
-            });
-        }
+        // if (!isCheckOutValid) {
+        //     await session.abortTransaction();
+        //     return res.status(400).json({
+        //         message:
+        //             "Invalid check-out date. It must be today or a future date relative to the current local date.",
+        //         details: {
+        //             checkOutUTC: booking.checkOut,
+        //             todayUTC: todaySOD.toDate().toISOString(),
+        //             checkOutLocal: checkOutSOD.format("YYYY-MM-DD HH:mm z"),
+        //             todayLocal: todaySOD.format("YYYY-MM-DD HH:mm z"),
+        //             timezone: TZ,
+        //         },
+        //     });
+        // }
 
         // 1) Check originalBillTotal equals booking.totalBill
         const matchOriginalTotal =
@@ -583,27 +626,46 @@ export const finalizeBookingBill = async (req, res) => {
         booking.lengthOfStay = diffNights;
 
         // --- Checkout date + rooms history updates ---
-        const todayLocalNoon = dayjs()
-            .tz(TZ)
-            .hour(12)
-            .minute(0)
-            .second(0)
-            .millisecond(0);
+        // const todayLocalNoon = dayjs()
+        //     .tz(TZ)
+        //     .hour(12)
+        //     .minute(0)
+        //     .second(0)
+        //     .millisecond(0);
+        //
+        // const newCheckoutDate = todayLocalNoon.toDate();
+        //
+        // if (!dayjs(booking.checkOut).isSame(newCheckoutDate)) {
+        //     booking.oldCheckOutDate = booking.checkOut;
+        //     booking.oldCheckOutDateStatus = true;
+        // }
+        //
+        // booking.checkOut = newCheckoutDate;
 
-        const newCheckoutDate = todayLocalNoon.toDate();
+        // Today at noon in SL, stored as UTC
+            // Always update checkout to Sri Lanka local noon
+        const todayNoonSL = dayjs().tz(TZ).toDate();
 
-        if (!dayjs(booking.checkOut).isSame(newCheckoutDate)) {
+            // Store old checkout if it exists
+        if (booking.checkOut) {
             booking.oldCheckOutDate = booking.checkOut;
             booking.oldCheckOutDateStatus = true;
         }
 
-        booking.checkOut = newCheckoutDate;
+        booking.checkOut = todayNoonSL;
+
+        // booking.roomsHistory = (booking.roomsHistory || []).map((rh) => {
+        //     rh.switchOutDate = newCheckoutDate;
+        //     if (rh.status === "active") rh.status = "completed";
+        //     return rh;
+        // });
 
         booking.roomsHistory = (booking.roomsHistory || []).map((rh) => {
-            rh.switchOutDate = newCheckoutDate;
+            rh.switchOutDate = booking.checkOut;
             if (rh.status === "active") rh.status = "completed";
             return rh;
         });
+
 
         if (Array.isArray(booking.currentRooms) && booking.currentRooms.length > 0) {
             booking.currentRooms = booking.currentRooms.map((room) => ({

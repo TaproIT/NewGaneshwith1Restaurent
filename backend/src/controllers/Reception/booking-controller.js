@@ -98,14 +98,20 @@ export const createBooking = async (req, res) => {
 
         const checkInDate = dayjs(checkInSL).tz(TZ).startOf("day");
         const checkOutDate = dayjs(checkOutSL).tz(TZ).startOf("day");
-        const actualLengthOfStay = checkOutDate.diff(checkInDate, "day");
+        let actualLengthOfStay = checkOutDate.diff(checkInDate, "day");
+
+        // 🟩 FIX: If both dates are same day, treat as 1 night
+                if (actualLengthOfStay === 0) {
+                    actualLengthOfStay = 1;
+                }
+
 
         console.log("Check-in:", checkInDate.format(), "Check-out:", checkOutDate.format(), "Actual days:", actualLengthOfStay);
 
         // ✅ Validate that provided lengthOfStay matches actual date difference
         if (lengthOfStay !== actualLengthOfStay) {
             return res.status(400).json({
-                error: `Length of stay (${lengthOfStay} days) does not match the actual period between check-in and check-out (${actualLengthOfStay} days).`,
+                error: `Length of stay (${lengthOfStay}) does not match actual days (${actualLengthOfStay}).`,
             });
         }
 
@@ -1369,7 +1375,9 @@ export const updateBooking = async (req, res) => {
             kids,
             adults,
             checkOut,
-            updatedRooms
+            updatedRooms,
+            customerType,
+            breakfast
         } = req.body;
 
         const updateUserId = req.user?.userId || req.user?._id;
@@ -1401,6 +1409,8 @@ export const updateBooking = async (req, res) => {
         if (totalGuests != null) booking.totalGuests = totalGuests;
         if (kids != null) booking.kids = kids;
         if (adults != null) booking.adults = adults;
+        if(customerType != null) booking.customerType = customerType;
+        if(breakfast != null) booking.breakfast = breakfast;
 
         // ✅ Room price updates
         if (updatedRooms && Array.isArray(updatedRooms) && updatedRooms.length > 0) {
@@ -1700,15 +1710,21 @@ export const getBookingById = async (req, res) => {
 
 export const getAllActiveBookings = async (req, res) => {
     try {
-        const { searchTerm } = req.body;
+        const { searchTerm, page = 1, limit = 10 } = req.body;
+
+        const pageNumber = parseInt(page, 10) || 1;
+        const pageSize = parseInt(limit, 10) || 10;
+        const skip = (pageNumber - 1) * pageSize;
+
         let bookings = [];
 
-        // 1️⃣ If searchTerm provided → search separately in three fields
+        // 1️⃣ If searchTerm is provided → search separately
         if (searchTerm && searchTerm.trim() !== "") {
-            const searchRegex = new RegExp(searchTerm.trim(), "i"); // case-insensitive
+            const searchRegex = new RegExp(searchTerm.trim(), "i");
+
             const searchResults = [];
 
-            // Search 1: uniqueBookingId
+            // Search 1: by uniqueBookingId
             const byBookingId = await Booking.find({
                 isCheckOut: false,
                 uniqueBookingId: { $regex: searchRegex },
@@ -1720,7 +1736,7 @@ export const getAllActiveBookings = async (req, res) => {
                 .lean();
             searchResults.push(...byBookingId);
 
-            // Search 2: currentRooms.roomNo
+            // Search 2: by roomNo
             const byRoom = await Booking.find({
                 isCheckOut: false,
                 "currentRooms.roomNo": { $regex: searchRegex },
@@ -1732,7 +1748,7 @@ export const getAllActiveBookings = async (req, res) => {
                 .lean();
             searchResults.push(...byRoom);
 
-            // Search 3: guestName
+            // Search 3: by guestName
             const byGuestName = await Booking.find({
                 isCheckOut: false,
                 guestName: { $regex: searchRegex },
@@ -1744,35 +1760,193 @@ export const getAllActiveBookings = async (req, res) => {
                 .lean();
             searchResults.push(...byGuestName);
 
-            // Remove duplicates (by _id)
+            // Remove duplicates
             const uniqueBookings = Array.from(
                 new Map(searchResults.map((b) => [b._id.toString(), b])).values()
             );
 
+            // Sort by newest
             bookings = uniqueBookings.sort(
                 (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
             );
+
+            // Pagination slice
+            const paginated = bookings.slice(skip, skip + pageSize);
+
+            return res.status(200).json({
+                count: bookings.length,
+                page: pageNumber,
+                limit: pageSize,
+                totalPages: Math.ceil(bookings.length / pageSize),
+                bookings: paginated,
+            });
+
         } else {
-            // 2️⃣ No search term → return all active bookings
-            bookings = await Booking.find({ isCheckOut: false })
+            // 2️⃣ No search → simple find with pagination
+            const total = await Booking.countDocuments({ isCheckOut: false });
+
+            const records = await Booking.find({ isCheckOut: false })
                 .populate("currentRooms.roomId", "no perDayPrice facilities isBooked")
                 .populate("roomsHistory.roomId", "no perDayPrice")
                 .populate("updatesHistory.updateUserId", "fullName email")
                 .populate("orders.oderId")
                 .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(pageSize)
                 .lean();
+
+            return res.status(200).json({
+                count: total,
+                page: pageNumber,
+                limit: pageSize,
+                totalPages: Math.ceil(total / pageSize),
+                bookings: records,
+            });
         }
 
-        if (!bookings.length) {
-            return res.status(404).json({ message: "No active bookings found." });
-        }
-
-        return res.status(200).json({
-            count: bookings.length,
-            bookings,
-        });
     } catch (error) {
         console.error("Error fetching active bookings:", error);
         return res.status(500).json({ message: "Failed to fetch active bookings." });
     }
 };
+//
+// export const getCompletedBookings = async (req, res) => {
+//     try {
+//         let bookings = await Booking.find(
+//             { isCheckOut: true },
+//             {
+//                 _id: 1,
+//                 uniqueBookingId: 1,
+//                 totalBill: 1,
+//                 guestName: 1,
+//                 totalGuests: 1,
+//                 checkIn: 1,
+//                 checkOut: 1,
+//                 "currentRooms.roomNo": 1
+//             }
+//         ).lean();
+//
+//         bookings.sort((a, b) => new Date(b.checkOut) - new Date(a.checkOut));
+//
+//         return res.status(200).json({
+//             success: true,
+//             count: bookings.length,
+//             data: bookings
+//         });
+//
+//     } catch (error) {
+//         console.error("Error fetching bookings:", error);
+//         res.status(500).json({ success: false, message: "Server Error", error });
+//     }
+// };
+
+export const getCompletedBookings = async (req, res) => {
+    try {
+        let {
+            page = 1,
+            limit = 10,
+            searchTerm = ""
+        } = req.query;
+
+        page = parseInt(page);
+        limit = parseInt(limit);
+
+        const skip = (page - 1) * limit;
+
+        // Base filter (completed checkouts)
+        const filter = { isCheckOut: true };
+
+        // If searchTerm exists → apply OR condition
+        if (searchTerm && searchTerm.trim() !== "") {
+            const regex = new RegExp(searchTerm, "i");
+
+            filter.$or = [
+                { guestName: regex },
+                { uniqueBookingId: regex },
+                { "currentRooms.roomNo": regex }
+            ];
+        }
+
+        // Query + sort
+        const bookings = await Booking.find(
+            filter,
+            {
+                _id: 1,
+                uniqueBookingId: 1,
+                totalBill: 1,
+                guestName: 1,
+                totalGuests: 1,
+                checkIn: 1,
+                checkOut: 1,
+                "currentRooms.roomNo": 1
+            }
+        )
+            .sort({ checkOut: -1 }) // latest first
+            .skip(skip)
+            .limit(limit)
+            .lean();
+
+        const total = await Booking.countDocuments(filter);
+
+        return res.status(200).json({
+            success: true,
+            count: bookings.length,
+            total,
+            currentPage: page,
+            totalPages: Math.ceil(total / limit),
+            data: bookings
+        });
+
+    } catch (error) {
+        console.error("Error fetching bookings:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Server Error",
+            error
+        });
+    }
+};
+
+export const getBookingByIdIfCheckedOut = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const booking = await Booking.findOne({
+            _id: id,
+            isCheckOut: true
+        })
+            .populate({
+                path: "orders.oderId",
+                model: "Order"
+            })
+            .lean();
+
+        if (!booking) {
+            return res.status(404).json({
+                success: false,
+                message: "No checked-out booking found with this ID"
+            });
+        }
+
+        const orderDetails = booking.orders.map(o => ({
+            ...o.oderId,
+            orderDate: o.date
+        }));
+
+        delete booking.orders;
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                ...booking,
+                orderDetails
+            }
+        });
+
+    } catch (error) {
+        console.error("Error retrieving booking:", error);
+        res.status(500).json({ success: false, message: "Server Error", error });
+    }
+};
+
+

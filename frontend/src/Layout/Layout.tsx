@@ -13,7 +13,9 @@ import {
   RepeatIcon, BookText, House, Table2, NotepadText,
   PauseCircle, Newspaper, Banknote,
   Warehouse,
-  BookOpen
+  BookOpen,
+  NotebookText,
+  ClipboardMinus
 } from "lucide-react";
 
 const navigationConfig = {
@@ -24,6 +26,8 @@ const navigationConfig = {
     { path: "/admin/currency-config", title: "Currency Config", icon: <Banknote size={22} /> },
     { path: "/admin/user-config", title: "User Config", icon: <User size={22} /> },
     { path: "/admin/room-config", title: "Room Config", icon: <User size={22} /> },
+    { path: "/admin/reports", title: "Reports", icon: <NotebookText size={22} /> },
+    { path: "/admin/restaurant/reports", title: "Restaurant Reports", icon: <Newspaper size={22} /> },
   ],
   "Admin": [
     { path: "/admin/dashboard", title: "Dashboard", icon: <House size={22} /> },
@@ -32,6 +36,8 @@ const navigationConfig = {
     { path: "/admin/currency-config", title: "Currency Config", icon: <Banknote size={22} /> },
     { path: "/admin/user-config", title: "User Config", icon: <User size={22} /> },
     { path: "/admin/room-config", title: "Room Config", icon: <Warehouse size={22} /> },
+    { path: "/admin/reports", title: "Reports", icon: <NotebookText size={22} /> },
+    { path: "/admin/restaurant/reports", title: "Restaurant Reports", icon: <Newspaper size={22} /> },
   ],
   "Reception": [
     { path: "/onboarding", title: "Onboarding", icon: <UserRoundPlus size={22} /> },
@@ -41,6 +47,7 @@ const navigationConfig = {
     { path: "/checkouts", title: "Checkouts", icon: <CircleArrowRight size={22} /> },
     { path: "/invoice", title: "Invoice", icon: <BookText size={22} /> },
     // { path: "/room-config", title: "Room Config", icon: <Warehouse size={22} /> },
+    { path: "/reports", title: "Reports", icon: <NotebookText size={22} /> },
   ],
   "Beach-Restaurant-Staff": [
     { path: "/restaurant/home", title: "Home", icon: <House size={22} /> },
@@ -48,7 +55,6 @@ const navigationConfig = {
     { path: "/restaurant/menu/0", title: "Menu", icon: <NotepadText size={22} /> },
     { path: "/restaurant/hold", title: "Hold", icon: <PauseCircle size={22} /> },
     { path: "/restaurant/daily-summary", title: "Daily Summary", icon: <Newspaper size={22} /> },
-    { path: "/restaurant/summary", title: "Restaurant Summary", icon: <Newspaper size={22} /> },
   ],
   "Pool-Restaurant-Staff": [
     { path: "/restaurant/home", title: "Home", icon: <House size={22} /> },
@@ -56,7 +62,6 @@ const navigationConfig = {
     { path: "/restaurant/menu/0", title: "Menu", icon: <NotepadText size={22} /> },
     { path: "/restaurant/hold", title: "Hold", icon: <PauseCircle size={22} /> },
     { path: "/restaurant/daily-summary", title: "Daily Summary", icon: <Newspaper size={22} /> },
-    { path: "/restaurant/summary", title: "Restaurant Summary", icon: <Newspaper size={22} /> },
   ],
   "Beach-Restaurant-Admin": [
     { path: "/restaurant/home", title: "Home", icon: <House size={22} /> },
@@ -64,7 +69,7 @@ const navigationConfig = {
     { path: "/restaurant/menu/0", title: "Menu", icon: <NotepadText size={22} /> },
     { path: "/restaurant/hold", title: "Hold", icon: <PauseCircle size={22} /> },
     { path: "/restaurant/daily-summary", title: "Daily Summary", icon: <Newspaper size={22} /> },
-    { path: "/restaurant/summary", title: "Restaurant Summary", icon: <Newspaper size={22} /> },
+    { path: "/restaurant/report", title: "Restaurant Report", icon: <ClipboardMinus size={22} /> },
   ],
   "Pool-Restaurant-Admin": [
     { path: "/restaurant/home", title: "Home", icon: <House size={22} /> },
@@ -72,7 +77,7 @@ const navigationConfig = {
     { path: "/restaurant/menu/0", title: "Menu", icon: <NotepadText size={22} /> },
     { path: "/restaurant/hold", title: "Hold", icon: <PauseCircle size={22} /> },
     { path: "/restaurant/daily-summary", title: "Daily Summary", icon: <Newspaper size={22} /> },
-    { path: "/restaurant/summary", title: "Restaurant Summary", icon: <Newspaper size={22} /> },
+    { path: "/restaurant/report", title: "Restaurant Report", icon: <ClipboardMinus size={22} /> },
   ],
   "Beverage-Inventory": [
     { path: "/beverage-inventory/dashboard", title: "Dashboard", icon: <House size={22} /> },
@@ -99,12 +104,15 @@ const pathTitles = {
   "/restaurant/menu/0": "Menu",
   "/restaurant/hold": "Hold",
   "/restaurant/daily-summary": "Daily Summary",
-  "/restaurant/summary": "Restaurant Summary",
+  "/restaurant/report": "Restaurant Report",
   "/admin/currency-config": "Currency Config",
   "/admin/user-config": "User Config",
   "/admin/room-config": "Room Config",
   "/checkout-details": "Checkout Details",
   "/bookings": "Bookings",
+  "/admin/reports": "Reports",
+  "/reports": "Reports",
+  "/admin/restaurant/report": "Restaurant Reports"
 };
 
 const getSidebarFromPath = (path: string): string => {
@@ -114,7 +122,10 @@ const getSidebarFromPath = (path: string): string => {
       path.startsWith("/bookings/:id") ||
       path.startsWith("/switch-rooms") ||
       path.startsWith("/checkouts") ||
-      path.startsWith("/invoice"))
+      path.startsWith("/checkout-details") ||
+      path.startsWith("/invoice") ||
+      path.startsWith("/completed-checkout-details") ||
+      path.startsWith("/reports"))
     return "Reception";
   if (path.startsWith("/beverage-inventory"))
     return "Beverage-Inventory";

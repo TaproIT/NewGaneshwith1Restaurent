@@ -88,6 +88,8 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
     return [firstLine, ...otherLines].join("\n");
   }
 
+  const isFreeBill = selectedPayment === PaymentMethods.FREE_BILL.value;
+
   /** ------------------ Print Receipt ------------------ **/
   const printReceipt = async () => {
     if (!window.qz) {
@@ -129,13 +131,14 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
         "Tangalle \n"+
         "==========================================\n" +
         ESC + "a" + "\x00" + // left align
-        `Order No     : ${order.orderNumber}\n` +
-        `Service Type : ${order.serviceType}\n` +
-        `Customer Type: ${order.customerType}\n` +
-        `Customer     : ${order.guestName || "Walk-in"}\n` +
-        `${order.roomNumber  !== "0" ? `Room No      : ${order.roomNumber}\n`:""}` +
-        `Date         : ${new Date().toLocaleString()}\n` +
-        `TP           : ${order.restaurantType === "Beach"? "+94 472242529 / +94 705505705" : "+94 472244822 / +94 705505705"}\n` +
+        `Order No      : ${order.orderNumber}\n` +
+        `Service Type  : ${order.serviceType}\n` +
+        `Customer Type : ${order.customerType}\n` +
+        `Customer      : ${order.guestName || "Walk-in"}\n` +
+        `${order.roomNumber  !== "0" ? `Room No       : ${order.roomNumber}\n`:""}` +
+        `Payment Method: ${selectedPayment}\n` +
+        `Date          : ${new Date().toLocaleString()}\n` +
+        `TP            : ${order.restaurantType === "Beach"? "+94 472242529 / +94 705505705" : "+94 472244822 / +94 705505705"}\n` +
         "-".repeat(totalWidth) + "\n";
       
       receiptData += itemHeader + "\n";
@@ -167,10 +170,10 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
       const amountPad = (amt: number) => `${amt.toFixed(2)} LKR`.padStart(12, " ");
 
       receiptData += "-".repeat(totalWidth) + "\n";
-      receiptData += padKey("Subtotal:") + amountPad(subTotal) + "\n";
-      receiptData += padKey("Service (10%):") + amountPad(serviceCharge) + "\n";
-      receiptData += padKey(`Discount (${discount}%):`) + amountPad(-discountAmount) + "\n";
-      receiptData += padKey("TOTAL BILL:") + amountPad(totalBill) + "\n";
+      receiptData += padKey("Subtotal:") + amountPad(isFreeBill ? 0 : subTotal) + "\n";
+      receiptData += padKey("Service (10%):") + amountPad(isFreeBill ? 0 : serviceCharge) + "\n";
+      receiptData += padKey(`Discount (${discount}%):`) + amountPad(isFreeBill ? 0 : -discountAmount) + "\n";
+      receiptData += padKey("TOTAL BILL:") + amountPad(isFreeBill? 0 : totalBill) + "\n";
       receiptData += "=".repeat(totalWidth) + "\n";
 
       receiptData +=
@@ -178,6 +181,8 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
          "       Thank you! Come again!       \n\n\n" +
         "      \n\n\n" +
         GS + "V" + "\x00"; // cut
+
+      console.log(receiptData);
 
       await qz.print(config, [{ type: "raw", format: "plain", data: receiptData }]);
       await qz.print(config, [{ type: "raw", format: "plain", data: receiptData }]);

@@ -1,72 +1,89 @@
 import Booking from "../../models/Reception/booking.js";
 import RoomReport from "../../models/Excel/roomReportSchema.js";
 import ExcelJS from "exceljs";
-
+import mongoose from "mongoose";
 export const getBookingAndRoomReports = async (req, res) => {
     try {
         let { start, end } = req.query;
 
+        let startDate = start ? new Date(start + "T00:00:00.000Z") : null;
+        let endDate = end ? new Date(end + "T23:59:59.999Z") : null;
+
         let dateFilter = {};
 
-        // Apply filters ONLY if both dates provided
-        if (start && end) {
+        if (startDate && endDate) {
             dateFilter.roomsHistory = {
                 $elemMatch: {
                     switchOutDate: {
-                        $gte: new Date(start),
-                        $lte: new Date(end)
+                        $gte: startDate,
+                        $lte: endDate
                     }
                 }
             };
         }
 
-        // 1️⃣ Fetch checked-out bookings with date filter
+        // 🔹 A) Get all bookingIds already in reports
+        const reported = await RoomReport.find().select("bookingId -_id").lean();
+        const reportedIds = new Set(reported.map(r => String(r.bookingId)));
+
+        // 1️⃣ Fetch checked-out bookings
         const bookings = await Booking.find({
             isCheckOut: true,
             ...dateFilter
         }).lean();
 
-        // 2️⃣ Map extracted room reports
-        const bookingReports = bookings
-            .flatMap(b =>
-                b.roomsHistory
-                    .filter(room =>
-                        start && end
-                            ? room.switchOutDate >= new Date(start) &&
-                            room.switchOutDate <= new Date(end)
-                            : true
-                    )
-                    .map(room => ({
+        // 🔹 B) Remove bookings that already have a report
+        const filteredBookings = bookings.filter(b => !reportedIds.has(String(b._id)));
+
+        // 2️⃣ Build bookingReports from FILTERED bookings
+        let bookingReports = filteredBookings.flatMap(b =>
+            b.roomsHistory
+                .filter(room =>
+                    startDate && endDate
+                        ? room.switchOutDate >= startDate &&
+                        room.switchOutDate <= endDate
+                        : true
+                )
+                .map(room => {
+                    const total = room.finalRoomTotalPrice || 0;
+                    const service = total * 0.10;
+                    const net = total - service;
+
+                    return {
                         bookingId: b._id,
                         hotel: b.hotel,
                         guestName: b.guestName,
                         roomNo: room.roomNo,
                         checkIn: room.switchInDate,
                         checkOut: room.switchOutDate,
-                        perDayPrice: room.perDayPrice,
-                        currencyRate: room.currencyRate,
+
+                        perDayPrice: Number(room.perDayPrice?.toFixed(2)),
+                        currencyRate: Number(room.currencyRate?.toFixed(2)),
+                        totalRoomPrice: Number(total.toFixed(2)),
+
                         nights: room.night,
-                        totalRoomPrice: room.finalRoomTotalPrice,
                         totalGuests: b.totalGuests,
                         breakfast: b.breakfast,
-                        // Calculations
-                        grossTotal: room.finalRoomTotalPrice,
-                        serviceCharge: room.finalRoomTotalPrice * 0.10,
-                        netIncome: room.finalRoomTotalPrice - room.finalRoomTotalPrice * 0.10
-                    }))
-            );
 
-        // 3️⃣ Fetch roomReports saved earlier
+                        grossTotal: Number(total.toFixed(2)),
+                        serviceCharge: Number(service.toFixed(2)),
+                        netIncome: Number(net.toFixed(2))
+                    };
+                })
+        );
+
+        bookingReports.sort((a, b) => new Date(b.checkOut) - new Date(a.checkOut));
+
         const savedReports = await RoomReport.find(
-            start && end
-                ? { checkOut: { $gte: new Date(start), $lte: new Date(end) } }
+            startDate && endDate
+                ? { checkOut: { $gte: startDate, $lte: endDate } }
                 : {}
         ).lean();
 
         return res.status(200).json({
             success: true,
-            bookings: bookingReports,
-            savedReports
+            bookings: bookingReports, // now only NEW bookings
+            reports: savedReports
         });
 
     } catch (err) {
@@ -74,62 +91,152 @@ export const getBookingAndRoomReports = async (req, res) => {
         res.status(500).json({ message: "Server Error", error: err.message });
     }
 };
-
+//
+//
+// export const saveRoomReports = async (req, res) => {
+//     try {
+//         const reports = req.body;
+//
+//         if (!Array.isArray(reports) || reports.length === 0) {
+//             return res.status(400).json({ success: false, message: "No report data provided" });
+//         }
+//
+//         let updatedCount = 0;
+//         let createdCount = 0;
+//
+//         for (const r of reports) {
+//             // Validate bookingId
+//             if (!r.bookingId || !mongoose.Types.ObjectId.isValid(r.bookingId)) {
+//                 return res.status(400).json({
+//                     success: false,
+//                     message: `Invalid bookingId for guest: ${r.guestName}`
+//                 });
+//             }
+//
+//             // Calculate financials
+//             const grossTotal = (r.totalRoomPrice || 0) - (r.bookingCommission || 0) - (r.totalBreakfastPrice || 0);
+//             const serviceCharge = grossTotal / 11;
+//             const netIncome = serviceCharge * 10;
+//
+//             const reportData = {
+//                 ...r,
+//                 grossTotal,
+//                 serviceCharge,
+//                 netIncome
+//             };
+//
+//             const existingReport = await RoomReport.findOne({ bookingId: r.bookingId });
+//
+//             if (existingReport) {
+//                 await RoomReport.updateOne({ bookingId: r.bookingId }, { $set: reportData });
+//                 updatedCount++;
+//             } else {
+//                 await RoomReport.create(reportData);
+//                 createdCount++;
+//             }
+//         }
+//
+//         return res.status(200).json({
+//             success: true,
+//             message: "Room reports processed successfully",
+//             updatedCount,
+//             createdCount
+//         });
+//
+//     } catch (err) {
+//         console.error("POST saveRoomReports error:", err);
+//         return res.status(500).json({ success: false, message: "Server Error", error: err.message });
+//     }
+// };
 
 export const saveRoomReports = async (req, res) => {
     try {
-        const reports = req.body; // Expecting array of room report objects
+        const reports = req.body;
 
         if (!Array.isArray(reports) || reports.length === 0) {
             return res.status(400).json({ success: false, message: "No report data provided" });
         }
 
-        // Optional: delete all previous reports
-        await RoomReport.deleteMany({});
+        let updatedCount = 0;
+        let createdCount = 0;
 
-        // Prepare reports with calculations
-        const preparedReports = reports.map(r => {
-            // Calculate financials
-            const grossTotal = (r.totalRoomPrice || 0) - (r.bookingCommission || 0) - (r.totalBreakfastPrice || 0);
+        for (const r of reports) {
+            // Validate bookingId
+            if (!r.bookingId || !mongoose.Types.ObjectId.isValid(r.bookingId)) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Invalid bookingId for guest: ${r.guestName}`
+                });
+            }
+
+            // Recalculate required financial fields
+            const grossTotal =
+                (r.totalRoomPrice || 0) -
+                (r.bookingCommission || 0) -
+                (r.totalBreakfastPrice || 0);
+
             const serviceCharge = grossTotal / 11;
             const netIncome = serviceCharge * 10;
 
-            return {
+            const reportData = {
                 ...r,
                 grossTotal,
                 serviceCharge,
-                netIncome
+                netIncome,
+                updatedAt: new Date()
             };
-        });
 
-        // Save new reports with calculated values
-        const savedReports = await RoomReport.insertMany(preparedReports);
+            // Check if report exists for this booking
+            const existingReport = await RoomReport.findOne({ bookingId: r.bookingId });
 
-        return res.status(201).json({
+            if (existingReport) {
+                // ➤ Update existing report
+                await RoomReport.updateOne(
+                    { bookingId: r.bookingId },
+                    { $set: reportData }
+                );
+                updatedCount++;
+            } else {
+                // ➤ Create as new report
+                await RoomReport.create(reportData);
+                createdCount++;
+            }
+        }
+
+        return res.status(200).json({
             success: true,
-            message: "Room reports saved successfully",
-            savedCount: savedReports.length,
+            message: "Room reports processed successfully",
+            updatedCount,
+            createdCount
         });
 
     } catch (err) {
         console.error("POST saveRoomReports error:", err);
-        return res.status(500).json({ success: false, message: "Server Error", error: err.message });
+        return res.status(500).json({
+            success: false,
+            message: "Server Error",
+            error: err.message
+        });
     }
 };
-
 
 
 export const exportRoomReportsToExcel = async (req, res) => {
     try {
         const { start, end } = req.query;
 
-        const filter = {};
-        if (start && end) {
-            filter.checkOut = {
-                $gte: new Date(start),
-                $lte: new Date(end)
-            };
+        const filter = { checkOut: { $exists: true } };
+
+        if (start) {
+            filter.checkOut.$gte = new Date(start); // start of day
         }
+
+        if (end) {
+            const endDate = new Date(end);
+            endDate.setHours(23, 59, 59, 999); // include entire end day
+            filter.checkOut.$lte = endDate;
+        }
+
 
         const reports = await RoomReport.find(filter).lean();
 
@@ -165,9 +272,27 @@ export const exportRoomReportsToExcel = async (req, res) => {
 
         reports.forEach(r => {
             worksheet.addRow({
-                ...r,
+                bookingId: r.bookingId,
+                hotel: r.hotel,
+                guestName: r.guestName,
+                roomNo: r.roomNo,
+
                 checkIn: r.checkIn ? r.checkIn.toISOString().split("T")[0] : "",
                 checkOut: r.checkOut ? r.checkOut.toISOString().split("T")[0] : "",
+
+                perDayPrice: r.perDayPrice?.toFixed(2),
+                currencyRate: r.currencyRate?.toFixed(2),
+                nights: r.nights,
+                totalRoomPrice: r.totalRoomPrice?.toFixed(2),
+                totalGuests: r.totalGuests,
+                breakfast: r.breakfast,
+
+                bookingCommission: r.bookingCommission?.toFixed(2),
+                totalBreakfastPrice: r.totalBreakfastPrice?.toFixed(2),
+
+                grossTotal: r.grossTotal?.toFixed(2),
+                serviceCharge: r.serviceCharge?.toFixed(2),
+                netIncome: r.netIncome?.toFixed(2),
             });
         });
 
