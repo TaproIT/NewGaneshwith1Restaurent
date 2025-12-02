@@ -668,17 +668,26 @@ export const finalizeBookingBill = async (req, res) => {
 
 
         if (Array.isArray(booking.currentRooms) && booking.currentRooms.length > 0) {
+            // Find rooms that were active at the moment of checkout. Only these should be unbooked.
+            const activeRooms = booking.currentRooms.filter((r) => r && r.isActive);
+
+            // Collect active room ids prior to mutating currentRooms
+            const activeRoomIds = activeRooms.map((r) => r.roomId).filter(Boolean);
+
+            // Mark all currentRooms as no longer active in the booking document
             booking.currentRooms = booking.currentRooms.map((room) => ({
                 ...room,
                 isActive: false,
             }));
 
-            const roomIds = booking.currentRooms.map((r) => r.roomId);
-            await Room.updateMany(
-                { _id: { $in: roomIds } },
-                { $set: { isBooked: false } },
-                { session }
-            );
+            // Only update Room documents for the previously active room ids
+            if (activeRoomIds.length > 0) {
+                await Room.updateMany(
+                    { _id: { $in: activeRoomIds } },
+                    { $set: { isBooked: false } },
+                    { session }
+                );
+            }
         }
 
         await booking.save({ session });
