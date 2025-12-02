@@ -126,6 +126,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       toast.error(error.response?.data?.message || "Payment failed. Try again.");
     } finally {
       setLoading(false);
+      navigate("/checkouts");
     }
   };
 
