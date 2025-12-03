@@ -657,9 +657,10 @@ export const finalizeBookingBill = async (req, res) => {
         const diffNights = Math.max(todayDay.diff(checkInDay, "day"), 1);
         booking.lengthOfStay = diffNights;
 
+        // Set checkout to current time in SL timezone
         const todayNoonSL = dayjs().tz(TZ).toDate();
 
-            // Store old checkout if it exists
+        // Store old checkout if it exists
         if (booking.checkOut) {
             booking.oldCheckOutDate = booking.checkOut;
             booking.oldCheckOutDateStatus = true;
@@ -668,52 +669,52 @@ export const finalizeBookingBill = async (req, res) => {
         booking.checkOut = todayNoonSL;
 
         // Apply switch-out logic according to your rules
-            booking.roomsHistory = (booking.roomsHistory || []).map((rh) => {
-                const roomsHistory = booking.roomsHistory;
+        booking.roomsHistory = (booking.roomsHistory || []).map((rh) => {
+            const roomsHistory = booking.roomsHistory;
 
-                // Count same roomNo occurrences
-                const sameRoomCount = roomsHistory.filter(r => r.roomNo === rh.roomNo).length;
+            // Count same roomNo occurrences
+            const sameRoomCount = roomsHistory.filter(r => r.roomNo === rh.roomNo).length;
 
-                const todaySOD = todayNoonSL;
-                let newSwitchOut = null;
+            let newSwitchOut = null;
 
-                if (sameRoomCount > 1) {
-                    // CASE 1: Multiple history records for same roomNo
-                    if (rh.isSwitched === false) {
-                        // Not switched → switchOut = today
-                        newSwitchOut = todaySOD.toDate();
-                    } else {
-                        // Switched → keep existing switchOutDate
-                        newSwitchOut = rh.switchOutDate ? rh.switchOutDate : todaySOD.toDate();
-                    }
+            if (sameRoomCount > 1) {
+                // CASE 1: Multiple history records for same roomNo
+                if (rh.isSwitched === false) {
+                    // Not switched → switchOut = today (current checkout time)
+                    newSwitchOut = todayNoonSL;
                 } else {
-                    // CASE 2: Only one record for this roomNo
-                    const isActiveNow = booking.currentRooms?.some(r => r.roomNo === rh.roomNo);
-                    if (isActiveNow) {
-                        // Active → switchOut = today
-                        newSwitchOut = todaySOD.toDate();
-                    } else {
-                        // Inactive → keep old
-                        newSwitchOut = rh.switchOutDate ? rh.switchOutDate : todaySOD.toDate();
-                    }
+                    // Switched → keep existing switchOutDate
+                    newSwitchOut = rh.switchOutDate || todayNoonSL;
                 }
-
-                // Prevent future dates
-                if (newSwitchOut) {
-                    const outDay = dayjs(newSwitchOut).tz(TZ).startOf("day");
-                    if (outDay.isAfter(todaySOD)) {
-                        newSwitchOut = todaySOD.toDate();
-                    }
+            } else {
+                // CASE 2: Only one record for this roomNo
+                // Only consider rooms listed as active in currentRooms
+                const isActiveNow = booking.currentRooms?.some(r => r.roomNo === rh.roomNo && r.isActive === true);
+                if (isActiveNow) {
+                    // Active → switchOut = today (current checkout time)
+                    newSwitchOut = todayNoonSL;
+                } else {
+                    // Inactive → keep existing or use today
+                    newSwitchOut = rh.switchOutDate || todayNoonSL;
                 }
+            }
 
-                // Persist back to DB
-                rh.switchOutDate = newSwitchOut;
+            // Clamp switchOutDate to today if it's in the future
+            if (newSwitchOut) {
+                const outDay = dayjs(newSwitchOut).tz(TZ).startOf("day");
+                if (outDay.isAfter(todaySOD)) {
+                    newSwitchOut = todayNoonSL;
+                }
+            }
 
-                // Update status if active
-                if (rh.status === "active") rh.status = "completed";
+            // Persist back to DB
+            rh.switchOutDate = newSwitchOut;
 
-                return rh;
-            });
+            // Update status if active
+            if (rh.status === "active") rh.status = "completed";
+
+            return rh;
+        });
 
         if (Array.isArray(booking.currentRooms) && booking.currentRooms.length > 0) {
             // Find rooms that were active at the moment of checkout. Only these should be unbooked.
