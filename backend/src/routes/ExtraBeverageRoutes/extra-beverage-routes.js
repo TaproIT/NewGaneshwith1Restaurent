@@ -10,13 +10,39 @@ import {
     updateExtraBeverage,
     updateExtraBeverageCategory
 } from "../../controllers/ExtraBeverage/extra-beverage-controller.js";
+import { verifyTokenNotBlacklisted } from "../../middleware/check-black-list-token.js";
+import { authenticateToken } from "../../middleware/verify-token.js";
+import { authorizeRoles } from "../../middleware/role-authorize.js";
+import { userRoles } from "../../utils/enums/user-role.js";
 
 
 const router = express.Router();
 
 // Category
-router.post("/category", createExtraBeverageCategory);
-router.get("/available/category", getAvailableExtraBeverageCategories);
+router.post(
+  "/category",
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  authorizeRoles([
+    userRoles.ADMIN.value,
+    userRoles.BEACH_RESTAURANT_ADMIN.value,
+    userRoles.POOL_RESTAURANT_ADMIN.value,
+  ]),
+  createExtraBeverageCategory
+);
+router.get(
+  "/available/category",
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  authorizeRoles([
+    userRoles.BEACH_RESTAURANT_STAFF.value,
+    userRoles.POOL_RESTAURANT_STAFF.value,
+    userRoles.ADMIN.value,
+    userRoles.BEACH_RESTAURANT_ADMIN.value,
+    userRoles.POOL_RESTAURANT_ADMIN.value,
+  ]),
+  getAvailableExtraBeverageCategories
+);
 router.get("/category", listExtraBeverageCategories);
 router.get("/category/:id", getExtraBeverageCategory);
 router.put("/category/:id", updateExtraBeverageCategory);

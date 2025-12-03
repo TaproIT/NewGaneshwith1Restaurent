@@ -102,7 +102,7 @@ const AddBeverageModal: React.FC<AddBeverageModalProps> = ({
           <Input
             type="number"
             name="volume"
-            placeholder="Volume in ML"
+            placeholder="Volume in ml"
             value={form.volume || ""}
             onChange={handleChange}
             min={0}

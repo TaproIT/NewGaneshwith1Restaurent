@@ -1,8 +1,12 @@
 // src/features/onboarding/onboardingSlice.ts
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { Step01FormData, OnboardingState } from "@/types/guestDataTypes";
+import type {
+  Step01FormData,
+  OnboardingState,
+  BookedRoom,
+} from "@/types/guestDataTypes";
 
-// ✅ Extracted clean initial data
+// ✅ Updated initial data structure
 const initialStep01Data: Step01FormData = {
   hotel: "",
   guestName: "",
@@ -16,12 +20,17 @@ const initialStep01Data: Step01FormData = {
   checkOut: "",
   lengthOfStay: 0,
   totalGuests: 0,
-  currentRooms: [], // ✅ from backend shape
+
+  currentRooms: [], // now array of { roomNo, price, currency }
+
   payload: {
     extraService: "",
     specialRequests: "",
   },
+
   bookingDate: "",
+  customerType: "",
+  breakfast: "",
 };
 
 const initialState: OnboardingState = {
@@ -36,33 +45,43 @@ const onboardingSlice = createSlice({
     nextStep: (state) => {
       state.step += 1;
     },
+
     prevStep: (state) => {
       if (state.step > 1) state.step -= 1;
     },
+
     resetSteps: () => initialState,
 
     saveStep01Data: (state, action: PayloadAction<Step01FormData>) => {
       state.step01Data = { ...action.payload };
     },
 
-    addRoom: (state, action: PayloadAction<string>) => {
-      if (!state.step01Data.currentRooms.includes(action.payload)) {
+    // ✅ addRoom now accepts object { roomNo, price, currency }
+    addRoom: (state, action: PayloadAction<BookedRoom>) => {
+      const exists = state.step01Data.currentRooms.some(
+        (room) => room.roomNo === action.payload.roomNo
+      );
+      if (!exists) {
         state.step01Data.currentRooms.push(action.payload);
       }
     },
 
     removeRoom: (state, action: PayloadAction<string>) => {
       state.step01Data.currentRooms = state.step01Data.currentRooms.filter(
-        (roomNo) => roomNo !== action.payload
+        (room) => room.roomNo !== action.payload
       );
     },
 
-    updatePayload: (
-      state,
-      action: PayloadAction<{ key: keyof NonNullable<Step01FormData["payload"]>; value: string }>
-    ) => {
-      if (!state.step01Data.payload) state.step01Data.payload = {};
-      state.step01Data.payload[action.payload.key] = action.payload.value;
+    // onboardingSlice.ts
+    updateRoom(state, action) {
+      const { roomNo, price, currency } = action.payload;
+      const room = state.step01Data.currentRooms.find(
+        (r) => r.roomNo === roomNo
+      );
+      if (room) {
+        room.price = price;
+        room.currency = currency;
+      }
     },
   },
 });
@@ -74,7 +93,7 @@ export const {
   saveStep01Data,
   addRoom,
   removeRoom,
-  updatePayload,
+  updateRoom,
 } = onboardingSlice.actions;
 
 export default onboardingSlice.reducer;

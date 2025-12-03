@@ -32,12 +32,12 @@ const RoomDetailsPanel: React.FC<RoomDetailsPanelProps> = ({
     ) : null;
   }
 
-  const {rates} = useRates()
-  const {displayCurrency} = useCurrency()
+  const { rates } = useRates();
+  const { displayCurrency } = useCurrency();
 
   const displayPrice = convertAndFormatPrice(
-    viewedRoom.perDayPrice, 
-    rates, 
+    viewedRoom.perDayPrice,
+    rates,
     displayCurrency
   );
 
@@ -52,6 +52,7 @@ const RoomDetailsPanel: React.FC<RoomDetailsPanelProps> = ({
           <GuestDetailsCard
             guestDetails={bookingDetails.roomData}
             onDaysCalculated={onDaysCalculated}
+            checkout={checkout}
           />
         )
       )}
@@ -60,8 +61,19 @@ const RoomDetailsPanel: React.FC<RoomDetailsPanelProps> = ({
 
       <div className="absolute bottom-5 left-[25%] text-gray font-medium text-lg">
         <div className="flex justify-center items-center">
-          {displayPrice}
-          <span className="px-2 font-normal text-sm">Per Day</span>
+          {viewedRoom.isBooked
+            ? `${
+                bookingDetails?.roomData?.activeRooms.find(
+                  (room) => room.roomNo === viewedRoom.no
+                )?.currency ?? ""
+              } ${
+                bookingDetails?.roomData?.activeRooms.find(
+                  (room) => room.roomNo === viewedRoom.no
+                )?.perDayPrice ?? 0
+              }`
+            : `${displayPrice ?? 0}`}
+
+          <span className="px-2 font-normal text-sm text-center">Per Day</span>
         </div>
       </div>
     </>

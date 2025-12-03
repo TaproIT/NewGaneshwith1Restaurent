@@ -21,7 +21,7 @@ import { fetchAllExtraBeverageCategories } from "@/api/order/get-extra-beverge-c
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { updateFoodItem } from "@/api/order/update-food-item-api";
 
-type Liqueur = { beverage: string; amount: number };
+//type Liqueur = { beverage: string; amount: number };
 
 
 export default function UpdateItemSection() {
@@ -32,7 +32,7 @@ export default function UpdateItemSection() {
   const { selectedFoodItem, isUpdatedFoodItem, fetchAllFoodItemsStatus } = useSelector(
     (state: RootState) => state.food
   );
-   const { selectedCategory, selectedBeverageCategoryTitle } = useSelector(
+   const { selectedCategory, selectedBeverageCategoryTitle, fetchAllExtraBeverageCategoriesStatus } = useSelector(
     (state: RootState) => state.beverageCategory
   );
   const { beverageItems: beverages, selectedBeverageItem, selectedExtraBeverageItem, fetchAllExtraBeverageItemsStatus } = useSelector(
@@ -50,11 +50,13 @@ export default function UpdateItemSection() {
 
   const updateExtraBeverageItemLoading = fetchAllExtraBeverageItemsStatus.loading;
 
+  const updateExtraBeverageCategoriesLoading = fetchAllExtraBeverageCategoriesStatus.loading;
+
   // States
   const [itemName, setItemName] = useState("");
   const [price, setPrice] = useState<number>(0);
   const [addLiqueur, setAddLiqueur] = useState(false);
-  const [liqueurs, setLiqueurs] = useState<Liqueur[]>([]);
+  const [liqueurs, setLiqueurs] = useState<any[]>([]);
 
   const isDisabled = !itemName.trim() || price <= 0;
 
@@ -124,6 +126,7 @@ export default function UpdateItemSection() {
       }
 
       toast.success("Item deleted successfully!");
+      dispatch(setIsClickAddNewFoodItem(true));
     } catch (err: any) {
       toast.error(err?.message || "Failed to delete item");
     }
@@ -159,7 +162,8 @@ export default function UpdateItemSection() {
   }
 }, [selectedFoodItem, selectedBeverageItem, selectedExtraBeverageItem, isUpdatedFoodItem]);
 
-  if ( updateFoodItemLoading || updateExtraBeverageItemLoading ) {
+
+  if ( updateFoodItemLoading || updateExtraBeverageItemLoading || updateExtraBeverageCategoriesLoading) {
     return (
       <UpdateItemSkeleton />
     )
@@ -228,18 +232,22 @@ export default function UpdateItemSection() {
                   <div key={index} className="relative border-b pb-6 mb-3">
                     <FormRow label="Liqueur :">
                       <Select
-                        value={liq.beverage}
-                        onValueChange={(val) =>
+                        value={liq.beverage?._id}
+                        onValueChange={(id) => {
+                          const selected = hardLiquors.find(
+                            (liquor) => liquor._id === id
+                          );
                           setLiqueurs((prev) =>
                             prev.map((l, i) =>
-                              i === index ? { ...l, beverage: val } : l
+                              i === index ? { ...l, beverage: selected } : l
                             )
-                          )
-                        }
+                          );
+                        }}
                       >
                         <SelectTrigger className="w-full text-[0.75rem] cursor-pointer">
                           <SelectValue placeholder="Select Name" />
                         </SelectTrigger>
+
                         <SelectContent className="text-[0.75rem]">
                           {hardLiquors.map((liquor) => (
                             <SelectItem
@@ -263,7 +271,7 @@ export default function UpdateItemSection() {
                           setLiqueurs((prev) =>
                             prev.map((l, i) =>
                               i === index
-                                ? { ...l, amount: Number(e.target.value) }
+                                ? { ...l, amount: Number(e.target.value) || 0 }
                                 : l
                             )
                           )
@@ -345,6 +353,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { updateExtraBeverage } from "@/api/order/update-extra-beverage-item-api";
 import { deleteFoodItem } from "@/api/order/delete-food-item-api";
 import { deleteExtraBeverageItem } from "@/api/order/delete-extra-beverage-api";
+import { setIsClickAddNewFoodItem } from "@/features/beach-restaurant/foodSlice";
 
 function UpdateItemSkeleton() {
   return (

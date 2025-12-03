@@ -18,9 +18,9 @@ router.post(
   verifyTokenNotBlacklisted,
   authenticateToken,
   authorizeRoles([
-    userRoles.BEACH_RESTAURANT_STAFF.value,
-    userRoles.POOL_RESTAURANT_STAFF.value,
     userRoles.ADMIN.value,
+    userRoles.BEACH_RESTAURANT_ADMIN.value,
+    userRoles.POOL_RESTAURANT_ADMIN.value,
   ]),
   createPBFoodNet
 );
@@ -32,6 +32,8 @@ router.get(
     userRoles.BEACH_RESTAURANT_STAFF.value,
     userRoles.POOL_RESTAURANT_STAFF.value,
     userRoles.ADMIN.value,
+    userRoles.BEACH_RESTAURANT_ADMIN.value,
+    userRoles.POOL_RESTAURANT_ADMIN.value,
   ]),
   getPBFoodNets
 );
@@ -43,6 +45,8 @@ router.get(
     userRoles.BEACH_RESTAURANT_STAFF.value,
     userRoles.POOL_RESTAURANT_STAFF.value,
     userRoles.ADMIN.value,
+    userRoles.BEACH_RESTAURANT_ADMIN.value,
+    userRoles.POOL_RESTAURANT_ADMIN.value,
   ]),
   getAvailablePBFoodNets
 );

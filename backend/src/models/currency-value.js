@@ -3,8 +3,8 @@ import mongoose from "mongoose";
 const currencyValueSchema = new mongoose.Schema(
     {
         // Required values you want to save
-        lkr: { type: Number, required: true, min: 0 },
         usd: { type: Number, required: true, min: 0 },
+        eur: { type: Number, required: true, min: 0 },
 
         // When this set of values becomes effective (defaults to now)
         effectiveAt: { type: Date, required: true, default: Date.now },

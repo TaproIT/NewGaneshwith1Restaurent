@@ -46,19 +46,19 @@ const MonthlyGuestRegistration: React.FC<MonthlyGuestRegistrationProps> = ({
     "Dec",
   ];
 
-  // Prepare data for Hotel A and Hotel B dynamically from the prop
+  // Prepare data for Ganesh Garden Beach Cabana and Marakolliya Beach Resort dynamically from the prop
   const hotelAData = labels.map((_, index) => {
     const monthData = monthlyGuestsSummary?.find(
       (item) => item.monthNumber === index + 1
     );
-    return monthData?.hotelA ?? 0;
+    return monthData?.GaneshGardenBeachCabana ?? 0;
   });
 
   const hotelBData = labels.map((_, index) => {
     const monthData = monthlyGuestsSummary?.find(
       (item) => item.monthNumber === index + 1
     );
-    return monthData?.hotelB ?? 0;
+    return monthData?.MarakolliyaBeachResort ?? 0;
   });
 
   // Chart data
@@ -66,7 +66,7 @@ const MonthlyGuestRegistration: React.FC<MonthlyGuestRegistrationProps> = ({
     labels,
     datasets: [
       {
-        label: "Hotel A",
+        label: "Ganesh Garden Beach Cabana",
         data: hotelAData,
         borderColor: "rgba(91, 155, 213, 1)",
         backgroundColor: "rgba(91, 155, 213, 0.2)",
@@ -74,7 +74,7 @@ const MonthlyGuestRegistration: React.FC<MonthlyGuestRegistrationProps> = ({
         fill: true,
       },
       {
-        label: "Hotel B",
+        label: "Marakolliya Beach Resort",
         data: hotelBData,
         borderColor: "rgba(234, 62, 47, 1)",
         backgroundColor: "rgba(234, 62, 47, 0.2)",

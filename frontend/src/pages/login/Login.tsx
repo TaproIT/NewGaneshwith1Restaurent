@@ -24,9 +24,12 @@ import { useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setUserRole } from "@/features/user/userSlice";
 import type { UserRole } from "@/types/roleTypes";
+import { setForgotPasswordModalOpen } from "@/features/auth/authSlice";
+import type { RootState } from "@/app/store";
+import ResetPasswordModal from "@/component/authentication/ForgotPasswordModal";
 
 const loginSchema = z.object({
   userRole: z.string().nonempty("User role is required"),
@@ -37,6 +40,8 @@ const loginSchema = z.object({
 type FormValues = z.infer<typeof loginSchema>;
 
 const Login = () => {
+  const  {isForgotPasswordModalOpen} = useSelector((state:RootState) => state.auth);
+   
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const form = useForm<FormValues>({
@@ -66,6 +71,8 @@ const Login = () => {
           "Reception": "/onboarding",
           "Beach-Restaurant-Staff": "/restaurant/home",
           "Pool-Restaurant-Staff": "/restaurant/home",
+          "Beach-Restaurant-Admin": "/restaurant/home",
+          "Pool-Restaurant-Admin": "/restaurant/home",
         };
 
         const redirectPath = roleRedirects[data.userRole] || "/";
@@ -81,23 +88,43 @@ const Login = () => {
     }
   }; 
 
+  const handleForgotPassword = async() => {
+    dispatch(setForgotPasswordModalOpen(true));
+  }
+
+  if (isForgotPasswordModalOpen) {
+     return (
+       <div
+      className={`relative flex justify-center items-center w-full h-screen bg-cover bg-center bg-no-repeat overflow-hidden`}
+      style={{ backgroundImage: `url(${bg})` }}
+    >
+       <div className="absolute inset-0 bg-white/20 backdrop-blur-md"></div>
+      <ResetPasswordModal />
+      </div>
+     )
+  }
+
   return (
     <div
-      className="relative flex justify-center items-center w-full h-screen bg-cover bg-center bg-no-repeat overflow-hidden"
+      className={`relative flex justify-center items-center w-full h-screen bg-cover bg-center bg-no-repeat overflow-hidden`}
       style={{ backgroundImage: `url(${bg})` }}
     >
       {/* Glassy Overlay */}
       <div className="absolute inset-0 bg-white/20 backdrop-blur-md"></div>
 
       {/* Login Card */}
-      <div className="relative z-10 flex justify-center items-center flex-col gap-6 p-6 bg-white shadow-lg w-[500px] rounded-2xl">
+      <div
+        className={`relative z-10  ${
+          isForgotPasswordModalOpen ? "hidden" : "flex"
+        } justify-center items-center flex-col gap-6 p-6 bg-white shadow-lg w-[500px] rounded-2xl`}
+      >
         <img src={logo} alt="logo" className="w-32 h-auto" />
         <div className="font-bold text-2xl my-3">User Login</div>
 
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-4 w-[500px] text-[14px] font-medium text-gray-700 p-10"
+            className="space-y-4 w-[500px] text-[14px] font-medium text-gray-700 p-10 pb-0"
           >
             {/* User Role */}
             <FormField
@@ -120,6 +147,12 @@ const Login = () => {
                         </SelectItem>
                         <SelectItem value="Pool-Restaurant-Staff">
                           Pool Staff
+                        </SelectItem>
+                        <SelectItem value="Beach-Restaurant-Admin">
+                          Beach Admin
+                        </SelectItem>
+                        <SelectItem value="Pool-Restaurant-Admin">
+                          Pool Admin
                         </SelectItem>
                       </SelectContent>
                     </Select>
@@ -177,13 +210,20 @@ const Login = () => {
                 "Login"
               )}
             </Button>
-
-            <Button variant="link" className="w-full mt-2 cursor-pointer">
-              Forgot Password?
-            </Button>
           </form>
         </Form>
+
+        <Button
+          variant="link"
+          className="w-full mt-2 cursor-pointer"
+          onClick={handleForgotPassword}
+        >
+          Forgot Password?
+        </Button>
       </div>
+
+      {/* Reset Password Modal */}
+      
     </div>
   );
 };

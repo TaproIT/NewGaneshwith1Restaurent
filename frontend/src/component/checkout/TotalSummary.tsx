@@ -14,7 +14,7 @@ interface Props {
 const TotalSummary: React.FC<Props> = ({
   subtotal,
   tax,
-  serviceCharge,
+  // serviceCharge,
   discount,
   total,
 }) => {
@@ -31,12 +31,12 @@ const TotalSummary: React.FC<Props> = ({
         <span>Tax</span>
         <span>{convertAndFormatPrice(tax, rates, displayCurrency)}</span>
       </div>
-      <div className="flex justify-between">
+      {/* <div className="flex justify-between">
         <span>Service Charge (10%)</span>
         <span>
           {convertAndFormatPrice(serviceCharge, rates, displayCurrency)}
         </span>
-      </div>
+      </div> */}
       <div className="flex justify-between">
         <span>Discount</span>
         <span>-{convertAndFormatPrice(discount, rates, displayCurrency)}</span>

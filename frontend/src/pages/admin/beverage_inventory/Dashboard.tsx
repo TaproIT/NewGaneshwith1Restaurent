@@ -1,6 +1,6 @@
 import { api } from "@/api/axios";
 import MonthlyBeverageSales from "@/component/beverage-inventory/dashboard/MonthlyBeverageSales";
-import OutOfStock from "@/component/beverage-inventory/dashboard/OutOfStock";
+// import OutOfStock from "@/component/beverage-inventory/dashboard/OutOfStock";
 import Restock from "@/component/beverage-inventory/dashboard/Restock";
 import TotalInStock from "@/component/beverage-inventory/dashboard/TotalInStock";
 import StatGridSkeleton from "@/component/skeleton/StatGridSkeleton";
@@ -42,7 +42,7 @@ const Dashboard = () => {
       ) : (
         <div className="grid grid-cols-3 gap-5">
           <TotalInStock items={beverageCategoryItems} />
-          <OutOfStock />
+          {/* <OutOfStock /> */}
           <Restock items={beverageCategoryItems} />
         </div>
       )}

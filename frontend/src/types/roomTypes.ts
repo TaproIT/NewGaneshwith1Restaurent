@@ -15,4 +15,6 @@ export interface Room {
   isMaintenance?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
+  price?:number;
+  currency?: string;
 }

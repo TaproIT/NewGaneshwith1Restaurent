@@ -4,13 +4,17 @@ import React, { useEffect } from "react";
 interface GuestDetailsCardProps {
   guestDetails: Booking | null;
   onDaysCalculated?: (days: number) => void; // callback to parent
+  checkout?: boolean;
 }
 
 const GuestDetailsCard: React.FC<GuestDetailsCardProps> = ({
   guestDetails,
   onDaysCalculated,
+  checkout
 }) => {
   if (!guestDetails) return null;
+
+  const today = new Date()
 
   const checkInDate = new Date(guestDetails.checkIn);
   const checkOutDate = new Date(guestDetails.checkOut);
@@ -26,8 +30,13 @@ const GuestDetailsCard: React.FC<GuestDetailsCardProps> = ({
   // Calculate days stayed
   const daysStayed =
     Math.ceil(
-      (checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)
-    ) || 0;
+      (today.getTime() - checkInDate.getTime() ) / (1000 * 60 * 60 * 24)
+    ) - 1 || 1;
+
+    const readOnlydaysStayed =
+    Math.ceil(
+      (checkOutDate.getTime() - checkInDate.getTime() ) / (1000 * 60 * 60 * 24)
+    )|| 1;
 
   // 🔹 Send value to parent whenever it changes
   useEffect(() => {
@@ -36,26 +45,31 @@ const GuestDetailsCard: React.FC<GuestDetailsCardProps> = ({
     }
   }, [daysStayed, onDaysCalculated]);
 
-  return (
-    <div className="flex flex-col mt-4 gap-1 text-sm">
-      <div className="flex justify-between text-gray whitespace-nowrap">
-        <div className="">Customer : </div>
-        <div className="">{guestDetails.guestName}</div>
-      </div>
-      <div className="flex justify-between text-gray whitespace-nowrap">
-        <div>Days of Staying : </div>
-        <div>{daysStayed} days</div>
-      </div>
-      <div className="flex justify-between text-gray whitespace-nowrap">
-        <div className="">Checked-In Date : </div>
-        <div className="">{formatDate(checkInDate)}</div>
-      </div>
-      <div className="flex justify-between text-gray whitespace-nowrap">
-        <div className="">Check Out Date : </div>
-        <div className="">{formatDate(checkOutDate)}</div>
-      </div>
+ return (
+  <div className="mt-4 p-4 bg-white border rounded-xl shadow-sm text-sm space-y-3">
+
+    <div className="flex justify-between">
+      <span className="text-gray-500">Customer</span>
+      <span className="font-medium text-gray-800">{guestDetails.guestName}</span>
     </div>
-  );
+
+    <div className="flex justify-between">
+      <span className="text-gray-500">Days of Staying</span>
+      <span className="font-medium text-gray-800">{!checkout ? readOnlydaysStayed : daysStayed} days</span>
+    </div>
+
+    <div className="flex justify-between">
+      <span className="text-gray-500">Checked-In Date</span>
+      <span className="font-medium text-gray-800">{formatDate(checkInDate)}</span>
+    </div>
+
+    <div className="flex justify-between">
+      <span className="text-gray-500">Check-Out Date</span>
+      <span className="font-medium text-gray-800">{formatDate( !checkout ? checkOutDate : today)}</span>
+    </div>
+
+  </div>
+);
 };
 
 export default GuestDetailsCard;

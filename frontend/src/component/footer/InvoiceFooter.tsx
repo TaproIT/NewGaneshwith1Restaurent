@@ -1,15 +1,13 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import QrCodeModal from "../modal/QrCodeModal";
-import { api } from "@/api/axios";
-import { useSelector } from "react-redux";
-import type { RootState } from "@/app/store";
 import type { Room } from "@/types/roomTypes";
-import { toast } from "react-toastify";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useRates } from "@/context/RateContext";
 import { convertAndFormatPrice } from "@/util/priceConverter";
 import { useNavigate } from "react-router-dom";
+import type { BookedRoom } from "@/types/guestDataTypes";
+import type { Booking } from "@/types/guestDetails";
 
 interface InvoiceFooterProps {
   readOnly?: boolean;
@@ -17,6 +15,11 @@ interface InvoiceFooterProps {
   switchRoom?: boolean;
   invoice?: boolean;
   selectedRooms: Room[];
+  updatedRooms?: BookedRoom[];
+  isWhatsappAvailable?: boolean;
+  isEmailAvailable?: boolean;
+  totalOldRoomsPrice?: number;
+  guestDetails: Booking | null;
 
   // values
   totalPrice: number;
@@ -63,17 +66,16 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
   setDiscountPercent,
   handleBookRooms,
   handleSwitchRoom,
-  selectedRooms,
   loadingBooking,
-  onInvoiceSuccess,
   loading,
+  updatedRooms,
+  isEmailAvailable,
+  isWhatsappAvailable,
+  totalOldRoomsPrice,
+  guestDetails
 }) => {
-  const [loadingBook, setLoadingBook] = useState(false);
   const [loadingSwitch, setLoadingSwitch] = useState(false);
 
-  const invoiceData = useSelector(
-    (state: RootState) => state.invoice.invoiceFormData
-  );
   const navigate = useNavigate();
 
   const { rates } = useRates();
@@ -86,33 +88,6 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
     convertAndFormatPrice(amount, rates, displayCurrency);
 
   // Book invoice handler
-  const handleBookClick = async () => {
-    setLoadingBook(true);
-    try {
-      const payload = {
-        checkInDate: new Date(invoiceData.checkIn).toISOString(),
-        checkOutDate: new Date(invoiceData.checkOut).toISOString(),
-        customerName: invoiceData.name,
-        numberOfMembers: invoiceData.totalGuests,
-        roomIds: selectedRooms.map((room) => room._id),
-        subTotal: invoiceSubTotal,
-        tax: 0, // add tax if needed
-        discount: invoiceDiscount,
-        total: invoiceFinalBill,
-      };
-
-      await api.post("/invoice", payload);
-      toast.success("Invoice generated & rooms booked successfully!");
-      if (onInvoiceSuccess) onInvoiceSuccess();
-    } catch (error) {
-      toast.error("Failed to generate invoice. Please try again later.");
-      console.error("Failed to generate invoice:", error);
-    } finally {
-      setTimeout(() => {
-        setLoadingBook(false);
-      }, 1500);
-    }
-  };
 
   // Switch room handler
   const handleSwitchClick = () => {
@@ -122,6 +97,18 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
       setLoadingSwitch(false);
     }, 1500);
   };
+
+  const formatCurrency = (amount: number, currency: string | undefined) => {
+  switch (currency) {
+    case "USD":
+      return `$ ${amount}`;
+    case "EUR":
+      return `€ ${amount}`;
+    case "LKR":
+    default:
+      return `LKR ${amount}`;
+  }
+}
 
   return (
     <footer className="border-t px-6 py-3 text-gray sticky bottom-0 bg-mainWhite flex flex-col gap-4">
@@ -158,19 +145,63 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
         </div>
       )}
 
-      <div className="mt-2 grid grid-cols-3 text-gray whitespace-nowrap text-sm">
-        <div>Total Bill</div>
-        <div>:</div>
-        <div className="text-left">
-          {checkout
-            ? convertAmount(totalBill)
-            : invoice
-            ? convertAmount(invoiceFinalBill)
-            : switchRoom
-            ? convertAmount(totalPrice)
-            : convertAmount(grandTotal)}
+      {/* Old Rooms Bill */}
+      {totalOldRoomsPrice && (
+        <div className="mt-4 ">
+          <div className="grid grid-cols-3 items-center text-gray-700 whitespace-nowrap text-sm font-medium">
+            <div>Old Rooms Bill</div>
+            <div className="text-center">:</div>
+            <div className="text-left font-semibold text-gray-800">
+              {checkout ? (
+                convertAmount(totalBill)
+              ) : invoice ? (
+                convertAmount(invoiceFinalBill)
+              ) : switchRoom ? (
+                convertAmount(totalPrice)
+              ) : (
+                <div>
+                  {updatedRooms?.[0]?.currency === "USD"
+                    ? `$ ${totalOldRoomsPrice}`
+                    : updatedRooms?.[0]?.currency === "EUR"
+                    ? `€ ${totalOldRoomsPrice}`
+                    : updatedRooms?.[0]?.currency === "LKR"
+                    ? `LKR ${totalOldRoomsPrice}`
+                    : totalOldRoomsPrice}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Total Bill */}
+      {!switchRoom && (
+        <div className={`${totalOldRoomsPrice ? "" : "mt-2"}`}>
+          <div className="grid grid-cols-3 items-center text-gray-700 whitespace-nowrap text-sm font-medium">
+            <div>Total Bill</div>
+            <div className="text-center">:</div>
+            <div className="text-left font-semibold text-gray-800">
+              {checkout ? (
+                formatCurrency(totalBill, guestDetails?.activeRooms[0]?.currency)
+              ) : invoice ? (
+                convertAmount(invoiceFinalBill)
+              ) : switchRoom ? (
+                convertAmount(totalPrice)
+              ) : (
+                <div>
+                  {updatedRooms?.[0]?.currency === "USD"
+                    ? `$ ${grandTotal + (totalOldRoomsPrice || 0)}`
+                    : updatedRooms?.[0]?.currency === "EUR"
+                    ? `€ ${grandTotal + (totalOldRoomsPrice || 0)}`
+                    : updatedRooms?.[0]?.currency === "LKR"
+                    ? `LKR ${grandTotal + (totalOldRoomsPrice || 0)}`
+                    : `LKR ${grandTotal + (totalOldRoomsPrice || 0)}`}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal */}
       <QrCodeModal
@@ -179,27 +210,19 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
         onWhatsApp={handleWhatsApp}
         onEmail={handleEmail}
         loading={loading}
+        isWhatsappAvailable={isWhatsappAvailable}
+        isEmailAvailable={isEmailAvailable}
       />
-
-      {invoice && (
-        <Button
-          className="w-full"
-          onClick={handleBookClick}
-          disabled={loadingBook}
-        >
-          {loadingBook ? (
-            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-          ) : (
-            "Generate Invoice"
-          )}
-        </Button>
-      )}
 
       {!invoice && !checkout && (
         <Button
           className="w-full"
           onClick={handleBookRooms}
-          disabled={loadingBooking}
+          disabled={
+  loadingBooking ||
+  (updatedRooms ?? []).some(room => !room.currency)
+}
+
         >
           {loadingBooking ? (
             <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
@@ -209,7 +232,14 @@ const InvoiceFooter: React.FC<InvoiceFooterProps> = ({
         </Button>
       )}
 
-      {checkout && !switchRoom && <Button className="w-full" onClick={() =>navigate('/checkout-details')}>Checkout</Button>}
+      {checkout && !switchRoom && (
+        <Button
+          className="w-full"
+          onClick={() => navigate("/checkout-details")}
+        >
+          Checkout
+        </Button>
+      )}
 
       {switchRoom && (
         <Button

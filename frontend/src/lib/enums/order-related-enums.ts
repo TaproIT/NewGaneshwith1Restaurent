@@ -22,11 +22,12 @@ export const PaymentMethods = Object.freeze({
 });
 
 export const OrderStatuses = Object.freeze({
-  SET_INITIAL_ORDER_DATA: { value: 1, label: "Set Initial Order Data" },
+  SET_INITIAL_ORDER_DATA: { value: 1, label: "Set Initial Order Data" }, 
   PREPARING: { value: 2, label: "Processing" },
   READY: { value: 3, label: "Ready to Serve" },
   SERVED: { value: 4, label: "Served" },
   CLOSED: { value: 5, label: "Closed" },
+  CANCELLED: { value: 6, label: "Cancel"}
 });
 
 export const BeverageCategories = Object.freeze({

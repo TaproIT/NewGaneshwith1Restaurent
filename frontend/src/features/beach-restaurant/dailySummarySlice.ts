@@ -3,7 +3,9 @@ import type { DailyOrderSummary } from "@/component/beach-&-pool-restaurant/dail
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 const initialState: DailyOrderSummary = {
-    date: new Date().toISOString(),
+     date: new Date().toISOString(),
+     startDate: undefined,
+     endDate: undefined,
      summary: {
        dineInCount: 0,
        takeAwayCount: 0,
@@ -44,6 +46,8 @@ const holdOrderSlice = createSlice({
         if (state.orders) {
             state.orders = [];
         }
+        state.startDate = action.payload.startDate;
+        state.endDate = action.payload.endDate;
         state.orders = [...state.orders, ...action.payload.orders];
         state.summary = {...state.summary, ...action.payload.summary};
       })
