@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import Counter from "./counter.model.js";
 
 const PAYMENT_METHOD_VALUES = ["Cash", "Card", "Free-Bill"];
 
@@ -31,8 +32,14 @@ const additionalPriceItemSchema = new mongoose.Schema(
 
 const bookingSchema = new mongoose.Schema(
     {
-        hotel: { type: String, required: true },
+        hotel: {
+            type: String,
+            required: true,
+            enum: ['Ganesh Garden Beach Cabana', 'Marakolliya Beach Resort'],
+            set: v => v.trim(),
+        },
         guestName: { type: String, required: true },
+        uniqueBookingId: { type: String, required: true, unique: true },
         country: { type: String},
         email: { type: String },
         whatsapp: { type: String },
@@ -53,6 +60,11 @@ const bookingSchema = new mongoose.Schema(
             roomId: { type: mongoose.Schema.Types.ObjectId, ref: "Room", required: true },
             roomNo: { type: String, required: true },
             price: { type: Number },
+            currency: {
+                type: String,
+                enum: ["LKR", "USD", "EUR"],
+                default: "LKR"
+            },
             isActive: { type: Boolean, default: true },
         }],
 
@@ -62,7 +74,14 @@ const bookingSchema = new mongoose.Schema(
                 roomId: { type: mongoose.Schema.Types.ObjectId, ref: "Room", required: true },
                 roomNo: { type: String, required: true },
                 perDayPrice: { type: Number, required: true },
-                night: { type: Number, required: true },
+
+                currency: {
+                    type: String,
+                    enum: ["LKR", "USD", "EUR"],
+                    default: "LKR"
+                },
+                currencyRate: { type: Number},
+                night: { type: Number},
 
                 finalRoomTotalPrice: { type: Number },
                 discountPrice: { type: Number },
@@ -74,6 +93,11 @@ const bookingSchema = new mongoose.Schema(
                 perDayPriceHistory: [
                     {
                         price: { type: Number, required: true },
+                        currency: {
+                            type: String,
+                            enum: ["LKR", "USD", "EUR"],
+                            default: "LKR"
+                        },
                         date: { type: Date, required: true, default: Date.now }
                     }
                 ],
@@ -97,6 +121,9 @@ const bookingSchema = new mongoose.Schema(
         subtotal: { type: Number, default: 0 },
         tax: { type: Number, default: 0 },
         serviceCharge: { type: Number, default: 0 },
+        miniBar:{ type: Number, default: 0 },
+        laundary: { type: Number, default: 0 },
+        spa: { type: Number, default: 0 },
         discount: { type: Number, default: 0 },
 
         // Master total for the booking
@@ -151,6 +178,31 @@ const bookingSchema = new mongoose.Schema(
 // Add these indexes to speed up the nightly job & frontend query:
 bookingSchema.index({ isCheckOut: 1, checkOut: 1 });
 bookingSchema.index({ lastExtendedOn: 1, isCheckOut: 1 });
+
+bookingSchema.pre("validate", async function (next) {
+    if (this.uniqueBookingId) return next();
+
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const dateKey = `${year}${month}${day}`;
+
+    try {
+        const counter = await Counter.findOneAndUpdate(
+            { dateKey },
+            { $inc: { sequenceValue: 1 } },
+            { new: true, upsert: true }
+        );
+
+        const paddedSeq = String(counter.sequenceValue).padStart(4, "0");
+        this.uniqueBookingId = `booking${dateKey}${paddedSeq}`;
+
+        next();
+    } catch (err) {
+        next(err);
+    }
+});
 
 const Booking = mongoose.models.Booking || mongoose.model("Booking", bookingSchema);
 export default Booking;

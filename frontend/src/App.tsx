@@ -23,6 +23,11 @@ import CurrencyConfig from "./pages/admin/CurrencyConfig";
 import UserConfig from "./pages/admin/UserConfig";
 import RoomConfig from "./pages/admin/RoomConfig";
 import CheckoutDetails from "./component/checkout/CheckoutDetails";
+import BookingUpdate from "./pages/reception/bookings/BookingUpdate";
+import Bookings from "./pages/reception/bookings/bookings";
+import RestaurantSummaryPage from "./pages/beach-restaurant/RestaurantSummaryPage";
+import Reports from "./pages/admin/Reports";
+import CheckoutCompletedDetails from "./component/checkout/CheckoutCompletedDetails";
 
 //import PrintButton from "./component/SamplePrint";
 
@@ -59,8 +64,12 @@ function App() {
               <Route path="/switch-rooms" element={<SwitchRooms />} />
               <Route path="/checkouts" element={<Checkouts />} />
               <Route path="/checkout-details" element={<CheckoutDetails />} />
+              <Route path="/completed-checkout-details" element={<CheckoutCompletedDetails />} />
               <Route path="/invoice" element={<Invoice />} />
               <Route path="/room-config" element={<RoomConfig />} />
+              <Route path="/bookings" element={<Bookings />} />
+              <Route path="/bookings/:id" element={<BookingUpdate />} />
+              <Route path="/reports" element={<Reports />} />
 
               <Route
                 path="/restaurant/home"
@@ -82,6 +91,10 @@ function App() {
                 path="/restaurant/daily-summary"
                 element={<BeachRestaurantDailySummaryPage />}
               />
+              <Route
+                path="/restaurant/report"
+                element={<RestaurantSummaryPage />}
+              />
 
               <Route
                 path="/beverage-inventory/dashboard"
@@ -92,9 +105,14 @@ function App() {
                 element={<ManageInventory />}
               />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
-              <Route path="/admin/currency-config" element={<CurrencyConfig />} />
+              <Route
+                path="/admin/currency-config"
+                element={<CurrencyConfig />}
+              />
               <Route path="/admin/user-config" element={<UserConfig />} />
               <Route path="/admin/room-config" element={<RoomConfig />} />
+              <Route path="/admin/reports" element={<Reports />} />
+              <Route path="/admin/restaurant/reports"element={<RestaurantSummaryPage />} />
             </Route>
             {/* <Route path="/menu" element={<ProtectedRoute><Menu /></ProtectedRoute>} /> */}
           </Routes>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Logo from "../assets/Images/Logos/main_logo.png";
 import {
@@ -33,6 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false)
 
   const sidebarItems = navigationConfig[activeSidebar] ?? navigationConfig["Admin"];
 
@@ -53,6 +54,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const handleLogout = async () => {
+    setLoading(true)
     try {
       const token = localStorage.getItem("authToken");
       if (!token) {
@@ -70,7 +72,9 @@ const Sidebar: React.FC<SidebarProps> = ({
     } catch (error: any) {
       console.error(error);
       toast.error(error.response?.data?.message || "Logout failed");
-    }
+    } finally {
+    setLoading(false)
+  }
   };
 
   return (
@@ -83,7 +87,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           </button>
         </div>
 
-        <nav className="mt-10 space-y-4 text-gray w-full">
+        <nav className="mt-5 space-y-2 text-gray w-full">
           {sidebarItems.map((item) => {
             if ((userRole === "Admin" || userRole === "Super-Admin") && item.title === "Reception") {
               return (
@@ -112,15 +116,23 @@ const Sidebar: React.FC<SidebarProps> = ({
         </nav>
       </div>
 
-      <div>
+      <div className="border-t-2">
         {(userRole === "Admin" || userRole === "Super-Admin") && activeSidebar !== "Admin" && (
           <button onClick={() => navigate("/admin/dashboard")}
-                  className="flex items-center gap-2 p-3 rounded-lg w-full hover:bg-primary hover:text-white mt-4">
-            <House size={22} /> {!isCollapsed && <span>Back to Admin</span>}
+                  className="flex items-center gap-2 p-2 rounded-lg w-full hover:bg-primary hover:text-white mt-4 text-sm">
+            <House size={16} /> {!isCollapsed && <span>Back to Admin</span>}
           </button>
         )}
-        <button onClick={handleLogout} className="flex items-center gap-2 p-3 rounded-lg w-full hover:bg-danger hover:text-white">
-          <LogOut size={22} /> {!isCollapsed && <span>Logout</span>}
+        <button onClick={handleLogout} className="flex text-sm items-center gap-2 p-2 rounded-lg w-full hover:bg-danger hover:text-white">
+  {loading ? (
+    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+  ) : (
+    <LogOut size={16} />
+  )}
+  
+  {!isCollapsed && (
+    <span>{loading ? "Processing..." : "Logout"}</span>
+  )}
         </button>
       </div>
     </div>

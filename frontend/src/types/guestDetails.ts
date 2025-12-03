@@ -15,4 +15,5 @@ export interface ActiveRoom {
   switchInDate: string;
   switchOutDate: string;
   roomTotalPrice: number;
+  currency: string
 }

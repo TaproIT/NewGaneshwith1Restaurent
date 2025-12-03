@@ -10,7 +10,7 @@ export const fetchAllBeverageItems = createAsyncThunk<
   void
 >("beverage/fetchAllBeverageItems", async ( __ ,{ rejectWithValue }) => {
   try {
-    const response = await api.get(`/beverages`);
+    const response = await api.get(`/beverages/special/details`);
     return response.data.data as BeverageItem[];
   } catch (error: any) {
     return rejectWithValue(error?.response?.data || "Failed to fetch order");

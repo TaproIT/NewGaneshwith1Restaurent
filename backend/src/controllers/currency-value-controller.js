@@ -2,30 +2,32 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc.js";
 import timezone from "dayjs/plugin/timezone.js";
 import CurrencyValue from "../models/currency-value.js";
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
-
 
 const HOTEL_TZ = "Asia/Colombo";
 
 /**
- * Create or update today's currency values (upsert by start-of-day in hotel TZ).
- * POST body: { lkr: Number, usd: Number, note?: String, updatedBy?: String }
+ * Upsert today's currency values (USD, EUR)
+ * POST body: { usd, eur, note?, updatedBy? }
  */
 export const upsertTodayCurrencyValues = async (req, res) => {
     try {
-        const { lkr, usd, note, updatedBy } = req.body;
-        if (lkr === undefined || usd === undefined) {
-            return res.status(400).json({ success: false, error: "lkr and usd are required" });
+        const { usd, eur, note, updatedBy } = req.body;
+
+        if (usd === undefined || eur === undefined) {
+            return res.status(400).json({ success: false, error: "usd and eur are required" });
         }
 
+        // Start and end of today in hotel timezone
         const startOfToday = dayjs().tz(HOTEL_TZ).startOf("day").toDate();
         const endOfToday = dayjs(startOfToday).add(1, "day").toDate();
 
-        // Upsert a single record for "today"
+        // Upsert: update if exists, otherwise create
         const doc = await CurrencyValue.findOneAndUpdate(
-            { effectiveAt: { $gte: startOfToday, $lt: endOfToday } },
-            { lkr, usd, note, updatedBy, effectiveAt: new Date() },
+            { effectiveAt: { $gte: startOfToday, $lt: endOfToday } }, // find today
+            { usd, eur, note, updatedBy, effectiveAt: new Date() }, // new values
             { new: true, upsert: true, setDefaultsOnInsert: true }
         ).lean();
 
@@ -37,8 +39,7 @@ export const upsertTodayCurrencyValues = async (req, res) => {
 };
 
 /**
- * Get the most recent currency values
- * GET /latest
+ * Get latest currency values
  */
 export const getLatestCurrencyValues = async (_req, res) => {
     try {
@@ -52,19 +53,18 @@ export const getLatestCurrencyValues = async (_req, res) => {
 };
 
 /**
- * List currency values with optional date range (hotel TZ)
+ * List currency values with optional date range
  * GET /?from=YYYY-MM-DD&to=YYYY-MM-DD
- * If none supplied, returns last 30 days.
  */
 export const listCurrencyValues = async (req, res) => {
     try {
         const { from, to } = req.query;
 
-        let start = from
+        const start = from
             ? dayjs.tz(from, "YYYY-MM-DD", HOTEL_TZ).startOf("day")
             : dayjs().tz(HOTEL_TZ).startOf("day").subtract(30, "day");
 
-        let end = to
+        const end = to
             ? dayjs.tz(to, "YYYY-MM-DD", HOTEL_TZ).endOf("day")
             : dayjs().tz(HOTEL_TZ).endOf("day");
 
@@ -82,7 +82,7 @@ export const listCurrencyValues = async (req, res) => {
 };
 
 /**
- * Get by ID
+ * Get currency value by ID
  */
 export const getCurrencyValueById = async (req, res) => {
     try {
@@ -95,15 +95,15 @@ export const getCurrencyValueById = async (req, res) => {
 };
 
 /**
- * Update by ID (full or partial)
- * PUT body: { lkr?, usd?, note?, effectiveAt?, updatedBy? }
+ * Update currency value by ID
+ * PUT body: { usd?, eur?, note?, effectiveAt?, updatedBy? }
  */
 export const updateCurrencyValueById = async (req, res) => {
     try {
-        const { lkr, usd, note, effectiveAt, updatedBy } = req.body;
+        const { usd, eur, note, effectiveAt, updatedBy } = req.body;
         const update = {
-            ...(lkr !== undefined && { lkr }),
             ...(usd !== undefined && { usd }),
+            ...(eur !== undefined && { eur }),
             ...(note !== undefined && { note }),
             ...(effectiveAt && { effectiveAt: new Date(effectiveAt) }),
             ...(updatedBy !== undefined && { updatedBy }),
@@ -122,7 +122,7 @@ export const updateCurrencyValueById = async (req, res) => {
 };
 
 /**
- * Delete by ID (optional)
+ * Delete currency value by ID
  */
 export const deleteCurrencyValueById = async (req, res) => {
     try {

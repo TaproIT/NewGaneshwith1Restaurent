@@ -27,6 +27,7 @@ export const OrderStatuses = Object.freeze({
   READY: { value: 3, label: "Ready to Serve" },
   SERVED: { value: 4, label: "Served" },
   COMPLETED: { value: 5, label: "Completed" },
+  CANCELED: { value: 6, label: "Canceled" },
 });
 
 export const TableStatuses = Object.freeze({
@@ -38,5 +39,10 @@ export const TableStatuses = Object.freeze({
 export const RestaurantTypes = Object.freeze({
    BEACH: { value: "Beach", label: "Beach" },
    POOL : { value: "Pool", label: "Pool"}
+});
+
+export const BeverageCategories = Object.freeze({
+  HARD_LIQUOR: { value: "hard liquor", label: "Hard Liquor"},
+  SOFT_DRINKS: { value: "soft drinks", label: "Soft Drinks"},
 });
 

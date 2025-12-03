@@ -4,6 +4,7 @@ export interface Invoice {
   checkInDate: string;     // ISO date string
   checkOutDate: string;    // ISO date string
   customerName: string;
+  travelAgentName: string;
   numberOfMembers: number;
   roomIds: string[];
   subTotal: DecimalValue;
@@ -13,6 +14,15 @@ export interface Invoice {
   createdAt: string;
   updatedAt: string;
   __v: number;
+  hotelType: string;
+  currencyType: string;
+  selectedRooms: SelectedRoom[]
+}
+
+export interface SelectedRoom {
+  count: number;
+  perDayPrice: number;
+  type: string;
 }
 
 export interface DecimalValue {

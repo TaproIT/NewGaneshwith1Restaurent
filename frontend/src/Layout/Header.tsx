@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Bell, User } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
-import CurrencyDropdown from "@/component/currencyDropdown";
+// import CurrencyDropdown from "@/component/currencyDropdown";
 import { api } from "@/api/axios";
 
 interface HeaderProps {
@@ -23,7 +23,7 @@ const Header: React.FC<HeaderProps> = ({ pathTitles }) => {
     const currentPath = location.pathname;
     if (currentPath.startsWith("/restaurant/tables")) return "Tables";
     if (currentPath.startsWith("/restaurant/menu")) return "Menu";
-    return pathTitles[currentPath] || "Page Not Found";
+    return pathTitles[currentPath] || "";
   };
 
   const fetchUserDetails = async () => {
@@ -60,7 +60,7 @@ const Header: React.FC<HeaderProps> = ({ pathTitles }) => {
       {/* Right Section */}
       <div className="flex justify-center items-center gap-4">
         <Bell size={24} className="text-gray cursor-pointer hover:text-primary" />
-        <CurrencyDropdown />
+        {/* <CurrencyDropdown /> */}
 
         {/* User Info */}
         <div className="flex justify-center items-center gap-2 text-gray p-2 rounded-lg bg-bg">

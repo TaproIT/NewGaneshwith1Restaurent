@@ -4,16 +4,17 @@ export interface OrderFoodItem {
    price: number;
    quantity: number;
    isEnableBeverage?:Boolean;
-   liquor?: [{beverage:string, amount:number}] | []; 
+   liquor?: { beverage: { id: string; beverageName: string; }; amount: number; }[] | []; 
 }
 
 export interface OrderBeverageItem {
    beverageId: string;
    title: string;
+   category: string;
    price: number;
    quantity: number;
    isEnableBeverage?:Boolean;
-   liquor?: [{beverage:string, amount:number}] | [];
+   liquor?: {beverage:{_id:string, beverageName: string, price: number}, amount:number} [] | [];
 }
 
 export interface OrderTokenType {
@@ -47,6 +48,12 @@ export interface AvailableBookedRoom {
    guestId: string;
    guestName: string;
    bookingId: string;
+}
+
+export interface CheckOutUser {
+   _id: string;
+   name: string;
+   userRole: string;
 }
 
 export type TableStatus = "Selected" | "Empty" | "Reserved";
@@ -91,6 +98,11 @@ export interface FetchAvailableBookedRoomsStatus {
    loading: boolean;
 }
 
+export interface CancelOrderStatus {
+   error: string | null;
+   loading: boolean;
+}
+
 export interface Order{
   _id: string;
   orderNumber: number;
@@ -117,6 +129,7 @@ export interface Order{
   serviceCharge: number;
   totalBill: number; 
   paymentMethod: string;
+  checkOutUser: CheckOutUser | null;
   isOrderBillDetailsOpen: boolean;
   orderInitialDataStatus: OrderInitialDataStatus; 
   fetchOrderDataStatus: FetchOrderDataStatus;
@@ -126,4 +139,5 @@ export interface Order{
   updateBookingDetailsStatus: UpdateBookingDetailsStatus;
   addNewOrderTokenStatus: AddNewOrderTokenStatus;
   fetchAvailableBookedRoomsStatus: FetchAvailableBookedRoomsStatus;
+  cancelOrderStatus: CancelOrderStatus;
 }

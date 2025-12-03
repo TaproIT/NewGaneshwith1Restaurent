@@ -7,7 +7,7 @@ interface RoomsDetailsCardProps {
 
 const RoomsDetailsCard: React.FC<RoomsDetailsCardProps> = ({ viewedRoom }) => {
   return (
-    <div className="mt-4 text-sm text-gray">
+    <div className="my-4 text-sm text-gray p-5 rounded-2xl bg-white shadow-sm">
       <span className="font-medium">Facilities:</span>
       {viewedRoom.facilities?.length > 0 ? (
         <ul className="list-disc list-inside ml-4 mt-1 text-gray text-">
