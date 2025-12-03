@@ -189,6 +189,7 @@ const Step02 = () => {
           })),
         };
         await api.put(`/booking/${bookingId}/switch-rooms`, payload);
+        dispatch(resetSteps());
         navigate("/room-availability", {
       state: {
         oldRooms: [], // pass the array directly
