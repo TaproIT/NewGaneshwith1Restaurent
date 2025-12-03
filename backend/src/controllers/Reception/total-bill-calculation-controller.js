@@ -657,25 +657,6 @@ export const finalizeBookingBill = async (req, res) => {
         const diffNights = Math.max(todayDay.diff(checkInDay, "day"), 1);
         booking.lengthOfStay = diffNights;
 
-        // --- Checkout date + rooms history updates ---
-        // const todayLocalNoon = dayjs()
-        //     .tz(TZ)
-        //     .hour(12)
-        //     .minute(0)
-        //     .second(0)
-        //     .millisecond(0);
-        //
-        // const newCheckoutDate = todayLocalNoon.toDate();
-        //
-        // if (!dayjs(booking.checkOut).isSame(newCheckoutDate)) {
-        //     booking.oldCheckOutDate = booking.checkOut;
-        //     booking.oldCheckOutDateStatus = true;
-        // }
-        //
-        // booking.checkOut = newCheckoutDate;
-
-        // Today at noon in SL, stored as UTC
-            // Always update checkout to Sri Lanka local noon
         const todayNoonSL = dayjs().tz(TZ).toDate();
 
             // Store old checkout if it exists
@@ -686,26 +667,14 @@ export const finalizeBookingBill = async (req, res) => {
 
         booking.checkOut = todayNoonSL;
 
-        // booking.roomsHistory = (booking.roomsHistory || []).map((rh) => {
-        //     rh.switchOutDate = newCheckoutDate;
-        //     if (rh.status === "active") rh.status = "completed";
-        //     return rh;
-        // });
-
-        // booking.roomsHistory = (booking.roomsHistory || []).map((rh) => {
-        //     rh.switchOutDate = booking.checkOut;
-        //     if (rh.status === "active") rh.status = "completed";
-        //     return rh;
-        // });
-
-          // Apply switch-out logic according to your rules
+        // Apply switch-out logic according to your rules
             booking.roomsHistory = (booking.roomsHistory || []).map((rh) => {
                 const roomsHistory = booking.roomsHistory;
 
                 // Count same roomNo occurrences
                 const sameRoomCount = roomsHistory.filter(r => r.roomNo === rh.roomNo).length;
 
-                const todaySOD = dayjs().tz(TZ).startOf("day");
+                const todaySOD = todayNoonSL;
                 let newSwitchOut = null;
 
                 if (sameRoomCount > 1) {
