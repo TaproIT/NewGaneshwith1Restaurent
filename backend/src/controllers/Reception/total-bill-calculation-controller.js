@@ -131,35 +131,67 @@ export const getBookingBillingSummary = async (req, res) => {
             //     effOut = rawOut ? clampToTodayTZ(rawOut, todaySOD) : null;
             // }
 
-            let effOut;
+            // ------------------ FIXED SWITCH OUT LOGIC --------------------
+                    const sameRoomCount = roomsHistory.filter(r => r.roomNo === rh.roomNo).length;
+                    const today = todaySOD; // already Sri Lanka timezone
 
-            if (rh.switchOutDate) {
-                const sw = sodTZ(rh.switchOutDate);
+                    let effOut;
 
-                // SwitchOut is future → force today
-                if (sw.isAfter(todaySOD)) {
-                    effOut = todaySOD;
-                }
-                // SwitchOut is past → also force today
-                else if (sw.isBefore(todaySOD)) {
-                    effOut = todaySOD;
-                }
-                // SwitchOut is today → keep as-is
-                else {
-                    effOut = sw;
-                }
-            } else {
-                // If there's no switchOut → fall back to effectiveCheckOut logic
-                const rawOut = effectiveCheckOut ? effectiveCheckOut : null;
-                effOut = rawOut ? rawOut : null;
-            }
+                    // Case 1: More than one record for same room → check isSwitched
+                    if (sameRoomCount > 1) {
+                        if (rh.isSwitched === false) {
+                            // If not switched → switchOutDate must be today
+                            effOut = today;
+                        } else {
+                            // If switched → keep existing switchOutDate
+                            effOut = rh.switchOutDate ? sodTZ(rh.switchOutDate) : today;
+                        }
+                    }
+
+                    // Case 2: Only one record exists for this roomNo
+                    else {
+                        const isActiveNow = booking.currentRooms?.some(r => r.roomNo === rh.roomNo);
+
+                        if (isActiveNow) {
+                            // Active → switchOutDate must be today
+                            effOut = today;
+                        } else {
+                            // Inactive → keep existing (if exists), else today
+                            effOut = rh.switchOutDate ? sodTZ(rh.switchOutDate) : today;
+                        }
+                    }
+                    // --------------------------------------------------------------
+
+
+            // let effOut;
+
+            // if (rh.switchOutDate) {
+            //     const sw = sodTZ(rh.switchOutDate);
+
+            //     // SwitchOut is future → force today
+            //     if (sw.isAfter(todaySOD)) {
+            //         effOut = todaySOD;
+            //     }
+            //     // SwitchOut is past → also force today
+            //     else if (sw.isBefore(todaySOD)) {
+            //         effOut = todaySOD;
+            //     }
+            //     // SwitchOut is today → keep as-is
+            //     else {
+            //         effOut = sw;
+            //     }
+            // } else {
+            //     // If there's no switchOut → fall back to effectiveCheckOut logic
+            //     const rawOut = effectiveCheckOut ? effectiveCheckOut : null;
+            //     effOut = rawOut ? rawOut : null;
+            // }
 
 
             const perDayPrice = Number(rh.perDayPrice) || 0;
             const currency = rh.currency || "LKR"; // 💱 determine currency of this price
             let perDayPriceInLKR = perDayPrice;
 
-            // 💰 Currency conversion if not LKR
+            //  Currency conversion if not LKR
             if (currency === "USD") {
                 perDayPriceInLKR = perDayPrice * (cv.usd);
             } else if (currency === "EUR") {
@@ -170,7 +202,7 @@ export const getBookingBillingSummary = async (req, res) => {
             const nights = diffNightsTZ(effIn, effOut);
             let finalRoomTotalPrice = nights * perDayPriceInLKR; // 💰 use converted price for total
 
-            // 💸 Apply discount if available
+            //  Apply discount if available
             let discountPrice = Number(rh.discountPrice) || 0;
 
             if (discountPrice > 0) {
@@ -262,7 +294,7 @@ export const getBookingBillingSummary = async (req, res) => {
             roomNo: r.roomNo,
             perDayPrice: r.perDayPrice,
             currency: r.currency,
-            perDayPriceInLKR: r.perDayPriceInLKR, // 💰 for response
+            perDayPriceInLKR: r.perDayPriceInLKR, // for response
             switchInDate: r.effIn ? r.effIn.format("YYYY-MM-DDTHH:mm:ss.SSSZ") : null,
             switchOutDate: r.effOut ? r.effOut.format("YYYY-MM-DDTHH:mm:ss.SSSZ") : null,
             switchInDateLocal: r.effIn ? r.effIn.format("YYYY-MM-DD") : null,
@@ -660,12 +692,59 @@ export const finalizeBookingBill = async (req, res) => {
         //     return rh;
         // });
 
-        booking.roomsHistory = (booking.roomsHistory || []).map((rh) => {
-            rh.switchOutDate = booking.checkOut;
-            if (rh.status === "active") rh.status = "completed";
-            return rh;
-        });
+        // booking.roomsHistory = (booking.roomsHistory || []).map((rh) => {
+        //     rh.switchOutDate = booking.checkOut;
+        //     if (rh.status === "active") rh.status = "completed";
+        //     return rh;
+        // });
 
+          // Apply switch-out logic according to your rules
+            booking.roomsHistory = (booking.roomsHistory || []).map((rh) => {
+                const roomsHistory = booking.roomsHistory;
+
+                // Count same roomNo occurrences
+                const sameRoomCount = roomsHistory.filter(r => r.roomNo === rh.roomNo).length;
+
+                const todaySOD = dayjs().tz(TZ).startOf("day");
+                let newSwitchOut = null;
+
+                if (sameRoomCount > 1) {
+                    // CASE 1: Multiple history records for same roomNo
+                    if (rh.isSwitched === false) {
+                        // Not switched → switchOut = today
+                        newSwitchOut = todaySOD.toDate();
+                    } else {
+                        // Switched → keep existing switchOutDate
+                        newSwitchOut = rh.switchOutDate ? rh.switchOutDate : todaySOD.toDate();
+                    }
+                } else {
+                    // CASE 2: Only one record for this roomNo
+                    const isActiveNow = booking.currentRooms?.some(r => r.roomNo === rh.roomNo);
+                    if (isActiveNow) {
+                        // Active → switchOut = today
+                        newSwitchOut = todaySOD.toDate();
+                    } else {
+                        // Inactive → keep old
+                        newSwitchOut = rh.switchOutDate ? rh.switchOutDate : todaySOD.toDate();
+                    }
+                }
+
+                // Prevent future dates
+                if (newSwitchOut) {
+                    const outDay = dayjs(newSwitchOut).tz(TZ).startOf("day");
+                    if (outDay.isAfter(todaySOD)) {
+                        newSwitchOut = todaySOD.toDate();
+                    }
+                }
+
+                // Persist back to DB
+                rh.switchOutDate = newSwitchOut;
+
+                // Update status if active
+                if (rh.status === "active") rh.status = "completed";
+
+                return rh;
+            });
 
         if (Array.isArray(booking.currentRooms) && booking.currentRooms.length > 0) {
             // Find rooms that were active at the moment of checkout. Only these should be unbooked.
