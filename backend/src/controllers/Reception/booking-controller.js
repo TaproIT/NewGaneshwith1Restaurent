@@ -918,6 +918,7 @@ export const switchRoomsBulk = async (req, res) => {
                     hist.isSwitched = true;
                     hist.status = "switched_out";
                     hist.switchFrom = newRoomNumbers.join(", ");
+                       hist.isActiveForCheckout = false;
 
                     // Optional: update discount if provided
                     if (oldRoomData.discountPrice != null) {
