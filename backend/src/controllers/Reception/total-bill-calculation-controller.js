@@ -688,7 +688,8 @@ export const finalizeBookingBill = async (req, res) => {
                 }
             } else {
                 // CASE 2: Only one record for this roomNo
-                const isActiveNow = booking.currentRooms?.some(r => r.roomNo === rh.roomNo);
+                // Only consider rooms listed as active in currentRooms
+                const isActiveNow = booking.currentRooms?.some(r => r.roomNo === rh.roomNo && r.isActive === true);
                 if (isActiveNow) {
                     // Active → switchOut = today (current checkout time)
                     newSwitchOut = todayNoonSL;
