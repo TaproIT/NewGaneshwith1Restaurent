@@ -168,6 +168,7 @@ const SelectedRoomsList: React.FC<SelectedRoomsListProps> = ({
                     onChange={(e) =>
                       handlePriceChange(room.no, Number(e.target.value))
                     }
+                    onWheel={(e) => e.currentTarget.blur()}
                     className="border rounded-lg px-2 py-1 bg-white text-sm w-full focus:ring-2 focus:ring-Primary_blue focus:outline-none"
                   />
                 </div>
