@@ -9,7 +9,7 @@ export const generateAccessToken = (userId)=>{
         "ACCESS_TOKEN_SECRET is not defined in environment variables."
       );
     }
-    return jwt.sign({userId},process.env.ACCESS_TOKEN_SECRET,{expiresIn:"24h"});
+    return jwt.sign({userId},process.env.ACCESS_TOKEN_SECRET,{expiresIn:"3h"});
 }
 
 
