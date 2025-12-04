@@ -9,7 +9,8 @@ type ReportsTableProps = {
   updateBookingField: (
     bookingId: string,
     field: "bookingCommission" | "totalBreakfastPrice",
-    value: number | null
+    value: number | null,
+    roomNumber: string
   ) => void;
 };
 
@@ -49,8 +50,8 @@ const ReportsTable: React.FC<ReportsTableProps> = ({
           )}
 
           {/* Editable rows */}
-          {bookings.map((b) => (
-            <tr key={b.bookingId} className="border-b">
+          {bookings.map((b, index) => (
+            <tr key={`${b.bookingId}-${index}`} className="border-b">
               <td className="p-3">{b.roomNo}</td>
               <td className="p-3">{b.totalGuests}</td>
               <td className="p-3 whitespace-nowrap">{b.guestName}</td>
@@ -71,12 +72,18 @@ const ReportsTable: React.FC<ReportsTableProps> = ({
                   value={b.bookingCommission ?? ""}
                   placeholder="Enter value here"
                   onChange={(e) => {
-                    let value = e.target.value === "" ? null : Number(e.target.value);
+                    let value =
+                      e.target.value === "" ? null : Number(e.target.value);
                     if (value !== null) {
                       if (value < 0) value = 0;
                       if (value > b.grossTotal) value = b.grossTotal;
                     }
-                    updateBookingField(b.bookingId, "bookingCommission", value);
+                    updateBookingField(
+                      b.bookingId,
+                      "bookingCommission",
+                      value,
+                      b.roomNo
+                    );
                   }}
                 />
               </td>
@@ -88,25 +95,42 @@ const ReportsTable: React.FC<ReportsTableProps> = ({
                   value={b.totalBreakfastPrice ?? ""}
                   placeholder="Enter value here"
                   onChange={(e) => {
-                    let value = e.target.value === "" ? null : Number(e.target.value);
+                    let value =
+                      e.target.value === "" ? null : Number(e.target.value);
                     if (value !== null) {
                       if (value < 0) value = 0;
                       if (value > b.grossTotal) value = b.grossTotal;
                     }
-                    updateBookingField(b.bookingId, "totalBreakfastPrice", value);
+                    updateBookingField(
+                      b.bookingId,
+                      "totalBreakfastPrice",
+                      value,
+                      b.roomNo
+                    );
                   }}
                 />
               </td>
 
               <td className="p-3">{b.grossTotal}</td>
-              <td className="p-3">{b.serviceCharge}</td>
-              <td className="p-3">{b.netIncome}</td>
+              <td className="p-3">
+                {b.bookingCommission == null && b.totalBreakfastPrice == null
+                  ? b.serviceCharge.toFixed?.(2)
+                  : (b.grossTotal / 11).toFixed(2)}
+              </td>
+              <td className="p-3">
+                {b.bookingCommission == null && b.totalBreakfastPrice == null
+                  ? b.netIncome.toFixed?.(2)
+                  : (b.grossTotal - b.grossTotal / 11).toFixed(2)}
+              </td>
             </tr>
           ))}
 
           {/* Saved reports */}
-          {savedReports.map((b) => (
-            <tr key={`saved-${b.bookingId}`} className="border-b bg-gray-50">
+          {savedReports.map((b, index) => (
+            <tr
+              key={`${b.bookingId}-${index}`}
+              className="border-b bg-gray-100"
+            >
               <td className="p-3">{b.roomNo}</td>
               <td className="p-3">{b.totalGuests}</td>
               <td className="p-3 whitespace-nowrap">{b.guestName}</td>
@@ -126,12 +150,18 @@ const ReportsTable: React.FC<ReportsTableProps> = ({
                   value={b.bookingCommission ?? ""}
                   placeholder="Enter value here"
                   onChange={(e) => {
-                    let value = e.target.value === "" ? null : Number(e.target.value);
+                    let value =
+                      e.target.value === "" ? null : Number(e.target.value);
                     if (value !== null) {
                       if (value < 0) value = 0;
                       if (value > b.grossTotal) value = b.grossTotal;
                     }
-                    updateBookingField(b.bookingId, "bookingCommission", value);
+                    updateBookingField(
+                      b.bookingId,
+                      "bookingCommission",
+                      value,
+                      b.roomNo
+                    );
                   }}
                 />
               </td>
@@ -141,19 +171,33 @@ const ReportsTable: React.FC<ReportsTableProps> = ({
                   value={b.totalBreakfastPrice ?? ""}
                   placeholder="Enter value here"
                   onChange={(e) => {
-                    let value = e.target.value === "" ? null : Number(e.target.value);
+                    let value =
+                      e.target.value === "" ? null : Number(e.target.value);
                     if (value !== null) {
                       if (value < 0) value = 0;
                       if (value > b.grossTotal) value = b.grossTotal;
                     }
-                    updateBookingField(b.bookingId, "totalBreakfastPrice", value);
+                    updateBookingField(
+                      b.bookingId,
+                      "totalBreakfastPrice",
+                      value,
+                      b.roomNo
+                    );
                   }}
                 />
               </td>
 
               <td className="p-3">{b.grossTotal}</td>
-              <td className="p-3">{b.serviceCharge.toFixed(2)}</td>
-              <td className="p-3">{b.netIncome.toFixed(2)}</td>
+              <td className="p-3">
+                {b.bookingCommission == null && b.totalBreakfastPrice == null
+                  ? b.serviceCharge.toFixed?.(2)
+                  : (b.grossTotal / 11).toFixed(2)}
+              </td>
+              <td className="p-3">
+                {b.bookingCommission == null && b.totalBreakfastPrice == null
+                  ? b.netIncome.toFixed?.(2)
+                  : (b.grossTotal - b.grossTotal / 11).toFixed(2)}
+              </td>
             </tr>
           ))}
         </tbody>
