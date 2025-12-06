@@ -67,11 +67,12 @@ const Reports: React.FC = () => {
   const updateBookingField = (
   bookingId: string,
   field: "bookingCommission" | "totalBreakfastPrice",
-  value: number | null
+  value: number | null,
+  roomNumber: string,
 ) => {
   const updateFn = (list: Booking[]) =>
     list.map((b) => {
-      if (b.bookingId === bookingId) {
+      if (b.bookingId === bookingId && b.roomNo === roomNumber) {
         const updated = { ...b, [field]: value };
 
         updated.grossTotal =
