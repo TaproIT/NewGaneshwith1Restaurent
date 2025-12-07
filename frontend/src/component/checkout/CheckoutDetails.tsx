@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/api/axios";
 import type { Booking } from "@/types/booking";
@@ -12,6 +12,7 @@ import type { RootState } from "@/app/store";
 import { useNavigate } from "react-router-dom";
 import CheckoutSkeleton from "../skeleton/CheckoutSkeleton";
 import type { OrganizedOrder, OrganizedRoom } from "@/types/details";
+import { toast } from "react-toastify";
 
 const CheckoutDetails: React.FC = () => {
   const [booking, setBooking] = useState<Booking | null>(null);
@@ -28,6 +29,8 @@ const CheckoutDetails: React.FC = () => {
     rooms: [],
     groupedOrders: [],
   });
+  const [isPendingOrders, setIsPendingOrders] = useState(false);
+  const hasShownToast = useRef(false);
 
   const id = useSelector(
     (state: RootState) => state.booking.roomData?.bookingId
@@ -46,7 +49,20 @@ const CheckoutDetails: React.FC = () => {
         console.error("Error fetching booking:", error);
       }
     };
+    const fetchPendingOrders = async () => {
+      try {
+        const res = await api.get(`/order/${id}/pending-orders`);
+        setIsPendingOrders(res.data.data.hasPendingOrders);
+        if (res.data.data.hasPendingOrders && !hasShownToast.current) {
+          hasShownToast.current = true;
+          toast.warning("There are pending orders for this booking.");
+        }
+      } catch (error) {
+        console.error("Error fetching pending orders:", error);
+      }
+    };
     fetchBooking();
+    fetchPendingOrders();
   }, [id]);
 
   if (!booking) return <CheckoutSkeleton />;
@@ -105,6 +121,7 @@ const CheckoutDetails: React.FC = () => {
             <Button
               onClick={() => setIsPaymentModalOpen(true)}
               className="w-full text-white"
+              disabled={isPendingOrders}
             >
               Proceed to Payment
             </Button>
