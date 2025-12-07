@@ -67,11 +67,11 @@ const ReportsHeader: React.FC<ReportsHeaderProps> = ({
           <div className="flex flex-col">
             <div className="flex justify-end gap-3 mb-3 text-sm">
               <div className="flex gap-1 items-center">
-                <div className="w-3 h-3 rounded-full bg-gray-100"></div>
+                <div className="w-3 h-3 rounded-full bg-gray-400 border border-black"></div>
                 <span>Updated</span>
               </div>
               <div className="flex gap-1 items-center">
-                <div className="w-3 h-3 rounded-full bg-white"></div>
+                <div className="w-3 h-3 rounded-full bg-white border border-black"></div>
                 <span>Not Updated</span>
               </div>
             </div>
