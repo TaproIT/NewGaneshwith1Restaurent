@@ -67,11 +67,12 @@ const Reports: React.FC = () => {
   const updateBookingField = (
   bookingId: string,
   field: "bookingCommission" | "totalBreakfastPrice",
-  value: number | null
+  value: number | null,
+  roomNumber: string,
 ) => {
   const updateFn = (list: Booking[]) =>
     list.map((b) => {
-      if (b.bookingId === bookingId) {
+      if (b.bookingId === bookingId && b.roomNo === roomNumber) {
         const updated = { ...b, [field]: value };
 
         updated.grossTotal =
@@ -156,7 +157,7 @@ const Reports: React.FC = () => {
 
   return (
     <div className="p-6 rounded-2xl bg-mainWhite">
-      <h2 className="text-xl font-semibold mb-4">Reports</h2>
+      <h2 className="text-xl font-semibold mb-4">Room Reports</h2>
       <ReportsHeader
         date={date}
         setDate={setDate}

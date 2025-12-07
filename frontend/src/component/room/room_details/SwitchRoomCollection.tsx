@@ -223,6 +223,7 @@ const SwitchRoomCollection: React.FC<SwitchRoomCollectionProps> = ({
                         const validValue = Math.min(inputValue, maxValue); // prevent going above max
                         handleDiscountChange(room.roomNo, validValue);
                       }}
+                      onWheel={(e) => e.currentTarget.blur()}
                       className="border rounded-lg px-2 py-1 bg-white text-sm w-full focus:ring-2 focus:ring-Primary_blue focus:outline-none"
                     />
                   </div>

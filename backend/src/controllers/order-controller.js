@@ -2173,6 +2173,66 @@ export const exportRestaurantSummaryExcel = async (req, res) => {
   }
 };
 
+// ================================================================
+// Check for Pending Orders on a Booking (for checkout validation)
+// ================================================================
+export const checkPendingOrdersForBooking = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+
+    // Validate booking ID format
+    if (!bookingId || !mongoose.Types.ObjectId.isValid(bookingId)) {
+      return sendErrorResponse(res, 400, "Invalid booking ID format");
+    }
+
+    // Find orders for this booking that are NOT completed or canceled
+    const pendingOrders = await Order.find({
+      bookingId,
+      orderStatus: {
+        $nin: [OrderStatuses.COMPLETED.value, OrderStatuses.CANCELED.value],
+      },
+    })
+      .select("_id orderNumber orderStatus guestName totalBill subTotal serviceCharge restaurantType")
+      .lean();
+
+    // Check if there are any pending orders
+    const hasPendingOrders = pendingOrders.length > 0;
+
+    // Calculate total pending amount
+    const totalPendingAmount = pendingOrders.reduce(
+      (sum, order) => sum + (order.totalBill || 0),
+      0
+    );
+
+    return sendSuccessResponse(res, 200, "Pending orders checked successfully", {
+      bookingId,
+      hasPendingOrders,
+      pendingOrdersCount: pendingOrders.length,
+      totalPendingAmount: Math.round(totalPendingAmount * 100) / 100,
+      pendingOrders: hasPendingOrders
+        ? pendingOrders.map((order) => ({
+            orderId: order._id,
+            restaurantType: order.restaurantType,
+            orderNumber: order.orderNumber,
+            orderStatus: order.orderStatus,
+            guestName: order.guestName,
+            totalBill: order.totalBill,
+            subTotal: order.subTotal,
+            serviceCharge: order.serviceCharge,
+          }))
+        : [],
+    });
+  } catch (error) {
+    console.error("Error checking pending orders:", error);
+    return sendErrorResponse(
+      res,
+      500,
+      "Internal Server Error",
+      error.message
+    );
+  }
+};
+
 
 
 
