@@ -185,22 +185,52 @@ export const saveRoomReports = async (req, res) => {
                 netIncome,
                 updatedAt: new Date()
             };
+            //
+            // // Check if report exists for this booking
+            // const existingReport = await RoomReport.findOne({ bookingId: r.bookingId });
+            //
+            // if (existingReport) {
+            //     // ➤ Update existing report
+            //     await RoomReport.updateOne(
+            //         { bookingId: r.bookingId },
+            //         { $set: reportData }
+            //     );
+            //     updatedCount++;
+            // } else {
+            //     // ➤ Create as new report
+            //     await RoomReport.create(reportData);
+            //     createdCount++;
+            // }
 
-            // Check if report exists for this booking
-            const existingReport = await RoomReport.findOne({ bookingId: r.bookingId });
+            if (!r._id || r._id === "") {
+                const dataToSave = { ...reportData };
+                delete dataToSave._id;
 
-            if (existingReport) {
-                // ➤ Update existing report
+                await RoomReport.create(dataToSave);
+                createdCount++;
+            } else {
+                if (!mongoose.Types.ObjectId.isValid(r._id)) {
+                    return res.status(400).json({
+                        success: false,
+                        message: `Invalid _id for guest: ${r.guestName}`
+                    });
+                }
+
+                const existingReport = await RoomReport.findById(r._id);
+                if (!existingReport) {
+                    return res.status(404).json({
+                        success: false,
+                        message: `Report not found for _id: ${r._id}`
+                    });
+                }
+
                 await RoomReport.updateOne(
-                    { bookingId: r.bookingId },
+                    { _id: r._id },
                     { $set: reportData }
                 );
                 updatedCount++;
-            } else {
-                // ➤ Create as new report
-                await RoomReport.create(reportData);
-                createdCount++;
             }
+
         }
 
         return res.status(200).json({

@@ -18,6 +18,7 @@ import {
   setInitialOrderDetails,
   updateOrderBillDetails,
   updateTable,
+  checkPendingOrdersForBooking,
 } from "../controllers/order-controller.js";
 import { authorizeRoles } from "../middleware/role-authorize.js";
 import { userRoles } from "../utils/enums/user-role.js";
@@ -272,6 +273,21 @@ router.get(
     userRoles.POOL_RESTAURANT_ADMIN.value,
   ]),
   exportRestaurantSummaryExcel
+);
+
+
+router.get(
+  "/:bookingId/pending-orders",
+  verifyTokenNotBlacklisted,
+  authenticateToken,
+  authorizeRoles([
+    userRoles.RECEPTION.value,
+    userRoles.ADMIN.value,
+    userRoles.SUPER_ADMIN.value,
+    userRoles.BEACH_RESTAURANT_ADMIN.value,
+    userRoles.POOL_RESTAURANT_ADMIN.value,
+  ]),
+  checkPendingOrdersForBooking
 );
 
 
