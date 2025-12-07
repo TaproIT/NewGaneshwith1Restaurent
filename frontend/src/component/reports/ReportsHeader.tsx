@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+// import { Badge } from "@/components/ui/badge";
 
 type ReportsHeaderProps = {
   date: { from: Date | null; to: Date | null };
@@ -55,15 +56,37 @@ const ReportsHeader: React.FC<ReportsHeaderProps> = ({
             </div>
 
             <Button onClick={onFetchReports} disabled={loading}>
-              {loading ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> : "Load Reports"}
+              {loading ? (
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              ) : (
+                "Load Reports"
+              )}
             </Button>
           </div>
 
-          <div className="flex gap-2 mt-2 md:mt-0">
-            <Button onClick={onSave}>{loadingSave ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> : "Save"}</Button>
-            <Button onClick={onDownloadExcel} variant="outline">
-              Download Excel
-            </Button>
+          <div className="flex flex-col">
+            <div className="flex justify-end gap-3 mb-3 text-sm">
+              <div className="flex gap-1 items-center">
+                <div className="w-3 h-3 rounded-full bg-gray-400 border border-black"></div>
+                <span>Updated</span>
+              </div>
+              <div className="flex gap-1 items-center">
+                <div className="w-3 h-3 rounded-full bg-white border border-black"></div>
+                <span>Not Updated</span>
+              </div>
+            </div>
+            <div className="flex gap-2 mt-2 md:mt-0">
+              <Button onClick={onSave}>
+                {loadingSave ? (
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                ) : (
+                  "Save"
+                )}
+              </Button>
+              <Button onClick={onDownloadExcel} variant="outline">
+                Download Excel
+              </Button>
+            </div>
           </div>
         </div>
       </CardContent>
