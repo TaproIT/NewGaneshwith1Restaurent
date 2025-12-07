@@ -96,7 +96,7 @@ export async function printFinalBill({
   const additionalHTML = `
       ${
         spa
-          ? `<tr class="row-line"><td>Spa</td><td class="right">LKR ${formatPrice(
+          ? `<tr class="row-line"><td>Massage</td><td class="right">LKR ${formatPrice(
               spa
             )}</td></tr>`
           : ""

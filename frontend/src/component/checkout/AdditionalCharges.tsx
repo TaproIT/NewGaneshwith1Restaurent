@@ -73,7 +73,7 @@ const AdditionalCharges: React.FC<Props> = ({
       <div className="flex items-center space-x-2 mb-2">
         <input
           type="text"
-          value="Spa"
+          value="Massage"
           disabled
           className="border px-2 py-1 rounded text-sm bg-gray-100 w-32"
         />
@@ -82,6 +82,7 @@ const AdditionalCharges: React.FC<Props> = ({
           placeholder={`Price (${displayCurrency})`}
           value={spa}
           onChange={(e) => setSpa(Number(e.target.value))}
+          onWheel={(e) => e.currentTarget.blur()}
           className="border px-2 py-1 rounded text-right text-sm flex-1"
         />
       </div>
@@ -99,6 +100,7 @@ const AdditionalCharges: React.FC<Props> = ({
           placeholder={`Price (${displayCurrency})`}
           value={laundry}
           onChange={(e) => setLaundry(Number(e.target.value))}
+          onWheel={(e) => e.currentTarget.blur()}
           className="border px-2 py-1 rounded text-right text-sm flex-1"
         />
       </div>
@@ -116,6 +118,7 @@ const AdditionalCharges: React.FC<Props> = ({
           placeholder={`Price (${displayCurrency})`}
           value={miniBar}
           onChange={(e) => setMiniBar(Number(e.target.value))}
+          onWheel={(e) => e.currentTarget.blur()}
           className="border px-2 py-1 rounded text-right text-sm flex-1"
         />
       </div>
@@ -139,6 +142,7 @@ const AdditionalCharges: React.FC<Props> = ({
           onChange={(e) =>
             setNewCharge({ ...newCharge, price: e.target.value })
           }
+          onWheel={(e) => e.currentTarget.blur()}
           className="border px-2 py-1 rounded text-right text-sm flex-1"
         />
 

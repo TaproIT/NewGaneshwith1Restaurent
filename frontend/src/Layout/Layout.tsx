@@ -47,7 +47,7 @@ const navigationConfig = {
     { path: "/checkouts", title: "Checkouts", icon: <CircleArrowRight size={22} /> },
     { path: "/invoice", title: "Invoice", icon: <BookText size={22} /> },
     // { path: "/room-config", title: "Room Config", icon: <Warehouse size={22} /> },
-    { path: "/reports", title: "Reports", icon: <NotebookText size={22} /> },
+    { path: "/reports", title: "Room Reports", icon: <NotebookText size={22} /> },
   ],
   "Beach-Restaurant-Staff": [
     { path: "/restaurant/home", title: "Home", icon: <House size={22} /> },
@@ -111,7 +111,7 @@ const pathTitles = {
   "/checkout-details": "Checkout Details",
   "/bookings": "Bookings",
   "/admin/reports": "Reports",
-  "/reports": "Reports",
+  "/reports": "Room Reports",
   "/admin/restaurant/report": "Restaurant Reports"
 };
 
