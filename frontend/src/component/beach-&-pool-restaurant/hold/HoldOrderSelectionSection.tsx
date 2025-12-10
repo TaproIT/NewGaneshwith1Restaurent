@@ -92,13 +92,18 @@ const HoldOrderSelectionSection: React.FC = () => {
                   className="col-span-1 flex flex-col gap-1 cursor-pointer"
                 >
                   <div
-                    className={`py-8 flex flex-col items-center justify-center rounded-sm font-[500] text-[0.875rem] text-wrap ${orderClass}`}
+                    className={`py-8 max-h-24 flex flex-col items-center justify-center rounded-sm font-[500] text-[0.875rem] text-wrap ${orderClass}`}
                   >
                     <span className="text-[0.93rem]">{order.orderNumber}</span>
                     <span>
                       {order.restaurantTable
                         ? `Table ${order.restaurantTable.tableNumber} - ${order.guestName}`
                         : order.guestName}
+                    </span>
+                    <span>
+                      {order.roomNumber !== "0"
+                         && `Room ${order.roomNumber} `
+                      }
                     </span>
                   </div>
                 </div>
