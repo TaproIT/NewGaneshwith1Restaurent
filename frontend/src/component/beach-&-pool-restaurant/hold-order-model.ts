@@ -9,7 +9,8 @@ export interface HoldOrder {
     restaurantTable: {
         _id: string;
         tableNumber: number;
-    }
+    },
+    roomNumber: string;
 };
 
 export interface FetchHoldOrdersStatus {

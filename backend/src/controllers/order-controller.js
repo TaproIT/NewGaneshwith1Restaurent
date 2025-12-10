@@ -1178,7 +1178,7 @@ export const getHoldOrders = async (req, res) => {
       ],
     })
       .select(
-        "_id serviceType orderNumber customerType guestName restaurantTable"
+        "_id serviceType orderNumber customerType guestName restaurantTable roomNumber"
       )
       .populate("restaurantTable", "tableNumber");
 
@@ -1194,6 +1194,7 @@ export const getHoldOrders = async (req, res) => {
       guestName: order.guestName,
       restaurantTable: order.restaurantTable,
       orderNumber: order.orderNumber,
+      roomNumber: order.roomNumber
     }));
 
     return sendSuccessResponse(
