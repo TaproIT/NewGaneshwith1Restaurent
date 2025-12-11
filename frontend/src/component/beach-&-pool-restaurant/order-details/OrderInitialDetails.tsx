@@ -91,7 +91,7 @@ const OrderInitialDetails: React.FC = () => {
           <div className="grid grid-cols-2">
             <p className="col-span-1">Room</p>
             <p className="col-span-1">
-              : <span className="px-2">{order.roomNumber || "R-02"}</span>
+              : <span className="px-2">{order.roomNumber || ""}</span>
             </p>
           </div>
         ) : (

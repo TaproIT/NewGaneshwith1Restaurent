@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { fetchOrderById } from "@/api/order/get-order-data-api";
 //import { TicketX } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton"; // ✅ import shadcn skeleton
+import { TicketX } from "lucide-react";
 
 const HoldOrderDetailsSection: React.FC = () => {
   const order = useSelector((state: RootState) => state.order);
@@ -22,23 +23,6 @@ const HoldOrderDetailsSection: React.FC = () => {
     if (!id) return;
     dispatch(fetchOrderById(id));
   }, [id, dispatch]);
-
-  // ✅ When no order selected
-  // if (!id || !order || !order._id) {
-  //   return (
-  //     <div className="h-full flex flex-col items-center justify-center bg-mainWhite rounded-2xl p-6 text-center">
-  //       <div className="p-3 flex items-center justify-center bg-[#e6f3f5] rounded-full">
-  //         <TicketX size={24} className="text-primary" />
-  //       </div>
-  //       <h3 className="text-base font-semibold text-gray-700">
-  //         No Order Selected
-  //       </h3>
-  //       <p className="text-sm text-gray-500 mt-1">
-  //         Select a hold order from the left to view its details.
-  //       </p>
-  //     </div>
-  //   );
-  // }
 
   // ✅ Skeleton loader while fetching order
   if (loading) {
@@ -69,6 +53,24 @@ const HoldOrderDetailsSection: React.FC = () => {
           <Skeleton className="h-5 w-1/4 rounded-md" />
           <Skeleton className="h-8 w-full rounded-md" />
         </div>
+      </div>
+    );
+  }
+
+  
+  // ✅ When no order selected
+  if (!id || !order || !order._id) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center bg-mainWhite rounded-2xl p-6 text-center">
+        <div className="p-3 flex items-center justify-center bg-[#e6f3f5] rounded-full">
+          <TicketX size={24} className="text-primary" />
+        </div>
+        <h3 className="text-base font-semibold text-gray-700">
+          No Order Selected
+        </h3>
+        <p className="text-sm text-gray-500 mt-1">
+          Select a hold order from the left to view its details.
+        </p>
       </div>
     );
   }

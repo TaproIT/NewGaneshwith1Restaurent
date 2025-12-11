@@ -8,17 +8,53 @@ import { useDispatch } from "react-redux";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { fetchOrderById } from "@/api/order/get-order-data-api";
 import { TicketX } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 const DailyOrderDetailsSection: React.FC = () => {
   const  order = useSelector((state:RootState) => state.order);
-  const {selectedOrderId: id, date} = useSelector((state:RootState) => state.dailyOrderSummary);
+  const {selectedOrderId: id, date, fetchDailyOrderSummaryStatus} = useSelector((state:RootState) => state.dailyOrderSummary);
   const dispatch = useDispatch<AppDispatch>();
+
+  const loading = fetchDailyOrderSummaryStatus.loading || order.fetchOrderDataStatus.loading; 
 
   useEffect(() => {
       if (!id) return;
       dispatch(fetchOrderById(id));
   }, [id, date]);
+
+   // ✅ Skeleton loader while fetching order
+  if (loading) {
+    return (
+      <div className="h-full flex flex-col justify-between bg-mainWhite rounded-2xl p-4">
+        {/* Top section skeleton (OrderInitialDetails) */}
+        <div className="space-y-4">
+          <Skeleton className="h-6 w-1/3 rounded-md" />
+          <div className="grid grid-cols-2 gap-3">
+            <Skeleton className="h-4 w-full rounded-md" />
+            <Skeleton className="h-4 w-full rounded-md" />
+            <Skeleton className="h-4 w-full rounded-md" />
+            <Skeleton className="h-4 w-full rounded-md" />
+          </div>
+        </div>
+
+        {/* Middle section (Order Tokens) */}
+        <ScrollArea className="w-full h-[calc(100vh-490px)] mt-6">
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-[90px] w-full rounded-md" />
+            ))}
+          </div>
+        </ScrollArea>
+
+        {/* Bottom section (Payment details) */}
+        <div className="mt-4 space-y-2">
+          <Skeleton className="h-5 w-1/4 rounded-md" />
+          <Skeleton className="h-8 w-full rounded-md" />
+        </div>
+      </div>
+    );
+  }
   
   if (!id || !order || !order._id) {
     return (
@@ -30,7 +66,7 @@ const DailyOrderDetailsSection: React.FC = () => {
           No Order Selected
         </h3>
         <p className="text-sm text-gray-500 mt-1">
-          Select a hold order from the left to view its details.
+          Select a order from the left to view its details.
         </p>
       </div>
     );
