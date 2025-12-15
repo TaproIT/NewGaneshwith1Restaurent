@@ -58,20 +58,6 @@ app.use(cors({
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-// app.use(cors({
-//     origin: function (origin, callback) {
-//         // Allow requests with no origin (like mobile apps or curl)
-//         if (!origin) return callback(null, true);
-//         if (allowedApiOrigins.includes(origin)) {
-//             return callback(null, true);
-//         } else {
-//             return callback(new Error('Not allowed by CORS'));
-//         }
-//     },
-//     credentials: true,
-//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-//     allowedHeaders: ["Content-Type", "Authorization"]
-// }));
 app.use(bodyParser.json());
 app.use(express.json());
 app.use(cookieParser());

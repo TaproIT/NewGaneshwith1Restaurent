@@ -6,14 +6,18 @@ import type { Booking } from "@/types/bookingUpdate";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
-type CompletedBooking = Booking & {
+type BookingWithSwitch = Booking & {
+  roomSwitchingHappened?: boolean; 
+};
+
+type CompletedBooking = BookingWithSwitch & {
   checkIn: string;
   checkOut: string;
   totalBill: number;
 };
 
 const Bookings: React.FC = () => {
-  const [activeBookings, setActiveBookings] = useState<Booking[]>([]);
+  const [activeBookings, setActiveBookings] = useState<BookingWithSwitch[]>([]);
   const [completedBookings, setCompletedBookings] = useState<
     CompletedBooking[]
   >([]);
@@ -147,6 +151,7 @@ const Bookings: React.FC = () => {
                   <th className="py-3 px-4 text-left">No.</th>
                   <th className="py-3 px-4 text-left">Booking Id</th>
                   <th className="py-3 px-4 text-left">Rooms</th>
+                  <th className="py-3 px-4 text-left">Is Switched</th>
                   <th className="py-3 px-4 text-left">Guest Name</th>
                   <th className="py-3 px-4 text-left">Guest Count</th>
                   {showCompleted && (
@@ -176,6 +181,7 @@ const Bookings: React.FC = () => {
                           {bk.currentRooms?.map((r) => r.roomNo).join(", ") ||
                             "-"}
                         </td>
+                        <td className="py-3 px-4">{bk.roomSwitchingHappened ? "Yes" : "No"}</td>
                         <td className="py-3 px-4">{bk.guestName}</td>
                         <td className="py-3 px-4">{bk.totalGuests}</td>
                         {showCompleted && (
