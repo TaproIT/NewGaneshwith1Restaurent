@@ -22,9 +22,9 @@ export const getBookingAndRoomReports = async (req, res) => {
             };
         }
 
-        // 🔹 A) Get all bookingIds already in reports
-        const reported = await RoomReport.find().select("bookingId -_id").lean();
-        const reportedIds = new Set(reported.map(r => String(r.bookingId)));
+        // 🔹 A) Get all existing reports using composite key: bookingId + roomNo
+        const reported = await RoomReport.find().select("bookingId roomNo -_id").lean();
+        const reportedSet = new Set(reported.map(r => `${String(r.bookingId)}|${r.roomNo}`));
 
         // 1️⃣ Fetch checked-out bookings
         const bookings = await Booking.find({
@@ -32,11 +32,8 @@ export const getBookingAndRoomReports = async (req, res) => {
             ...dateFilter
         }).lean();
 
-        // 🔹 B) Remove bookings that already have a report
-        const filteredBookings = bookings.filter(b => !reportedIds.has(String(b._id)));
-
-        // 2️⃣ Build bookingReports from FILTERED bookings
-        let bookingReports = filteredBookings.flatMap(b =>
+        // 🔹 B) Build bookingReports, checking composite key to avoid duplicates
+        let bookingReports = bookings.flatMap(b =>
             b.roomsHistory
                 .filter(room =>
                     startDate && endDate
@@ -44,6 +41,11 @@ export const getBookingAndRoomReports = async (req, res) => {
                         room.switchOutDate <= endDate
                         : true
                 )
+                .filter(room => {
+                    // Skip if report already exists for this booking + room combination
+                    const compositeKey = `${String(b._id)}|${room.roomNo}`;
+                    return !reportedSet.has(compositeKey);
+                })
                 .map(room => {
                     const total = room.finalRoomTotalPrice || 0;
                     const service = total * 0.10;
@@ -206,8 +208,17 @@ export const saveRoomReports = async (req, res) => {
                 const dataToSave = { ...reportData };
                 delete dataToSave._id;
 
-                await RoomReport.create(dataToSave);
-                createdCount++;
+                // Upsert by composite key (bookingId + roomNo) to ensure one report per room
+                const filter = { bookingId: r.bookingId, roomNo: r.roomNo };
+                const opts = { upsert: true, new: true, setDefaultsOnInsert: true, rawResult: true };
+                const upsertRes = await RoomReport.findOneAndUpdate(filter, { $set: dataToSave }, opts);
+
+                // rawResult gives lastErrorObject.updatedExisting (true if updated, false if inserted)
+                if (upsertRes && upsertRes.lastErrorObject && upsertRes.lastErrorObject.updatedExisting) {
+                    updatedCount++;
+                } else {
+                    createdCount++;
+                }
             } else {
                 if (!mongoose.Types.ObjectId.isValid(r._id)) {
                     return res.status(400).json({
