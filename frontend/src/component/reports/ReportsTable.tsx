@@ -20,7 +20,7 @@ const ReportsTable: React.FC<ReportsTableProps> = ({
   updateBookingField,
 }) => {
   return (
-    <div className="h-[350px] overflow-auto rounded-xl border">
+    <div className="h-screen overflow-auto rounded-xl border pb-[350px]">
       <table className="w-full text-sm">
         <thead className="bg-gray-100 sticky top-0 z-10">
           <tr>

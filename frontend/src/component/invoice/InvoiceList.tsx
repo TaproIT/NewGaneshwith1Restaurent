@@ -98,7 +98,7 @@ const InvoiceList = () => {
       </div>
 
       <Card className="rounded-lg border border-gray-200 shadow-sm">
-        <div className="h-[calc(100vh-375px)] overflow-y-auto">
+        <div className="h-screen overflow-y-auto pb-[350px]">
           {loading ? (
             <UserTableSkeleton />
           ) : (
