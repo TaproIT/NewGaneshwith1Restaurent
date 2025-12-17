@@ -100,7 +100,7 @@ const Bookings: React.FC = () => {
   };
 
   return (
-    <div className="p-6 rounded-2xl bg-mainWhite h-[calc(100vh-140px)] overflow-hidden">
+    <div className="p-6 rounded-2xl bg-mainWhite h-screen overflow-hidden">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between md:items-end mb-4 gap-3">
         <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
@@ -140,7 +140,7 @@ const Bookings: React.FC = () => {
       </div>
 
       {/* Table */}
-      <Card className="rounded-lg border border-gray-200 shadow-sm h-full overflow-y-auto pt-0">
+      <Card className="rounded-lg border border-gray-200 shadow-sm h-full overflow-auto pt-0 pb-[180px]">
         {loading ? (
           <UserTableSkeleton />
         ) : (
