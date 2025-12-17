@@ -28,11 +28,14 @@ const Reports: React.FC = () => {
     from: null,
     to: null,
   });
+
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [savedReports, setSavedReports] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingSave, setLoadingSave] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
+  // ================= FETCH REPORTS =================
   const fetchReports = async () => {
     if (!date.from || !date.to) {
       toast.error("Please select both start and end dates.");
@@ -45,6 +48,7 @@ const Reports: React.FC = () => {
     setLoading(true);
     try {
       const res = await api.get(`/reports/?start=${start}&end=${end}`);
+
       const apiBookings: Booking[] = res.data.bookings || [];
       const apiSavedReports: Booking[] = res.data.reports || [];
 
@@ -57,83 +61,81 @@ const Reports: React.FC = () => {
 
       setBookings(formattedBookings);
       setSavedReports(apiSavedReports);
+      setSearchTerm(""); // reset search on new fetch
     } catch (err) {
       toast.error("Error fetching reports");
       console.error(err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
+  // ================= UPDATE TABLE VALUES =================
   const updateBookingField = (
-  bookingId: string,
-  field: "bookingCommission" | "totalBreakfastPrice",
-  value: number | null,
-  roomNumber: string,
-) => {
-  const updateFn = (list: Booking[]) =>
-    list.map((b) => {
-      if (b.bookingId === bookingId && b.roomNo === roomNumber) {
-        const updated = { ...b, [field]: value };
+    bookingId: string,
+    field: "bookingCommission" | "totalBreakfastPrice",
+    value: number | null,
+    roomNumber: string
+  ) => {
+    const updateFn = (list: Booking[]) =>
+      list.map((b) => {
+        if (b.bookingId === bookingId && b.roomNo === roomNumber) {
+          const updated = { ...b, [field]: value };
 
-        updated.grossTotal =
-          updated.totalRoomPrice -
-          (updated.bookingCommission || 0) -
-          (updated.totalBreakfastPrice || 0);
+          updated.grossTotal =
+            updated.totalRoomPrice -
+            (updated.bookingCommission || 0) -
+            (updated.totalBreakfastPrice || 0);
 
-        updated.netIncome =
-          updated.grossTotal - (updated.serviceCharge || 0);
+          updated.netIncome =
+            updated.grossTotal - (updated.serviceCharge || 0);
 
-        return updated;
-      }
-      return b;
-    });
+          return updated;
+        }
+        return b;
+      });
 
-  // Update editable bookings
-  setBookings((prev) => updateFn(prev));
+    setBookings((prev) => updateFn(prev));
+    setSavedReports((prev) => updateFn(prev));
+  };
 
-  // Update saved reports too
-  setSavedReports((prev) => updateFn(prev));
-};
-
-
+  // ================= SAVE REPORTS =================
   const saveToBackend = async () => {
-  // Validate only new bookings (saved already filled)
-  for (const b of bookings) {
-    if (b.bookingCommission === null || b.totalBreakfastPrice === null) {
-      return toast.error("Please fill all values");
+    for (const b of bookings) {
+      if (b.bookingCommission === null || b.totalBreakfastPrice === null) {
+        return toast.error("Please fill all values");
+      }
     }
-  }
 
-  setLoadingSave(true);
+    setLoadingSave(true);
+    try {
+      const mergedData = [
+        ...savedReports,
+        ...bookings.map((b) => ({
+          ...b,
+          currencyRate: 1,
+          breakfast: "Included",
+        })),
+      ];
 
-  try {
-    // Create unified array (savedReports + bookings)
-    const mergedData = [
-      ...savedReports,
-      ...bookings.map((b) => ({
-        ...b,
-        currencyRate: 1,
-        breakfast: "Included",
-      })),
-    ];
+      await api.post("/reports", mergedData);
 
-    // Send to backend
-    await api.post("/reports", mergedData);
+      toast.success("Reports saved successfully!");
+      setSavedReports(mergedData);
+      setBookings([]);
+    } catch {
+      toast.error("Failed to save reports");
+    } finally {
+      setLoadingSave(false);
+    }
+  };
 
-    toast.success("Reports saved successfully!");
-
-    // Merge state too
-    setSavedReports(mergedData);
-    setBookings([]); // clear new ones
-  } catch {
-    toast.error("Failed to save reports");
-  } finally {
-    setLoadingSave(false);
-  }
-};
-
+  // ================= DOWNLOAD EXCEL =================
   const downloadExcel = async () => {
-    if (!date.from || !date.to) return toast.error("Select date range!");
+    if (!date.from || !date.to) {
+      toast.error("Select date range!");
+      return;
+    }
 
     const start = format(date.from, "yyyy-MM-dd");
     const end = format(date.to, "yyyy-MM-dd");
@@ -142,6 +144,7 @@ const Reports: React.FC = () => {
       const res = await api.get(`/reports/export/?start=${start}&end=${end}`, {
         responseType: "blob",
       });
+
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement("a");
       link.href = url;
@@ -149,15 +152,30 @@ const Reports: React.FC = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
+
       toast.success("Excel downloaded!");
     } catch {
       toast.error("Failed to download Excel!");
     }
   };
 
+  // ================= SEARCH FILTER =================
+  const filterData = (data: Booking[]) => {
+    if (!searchTerm.trim()) return data;
+
+    const term = searchTerm.toLowerCase();
+
+    return data.filter(
+      (b) =>
+        b.guestName?.toLowerCase().includes(term) ||
+        b.roomNo?.toLowerCase().includes(term)
+    );
+  };
+
   return (
-    <div className="p-6 rounded-2xl bg-mainWhite">
+    <div className="p-6 rounded-2xl bg-mainWhite h-full flex flex-col">
       <h2 className="text-xl font-semibold mb-4">Room Reports</h2>
+
       <ReportsHeader
         date={date}
         setDate={setDate}
@@ -166,10 +184,13 @@ const Reports: React.FC = () => {
         onSave={saveToBackend}
         onDownloadExcel={downloadExcel}
         loadingSave={loadingSave}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
       />
+
       <ReportsTable
-        bookings={bookings}
-        savedReports={savedReports}
+        bookings={filterData(bookings)}
+        savedReports={filterData(savedReports)}
         updateBookingField={updateBookingField}
       />
     </div>
