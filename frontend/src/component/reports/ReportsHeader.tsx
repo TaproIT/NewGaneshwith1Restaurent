@@ -15,6 +15,8 @@ type ReportsHeaderProps = {
   onSave: () => void;
   onDownloadExcel: () => void;
   loadingSave: boolean;
+  searchTerm: string;
+  setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
 };
 
 const ReportsHeader: React.FC<ReportsHeaderProps> = ({
@@ -25,6 +27,8 @@ const ReportsHeader: React.FC<ReportsHeaderProps> = ({
   onSave,
   onDownloadExcel,
   loadingSave,
+  searchTerm,
+  setSearchTerm,
 }) => {
   return (
     <Card className="mb-2">
@@ -62,6 +66,13 @@ const ReportsHeader: React.FC<ReportsHeaderProps> = ({
                 "Load Reports"
               )}
             </Button>
+
+             <Input
+              placeholder="Search by guest name or room no"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-64"
+            />
           </div>
 
           <div className="flex flex-col">

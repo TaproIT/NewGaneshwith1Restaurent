@@ -213,11 +213,36 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
 
     try {
       setLoading(true);
-      await dispatch(updateOrderBillDetails(orderData)).unwrap();
-      if (orderData.paymentMethod === PaymentMethods.ROOM.value) {
-        await dispatch(updateBookingDetailsWithOrderId(bookingData)).unwrap();
+
+      // Update order bill details
+      try {
+        await dispatch(updateOrderBillDetails(orderData)).unwrap();
+      } catch (err: any) {
+        throw new Error(
+          err?.message || "Failed to update order bill details. Please try again."
+        );
       }
-      await printReceipt();
+
+      // Update booking details if payment method is ROOM
+      if (orderData.paymentMethod === PaymentMethods.ROOM.value) {
+        try {
+          await dispatch(updateBookingDetailsWithOrderId(bookingData)).unwrap();
+        } catch (err: any) {
+          throw new Error(
+            err?.message || "Failed to update booking details. Please try again."
+          );
+        }
+      }
+
+      // Print receipt
+      try {
+        await printReceipt();
+      } catch (err: any) {
+        throw new Error(
+          err?.message || "Failed to print receipt. Please check your printer."
+        );
+      }
+
       setLoading(false);
       toast.success("Order payment processed & printed!");
       dispatch(closeOrderBillDetailsModal());
@@ -225,9 +250,7 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
     } catch (err: any) {
       setLoading(false);
       dispatch(closeOrderBillDetailsModal());
-      toast.error(
-        err?.message || "Unable to complete the payment. Please try again."
-      );
+      toast.error(err.message || "An error occurred. Please try again.");
     }
   };
 

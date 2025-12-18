@@ -978,7 +978,7 @@ export const updateOrderBillDetails = async (req, res) => {
   try {
     const { userId } = req.user;
     const { id } = req.params;
-
+  
     const {
       subTotal,
       tax = 0,
@@ -987,6 +987,7 @@ export const updateOrderBillDetails = async (req, res) => {
       totalBill,
       paymentMethod,
     } = req.body;
+
 
     // Validate payment method
     if (
@@ -1042,9 +1043,11 @@ export const updateOrderBillDetails = async (req, res) => {
     // 🔍 BACKEND CALCULATE EXPECTED TOTAL
     // ---------------------------------------------------
 
-    // total = subTotal + serviceCharge + tax − discount
+    // total = subTotal + serviceCharge + tax − 
+    const discountAmount = ((discount/100)*subTotal);
+
     const backendTotal = Number(
-      subTotal + serviceCharge + tax - discount
+      order.subTotal + order.serviceCharge + order.tax  - discountAmount
     );
 
     // ---------------------------------------------------
