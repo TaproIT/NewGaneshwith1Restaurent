@@ -6,14 +6,18 @@ import type { Booking } from "@/types/bookingUpdate";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
-type CompletedBooking = Booking & {
+type BookingWithSwitch = Booking & {
+  roomSwitchingHappened?: boolean; 
+};
+
+type CompletedBooking = BookingWithSwitch & {
   checkIn: string;
   checkOut: string;
   totalBill: number;
 };
 
 const Bookings: React.FC = () => {
-  const [activeBookings, setActiveBookings] = useState<Booking[]>([]);
+  const [activeBookings, setActiveBookings] = useState<BookingWithSwitch[]>([]);
   const [completedBookings, setCompletedBookings] = useState<
     CompletedBooking[]
   >([]);
@@ -96,7 +100,7 @@ const Bookings: React.FC = () => {
   };
 
   return (
-    <div className="p-6 rounded-2xl bg-mainWhite h-[calc(100vh-140px)] overflow-hidden">
+    <div className="p-6 rounded-2xl bg-mainWhite h-screen overflow-hidden">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between md:items-end mb-4 gap-3">
         <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
@@ -136,7 +140,7 @@ const Bookings: React.FC = () => {
       </div>
 
       {/* Table */}
-      <Card className="rounded-lg border border-gray-200 shadow-sm h-full overflow-y-auto pt-0">
+      <Card className="rounded-lg border border-gray-200 shadow-sm h-full overflow-auto pt-0 pb-[180px]">
         {loading ? (
           <UserTableSkeleton />
         ) : (
@@ -147,6 +151,7 @@ const Bookings: React.FC = () => {
                   <th className="py-3 px-4 text-left">No.</th>
                   <th className="py-3 px-4 text-left">Booking Id</th>
                   <th className="py-3 px-4 text-left">Rooms</th>
+                  <th className="py-3 px-4 text-left">Is Switched</th>
                   <th className="py-3 px-4 text-left">Guest Name</th>
                   <th className="py-3 px-4 text-left">Guest Count</th>
                   {showCompleted && (
@@ -176,6 +181,7 @@ const Bookings: React.FC = () => {
                           {bk.currentRooms?.map((r) => r.roomNo).join(", ") ||
                             "-"}
                         </td>
+                        <td className="py-3 px-4">{bk.roomSwitchingHappened ? "Yes" : "No"}</td>
                         <td className="py-3 px-4">{bk.guestName}</td>
                         <td className="py-3 px-4">{bk.totalGuests}</td>
                         {showCompleted && (

@@ -1766,6 +1766,11 @@ export const getAllActiveBookings = async (req, res) => {
                 new Map(searchResults.map((b) => [b._id.toString(), b])).values()
             );
 
+            bookings = bookings.map((booking) => ({
+                ...booking,
+                roomSwitchingHappened: booking.roomsHistory?.some((history) => history.isSwitched) || false
+            }));
+
             // Sort by newest
             bookings = uniqueBookings.sort(
                 (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
@@ -1796,12 +1801,17 @@ export const getAllActiveBookings = async (req, res) => {
                 .limit(pageSize)
                 .lean();
 
+                const enrichedRecords = records.map((booking) => ({
+                ...booking,
+                roomSwitchingHappened: booking.roomsHistory?.some((history) => history.isSwitched) || false
+            }));
+
             return res.status(200).json({
                 count: total,
                 page: pageNumber,
                 limit: pageSize,
                 totalPages: Math.ceil(total / pageSize),
-                bookings: records,
+                bookings: enrichedRecords,
             });
         }
 
@@ -1879,13 +1889,19 @@ export const getCompletedBookings = async (req, res) => {
                 totalGuests: 1,
                 checkIn: 1,
                 checkOut: 1,
-                "currentRooms.roomNo": 1
+                "currentRooms.roomNo": 1,
+                "roomsHistory.isSwitched": 1
             }
         )
             .sort({ checkOut: -1 }) // latest first
             .skip(skip)
             .limit(limit)
             .lean();
+
+            const finalData = bookings.map((booking) => ({
+            ...booking,
+            roomSwitchingHappened: booking.roomsHistory?.some((history) => history.isSwitched) || false
+        }));
 
         const total = await Booking.countDocuments(filter);
 
@@ -1895,7 +1911,7 @@ export const getCompletedBookings = async (req, res) => {
             total,
             currentPage: page,
             totalPages: Math.ceil(total / limit),
-            data: bookings
+            data: finalData
         });
 
     } catch (error) {
