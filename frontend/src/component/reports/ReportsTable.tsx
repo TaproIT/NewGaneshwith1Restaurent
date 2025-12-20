@@ -61,7 +61,8 @@ const ReportsTable: React.FC<ReportsTableProps> = ({
               <td className="p-3 whitespace-nowrap">
                 {format(new Date(b.checkOut), "yyyy-MM-dd")}
               </td>
-              <td className="p-3">{b.perDayPrice}</td>
+              <td className="p-3 whitespace-nowrap">{b.perDayPrice}
+                {b.currencyType ? " " + b.currencyType : ""}</td>
               <td className="p-3">{b.nights}</td>
               <td className="p-3">{b.totalRoomPrice}</td>
 
@@ -140,7 +141,8 @@ const ReportsTable: React.FC<ReportsTableProps> = ({
               <td className="p-3 whitespace-nowrap">
                 {format(new Date(b.checkOut), "yyyy-MM-dd")}
               </td>
-              <td className="p-3">{b.perDayPrice}</td>
+              <td className="p-3 whitespace-nowrap">{b.perDayPrice}
+                {b.currencyType ? " " + b.currencyType : ""}</td>
               <td className="p-3">{b.nights}</td>
               <td className="p-3">{b.totalRoomPrice}</td>
 
