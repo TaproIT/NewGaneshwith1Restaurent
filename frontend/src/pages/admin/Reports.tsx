@@ -14,6 +14,7 @@ export type Booking = {
   checkOut: string;
   perDayPrice: number;
   totalRoomPrice: number;
+  currencyType?: string;
   totalGuests: number;
   grossTotal: number;
   serviceCharge: number;
