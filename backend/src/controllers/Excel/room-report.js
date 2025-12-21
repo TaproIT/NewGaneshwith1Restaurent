@@ -2,6 +2,8 @@ import Booking from "../../models/Reception/booking.js";
 import RoomReport from "../../models/Excel/roomReportSchema.js";
 import ExcelJS from "exceljs";
 import mongoose from "mongoose";
+import { log } from "console";
+
 export const getBookingAndRoomReports = async (req, res) => {
     try {
         let { start, end } = req.query;
@@ -61,6 +63,7 @@ export const getBookingAndRoomReports = async (req, res) => {
 
                         perDayPrice: Number(room.perDayPrice?.toFixed(2)),
                         currencyRate: Number(room.currencyRate?.toFixed(2)),
+                        currencyType: String(room.currency),
                         totalRoomPrice: Number(total.toFixed(2)),
 
                         nights: room.night,
@@ -93,67 +96,13 @@ export const getBookingAndRoomReports = async (req, res) => {
         res.status(500).json({ message: "Server Error", error: err.message });
     }
 };
-//
-//
-// export const saveRoomReports = async (req, res) => {
-//     try {
-//         const reports = req.body;
-//
-//         if (!Array.isArray(reports) || reports.length === 0) {
-//             return res.status(400).json({ success: false, message: "No report data provided" });
-//         }
-//
-//         let updatedCount = 0;
-//         let createdCount = 0;
-//
-//         for (const r of reports) {
-//             // Validate bookingId
-//             if (!r.bookingId || !mongoose.Types.ObjectId.isValid(r.bookingId)) {
-//                 return res.status(400).json({
-//                     success: false,
-//                     message: `Invalid bookingId for guest: ${r.guestName}`
-//                 });
-//             }
-//
-//             // Calculate financials
-//             const grossTotal = (r.totalRoomPrice || 0) - (r.bookingCommission || 0) - (r.totalBreakfastPrice || 0);
-//             const serviceCharge = grossTotal / 11;
-//             const netIncome = serviceCharge * 10;
-//
-//             const reportData = {
-//                 ...r,
-//                 grossTotal,
-//                 serviceCharge,
-//                 netIncome
-//             };
-//
-//             const existingReport = await RoomReport.findOne({ bookingId: r.bookingId });
-//
-//             if (existingReport) {
-//                 await RoomReport.updateOne({ bookingId: r.bookingId }, { $set: reportData });
-//                 updatedCount++;
-//             } else {
-//                 await RoomReport.create(reportData);
-//                 createdCount++;
-//             }
-//         }
-//
-//         return res.status(200).json({
-//             success: true,
-//             message: "Room reports processed successfully",
-//             updatedCount,
-//             createdCount
-//         });
-//
-//     } catch (err) {
-//         console.error("POST saveRoomReports error:", err);
-//         return res.status(500).json({ success: false, message: "Server Error", error: err.message });
-//     }
-// };
+
 
 export const saveRoomReports = async (req, res) => {
     try {
         const reports = req.body;
+        console.log("report re body :" + req.body);
+        
 
         if (!Array.isArray(reports) || reports.length === 0) {
             return res.status(400).json({ success: false, message: "No report data provided" });
@@ -161,6 +110,20 @@ export const saveRoomReports = async (req, res) => {
 
         let updatedCount = 0;
         let createdCount = 0;
+
+        const bookingIds = [...new Set(reports.map(r => r.bookingId).filter(id => mongoose.Types.ObjectId.isValid(id)))];
+        
+        // 2. Fetch all related bookings in one go (Source of Truth)
+        const bookings = await Booking.find({ _id: { $in: bookingIds } }).lean();
+        
+        // 3. Create a lookup map for fast access: "bookingId|roomNo" -> roomData
+        const bookingLookup = new Map();
+        bookings.forEach(b => {
+            b.roomsHistory.forEach(room => {
+                bookingLookup.set(`${String(b._id)}|${room.roomNo}`, room);
+            });
+        });
+        
 
         for (const r of reports) {
             // Validate bookingId
@@ -170,6 +133,12 @@ export const saveRoomReports = async (req, res) => {
                     message: `Invalid bookingId for guest: ${r.guestName}`
                 });
             }
+
+            const compositeKey = `${r.bookingId}|${r.roomNo}`;
+            const originalRoomData = bookingLookup.get(compositeKey);
+
+            // Default to 1 if something is terribly wrong, otherwise use the Real Rate
+            const realCurrencyRate = originalRoomData?.currencyRate || 1;
 
             // Recalculate required financial fields
             const grossTotal =
@@ -182,27 +151,16 @@ export const saveRoomReports = async (req, res) => {
 
             const reportData = {
                 ...r,
+                currencyRate: realCurrencyRate,
                 grossTotal,
                 serviceCharge,
                 netIncome,
                 updatedAt: new Date()
             };
-            //
-            // // Check if report exists for this booking
-            // const existingReport = await RoomReport.findOne({ bookingId: r.bookingId });
-            //
-            // if (existingReport) {
-            //     // ➤ Update existing report
-            //     await RoomReport.updateOne(
-            //         { bookingId: r.bookingId },
-            //         { $set: reportData }
-            //     );
-            //     updatedCount++;
-            // } else {
-            //     // ➤ Create as new report
-            //     await RoomReport.create(reportData);
-            //     createdCount++;
-            // }
+
+            console.log("room data: " + originalRoomData);
+            console.log("currency rate: " + realCurrencyRate);
+            
 
             if (!r._id || r._id === "") {
                 const dataToSave = { ...reportData };
@@ -323,6 +281,7 @@ export const exportRoomReportsToExcel = async (req, res) => {
 
                 perDayPrice: r.perDayPrice?.toFixed(2),
                 currencyRate: r.currencyRate?.toFixed(2),
+                currencyType: r.currencyType,
                 nights: r.nights,
                 totalRoomPrice: r.totalRoomPrice?.toFixed(2),
                 totalGuests: r.totalGuests,
@@ -336,7 +295,7 @@ export const exportRoomReportsToExcel = async (req, res) => {
                 netIncome: r.netIncome?.toFixed(2),
             });
         });
-
+        
         worksheet.getRow(1).font = { bold: true };
 
         res.setHeader(
@@ -360,3 +319,5 @@ export const exportRoomReportsToExcel = async (req, res) => {
         });
     }
 };
+
+
