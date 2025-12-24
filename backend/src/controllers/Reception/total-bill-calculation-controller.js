@@ -386,15 +386,6 @@ export const finalizeBookingBill = async (req, res) => {
             });
         }
 
-        // Normalize discount to 0–1
-        // const discountRate = normalizeDiscountRate(discount);
-        // if (discountRate == null || discountRate < 0 || discountRate > 1) {
-        //     return res.status(400).json({
-        //         message:
-        //             "Invalid discount. Provide a percentage as 0–1 (e.g., 0.15) or 0–100 (e.g., 15).",
-        //         details: { received: discount },
-        //     });
-        // }
 
         if (discount < 0) {
             return res.status(400).json({
@@ -465,21 +456,6 @@ export const finalizeBookingBill = async (req, res) => {
                 },
             });
         }
-
-        // if (!isCheckOutValid) {
-        //     await session.abortTransaction();
-        //     return res.status(400).json({
-        //         message:
-        //             "Invalid check-out date. It must be today or a future date relative to the current local date.",
-        //         details: {
-        //             checkOutUTC: booking.checkOut,
-        //             todayUTC: todaySOD.toDate().toISOString(),
-        //             checkOutLocal: checkOutSOD.format("YYYY-MM-DD HH:mm z"),
-        //             todayLocal: todaySOD.format("YYYY-MM-DD HH:mm z"),
-        //             timezone: TZ,
-        //         },
-        //     });
-        // }
 
         // 1) Check originalBillTotal equals booking.totalBill
         const matchOriginalTotal =

@@ -20,7 +20,7 @@ const ReportsTable: React.FC<ReportsTableProps> = ({
   updateBookingField,
 }) => {
   return (
-    <div className="h-[350px] overflow-auto rounded-xl border">
+    <div className="h-screen overflow-auto rounded-xl border pb-[350px]">
       <table className="w-full text-sm">
         <thead className="bg-gray-100 sticky top-0 z-10">
           <tr>
@@ -61,7 +61,8 @@ const ReportsTable: React.FC<ReportsTableProps> = ({
               <td className="p-3 whitespace-nowrap">
                 {format(new Date(b.checkOut), "yyyy-MM-dd")}
               </td>
-              <td className="p-3">{b.perDayPrice}</td>
+              <td className="p-3 whitespace-nowrap">{b.perDayPrice}
+                {b.currencyType ? " " + b.currencyType : ""}</td>
               <td className="p-3">{b.nights}</td>
               <td className="p-3">{b.totalRoomPrice}</td>
 
@@ -140,7 +141,8 @@ const ReportsTable: React.FC<ReportsTableProps> = ({
               <td className="p-3 whitespace-nowrap">
                 {format(new Date(b.checkOut), "yyyy-MM-dd")}
               </td>
-              <td className="p-3">{b.perDayPrice}</td>
+              <td className="p-3 whitespace-nowrap">{b.perDayPrice}
+                {b.currencyType ? " " + b.currencyType : ""}</td>
               <td className="p-3">{b.nights}</td>
               <td className="p-3">{b.totalRoomPrice}</td>
 

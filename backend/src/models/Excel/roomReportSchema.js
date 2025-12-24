@@ -10,6 +10,7 @@ const roomReportSchema = new mongoose.Schema(
         checkOut: Date,
         perDayPrice: Number,
         currencyRate: Number,
+        currencyType: String,
         nights: Number,
         totalRoomPrice: Number,
         totalGuests: Number,
