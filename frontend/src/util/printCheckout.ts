@@ -1,5 +1,5 @@
 // src/utils/printReceipt.ts
-import { toast } from "react-toastify";
+// import { toast } from "react-toastify";
 
 declare global {
   interface Window {
