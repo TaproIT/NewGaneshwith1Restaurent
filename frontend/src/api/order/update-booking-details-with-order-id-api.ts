@@ -20,6 +20,6 @@ export const updateBookingDetailsWithOrderId = createAsyncThunk<
     const response = await api.patch(`/booking/${orderData.bookingId}/add-order`, orderData);
     return response.data.data.order as Order;
   } catch (error: any) {
-    return rejectWithValue(error?.response?.data?.message || "Failed to create order");
+    return rejectWithValue(error?.response?.data?.message || "Failed to update booking details");
   }
 });
