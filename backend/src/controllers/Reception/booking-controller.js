@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Booking from "../../models/Reception/booking.js";
 import Room from "../../models/Room.js";
+import Order from "../../models/order/order-model.js";
 import {generateAndUploadQr} from "../../utils/qr.js";
 import {sendWhatsAppMessage} from "../../utils/sendWhatsAppMessage.js";
 import {findActiveBookingByRoomNo} from "../../utils/findActiveBookingByRoomNo.js";
@@ -1155,7 +1156,7 @@ export const getTodayExtendedRooms = async (req, res) => {
 export const addOrderToBooking = async (req, res) => {
   try {
     const { id } = req.params;
-    const { orderId, date } = req.body;
+    const { orderId, date } = req.body; 
     
     // Validate input
     if (!id) {
@@ -1169,6 +1170,17 @@ export const addOrderToBooking = async (req, res) => {
     const booking = await Booking.findById(id);
     if (!booking) {
       return sendErrorResponse(res, 404, "Booking not found");
+    }
+
+    // Check if order exists and validate booking ID in order details
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return sendErrorResponse(res, 404, "Order not found");
+    }
+
+    // Validate that the booking ID in the order matches the provided booking ID
+    if ((!order.bookingId) || order.bookingId.toString() !== id) {
+      return sendSuccessResponse(res, 200, "Order not added - does not belong to this booking",{order});
     }
 
     // Check if order already exists (avoid duplicates)
