@@ -1,6 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { getPrinter } from "@/util/printerConfig";
 
 export default function PrintButton() {
   useEffect(() => {
@@ -26,7 +27,9 @@ export default function PrintButton() {
         console.log("✅ Connected to QZ Tray");
       }
 
-      const printerName = "POS80";
+      // Automatically detect and select thermal printer
+      const printerName = await getPrinter('thermal');
+      console.log("🖨️ Using printer:", printerName);
       const config = qz.configs.create(printerName);
 
       const ESC = "\x1B";
