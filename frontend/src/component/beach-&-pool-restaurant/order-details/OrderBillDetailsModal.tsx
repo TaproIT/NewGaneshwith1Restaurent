@@ -18,6 +18,7 @@ import { PaymentMethods } from "@/lib/enums/order-related-enums";
 import { useNavigate } from "react-router-dom";
 import { updateBookingDetailsWithOrderId } from "@/api/order/update-booking-details-with-order-id-api";
 import { Loader2 } from "lucide-react";
+import { getPrinter } from "@/util/printerConfig";
 
 interface OrderTokenDialogProps {
   id: string;
@@ -105,7 +106,9 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
         console.log("✅ Connected to QZ Tray");
       }
 
-      const printerName = "POS80";
+      // Automatically detect and select thermal printer
+      const printerName = await getPrinter('thermal');
+      console.log("🖨️ Using printer:", printerName);
       const config = qz.configs.create(printerName);
       const ESC = "\x1B";
       const GS = "\x1D";
