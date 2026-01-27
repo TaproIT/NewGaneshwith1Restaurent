@@ -15,7 +15,8 @@ import {
   Warehouse,
   BookOpen,
   NotebookText,
-  ClipboardMinus
+  ClipboardMinus,
+  FileCheck
 } from "lucide-react";
 
 const navigationConfig = {
@@ -55,6 +56,7 @@ const navigationConfig = {
     { path: "/restaurant/menu/0", title: "Menu", icon: <NotepadText size={22} /> },
     { path: "/restaurant/hold", title: "Hold", icon: <PauseCircle size={22} /> },
     { path: "/restaurant/daily-summary", title: "Daily Summary", icon: <Newspaper size={22} /> },
+    { path: "/restaurant/completed-orders", title: "Completed Orders", icon: <FileCheck size={22} /> },
   ],
   "Pool-Restaurant-Staff": [
     { path: "/restaurant/home", title: "Home", icon: <House size={22} /> },
@@ -62,6 +64,7 @@ const navigationConfig = {
     { path: "/restaurant/menu/0", title: "Menu", icon: <NotepadText size={22} /> },
     { path: "/restaurant/hold", title: "Hold", icon: <PauseCircle size={22} /> },
     { path: "/restaurant/daily-summary", title: "Daily Summary", icon: <Newspaper size={22} /> },
+    { path: "/restaurant/completed-orders", title: "Completed Orders", icon: <FileCheck size={22} /> },
   ],
   "Beach-Restaurant-Admin": [
     { path: "/restaurant/home", title: "Home", icon: <House size={22} /> },
@@ -69,6 +72,7 @@ const navigationConfig = {
     { path: "/restaurant/menu/0", title: "Menu", icon: <NotepadText size={22} /> },
     { path: "/restaurant/hold", title: "Hold", icon: <PauseCircle size={22} /> },
     { path: "/restaurant/daily-summary", title: "Daily Summary", icon: <Newspaper size={22} /> },
+    { path: "/restaurant/completed-orders", title: "Completed Orders", icon: <FileCheck size={22} /> },
     { path: "/restaurant/report", title: "Restaurant Report", icon: <ClipboardMinus size={22} /> },
   ],
   "Pool-Restaurant-Admin": [
@@ -77,6 +81,7 @@ const navigationConfig = {
     { path: "/restaurant/menu/0", title: "Menu", icon: <NotepadText size={22} /> },
     { path: "/restaurant/hold", title: "Hold", icon: <PauseCircle size={22} /> },
     { path: "/restaurant/daily-summary", title: "Daily Summary", icon: <Newspaper size={22} /> },
+    { path: "/restaurant/completed-orders", title: "Completed Orders", icon: <FileCheck size={22} /> },
     { path: "/restaurant/report", title: "Restaurant Report", icon: <ClipboardMinus size={22} /> },
   ],
   "Beverage-Inventory": [
@@ -104,6 +109,7 @@ const pathTitles = {
   "/restaurant/menu/0": "Menu",
   "/restaurant/hold": "Hold",
   "/restaurant/daily-summary": "Daily Summary",
+  "/restaurant/completed-orders": "Completed Orders",
   "/restaurant/report": "Restaurant Report",
   "/admin/currency-config": "Currency Config",
   "/admin/user-config": "User Config",

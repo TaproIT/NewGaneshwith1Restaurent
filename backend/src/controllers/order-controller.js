@@ -2237,6 +2237,74 @@ export const checkPendingOrdersForBooking = async (req, res) => {
   }
 };
 
+// ================================================================
+// Get Completed Orders (with search and date filters)
+// ================================================================
+export const getCompletedOrders = async (req, res) => {
+  try {
+    const { userId } = req.user;
+    const { fromDate, toDate, searchText } = req.query;
+
+    // Get restaurant type based on user role
+    const restaurantType = await getRestaurantTypeByUserRole(userId);
+
+    // Build query
+    const query = {
+      restaurantType,
+      orderStatus: OrderStatuses.COMPLETED.value,
+    };
+
+    // Add date filter if provided
+    if (fromDate && toDate) {
+      const startDate = new Date(fromDate);
+      startDate.setHours(0, 0, 0, 0);
+      
+      const endDate = new Date(toDate);
+      endDate.setHours(23, 59, 59, 999);
+
+      query.createdAt = {
+        $gte: startDate,
+        $lte: endDate,
+      };
+    }
+
+    // Add search filter if provided
+    if (searchText && searchText.trim() !== "") {
+      const searchRegex = new RegExp(searchText.trim(), "i");
+      query.$or = [
+        { orderNumber: searchRegex },
+        { roomNumber: searchRegex },
+        { guestName: searchRegex },
+      ];
+    }
+
+    // Fetch completed orders
+    const orders = await Order.find(query)
+      .populate({
+        path: "orderTokens",
+        populate: [
+          { path: "foodOrders" },
+          { path: "beverageOrders" }
+        ]
+      })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return sendSuccessResponse(res, 200, "Completed orders fetched successfully", {
+      orders,
+      count: orders.length,
+    });
+  } catch (error) {
+    console.error("Error fetching completed orders:", error);
+    return sendErrorResponse(
+      res,
+      500,
+      "Internal Server Error",
+      error.message
+    );
+  }
+};
+
 
 
 

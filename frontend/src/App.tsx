@@ -28,6 +28,7 @@ import Bookings from "./pages/reception/bookings/bookings";
 import RestaurantSummaryPage from "./pages/beach-restaurant/RestaurantSummaryPage";
 import Reports from "./pages/admin/Reports";
 import CheckoutCompletedDetails from "./component/checkout/CheckoutCompletedDetails";
+import CompletedOrdersPage from "./pages/beach-restaurant/CompletedOrdersPage";
 
 //import PrintButton from "./component/SamplePrint";
 
@@ -94,6 +95,10 @@ function App() {
               <Route
                 path="/restaurant/report"
                 element={<RestaurantSummaryPage />}
+              />
+              <Route
+                path="/restaurant/completed-orders"
+                element={<CompletedOrdersPage />}
               />
 
               <Route
