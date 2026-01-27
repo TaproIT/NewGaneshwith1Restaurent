@@ -11,32 +11,21 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import UserTableSkeleton from "@/component/skeleton/UserTableSkeleton";
 import { useEffect, useState } from "react";
-import { api } from "@/api/axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "react-toastify";
 import { Loader2, Printer, Search } from "lucide-react";
 import { getPrinter } from "@/util/printerConfig";
 import { DatePicker } from "@/component/DatePicker";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "@/app/store";
+import { fetchCompletedOrders } from "@/api/order/get-completed-orders";
+import { setSearchText, setFromDate, setToDate } from "@/features/beach-restaurant/completedOrdersSlice";
 
 declare global {
   interface Window {
     qz: any;
   }
-}
-
-interface OrderToken {
-  _id: string;
-  foodOrders: Array<{
-    title: string;
-    quantity: number;
-    price: number;
-  }>;
-  beverageOrders: Array<{
-    title: string;
-    quantity: number;
-    price: number;
-  }>;
 }
 
 interface CompletedOrder {
@@ -54,16 +43,28 @@ interface CompletedOrder {
   totalBill: number;
   paymentMethod: string;
   createdAt: string;
-  orderTokens: OrderToken[];
+  orderTokens: Array<{
+    _id: string;
+    foodOrders: Array<{
+      title: string;
+      quantity: number;
+      price: number;
+    }>;
+    beverageOrders: Array<{
+      title: string;
+      quantity: number;
+      price: number;
+    }>;
+  }>;
 }
 
 const CompletedOrdersList = () => {
-  const [loading, setLoading] = useState(false);
-  const [orders, setOrders] = useState<CompletedOrder[]>([]);
-  const [fromDate, setFromDate] = useState<Date>(new Date());
-  const [toDate, setToDate] = useState<Date>(new Date());
-  const [searchText, setSearchText] = useState("");
-  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
+  const dispatch = useDispatch<AppDispatch>();
+  const { orders, fromDate, toDate, searchText, fetchCompletedOrdersStatus } = useSelector(
+    (state: RootState) => state.completedOrders
+  );
+  const { loading, error } = fetchCompletedOrdersStatus;
+
   const [printingId, setPrintingId] = useState<string | null>(null);
 
   // Load QZ Tray
@@ -74,46 +75,23 @@ const CompletedOrdersList = () => {
     document.body.appendChild(script);
   }, []);
 
-  // Format date to YYYY-MM-DD for API
-  const formatDateForAPI = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
+  // Fetch completed orders on date change
+  useEffect(() => {
+    dispatch(
+      fetchCompletedOrders({
+        fromDate,
+        toDate,
+        searchText,
+      })
+    );
+  }, [fromDate, toDate, searchText, dispatch]);
 
-  // Fetch completed orders from API
-  const fetchCompletedOrders = async () => {
-    if (!fromDate || !toDate) return;
-    setLoading(true);
-    try {
-      const res = await api.get(
-        `/order/completed-orders/list?fromDate=${formatDateForAPI(fromDate)}&toDate=${formatDateForAPI(toDate)}&searchText=${searchText}`
-      );
-      setOrders(res.data.data.orders || []);
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Failed to load completed orders");
-    } finally {
-      setLoading(false);
+  // Show error toast
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
     }
-  };
-
-  // Refetch on date change
-  useEffect(() => {
-    fetchCompletedOrders();
-  }, [fromDate, toDate]);
-
-  // Debounced search
-  useEffect(() => {
-    if (!fromDate || !toDate) return;
-    if (typingTimeout) clearTimeout(typingTimeout);
-
-    const timeout = setTimeout(() => {
-      fetchCompletedOrders();
-    }, 500);
-
-    setTypingTimeout(timeout);
-  }, [searchText]);
+  }, [error]);
 
   /**
    * Format item line for thermal printer
@@ -203,7 +181,7 @@ const CompletedOrdersList = () => {
       receiptData += "-".repeat(totalWidth) + "\n";
 
       // Token-wise printing
-      (order.orderTokens || []).forEach((token: OrderToken) => {
+      (order.orderTokens || []).forEach((token) => {
         receiptData += ` \n`;
 
         const allItems = [
@@ -259,8 +237,12 @@ const CompletedOrdersList = () => {
                 <Label htmlFor="fromDate">From Date</Label>
                 <div className="bg-[#F4F4F4] rounded-md">
                   <DatePicker
-                    defaultDate={fromDate}
-                    onDateChange={(date) => date && setFromDate(date)}
+                    defaultDate={new Date(fromDate)}
+                    onDateChange={(date) => {
+                      if (date) {
+                        dispatch(setFromDate(date.toISOString()));
+                      }
+                    }}
                   />
                 </div>
               </div>
@@ -269,8 +251,12 @@ const CompletedOrdersList = () => {
                 <Label htmlFor="toDate">To Date</Label>
                 <div className="bg-[#F4F4F4] rounded-md">
                   <DatePicker
-                    defaultDate={toDate}
-                    onDateChange={(date) => date && setToDate(date)}
+                    defaultDate={new Date(toDate)}
+                    onDateChange={(date) => {
+                      if (date) {
+                        dispatch(setToDate(date.toISOString()));
+                      }
+                    }}
                   />
                 </div>
               </div>
@@ -286,7 +272,7 @@ const CompletedOrdersList = () => {
                 type="text"
                 placeholder="Order, room, or name..."
                 value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
+                onChange={(e) => dispatch(setSearchText(e.target.value))}
                 className="w-full md:w-64"
               />
             </div>

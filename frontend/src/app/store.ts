@@ -14,6 +14,7 @@ import beverageReducer from "../features/beach-restaurant/beverageSlice";
 import selectedRoomsReducer from "../features/rooms/selectedRoomsSlice";
 import authReducer from "../features/auth/authSlice";
 import restaurantSummaryReducer from "../features/beach-restaurant/restaurantSummarySlice";
+import completedOrdersReducer from "../features/beach-restaurant/completedOrdersSlice";
 
 export const store = configureStore({
     reducer: {
@@ -31,7 +32,8 @@ export const store = configureStore({
         beverage: beverageReducer,
         rooms: selectedRoomsReducer,
         auth: authReducer,
-        restaurantSummary: restaurantSummaryReducer
+        restaurantSummary: restaurantSummaryReducer,
+        completedOrders: completedOrdersReducer
     }
 })
 
