@@ -20,7 +20,7 @@ import { DatePicker } from "@/component/DatePicker";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/app/store";
 import { fetchCompletedOrders } from "@/api/order/get-completed-orders";
-import { setSearchText, setFromDate, setToDate, setPage } from "@/features/beach-restaurant/completedOrdersSlice";
+import { setSearchText, setFromDate, setToDate } from "@/features/beach-restaurant/completedOrdersSlice";
 
 declare global {
   interface Window {
@@ -60,7 +60,7 @@ interface CompletedOrder {
 
 const CompletedOrdersList = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { orders, fromDate, toDate, searchText, page, limit, totalOrders, totalPages, fetchCompletedOrdersStatus } = useSelector(
+  const { orders, fromDate, toDate, searchText, limit, totalOrders, totalPages, fetchCompletedOrdersStatus } = useSelector(
     (state: RootState) => state.completedOrders
   );
   const { loading, error } = fetchCompletedOrdersStatus;
