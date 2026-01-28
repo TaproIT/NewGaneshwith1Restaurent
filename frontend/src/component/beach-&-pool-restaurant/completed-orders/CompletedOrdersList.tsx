@@ -20,7 +20,7 @@ import { DatePicker } from "@/component/DatePicker";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/app/store";
 import { fetchCompletedOrders } from "@/api/order/get-completed-orders";
-import { setSearchText, setFromDate, setToDate } from "@/features/beach-restaurant/completedOrdersSlice";
+import { setSearchText, setFromDate, setToDate, setPage } from "@/features/beach-restaurant/completedOrdersSlice";
 
 declare global {
   interface Window {
@@ -60,12 +60,14 @@ interface CompletedOrder {
 
 const CompletedOrdersList = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { orders, fromDate, toDate, searchText, fetchCompletedOrdersStatus } = useSelector(
+  const { orders, fromDate, toDate, searchText, page, limit, totalOrders, totalPages, fetchCompletedOrdersStatus } = useSelector(
     (state: RootState) => state.completedOrders
   );
   const { loading, error } = fetchCompletedOrdersStatus;
 
   const [printingId, setPrintingId] = useState<string | null>(null);
+
+  const [pageNumber, setPageNumber] = useState<number>(1);
 
   // Load QZ Tray
   useEffect(() => {
@@ -75,16 +77,19 @@ const CompletedOrdersList = () => {
     document.body.appendChild(script);
   }, []);
 
-  // Fetch completed orders on date change
+  // Fetch completed orders on date/page change
   useEffect(() => {
     dispatch(
       fetchCompletedOrders({
         fromDate,
         toDate,
         searchText,
+        page: pageNumber,
+        limit,
       })
     );
-  }, [fromDate, toDate, searchText, dispatch]);
+    console.log("Fetching completed orders with filters:", { fromDate, toDate, searchText, page: pageNumber, limit });
+  }, [fromDate, toDate, searchText, pageNumber, limit, dispatch]);
 
   // Show error toast
   useEffect(() => {
@@ -370,8 +375,59 @@ const CompletedOrdersList = () => {
                 </Table>
               </div>
 
-              <div className="mt-4 text-sm text-muted-foreground">
-                Showing {orders.length} completed order{orders.length !== 1 ? "s" : ""}
+              <div className="mt-6 flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                  Showing {((pageNumber - 1) * limit) + 1} to {Math.min(pageNumber * limit, totalOrders)} of {totalOrders} orders
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPageNumber(pageNumber - 1)}
+                    disabled={pageNumber === 1 || loading}
+                  >
+                    Previous
+                  </Button>
+                  
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter(pageNum => {
+                        // Show first page, last page, current page, and adjacent pages
+                        return (
+                          pageNum === 1 ||
+                          pageNum === totalPages ||
+                          Math.abs(pageNum - pageNumber) <= 1
+                        );
+                      })
+                      .map((pageNum, idx, arr) => (
+                        <>
+                          {idx > 0 && arr[idx - 1] !== pageNum - 1 && (
+                            <span key={`ellipsis-${pageNum}`} className="px-2">...</span>
+                          )}
+                          <Button
+                            key={pageNum}
+                            variant={pageNumber === pageNum ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setPageNumber(pageNum)}
+                            disabled={loading}
+                            className="min-w-[40px]"
+                          >
+                            {pageNum}
+                          </Button>
+                        </>
+                      ))}
+                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPageNumber(pageNumber + 1)}
+                    disabled={pageNumber === totalPages || loading}
+                  >
+                    Next
+                  </Button>
+                </div>
               </div>
             </>
           )}

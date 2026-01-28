@@ -6,6 +6,8 @@ interface CompletedOrdersFilters {
   fromDate: string;
   toDate: string;
   searchText?: string;
+  page?: number;
+  limit?: number;
 }
 
 interface OrderToken {
@@ -42,7 +44,12 @@ interface CompletedOrder {
 
 interface CompletedOrdersResponse {
   orders: CompletedOrder[];
-  count: number;
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }
 
 /**
@@ -56,10 +63,10 @@ export const fetchCompletedOrders = createAsyncThunk<
   "completedOrders/fetchCompletedOrders",
   async (filters: CompletedOrdersFilters, { rejectWithValue }) => {
     try {
-      const { fromDate, toDate, searchText = "" } = filters;
+      const { fromDate, toDate, searchText = "", page = 1, limit = 10 } = filters;
 
       const response = await api.get(
-        `/order/completed-orders/list?fromDate=${fromDate}&toDate=${toDate}&searchText=${searchText}`
+        `/order/completed-orders/list?fromDate=${fromDate}&toDate=${toDate}&searchText=${searchText}&page=${page}&limit=${limit}`
       );
 
       return response.data.data as CompletedOrdersResponse;

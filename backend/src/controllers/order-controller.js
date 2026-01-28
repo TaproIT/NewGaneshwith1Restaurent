@@ -2238,12 +2238,12 @@ export const checkPendingOrdersForBooking = async (req, res) => {
 };
 
 // ================================================================
-// Get Completed Orders (with search and date filters)
+// Get Completed Orders (with search and date filters + pagination)
 // ================================================================
 export const getCompletedOrders = async (req, res) => {
   try {
     const { userId } = req.user;
-    const { fromDate, toDate, searchText } = req.query;
+    const { fromDate, toDate, searchText, page = 1, limit = 5 } = req.query;
 
     // Get restaurant type based on user role
     const restaurantType = await getRestaurantTypeByUserRole(userId);
@@ -2278,7 +2278,16 @@ export const getCompletedOrders = async (req, res) => {
       ];
     }
 
-    // Fetch completed orders
+    // Pagination setup
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Get total count for pagination metadata
+    const totalOrders = await Order.countDocuments(query);
+
+    // Fetch completed orders with pagination
+    
     const orders = await Order.find(query)
       .populate({
         path: "orderTokens",
@@ -2288,11 +2297,18 @@ export const getCompletedOrders = async (req, res) => {
         ]
       })
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum)
       .lean();
 
     return sendSuccessResponse(res, 200, "Completed orders fetched successfully", {
       orders,
-      count: orders.length,
+      pagination: {
+        total: totalOrders,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(totalOrders / limitNum),
+      },
     });
   } catch (error) {
     console.error("Error fetching completed orders:", error);
