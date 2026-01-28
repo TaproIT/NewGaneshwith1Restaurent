@@ -2287,7 +2287,7 @@ export const getCompletedOrders = async (req, res) => {
     const totalOrders = await Order.countDocuments(query);
 
     // Fetch completed orders with pagination
-    
+
     const orders = await Order.find(query)
       .populate({
         path: "orderTokens",
@@ -2296,7 +2296,7 @@ export const getCompletedOrders = async (req, res) => {
           { path: "beverageOrders" }
         ]
       })
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: 1 })
       .skip(skip)
       .limit(limitNum)
       .lean();

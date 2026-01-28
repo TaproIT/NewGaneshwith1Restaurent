@@ -14,49 +14,14 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "react-toastify";
-import { Loader2, Printer, Search } from "lucide-react";
-import { getPrinter } from "@/util/printerConfig";
+import { Printer, Search } from "lucide-react";
 import { DatePicker } from "@/component/DatePicker";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/app/store";
 import { fetchCompletedOrders } from "@/api/order/get-completed-orders";
 import { setSearchText, setFromDate, setToDate } from "@/features/beach-restaurant/completedOrdersSlice";
-
-declare global {
-  interface Window {
-    qz: any;
-  }
-}
-
-interface CompletedOrder {
-  _id: string;
-  orderNumber: string;
-  roomNumber: string;
-  guestName: string;
-  customerType: string;
-  serviceType: string;
-  restaurantType: string;
-  subTotal: number;
-  tax: number;
-  discount: number;
-  serviceCharge: number;
-  totalBill: number;
-  paymentMethod: string;
-  createdAt: string;
-  orderTokens: Array<{
-    _id: string;
-    foodOrders: Array<{
-      title: string;
-      quantity: number;
-      price: number;
-    }>;
-    beverageOrders: Array<{
-      title: string;
-      quantity: number;
-      price: number;
-    }>;
-  }>;
-}
+import CompletedOrderPrintModal from "./CompletedOrderPrintModal";
+import type { CompletedOrder } from "@/types/completed-order";
 
 const CompletedOrdersList = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -65,17 +30,8 @@ const CompletedOrdersList = () => {
   );
   const { loading, error } = fetchCompletedOrdersStatus;
 
-  const [printingId, setPrintingId] = useState<string | null>(null);
-
+  const [selectedOrder, setSelectedOrder] = useState<CompletedOrder | null>(null);
   const [pageNumber, setPageNumber] = useState<number>(1);
-
-  // Load QZ Tray
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://cdn.jsdelivr.net/npm/qz-tray/qz-tray.js";
-    script.onload = () => console.log("✅ QZ Tray script loaded");
-    document.body.appendChild(script);
-  }, []);
 
   // Fetch completed orders on date/page change
   useEffect(() => {
@@ -98,135 +54,12 @@ const CompletedOrdersList = () => {
     }
   }, [error]);
 
-  /**
-   * Format item line for thermal printer
-   */
-  function formatItemLine(name: string, qty: number, price: number) {
-    const totalWidth = 42;
-    const qtyWidth = 3;
-    const priceWidth = 9;
-    const maxNameLength = totalWidth - qtyWidth - priceWidth;
+  const handleOpenBillDetails = (order: CompletedOrder) => {
+    setSelectedOrder(order);
+  };
 
-    const priceStr = price.toFixed(2);
-
-    const lines: string[] = [];
-    let remaining = name;
-    while (remaining.length > maxNameLength) {
-      lines.push(remaining.substring(0, maxNameLength));
-      remaining = remaining.substring(maxNameLength);
-    }
-    lines.push(remaining);
-
-    const firstLine =
-      lines[0].padEnd(maxNameLength, " ") +
-      qty.toString().padStart(qtyWidth, " ") +
-      priceStr.padStart(priceWidth, " ");
-
-    const otherLines = lines.slice(1).map((l) => l.padEnd(totalWidth, " "));
-
-    return [firstLine, ...otherLines].join("\n");
-  }
-
-  /**
-   * Print order receipt
-   */
-  const printReceipt = async (order: CompletedOrder) => {
-    if (!window.qz) {
-      toast.error("QZ Tray not loaded yet!");
-      return;
-    }
-
-    setPrintingId(order._id);
-
-    const qz = window.qz;
-    try {
-      if (!qz.websocket.isActive()) {
-        await qz.websocket.connect();
-        console.log("✅ Connected to QZ Tray");
-      }
-
-      const printerName = await getPrinter('thermal');
-      console.log("🖨️ Using printer:", printerName);
-      const config = qz.configs.create(printerName);
-      const ESC = "\x1B";
-      const GS = "\x1D";
-
-      const totalWidth = 42;
-      const qtyWidth = 3;
-      const priceWidth = 9;
-      const maxNameLength = totalWidth - qtyWidth - priceWidth;
-
-      const itemHeader =
-        "Item".padEnd(maxNameLength, " ") +
-        "Qty".padStart(qtyWidth, " ") +
-        "Price".padStart(priceWidth, " ");
-
-      const isFreeBill = order.paymentMethod === "Free Bill";
-
-      let receiptData =
-        ESC + "@" + // init
-        ESC + "a" + "\x01" + // center
-        "==========================================\n" +
-        `${order.restaurantType === "Beach" ? "GANESH GARDEN BEACH CABANA" : "MARAKOLLIYA BEACH RESORT"}\n` +
-        `${order.restaurantType === "Beach" ? "MAHI MAHI SEA FOOD RESTAURANT" : "SUNSET POOL BAR & RESTAURANT"}\n` +
-        "Tangalle \n" +
-        "==========================================\n" +
-        ESC + "a" + "\x00" + // left align
-        `Order No      : ${order.orderNumber}\n` +
-        `Service Type  : ${order.serviceType}\n` +
-        `Customer Type : ${order.customerType}\n` +
-        `Customer      : ${order.guestName || "Walk-in"}\n` +
-        `${order.roomNumber !== "0" ? `Room No       : ${order.roomNumber}\n` : ""}` +
-        `Payment Method: ${order.paymentMethod}\n` +
-        `Date          : ${new Date(order.createdAt).toLocaleString()}\n` +
-        `TP            : ${order.restaurantType === "Beach" ? "+94 472242529 / +94 705505705" : "+94 472244822 / +94 705505705"}\n` +
-        "-".repeat(totalWidth) + "\n";
-
-      receiptData += itemHeader + "\n";
-      receiptData += "-".repeat(totalWidth) + "\n";
-
-      // Token-wise printing
-      (order.orderTokens || []).forEach((token) => {
-        receiptData += ` \n`;
-
-        const allItems = [
-          ...(token.foodOrders || []),
-          ...(token.beverageOrders || []),
-        ];
-
-        receiptData += allItems
-          .map((item: any) =>
-            formatItemLine(item.title, item.quantity, item.price * item.quantity)
-          )
-          .join("\n") + "\n\n";
-      });
-
-      // Totals
-      const padKey = (label: string) => label.padEnd(totalWidth - 12, " ");
-      const amountPad = (amt: number) => `${amt.toFixed(2)} LKR`.padStart(12, " ");
-
-      receiptData += "-".repeat(totalWidth) + "\n";
-      receiptData += padKey("Subtotal:") + amountPad(isFreeBill ? 0 : order.subTotal) + "\n";
-      receiptData += padKey("Service (10%):") + amountPad(isFreeBill ? 0 : order.serviceCharge) + "\n";
-      receiptData += padKey(`Discount (${order.discount}%):`) + amountPad(isFreeBill ? 0 : -((order.discount / 100) * order.subTotal)) + "\n";
-      receiptData += padKey("TOTAL BILL:") + amountPad(isFreeBill ? 0 : order.totalBill) + "\n";
-      receiptData += "=".repeat(totalWidth) + "\n";
-
-      receiptData +=
-        ESC + "a" + "\x01" + // center
-        "       Thank you! Come again!       \n\n\n" +
-        "      \n\n\n" +
-        GS + "V" + "\x00"; // cut
-
-      await qz.print(config, [{ type: "raw", format: "plain", data: receiptData }]);
-      console.log("✅ Bill printed successfully!");
-      toast.success("Receipt printed successfully!");
-    } catch (err) {
-      console.error("❌ Printing error:", err);
-      toast.error("Print failed! Please check QZ Tray or printer connection.");
-    } finally {
-      setPrintingId(null);
-    }
+  const handleCloseModal = () => {
+    setSelectedOrder(null);
   };
 
   return (
@@ -352,21 +185,13 @@ const CompletedOrdersList = () => {
                         <TableCell className="text-center">
                           <Button
                             size="sm"
-                            onClick={() => printReceipt(order)}
-                            disabled={printingId === order._id}
+                            onClick={() => handleOpenBillDetails(order)}
                             variant="outline"
                           >
-                            {printingId === order._id ? (
-                              <>
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                                Printing...
-                              </>
-                            ) : (
-                              <>
-                                <Printer className="w-4 h-4" />
-                                Print
-                              </>
-                            )}
+                            <>
+                              <Printer className="w-4 h-4" />
+                              Print
+                            </>
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -433,6 +258,7 @@ const CompletedOrdersList = () => {
           )}
         </CardContent>
       </Card>
+      <CompletedOrderPrintModal order={selectedOrder} onClose={handleCloseModal} />
     </div>
   );
 };
