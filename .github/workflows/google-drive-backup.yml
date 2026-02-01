@@ -1,0 +1,50 @@
+name: Daily Mongo Backup to R2
+
+on:
+  schedule:
+    # 08:00 UTC = 13:30 Sri Lanka Time
+    - cron: '0 8 * * *'
+  workflow_dispatch:
+
+jobs:
+  backup_and_upload:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Install MongoDB Tools
+        run: |
+          wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | sudo apt-key add -
+          echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+          sudo apt-get update
+          sudo apt-get install -y mongodb-org-tools
+
+      - name: Create Database Dump
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+        run: |
+          # Create filename: backup-2026-02-01.gz
+          FILENAME="backup-$(date +%F).gz"
+          
+          # Dump ONLY the test database
+          mongodump --uri="$MONGO_URI" --db production --archive="$FILENAME" --gzip
+          
+          # Save filename to env
+          echo "BACKUP_FILENAME=$FILENAME" >> $GITHUB_ENV
+
+      - name: Upload to Cloudflare R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          ENDPOINT_URL: ${{ secrets.R2_ENDPOINT }}
+          BUCKET_NAME: ${{ secrets.R2_BUCKET }}
+        run: |
+          # We use AWS CLI because R2 is compatible with S3 commands
+          aws s3 cp ${{ env.BACKUP_FILENAME }} s3://$BUCKET_NAME/ --endpoint-url $ENDPOINT_URL
+
+      - name: Cleanup Runner
+        if: always()
+        run: rm -f *.gz
