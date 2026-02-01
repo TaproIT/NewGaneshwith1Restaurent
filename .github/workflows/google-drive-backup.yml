@@ -1,10 +1,10 @@
-name: Daily Mongo Backup to Drive
+name: Daily Mongo Backup to R2
 
 on:
   schedule:
-    # 20:30 UTC = 02:00 AM Sri Lanka Standard Time
-    - cron: '30 20 * * *'
-  workflow_dispatch: # Allows manual testing
+    # 08:00 UTC = 13:30 Sri Lanka Time
+    - cron: '0 8 * * *'
+  workflow_dispatch:
 
 jobs:
   backup_and_upload:
@@ -25,24 +25,26 @@ jobs:
         env:
           MONGO_URI: ${{ secrets.MONGO_URI }}
         run: |
-          # Create filename with date: backup-2026-02-01.gz
+          # Create filename: backup-2026-02-01.gz
           FILENAME="backup-$(date +%F).gz"
           
-          # Dump specific DB (safest) or full cluster
-          # Added '--db test' to ensure we only grab that specific database
+          # Dump ONLY the test database
           mongodump --uri="$MONGO_URI" --db test --archive="$FILENAME" --gzip
           
-          # Save filename to env for the next step
+          # Save filename to env
           echo "BACKUP_FILENAME=$FILENAME" >> $GITHUB_ENV
 
-      - name: Upload to Google Drive
-        uses: adityak74/google-drive-upload-git-action@main
-        with:
-          credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
-          filename: ${{ env.BACKUP_FILENAME }}
-          folderId: ${{ secrets.GDRIVE_FOLDER_ID }}
-          overwrite: "false" # Keep history of backups
-          
+      - name: Upload to Cloudflare R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          ENDPOINT_URL: ${{ secrets.R2_ENDPOINT }}
+          BUCKET_NAME: ${{ secrets.R2_BUCKET }}
+        run: |
+          # We use AWS CLI because R2 is compatible with S3 commands
+          aws s3 cp ${{ env.BACKUP_FILENAME }} s3://$BUCKET_NAME/ --endpoint-url $ENDPOINT_URL
+
       - name: Cleanup Runner
         if: always()
         run: rm -f *.gz
