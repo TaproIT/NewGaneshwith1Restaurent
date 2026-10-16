@@ -43,7 +43,7 @@ const CustomerType: React.FC = () => {
               className={`py-8 2xl:py-12 col-span-1 flex flex-col items-center gap-2 2xl:gap-3 rounded-lg cursor-pointer transition-all
                 ${
                   isSelected
-                    ? "bg-[#B24E0E] text-[#FEFEFE]"
+                    ? "bg-secondary text-[#FEFEFE]"
                     : "bg-transparent border border-[#CECECE] text-[#444444]"
                 }`}
             >

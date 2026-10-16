@@ -383,7 +383,7 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
                     className={cn(
                       "border rounded-md py-3 px-4 cursor-pointer text-center font-medium transition",
                       selectedPayment === method.value
-                        ? "bg-[#0A869D] text-white border-[#0A869D]"
+                        ? "bg-primary text-white border-primary"
                         : "border-gray-300 text-gray-700 hover:bg-gray-100"
                     )}
                   >

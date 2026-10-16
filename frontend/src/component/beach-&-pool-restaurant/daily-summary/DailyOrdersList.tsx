@@ -88,7 +88,7 @@ export const DailyOrdersList: React.FC<{ orders: DailyOrder[] }> = ({
           ) : orders.length === 0 ? (
             // Empty state
             <div className="flex flex-col items-center justify-center py-10 text-center text-gray-500">
-              <div className="p-3 flex items-center justify-center bg-[#e6f3f5] rounded-full">
+              <div className="p-3 flex items-center justify-center bg-primary-soft rounded-full">
                 <TicketX size={24} className="text-primary" />
               </div>
               <p className="text-base font-medium">No orders found</p>
@@ -107,8 +107,8 @@ export const DailyOrdersList: React.FC<{ orders: DailyOrder[] }> = ({
                   className={`grid grid-cols-9 gap-4 p-3 text-sm border-2 rounded-lg cursor-pointer transition-colors
                     ${
                       isSelected
-                        ? "bg-[#F4F4F4] border-[#444444]"
-                        : isWalkInCustomer? "bg-white hover:bg-[#F4F4F4] border-[#F7D376]" :"border-[#2DE2C5]" 
+                        ? "bg-bg border-[#444444]"
+                        : isWalkInCustomer? "bg-white hover:bg-bg border-[#F7D376]" :"border-[#2DE2C5]" 
                     }`}
                 >
                   {/* Order Number */}

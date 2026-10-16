@@ -225,7 +225,7 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
                  {isHoldOrder ? (
                    <>
                      <Button
-                       className="mt-5 !w-full !h-8 text-[#0A869D] border-[#0A869D] cursor-pointer"
+                       className="mt-5 !w-full !h-8 text-primary border-primary cursor-pointer"
                        disabled={order.orderTokens.length > 0}
                        onClick={handleCancelOrder}
                        variant="outline"
@@ -233,7 +233,7 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
                        Cancel order
                      </Button>
                      <Button
-                       className="mt-2 !w-full !h-8 border-[#0A869D] cursor-pointer"
+                       className="mt-2 !w-full !h-8 border-primary cursor-pointer"
                        onClick={handleProceedPaymentClick}
                      >
                        Proceed to menu
@@ -243,7 +243,7 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
                    <div className="grid grid-cols-2 gap-1">
                      <Button
                        variant="outline"
-                       className="col-span-1 !w-full !h-8 border-[#0A869D] cursor-pointer"
+                       className="col-span-1 !w-full !h-8 border-primary cursor-pointer"
                        disabled={isDisabled}
                        onClick={handleTokenClick}
                      >
@@ -252,7 +252,7 @@ const OrderPaymentDetails: React.FC<OrderPaymentDetailsProps> = ({isHoldOrder, i
 
                      <Button
                        variant="outline"
-                       className="col-span-1 !w-full !h-8 border-[#0A869D] cursor-pointer"
+                       className="col-span-1 !w-full !h-8 border-primary cursor-pointer"
                        //disabled={isDisabled}
                        onClick={handleHoldClick}
                      >

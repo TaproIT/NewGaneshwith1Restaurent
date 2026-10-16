@@ -69,10 +69,10 @@ export const RestaurantSummaryList: React.FC<{
                   className={`grid grid-cols-6 gap-4 p-3 text-sm border rounded-lg cursor-pointer transition-colors
                     ${
                       isSelected
-                        ? "bg-[#F4F4F4] border-[#444444]"
+                        ? "bg-bg border-[#444444]"
                         : isWalkIn
-                        ? "border-[#F7D376] bg-white hover:bg-[#F4F4F4]"
-                        : "border-[#2DE2C5] bg-white hover:bg-[#F4F4F4]"
+                        ? "border-[#F7D376] bg-white hover:bg-bg"
+                        : "border-[#2DE2C5] bg-white hover:bg-bg"
                     }`}
                 >
                   <div>{item.date}</div>

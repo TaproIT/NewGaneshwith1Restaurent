@@ -88,7 +88,7 @@ const TableDetails: React.FC<TableDetailsProps> = ({ orderId }) => {
   if (!selectedTable) {
     return (
       <div className="h-full flex flex-col items-center justify-center bg-mainWhite rounded-2xl border-b-[1px] border-b-[#5C5C5C40] p-6 text-center">
-        <div className="p-3 flex items-center justify-center bg-[#e6f3f5] rounded-full">
+        <div className="p-3 flex items-center justify-center bg-primary-soft rounded-full">
           <Table2 size={24} className="text-primary" />
         </div>
         <h3 className="text-base font-semibold text-gray-700 mt-2">

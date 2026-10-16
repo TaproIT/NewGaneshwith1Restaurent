@@ -60,7 +60,7 @@ const InventoryItems: React.FC<InventoryItemsProps> = ({
             <div className="font-medium text-[10px] text-center text-gray">
               {bev.volume || 0} ml
             </div>
-            <div className="font-medium text-[10px] text-center text-[#B24E0E]">
+            <div className="font-medium text-[10px] text-center text-secondary">
               {bev.runningStock} In Stock
             </div>
           </div>

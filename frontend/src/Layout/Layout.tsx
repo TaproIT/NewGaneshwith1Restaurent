@@ -112,6 +112,7 @@ const pathTitles = {
   "/bookings": "Bookings",
   "/admin/reports": "Reports",
   "/reports": "Room Reports",
+  "/printers": "Printers",
   "/admin/restaurant/report": "Restaurant Reports"
 };
 

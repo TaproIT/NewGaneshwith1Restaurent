@@ -61,7 +61,7 @@ const FoodList: React.FC<{id:string}> = ({id}) => {
             className="py-8 flex items-center justify-center border rounded-sm cursor-pointer hover:bg-gray-50"
             onClick={handleAddNewFoodItem}
           >
-            <Plus size={24} className="text-[#0A869D]" />
+            <Plus size={24} className="text-primary" />
           </div>
         )}
 

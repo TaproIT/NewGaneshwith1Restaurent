@@ -60,7 +60,7 @@
 //               <p className="text-[0.875rem] text-[#444444]">
 //                 {formatDate(new Date(selectedDate))}
 //               </p>
-//               <div className="bg-[#F4F4F4] rounded-md">
+//               <div className="bg-bg rounded-md">
 //                 <DatePicker
 //                   defaultDate={new Date(selectedDate)}
 //                   onDateChange={(date) => {
@@ -86,7 +86,7 @@
 //             ) : (
 //               <>
 //                 <p className="text-[0.875rem] text-[#444444]">{item.label}</p>
-//                 <div className="py-1 w-full flex items-center justify-center bg-[#F4F4F4] rounded-md">
+//                 <div className="py-1 w-full flex items-center justify-center bg-bg rounded-md">
 //                   <p className="text-[0.875rem]">{item.value}</p>
 //                 </div>
 //               </>
@@ -187,7 +187,7 @@ export const DailyOrderSummaryFilterAndCount: React.FC = () => {
           ) : (
             <>
               <p className="text-[0.875rem] text-[#444444]">Start Date</p>
-              <div className="bg-[#F4F4F4] rounded-md">
+              <div className="bg-bg rounded-md">
                 <DatePicker
                   defaultDate={startDate ? new Date(startDate) : undefined}
                   onDateChange={handleStartDateChange}
@@ -211,7 +211,7 @@ export const DailyOrderSummaryFilterAndCount: React.FC = () => {
           ) : (
             <>
               <p className="text-[0.875rem] text-[#444444]">End Date</p>
-              <div className="bg-[#F4F4F4] rounded-md">
+              <div className="bg-bg rounded-md">
                 <DatePicker
                   defaultDate={endDate ? new Date(endDate) : undefined}
                   onDateChange={handleEndDateChange}
@@ -234,7 +234,7 @@ export const DailyOrderSummaryFilterAndCount: React.FC = () => {
               value={restaurantType}
               onValueChange={(value) => setRestaurantType(value)}
             >
-              <SelectTrigger className="w-full bg-[#F4F4F4] rounded-md text-sm">
+              <SelectTrigger className="w-full bg-bg rounded-md text-sm">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
 
@@ -265,7 +265,7 @@ export const DailyOrderSummaryFilterAndCount: React.FC = () => {
               ) : (
                 <>
                   <p className="text-[0.875rem] text-[#444444] text-center">{item.label}</p>
-                  <div className="py-1 w-full flex items-center justify-center bg-[#F4F4F4] rounded-md">
+                  <div className="py-1 w-full flex items-center justify-center bg-bg rounded-md">
                     <p className="text-[0.875rem]">{item.value}</p>
                   </div>
                 </>

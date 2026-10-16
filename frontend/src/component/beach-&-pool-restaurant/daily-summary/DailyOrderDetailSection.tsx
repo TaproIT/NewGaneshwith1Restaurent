@@ -59,7 +59,7 @@ const DailyOrderDetailsSection: React.FC = () => {
   if (!id || !order || !order._id) {
     return (
       <div className="h-full flex flex-col items-center justify-center bg-mainWhite rounded-2xl p-6 text-center">
-        <div className="p-3 flex items-center justify-center bg-[#e6f3f5] rounded-full">
+        <div className="p-3 flex items-center justify-center bg-primary-soft rounded-full">
           <TicketX size={24} className="text-primary" />
         </div>
         <h3 className="text-base font-semibold text-gray-700">

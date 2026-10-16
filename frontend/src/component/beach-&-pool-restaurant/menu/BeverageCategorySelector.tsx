@@ -123,7 +123,7 @@ const BeverageCategorySelector: React.FC<{id:string}> = ({id}) => {
                 className={`px-4 py-6 mb-2 w-full max-h-[72px] flex items-center justify-center text-[0.95rem] text-center font-semibold cursor-pointer rounded-md
                   ${
                     isSelected
-                      ? "bg-[#B24E0E] text-white"
+                      ? "bg-secondary text-white"
                       : "bg-transparent text-[#8B0000] border border-[#CECECE]"
                   }`}
               >
@@ -144,7 +144,7 @@ const BeverageCategorySelector: React.FC<{id:string}> = ({id}) => {
                 className={`px-4 py-6 mb-2 w-full max-h-[72px] flex items-center justify-center text-[0.95rem] text-center font-semibold cursor-pointer rounded-md
                   ${
                     isSelected
-                      ? "bg-[#B24E0E] text-white"
+                      ? "bg-secondary text-white"
                       : "bg-transparent text-[#1A81B5] border border-[#CECECE]"
                   }`}
               >

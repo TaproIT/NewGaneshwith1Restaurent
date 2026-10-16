@@ -70,7 +70,7 @@ const HoldOrderSelectionSection: React.FC = () => {
         ) : orders.length === 0 ? (
           // ✅ Empty State
           <div className="flex flex-col items-center justify-center h-full py-20 text-center text-[#5B5B5B]">
-            <div className="p-3 flex items-center justify-center bg-[#e6f3f5] rounded-full">
+            <div className="p-3 flex items-center justify-center bg-primary-soft rounded-full">
               <TicketX size={24} className="text-primary" />
             </div>
             <p className="text-lg font-semibold">No Hold Orders</p>

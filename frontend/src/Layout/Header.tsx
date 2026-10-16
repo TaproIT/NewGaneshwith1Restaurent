@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Bell, User } from "lucide-react";
-import { useLocation } from "react-router-dom";
+import { Bell, Printer, User } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 // import CurrencyDropdown from "@/component/currencyDropdown";
 import { api } from "@/api/axios";
+import ThemeSwitcher from "@/component/ThemeSwitcher";
+import { useTheme } from "@/context/ThemeContext";
 
 interface HeaderProps {
   pathTitles: Record<string, string>;
@@ -18,6 +20,7 @@ interface UserDetails {
 const Header: React.FC<HeaderProps> = ({ pathTitles }) => {
   const location = useLocation();
   const [user, setUser] = useState<UserDetails | null>(null);
+  const { setOwner } = useTheme();
 
   const getTitle = () => {
     const currentPath = location.pathname;
@@ -52,6 +55,11 @@ const Header: React.FC<HeaderProps> = ({ pathTitles }) => {
     fetchUserDetails();
   }, []);
 
+  // Load the signed-in person's saved theme
+  useEffect(() => {
+    if (user?.email) setOwner(user.email);
+  }, [user?.email, setOwner]);
+
   return (
     <header className="p-4 bg-mainWhite rounded-2xl flex justify-between items-center">
       {/* Page Title */}
@@ -59,6 +67,15 @@ const Header: React.FC<HeaderProps> = ({ pathTitles }) => {
 
       {/* Right Section */}
       <div className="flex justify-center items-center gap-4">
+        <Link
+          to="/printers"
+          aria-label="Printers"
+          title="Printers"
+          className={location.pathname === "/printers" ? "text-primary" : "text-gray hover:text-primary"}
+        >
+          <Printer size={24} />
+        </Link>
+        <ThemeSwitcher />
         <Bell size={24} className="text-gray cursor-pointer hover:text-primary" />
         {/* <CurrencyDropdown /> */}
 

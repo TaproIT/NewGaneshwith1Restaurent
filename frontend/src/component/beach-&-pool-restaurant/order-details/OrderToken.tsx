@@ -118,7 +118,7 @@ const OrderToken: React.FC<OrderTokenProps> = ({ token, isHoldOrder }) => {
             </p>
             {!token.isPrinted && (
               <p
-                className="text-[0.625rem] text-[#0A869D] font-normal cursor-pointer"
+                className="text-[0.625rem] text-primary font-normal cursor-pointer"
                 onClick={handleClearAll}
               >
                 Clear All
@@ -180,7 +180,7 @@ const OrderToken: React.FC<OrderTokenProps> = ({ token, isHoldOrder }) => {
                         </Button>
                       </div>
 
-                      <div className="px-6 py-1.5 flex items-center justify-center text-[0.75rem] text-[#444444] bg-[#F4F4F4] rounded-xs">
+                      <div className="px-6 py-1.5 flex items-center justify-center text-[0.75rem] text-[#444444] bg-bg rounded-xs">
                         LKR {item.price * item.quantity}
                       </div>
                     </div>
@@ -247,7 +247,7 @@ const OrderToken: React.FC<OrderTokenProps> = ({ token, isHoldOrder }) => {
                         </Button>
                       </div>
 
-                      <div className="px-6 py-1.5 flex items-center justify-center text-[0.75rem] text-[#444444] bg-[#F4F4F4] rounded-xs">
+                      <div className="px-6 py-1.5 flex items-center justify-center text-[0.75rem] text-[#444444] bg-bg rounded-xs">
                         LKR {item.price * item.quantity}
                       </div>
                     </div>

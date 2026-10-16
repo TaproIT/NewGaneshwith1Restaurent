@@ -56,7 +56,7 @@ const OrderInitialDetails: React.FC = () => {
         <p className="text-[1rem] text-[#444444] font-[500]">
           Order {order.orderNumber}
         </p>
-        <p className="text-[0.75rem] text-[#0A869D] font-[500]">
+        <p className="text-[0.75rem] text-primary font-[500]">
           {orderStatus?.label}
         </p>
       </div>

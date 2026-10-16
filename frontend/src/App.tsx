@@ -19,6 +19,7 @@ import ManageInventory from "./pages/admin/beverage_inventory/ManageInventory";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import { RateProvider } from "./context/RateContext";
 import { CurrencyProvider } from "./context/CurrencyContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import CurrencyConfig from "./pages/admin/CurrencyConfig";
 import UserConfig from "./pages/admin/UserConfig";
 import RoomConfig from "./pages/admin/RoomConfig";
@@ -27,12 +28,14 @@ import BookingUpdate from "./pages/reception/bookings/BookingUpdate";
 import Bookings from "./pages/reception/bookings/bookings";
 import RestaurantSummaryPage from "./pages/beach-restaurant/RestaurantSummaryPage";
 import Reports from "./pages/admin/Reports";
+import Printers from "./pages/printers/Printers";
 import CheckoutCompletedDetails from "./component/checkout/CheckoutCompletedDetails";
 
 //import PrintButton from "./component/SamplePrint";
 
 function App() {
   return (
+    <ThemeProvider>
     <Router>
       <ToastContainer
         position="top-right"
@@ -70,6 +73,7 @@ function App() {
               <Route path="/bookings" element={<Bookings />} />
               <Route path="/bookings/:id" element={<BookingUpdate />} />
               <Route path="/reports" element={<Reports />} />
+              <Route path="/printers" element={<Printers />} />
 
               <Route
                 path="/restaurant/home"
@@ -119,6 +123,7 @@ function App() {
         </CurrencyProvider>
       </RateProvider>
     </Router>
+    </ThemeProvider>
     // <PrintButton />
   );
 }

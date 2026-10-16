@@ -72,7 +72,7 @@ const TableSelectionSection: React.FC = () => {
           </div>
         ) : availableTables.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full py-20 text-center text-[#5B5B5B]">
-            <div className="p-3 flex items-center justify-center bg-[#e6f3f5] rounded-full">
+            <div className="p-3 flex items-center justify-center bg-primary-soft rounded-full">
               <Table2 size={24} className="text-primary" />
             </div>
             <p className="text-lg font-semibold mt-2">No Tables Available</p>

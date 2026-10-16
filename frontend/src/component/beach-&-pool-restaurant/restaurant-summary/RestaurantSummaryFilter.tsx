@@ -93,7 +93,7 @@ export const RestaurantSummaryFilterAndCount: React.FC = () => {
               <p className="text-sm text-[#444444]">
                 Start Date
               </p>
-              <div className="mt-1.5 bg-[#F4F4F4] rounded-md">
+              <div className="mt-1.5 bg-bg rounded-md">
                 <DatePicker
                   defaultDate={new Date(startDate)}
                   onDateChange={handleStartDateChange}
@@ -119,7 +119,7 @@ export const RestaurantSummaryFilterAndCount: React.FC = () => {
               <p className="text-sm text-[#444444]">
                 End Date
               </p>
-              <div className="mt-1.5 bg-[#F4F4F4] rounded-md">
+              <div className="mt-1.5 bg-bg rounded-md">
                 <DatePicker
                   defaultDate={new Date(endDate)}
                   onDateChange={handleEndDateChange}
@@ -148,7 +148,7 @@ export const RestaurantSummaryFilterAndCount: React.FC = () => {
                 value={restaurantType}
                 onValueChange={(value) => setRestaurantType(value)}
               >
-                <SelectTrigger className="w-full bg-[#F4F4F4] rounded-md text-sm cursor-pointer">
+                <SelectTrigger className="w-full bg-bg rounded-md text-sm cursor-pointer">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
 
@@ -184,7 +184,7 @@ export const RestaurantSummaryFilterAndCount: React.FC = () => {
               ) : (
                 <>
                   <p className="text-sm text-[#444444] text-center">{item.label}</p>
-                  <div className="mt-1.5  py-1 w-full flex items-center justify-center bg-[#F4F4F4] rounded-md">
+                  <div className="mt-1.5  py-1 w-full flex items-center justify-center bg-bg rounded-md">
                     <p className="text-sm">LKR {formatNumber(item.value)}</p>
                   </div>
                 </>

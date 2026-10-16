@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { api } from "@/api/axios";
+import { useTheme } from "@/context/ThemeContext";
 
 interface NavItem {
   path: string;
@@ -34,6 +35,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const location = useLocation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false)
+  const { setOwner } = useTheme();
 
   const sidebarItems = navigationConfig[activeSidebar] ?? navigationConfig["Admin"];
 
@@ -66,6 +68,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       });
       if (response.status === 200) {
         localStorage.removeItem("authToken");
+        setOwner(null); // back to Ganesh Classic for the login page
         toast.success("Logout successful");
         navigate('/');
       }
