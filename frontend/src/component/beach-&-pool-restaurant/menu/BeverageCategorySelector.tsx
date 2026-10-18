@@ -44,7 +44,7 @@ const BeverageCategorySelector: React.FC<{id:string}> = ({id}) => {
               selectedCategory !== BeverageCategories.HARD_LIQUOR.value &&
               selectedCategory !== BeverageCategories.SOFT_DRINKS.value;
 
-  const isAdminRole = (role === "Beach-Restaurant-Admin") || (role === "Pool-Restaurant-Admin") ;
+  const isAdminRole = role === "Restaurant-Admin";
   
 
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);

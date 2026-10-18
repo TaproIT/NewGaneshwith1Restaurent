@@ -1,13 +1,14 @@
+import { api } from "@/api/axios";
 import StatGridSkeleton from "@/component/skeleton/StatGridSkeleton";
+import type { DateRange } from "@/types/DateRange";
 import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import TotalOrders from "./TotalOrders";
 import TotalCustomers from "./TotalCustomers";
 import SoldLiqueurAmount from "./SoldLiqueurAmount";
-import { toast } from "react-toastify";
-import { api } from "@/api/axios";
-import type { DateRange } from "@/types/DateRange";
 
-const PoolResturantDashboard: React.FC = () => {
+// Month-to-date orders, customers and drinks sold for the hotel's one restaurant.
+const RestaurantDashboard: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [orderSummary, setOrderSummary] = useState<any>(null);
   const [range, setRange] = useState<DateRange | null>(null);
@@ -16,10 +17,9 @@ const PoolResturantDashboard: React.FC = () => {
   useEffect(() => {
     const fetchOrderSummary = async () => {
       try {
-        // 1️⃣ Fetch main summary
         const response = await api.get("/order/order-summary");
 
-        const summary = response.data.data.summaryByRestaurantType.Pool;
+        const summary = response.data.data.summary;
         const range = response.data.data.dateRange;
 
         setOrderSummary(summary);
@@ -32,7 +32,7 @@ const PoolResturantDashboard: React.FC = () => {
           `/order/beverage/sold-summary?startDate=${startDate}&endDate=${endDate}`
         );
 
-        setBeverageSummary(res.data.data.summaryByRestaurantType.Beach);
+        setBeverageSummary(res.data.data.summary);
 
         setLoading(false);
       } catch (error) {
@@ -74,4 +74,4 @@ const PoolResturantDashboard: React.FC = () => {
   );
 };
 
-export default PoolResturantDashboard;
+export default RestaurantDashboard;

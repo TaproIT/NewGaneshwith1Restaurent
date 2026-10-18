@@ -17,8 +17,7 @@ router.post(
   authenticateToken,
   authorizeRoles([
     userRoles.ADMIN.value,
-    userRoles.BEACH_RESTAURANT_ADMIN.value,
-    userRoles.POOL_RESTAURANT_ADMIN.value,
+    userRoles.RESTAURANT_ADMIN.value,
   ]),
   createCategory
 );
@@ -29,11 +28,9 @@ router.get(
   verifyTokenNotBlacklisted,
   authenticateToken,
   authorizeRoles([
-    userRoles.BEACH_RESTAURANT_STAFF.value,
-    userRoles.POOL_RESTAURANT_STAFF.value,
+    userRoles.RESTAURANT_STAFF.value,
     userRoles.ADMIN.value,
-    userRoles.BEACH_RESTAURANT_ADMIN.value,
-    userRoles.POOL_RESTAURANT_ADMIN.value,
+    userRoles.RESTAURANT_ADMIN.value,
   ]),
   getCategories
 );
@@ -42,11 +39,9 @@ router.get(
   verifyTokenNotBlacklisted,
   authenticateToken,
   authorizeRoles([
-    userRoles.BEACH_RESTAURANT_STAFF.value,
-    userRoles.POOL_RESTAURANT_STAFF.value,
+    userRoles.RESTAURANT_STAFF.value,
     userRoles.ADMIN.value,
-    userRoles.BEACH_RESTAURANT_ADMIN.value,
-    userRoles.POOL_RESTAURANT_ADMIN.value,
+    userRoles.RESTAURANT_ADMIN.value,
   ]),
   getAvailableCategories
 );

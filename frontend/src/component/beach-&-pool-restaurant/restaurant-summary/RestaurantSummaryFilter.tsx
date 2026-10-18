@@ -8,18 +8,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { RestaurantSummaryList } from "./SummaryList";
 import { DownloadExcelButton } from "./DownloadButton";
-import { RestaurantTypes } from "@/lib/enums/order-related-enums";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const RestaurantSummaryFilterAndCount: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
 
   const { totalIncome, checkInIncome, walkInIncome, summaryList, fetchRestaurantSummaryStatus } = useSelector(
     (state: RootState) => state.restaurantSummary
-  );
-
-  const { role } = useSelector(
-    (state: RootState) => state.user
   );
 
   const today = new Date();
@@ -32,10 +26,6 @@ export const RestaurantSummaryFilterAndCount: React.FC = () => {
   const [endDate, setEndDate] = React.useState(
     formatToYMD(today)
   );
-
-  const [restaurantType, setRestaurantType] = React.useState<string>(RestaurantTypes.BEACH.value);
-
-  const isAdmin = (role === 'Super-Admin')  || (role === 'Admin') || (role === 'Reception');
 
   const { loading, error } = fetchRestaurantSummaryStatus;
 
@@ -55,10 +45,9 @@ export const RestaurantSummaryFilterAndCount: React.FC = () => {
       fetchRestaurantSummary({
         startDate: startDate,
         endDate: endDate,
-        restaurantType: isAdmin ? restaurantType : "",
       })
     );
-  }, [startDate, endDate, dispatch, restaurantType]);
+  }, [startDate, endDate, dispatch]);
 
   useEffect(() => {
     if (error) toast.error(error || "Failed to fetch daily order summary");
@@ -72,17 +61,9 @@ export const RestaurantSummaryFilterAndCount: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <div
-        className={`w-full grid ${
-          isAdmin ? "grid-cols-12" : "grid-cols-6"
-        } gap-2`}
-      >
+      <div className="w-full grid grid-cols-6 gap-2">
         {/* Start Date */}
-        <div
-          className={`${
-            isAdmin ? "col-span-2" : "col-span-1"
-          } pt-5 py-2 px-2 flex flex-col items-center justify-center bg-[#FEFEFE] rounded-md`}
-        >
+        <div className="col-span-1 pt-5 py-2 px-2 flex flex-col items-center justify-center bg-[#FEFEFE] rounded-md">
           {loading ? (
             <>
               <Skeleton className="h-4 w-24" />
@@ -104,11 +85,7 @@ export const RestaurantSummaryFilterAndCount: React.FC = () => {
         </div>
 
         {/* End Date */}
-        <div
-          className={`${
-            isAdmin ? "col-span-2" : "col-span-1"
-          } pt-5 py-2 px-2 flex flex-col items-center justify-center bg-[#FEFEFE] rounded-md`}
-        >
+        <div className="col-span-1 pt-5 py-2 px-2 flex flex-col items-center justify-center bg-[#FEFEFE] rounded-md">
           {loading ? (
             <>
               <Skeleton className="h-4 w-24" />
@@ -129,48 +106,8 @@ export const RestaurantSummaryFilterAndCount: React.FC = () => {
           )}
         </div>
 
-        {/* Restaurant Type */}
-        <div
-          className={`${
-            isAdmin ? "col-span-2 " : "col-span-1 hidden"
-          } pt-5 py-2 px-2 flex flex-col items-center justify-center gap-2 bg-[#FEFEFE] rounded-md`}
-        >
-          {loading ? (
-            <>
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-10 w-full" />
-            </>
-          ) : (
-            <>
-              <p className="text-[0.875rem] text-[#444444]">Restaurant Type</p>
-
-              <Select
-                value={restaurantType}
-                onValueChange={(value) => setRestaurantType(value)}
-              >
-                <SelectTrigger className="w-full bg-[#F4F4F4] rounded-md text-sm cursor-pointer">
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value={RestaurantTypes.BEACH.value}>
-                    {RestaurantTypes.BEACH.label}
-                  </SelectItem>
-                  <SelectItem value={RestaurantTypes.POOL.value}>
-                    {RestaurantTypes.POOL.value}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </>
-          )}
-        </div>
-
         {/* Summary Cards */}
-        <div
-          className={`${
-            isAdmin ? "col-span-6" : "col-span-4"
-          } grid grid-cols-4 gap-2`}
-        >
+        <div className="col-span-4 grid grid-cols-4 gap-2">
           {summaryCounts.map((item, index) => (
             <div
               key={index}
@@ -192,12 +129,8 @@ export const RestaurantSummaryFilterAndCount: React.FC = () => {
             </div>
           ))}
 
-          <div
-            className={`${
-              isAdmin ? "col-span-1" : "col-span-1"
-            } flex items-center justify-end`}
-          >
-            <DownloadExcelButton startDate={startDate} endDate={endDate} restaurantType={restaurantType}  />
+          <div className="col-span-1 flex items-center justify-end">
+            <DownloadExcelButton startDate={startDate} endDate={endDate} />
           </div>
         </div>
       </div>

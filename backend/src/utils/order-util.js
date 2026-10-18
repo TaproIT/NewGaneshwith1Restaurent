@@ -1,21 +1,15 @@
 import { OrderCounter } from "../models/order/order-counter-model.js";
+import { DEFAULT_RESTAURANT_TYPE } from "./enums/order-related-enums.js";
 
 
-export async function generateOrderNumber(restaurantType) {
-  if (!restaurantType) {
-    throw new Error("Restaurant type is required to generate an order number.");
-  }
-
+// One running order-number sequence for the single restaurant, e.g. "00001".
+export async function generateOrderNumber(restaurantType = DEFAULT_RESTAURANT_TYPE) {
   const counter = await OrderCounter.findOneAndUpdate(
-    { restaurantType }, // use restaurantType instead of fixed name
+    { restaurantType },
     { $inc: { seq: 1 } },
     { new: true, upsert: true }
   );
 
-  // Generate a prefix based on restaurant type
-  const prefix = restaurantType.toUpperCase().slice(0, 3); // e.g. "DIN", "DEL", "TAK"
-
-  // Format: e.g., DIN-00001
   return `${counter.seq.toString().padStart(5, "0")}`;
 }
 

@@ -11,20 +11,12 @@ export const userRoles = Object.freeze({
     value: "Reception",
     label: "Reception",
   },
-  BEACH_RESTAURANT_STAFF: {
-    value: "Beach-Restaurant-Staff",
-    label: "Beach Restaurant Staff",
+  RESTAURANT_STAFF: {
+    value: "Restaurant-Staff",
+    label: "Restaurant Staff",
   },
-  POOL_RESTAURANT_STAFF: {
-    value: "Pool-Restaurant-Staff",
-    label: "Pool Restaurant Staff",
-  },
-  BEACH_RESTAURANT_ADMIN: {
-    value: "Beach-Restaurant-Admin",
-    label: "Beach Restaurant Admin",
-  },
-  POOL_RESTAURANT_ADMIN: {
-    value: "Pool-Restaurant-Admin",
-    label: "Pool Restaurant Admin",
+  RESTAURANT_ADMIN: {
+    value: "Restaurant-Admin",
+    label: "Restaurant Admin",
   },
 });

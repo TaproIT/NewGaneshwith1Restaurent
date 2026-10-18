@@ -33,7 +33,7 @@ const BeverageList: React.FC<{id:string}> = ({id}) => {
 
   const isMenuHandlingPage = (id === "0");
 
-  const isAdminRole = (role === "Beach-Restaurant-Admin") || (role === "Pool-Restaurant-Admin") ;
+  const isAdminRole = role === "Restaurant-Admin";
 
   const isExtraBeverageCategory =
             selectedCategoryId !== BeverageCategories.HARD_LIQUOR.value &&

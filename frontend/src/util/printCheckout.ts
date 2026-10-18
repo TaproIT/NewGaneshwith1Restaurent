@@ -110,7 +110,7 @@ export async function printFinalBill({
       ?.map(
         (order: any) => `
         <tr class="row-line">
-          <td>${order.date} — ${order.type} Restaurant</td>
+          <td>${order.date} — Restaurant</td>
           <td class="right">
   ${order.displayTotal ? order.displayTotal : `LKR ${formatPrice(order.total)}`}
 </td>

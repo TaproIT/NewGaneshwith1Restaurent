@@ -16,10 +16,6 @@ type SummaryGroup = {
   totalLiquorAmount: number;
 };
 
-type BeverageSummary = {
-  [key: string]: SummaryGroup;
-};
-
 const MonthlyBeverageSales: React.FC = () => {
   const [startDate, setStartDate] = useState<string>(
     format(new Date(), "yyyy-MM-dd")
@@ -27,9 +23,8 @@ const MonthlyBeverageSales: React.FC = () => {
   const [endDate, setEndDate] = useState<string>(
     format(new Date(), "yyyy-MM-dd")
   );
-  const [location, setLocation] = useState<"Pool" | "Beach">("Pool"); // toggle
   const [loading, setLoading] = useState(false);
-  const [summary, setSummary] = useState<BeverageSummary | null>(null);
+  const [summary, setSummary] = useState<SummaryGroup | null>(null);
 
   const fetchData = async () => {
     if (!startDate || !endDate) return;
@@ -41,16 +36,10 @@ const MonthlyBeverageSales: React.FC = () => {
         `/order/beverage/sold/liquor-summary?startDate=${startDate}&endDate=${endDate}`
       );
 
-      // Filter by location if the API returns all data
-      const allData: BeverageSummary = res.data.data.summaryByRestaurantType;
-      const filteredData: BeverageSummary = {};
-      Object.entries(allData).forEach(([restaurant, group]) => {
-        if (restaurant.includes(location)) {
-          filteredData[restaurant] = group;
-        }
+      setSummary({
+        summary: res.data.data.summary ?? [],
+        totalLiquorAmount: res.data.data.totalLiquorAmount ?? 0,
       });
-
-      setSummary(filteredData);
     } catch (error) {
       console.error("Error fetching liquor summary:", error);
     } finally {
@@ -60,11 +49,12 @@ const MonthlyBeverageSales: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, [location]); // refetch when location changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // load today's figures once; Search reloads for other dates
 
   return (
     <div className="p-4 bg-mainWhite rounded-2xl w-full h-full">
-      {/* ---------- Date Range & Location Toggle ---------- */}
+      {/* ---------- Date Range ---------- */}
       <div className="flex items-center gap-4 mb-4  justify-between">
         <div className="flex gap-2">
           <Input
@@ -79,22 +69,6 @@ const MonthlyBeverageSales: React.FC = () => {
           />
           <Button onClick={fetchData}>Search</Button>
         </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant={location === "Pool" ? "default" : "outline"}
-            onClick={() => setLocation("Pool")}
-          >
-            Pool
-          </Button>
-          <Button
-            variant={location === "Beach" ? "default" : "outline"}
-            onClick={() => setLocation("Beach")}
-          >
-            Beach
-          </Button>
-        </div>
-
       </div>
 
       {/* ---------- Loading ---------- */}
@@ -108,37 +82,32 @@ const MonthlyBeverageSales: React.FC = () => {
       {/* ---------- Table Rendering ---------- */}
       {!loading && summary && (
         <div className="space-y-6">
-          {Object.entries(summary).map(([restaurant, group]) => (
-            <div
-              key={restaurant}
-              className="border rounded-xl p-4 bg-white shadow-sm"
-            >
-              <h2 className="font-semibold text-lg mb-3">{restaurant}</h2>
+          <div className="border rounded-xl p-4 bg-white shadow-sm">
+            <h2 className="font-semibold text-lg mb-3">Restaurant</h2>
 
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="text-left border-b">
-                    <th className="py-2">Liquor Name</th>
-                    <th className="py-2">Amount (ml)</th>
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="text-left border-b">
+                  <th className="py-2">Liquor Name</th>
+                  <th className="py-2">Amount (ml)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {summary.summary.map((item) => (
+                  <tr key={item.liquorId} className="border-b">
+                    <td className="py-2">{item.liquorName}</td>
+                    <td className="py-2">{item.totalAmount}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {group.summary.map((item) => (
-                    <tr key={item.liquorId} className="border-b">
-                      <td className="py-2">{item.liquorName}</td>
-                      <td className="py-2">{item.totalAmount}</td>
-                    </tr>
-                  ))}
+                ))}
 
-                  {/* Total row */}
-                  <tr className="font-bold">
-                    <td className="py-2">Total</td>
-                    <td className="py-2">{group.totalLiquorAmount}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          ))}
+                {/* Total row */}
+                <tr className="font-bold">
+                  <td className="py-2">Total</td>
+                  <td className="py-2">{summary.totalLiquorAmount}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

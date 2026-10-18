@@ -23,6 +23,7 @@ import {
 } from "@/features/beach-restaurant/orderSlice";
 import { addNewOrderTokenToOrder } from "@/api/order/add-new-order-token-to-order-api";
 import { fetchOrderById } from "@/api/order/get-order-data-api";
+import { RESTAURANT_INFO } from "@/config/restaurant";
 import { toast } from "react-toastify";
 import { Loader2 } from "lucide-react";
 import { getPrinter } from "@/util/printerConfig";
@@ -144,9 +145,9 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
         "a" +
         "\x01" + // center
         "==========================================\n" +
-        `${order.restaurantType === "Beach"? "GANESH GARDEN BEACH CABANA" : "MARAKOLLIYA BEACH RESORT"}\n` +
-        `${order.restaurantType === "Beach"? "MAHI MAHI SEA FOOD RESTAURANT" : "SUNSET POOL BAR & RESTAURANT"}\n` +
-        "Tangalle \n"+
+        `${RESTAURANT_INFO.hotelName}\n` +
+        `${RESTAURANT_INFO.restaurantName}\n` +
+        `${RESTAURANT_INFO.location} \n` +
         "==========================================\n" +
         ESC +
         "a" +
@@ -156,7 +157,7 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
         `Customer Type: ${order.customerType}\n` +
         `${order.roomNumber  !== "0" ? `Room No       : ${order.roomNumber}\n`:""}` + 
         `Date         : ${new Date().toLocaleString()}\n` +
-        `TP           : ${order.restaurantType === "Beach"? "+94 472242529 / +94 705505705" : "+94 472244822 / +94 705505705"}\n` +
+        `TP           : ${RESTAURANT_INFO.phone}\n` +
         "-".repeat(totalWidth) +
         "\n" +
         headerLine +

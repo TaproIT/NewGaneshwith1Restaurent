@@ -1,23 +1,16 @@
 import PBFoodNet from "../../models/PoolAndBeachResturant/PBFoodNet.js";
 import PBFoodNetCategory from "../../models/PoolAndBeachResturant/PBFoodNetCategory.js";
 import Beverage from "../../models/Beverage/./beverage.js";
-import { getRestaurantTypeByUserRole } from "../../utils/user-util.js";
+import { getRestaurantType } from "../../utils/user-util.js";
 
 export const createPBFoodNet = async (req, res) => {
     try {
-      const { userId } = req.user;
-
-      const defaultRestaurantType = await getRestaurantTypeByUserRole(userId);
-
-      const restaurantType = req.body.restaurantType || defaultRestaurantType;
-
-      console.log(restaurantType);
+      const restaurantType = getRestaurantType();
 
       // 1. check if category exists and visible
       const category = await PBFoodNetCategory.findOne({
         _id: req.body.category,
         isVisible: true,
-        restaurantType,
       });
 
       if (!category) {
@@ -30,7 +23,6 @@ export const createPBFoodNet = async (req, res) => {
       const food = await PBFoodNet.findOne({
         itemName: { $regex: new RegExp(`^${req.body.itemName}$`, "i") },
         category: req.body.category,
-        restaurantType,
       });
 
       if (food) {
@@ -101,10 +93,6 @@ export const updatePBFoodNet = async (req, res) => {
 
         if (req.body.price !== null && req.body.price !== undefined) {
             updateData.price = req.body.price;
-        }
-
-        if (req.body.restaurantType && req.body.restaurantType.trim() !== "") {
-            updateData.restaurantType = req.body.restaurantType;
         }
 
         if (req.body.isVisible !== null && req.body.isVisible !== undefined) {
@@ -196,16 +184,7 @@ export const deletePBFoodNet = async (req, res) => {
     }
 };
 export const getPBFoodNets = async (req, res) => {
-    const { userId } = req.user;
-
-    const defaultRestaurantType = await getRestaurantTypeByUserRole(userId);
-
-    const restaurantType = req.query.restaurantType || defaultRestaurantType;
-    
-    const filter = {
-      ...(restaurantType ? { restaurantType } : {}), 
-    };
-    const items = await PBFoodNet.find( filter )
+    const items = await PBFoodNet.find({})
         .populate("category")
         .populate("liquor");
     return res.json(items);
@@ -220,18 +199,7 @@ export const getPBFoodNet = async (req, res) => {
 
 export const getAvailablePBFoodNets = async (req, res) => {
     try{
-        const { userId } = req.user;
-
-        const defaultRestaurantType = await getRestaurantTypeByUserRole(userId);
-
-        const restaurantType = req.query.restaurantType || defaultRestaurantType;
-
-        const filter = {
-          isVisible: true,
-          ...(restaurantType ? { restaurantType } : {}),
-        };
-
-        const items = await PBFoodNet.find(filter)
+        const items = await PBFoodNet.find({ isVisible: true })
             .populate("category")
             .populate("liquor.beverage", "beverageName price") ;
 
@@ -240,7 +208,7 @@ export const getAvailablePBFoodNets = async (req, res) => {
         }
         return res.json(items);
     }catch(err){
-        return res.statusCode(400).json({ error: err.message });
+        return res.status(400).json({ error: err.message });
     }
 
 

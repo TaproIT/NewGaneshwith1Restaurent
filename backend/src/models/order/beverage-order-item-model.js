@@ -30,7 +30,7 @@ const beverageOrderItemSchema = new mongoose.Schema({
     },
   ],
   restaurantType: {
-    type:String, required:true, enum : [RestaurantTypes.BEACH.value, RestaurantTypes.POOL.value]
+    type:String, required:true, enum : [RestaurantTypes.RESTAURANT.value], default: RestaurantTypes.RESTAURANT.value
   }
 },
 { timestamps: true }

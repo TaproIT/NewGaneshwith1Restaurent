@@ -1,6 +1,6 @@
 import ExtraBeverage from "../../models/ExtraBeverages/extra-beverage-model.js";
 import ExtraBeverageCategory from "../../models/ExtraBeverages/extraBeverageCategory.js";
-import { getRestaurantTypeByUserRole } from "../../utils/user-util.js";
+import { getRestaurantType } from "../../utils/user-util.js";
 
 // Category
 
@@ -10,14 +10,7 @@ import { getRestaurantTypeByUserRole } from "../../utils/user-util.js";
 export const createExtraBeverageCategory = async (req, res) => {
     try {
         const { name, isVisible } = req.body;
-         const { userId } = req.user;
-
-         const defaultRestaurantType = await getRestaurantTypeByUserRole(
-           userId
-         );
-
-         const restaurantType =
-           req.body.restaurantType || defaultRestaurantType;
+        const restaurantType = getRestaurantType();
         const category = await ExtraBeverageCategory.create({ name, isVisible, restaurantType });
         res.status(201).json({ success: true, data: category });
     } catch (err) {
@@ -29,16 +22,8 @@ export const createExtraBeverageCategory = async (req, res) => {
 export const listExtraBeverageCategories = async (req, res) => {
     try {
         const { q } = req.query;
-        const { userId } = req.user;
 
-        const defaultRestaurantType = await getRestaurantTypeByUserRole(
-           userId
-         );
-
-        const restaurantType =
-           req.body.restaurantType || defaultRestaurantType;
-
-        const filter = q ? { name: { $regex: q, $options: "i" }, restaurantType } : {};
+        const filter = q ? { name: { $regex: q, $options: "i" } } : {};
         const categories = await ExtraBeverageCategory.find(filter)
             .sort({ name: 1 })
             .lean();
@@ -112,17 +97,8 @@ export const getAvailableExtraBeverageCategories = async (req, res) => {
             sortOrder,  // optional sort direction: asc or desc
         } = req.query;
 
-        const { userId } = req.user;
-
-        const defaultRestaurantType = await getRestaurantTypeByUserRole(
-           userId
-         );
-
-        const restaurantType =
-           req.query.restaurantType || defaultRestaurantType;
-
         // Only visible categories (not soft-deleted)
-        const filter = { isVisible: true, restaurantType:restaurantType };
+        const filter = { isVisible: true };
 
         if (search) {
             filter.name = { $regex: search, $options: "i" }; // case-insensitive search

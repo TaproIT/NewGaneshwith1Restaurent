@@ -3,11 +3,12 @@ import FoodOrderItem from "../models/order/food-order-item-model.js";
 import Order from "../models/order/order-model.js";
 import OrderToken from "../models/order/order-token-model.js";
 import RestaurantTable from "../models/order/restaurant-table-model.js";
-import { BeverageCategories, CustomerTypes, OrderStatuses, PaymentMethods, RestaurantTypes, ServiceTypes, TableStatuses } from "../utils/enums/order-related-enums.js";
+import { BeverageCategories, CustomerTypes, OrderStatuses, PaymentMethods, ServiceTypes, TableStatuses } from "../utils/enums/order-related-enums.js";
 import { generateOrderNumber, generateTokenId } from "../utils/order-util.js";
 import { sendErrorResponse, sendSuccessResponse } from "../utils/response-util.js";
 import mongoose from "mongoose";
-import { getRestaurantTypeByUserRole } from "../utils/user-util.js";
+import { getRestaurantType } from "../utils/user-util.js";
+import { RESTAURANT_INFO } from "../config/restaurant-config.js";
 import { updateBeverageQuantityManually, updateBeverageVolumeManually } from "../utils/beverageStock.js";
 import ExcelJS from "exceljs";
 import PBFoodNet from "../models/PoolAndBeachResturant/PBFoodNet.js";
@@ -18,11 +19,9 @@ export const setInitialOrderDetails = async (req, res) => {
     try{
         const {customerType, serviceType, roomNumber, guestName, guestId, bookingId } = req.body;
 
-        const { userId } = req.user;
-
         const orderStatus = OrderStatuses.SET_INITIAL_ORDER_DATA.value;
 
-         const restaurantType = await getRestaurantTypeByUserRole(userId);
+        const restaurantType = getRestaurantType();
 
         const orderNumber = await generateOrderNumber(restaurantType);
 
@@ -46,13 +45,14 @@ export const setInitialOrderDetails = async (req, res) => {
 
 export const addTable = async (req, res) => {
   try {
-    const { name, tableNumber, status, restaurantType } = req.body;
+    const { name, tableNumber, status } = req.body;
+    const restaurantType = getRestaurantType();
 
     if (!name || !tableNumber || !status) {
       return sendErrorResponse(res, 400, "Name and table number are required");
     }
 
-    const existTable = await RestaurantTable.findOne({name, tableNumber, restaurantType});
+    const existTable = await RestaurantTable.findOne({ name, tableNumber });
 
     if (existTable) {
       return sendErrorResponse(res, 400, "Already existed table" );
@@ -70,7 +70,8 @@ export const addTable = async (req, res) => {
 export const updateTable = async (req, res) => {
   try {
     const { id } = req.params;
-    const updateData = req.body; // Could contain name, tableNumber, isSelected, etc.
+    const updateData = { ...req.body }; // Could contain name, tableNumber, isSelected, etc.
+    delete updateData.restaurantType; // there is only one restaurant
 
     if (Object.keys(updateData).length === 0) {
       return sendErrorResponse(res, 400, "At least one field is required to update");
@@ -110,11 +111,7 @@ export const updateTable = async (req, res) => {
 
 export const getAllTables = async (req, res) => {
   try {
-    const { userId } = req.user;
-
-    const restaurantType = await getRestaurantTypeByUserRole(userId);
-
-    const tables = await RestaurantTable.find({restaurantType}).sort({ tableNumber: 1 }); // Sorted by table number (optional)
+    const tables = await RestaurantTable.find({}).sort({ tableNumber: 1 }); // Sorted by table number (optional)
 
     if (!tables || tables.length === 0) {
       return sendSuccessResponse(res, 200, "No tables found", { tables: [] });
@@ -475,12 +472,11 @@ export const addOrderToken = async (req, res) => {
 
   try {
     const { id } = req.params; // order id
-    const { userId } = req.user;
 
     const { newOrderToken, subTotal, tax, discount, serviceCharge, totalBill } =
       req.body.data;
 
-    const restaurantType = await getRestaurantTypeByUserRole(userId);
+    const restaurantType = getRestaurantType();
 
     const order = await Order.findById(id);
     if (!order) {
@@ -1160,14 +1156,8 @@ export const getOrderDetails = async (req, res) => {
 
 export const getHoldOrders = async (req, res) => {
   try {
-
-    const { userId } = req.user;
-
-    const restaurantType = await getRestaurantTypeByUserRole(userId);
-
     // Find all orders where holdOrderToken is not null
     const holdOrders = await Order.find({
-      restaurantType,
       orderStatus: {
         $nin: [OrderStatuses.COMPLETED.value, OrderStatuses.CANCELED.value],
       },
@@ -1298,21 +1288,11 @@ export const getHoldOrders = async (req, res) => {
 
 export const getDailyOrdersSummary = async (req, res) => {
   try {
-    const { startDate, endDate, restaurantType } = req.query; // YYYY-MM-DD
-    const { userId } = req.user;
-
-    const defaultRestaurantType = await getRestaurantTypeByUserRole(userId);
+    const { startDate, endDate } = req.query; // YYYY-MM-DD
 
     if (!startDate || !endDate) {
       return sendErrorResponse(res, 400, "Start date and end date are required");
     }
-
-    console.log(restaurantType);
-
-    const finalRestaurantType =
-      restaurantType && restaurantType.trim() !== ""
-        ? restaurantType
-        : defaultRestaurantType;
 
     // Build start date = 00:00:00 and end date = next day 00:00:00
     const start = new Date(startDate);
@@ -1322,7 +1302,6 @@ export const getDailyOrdersSummary = async (req, res) => {
     // Find orders within range
     const orders = await Order.find({
       createdAt: { $gte: start, $lt: end },
-      restaurantType: finalRestaurantType,
       orderStatus: OrderStatuses.COMPLETED.value,
     })
       .populate({
@@ -1408,35 +1387,29 @@ export const getOrderSummary = async (req, res) => {
       createdAt: { $gte: firstDayOfMonth, $lte: today },
     };
 
-    // ===== Orders grouped by restaurantType & serviceType =====
-    const ordersByRestaurantType = await Order.aggregate([
+    // ===== Orders grouped by serviceType =====
+    const ordersByServiceType = await Order.aggregate([
       { $match: dateFilter },
       {
         $group: {
-          _id: {
-            restaurantType: "$restaurantType",
-            serviceType: "$serviceType",
-          },
+          _id: { serviceType: "$serviceType" },
           count: { $sum: 1 },
         },
       },
     ]);
 
-    // ===== Customers grouped by restaurantType & customerType =====
-    const customersByRestaurantType = await Order.aggregate([
+    // ===== Customers grouped by customerType =====
+    const customersByCustomerType = await Order.aggregate([
       { $match: dateFilter },
       {
         $group: {
-          _id: {
-            restaurantType: "$restaurantType",
-            customerType: "$customerType",
-          },
+          _id: { customerType: "$customerType" },
           count: { $sum: 1 },
         },
       },
     ]);
 
-    // ===== Beverage sales grouped by restaurantType & category =====
+    // ===== Beverage sales grouped by category =====
     const beverageSummary = await OrderToken.aggregate([
       { $match: dateFilter },
       { $unwind: "$items" },
@@ -1451,56 +1424,33 @@ export const getOrderSummary = async (req, res) => {
       { $unwind: "$beverageInfo" },
       {
         $group: {
-          _id: {
-            restaurantType: "$restaurantType",
-            category: "$beverageInfo.category",
-          },
+          _id: { category: "$beverageInfo.category" },
           totalAmount: { $sum: "$items.amount" },
         },
       },
     ]);
 
-    // === Format response grouped by restaurantType ===
-    const summaryByRestaurantType = {};
-
-    const restaurantTypes = new Set([
-      ...ordersByRestaurantType.map((o) => o._id.restaurantType),
-      ...customersByRestaurantType.map((c) => c._id.restaurantType),
-      ...beverageSummary.map((b) => b._id.restaurantType),
-    ]);
-
-    restaurantTypes.forEach((type) => {
-      summaryByRestaurantType[type] = {
-        orderSummary: {
-          totalOrders: ordersByRestaurantType
-            .filter((o) => o._id.restaurantType === type)
-            .reduce((sum, o) => sum + o.count, 0),
-          byServiceType: ordersByRestaurantType
-            .filter((o) => o._id.restaurantType === type)
-            .map((o) => ({
-              serviceType: o._id.serviceType,
-              count: o.count,
-            })),
-        },
-        customerSummary: {
-          totalCustomers: customersByRestaurantType
-            .filter((c) => c._id.restaurantType === type)
-            .reduce((sum, c) => sum + c.count, 0),
-          byCustomerType: customersByRestaurantType
-            .filter((c) => c._id.restaurantType === type)
-            .map((c) => ({
-              customerType: c._id.customerType,
-              count: c.count,
-            })),
-        },
-        beverageSummary: beverageSummary
-          .filter((b) => b._id.restaurantType === type)
-          .map((b) => ({
-            category: b._id.category,
-            totalAmount: b.totalAmount,
-          })),
-      };
-    });
+    // === Format response for the single restaurant ===
+    const summary = {
+      orderSummary: {
+        totalOrders: ordersByServiceType.reduce((sum, o) => sum + o.count, 0),
+        byServiceType: ordersByServiceType.map((o) => ({
+          serviceType: o._id.serviceType,
+          count: o.count,
+        })),
+      },
+      customerSummary: {
+        totalCustomers: customersByCustomerType.reduce((sum, c) => sum + c.count, 0),
+        byCustomerType: customersByCustomerType.map((c) => ({
+          customerType: c._id.customerType,
+          count: c.count,
+        })),
+      },
+      beverageSummary: beverageSummary.map((b) => ({
+        category: b._id.category,
+        totalAmount: b.totalAmount,
+      })),
+    };
 
     // === Final Response ===
     return sendSuccessResponse(
@@ -1514,7 +1464,7 @@ export const getOrderSummary = async (req, res) => {
           }),
           to: today.toLocaleString("en-CA", { timeZone: "Asia/Colombo" }),
         },
-        summaryByRestaurantType,
+        summary,
       }
     );
 
@@ -1691,54 +1641,43 @@ export const getBeverageSoldSummary = async (req, res) => {
     const end = new Date(endDate);
     end.setHours(23, 59, 59, 999);
 
-    // Aggregate total quantity per beverage & restaurant type
+    // Aggregate total quantity per beverage
     const result = await BeverageOrderItem.aggregate([
       { $match: { createdAt: { $gte: start, $lte: end } } },
       {
         $group: {
-          _id: { beverageId: "$beverageId", restaurantType: "$restaurantType" },
+          _id: { beverageId: "$beverageId" },
           beverageId: { $first: "$beverageId" },
           title: { $first: "$title" },
           category: { $first: "$category" },
-          restaurantType: { $first: "$restaurantType" },
           totalQuantity: { $sum: "$quantity" },
         },
       },
     ]);
 
-    // Helper to filter by category and restaurant type
-    const filterByCategoryAndType = (category, type) =>
-      result.filter(
-        (item) => item.category === category && item.restaurantType === type
-      );
+    // Helper to filter by category
+    const filterByCategory = (category) =>
+      result.filter((item) => item.category === category);
 
-    const summaryByRestaurantType = {};
+    const hardLiquors = filterByCategory(BeverageCategories.HARD_LIQUOR.value);
+    const softDrinks = filterByCategory(BeverageCategories.SOFT_DRINKS.value);
 
-    Object.values(RestaurantTypes).forEach((type) => {
-      summaryByRestaurantType[type.value] = {
-        hardLiquors: filterByCategoryAndType(BeverageCategories.HARD_LIQUOR.value, type.value),
-        softDrinks: filterByCategoryAndType(BeverageCategories.SOFT_DRINKS.value, type.value),
-        others: result.filter(
-          (item) =>
-            item.category !== BeverageCategories.HARD_LIQUOR.value &&
-            item.category !== BeverageCategories.SOFT_DRINKS.value &&
-            item.restaurantType === type.value
-        ),
-        hardLiquorTotal: filterByCategoryAndType(BeverageCategories.HARD_LIQUOR.value, type.value).reduce(
-          (sum, item) => sum + item.totalQuantity,
-          0
-        ),
-        softDrinkTotal: filterByCategoryAndType(BeverageCategories.SOFT_DRINKS.value, type.value).reduce(
-          (sum, item) => sum + item.totalQuantity,
-          0
-        ),
-      };
-    });
+    const summary = {
+      hardLiquors,
+      softDrinks,
+      others: result.filter(
+        (item) =>
+          item.category !== BeverageCategories.HARD_LIQUOR.value &&
+          item.category !== BeverageCategories.SOFT_DRINKS.value
+      ),
+      hardLiquorTotal: hardLiquors.reduce((sum, item) => sum + item.totalQuantity, 0),
+      softDrinkTotal: softDrinks.reduce((sum, item) => sum + item.totalQuantity, 0),
+    };
 
     return res.status(200).json({
       status: "success",
       data: {
-        summaryByRestaurantType,
+        summary,
         dateRange: {
           from: start.toISOString(),
           to: end.toISOString(),
@@ -1782,54 +1721,31 @@ export const getLiquorSummaryForOtherItems = async (req, res) => {
     // Combine both arrays
     const combinedOrders = [...beverageOrders, ...foodOrders];
 
-    const summaryByRestaurantType = {};
-
-    // Initialize restaurant types
-    Object.values(RestaurantTypes).forEach((type) => {
-      summaryByRestaurantType[type.value] = {
-        summary: [],
-        totalLiquorAmount: 0,
-      };
-    });
-
-    // Group liquors by restaurant type and liquorId + liquorName
-    Object.values(RestaurantTypes).forEach((type) => {
-      const ordersByType = combinedOrders.filter(order => order.restaurantType === type.value);
-
-      const allLiquors = ordersByType.flatMap(order =>
-        order.liquor.map(l => ({
+    // Total the liquor used, per liquor
+    const summaryMap = new Map();
+    combinedOrders.forEach((order) => {
+      order.liquor.forEach((l) => {
+        const key = String(l.liquorId);
+        const entry = summaryMap.get(key) || {
           liquorId: l.liquorId,
           liquorName: l.liquorName,
-          amount: l.amount || 0,
-        }))
-      );
-
-      const summaryMap = new Map();
-      allLiquors.forEach(l => {
-        const key = `${l.liquorId}-${l.liquorName}`;
-        if (summaryMap.has(key)) {
-          summaryMap.set(key, summaryMap.get(key) + l.amount);
-        } else {
-          summaryMap.set(key, l.amount);
-        }
+          totalAmount: 0,
+        };
+        entry.totalAmount += l.amount || 0;
+        summaryMap.set(key, entry);
       });
-
-      const summary = Array.from(summaryMap, ([key, totalAmount]) => {
-        const [liquorId, liquorName] = key.split("-");
-        return { liquorId, liquorName, totalAmount };
-      });
-
-      const totalLiquorAmount = summary.reduce((sum, item) => sum + item.totalAmount, 0);
-
-      summaryByRestaurantType[type.value] = { summary, totalLiquorAmount };
     });
+
+    const summary = Array.from(summaryMap.values());
+    const totalLiquorAmount = summary.reduce((sum, item) => sum + item.totalAmount, 0);
 
     return sendSuccessResponse(res, 200, "Liquor summary for other items retrieved successfully", {
       dateRange: {
         from: start.toLocaleString("en-CA", { timeZone: "Asia/Colombo" }),
         to: end.toLocaleString("en-CA", { timeZone: "Asia/Colombo" }),
       },
-      summaryByRestaurantType,
+      summary,
+      totalLiquorAmount,
     });
   } catch (error) {
     console.error("Error fetching liquor summary for other items:", error);
@@ -1874,15 +1790,7 @@ export const cancelOrder = async (req, res) => {
 
 export const getDailyRestaurantTotals = async (req, res) => {
   try {
-    const { startDate, endDate, restaurantType } = req.query;
-    const { userId } = req.user;
-
-    const defaultRestaurantType = await getRestaurantTypeByUserRole(userId);
-
-     const finalRestaurantType =
-      restaurantType && restaurantType.trim() !== ""
-        ? restaurantType
-        : defaultRestaurantType;
+    const { startDate, endDate } = req.query;
 
     if (!startDate || !endDate) {
       return sendErrorResponse(
@@ -1899,7 +1807,6 @@ export const getDailyRestaurantTotals = async (req, res) => {
     const data = await Order.aggregate([
       {
         $match: {
-          restaurantType: finalRestaurantType,
           createdAt: { $gte: start, $lte: end },
           orderStatus: OrderStatuses.COMPLETED.value,
         }
@@ -1958,7 +1865,7 @@ export const getDailyRestaurantTotals = async (req, res) => {
     });
 
     const responseData = {
-      restaurantType: RestaurantTypes.BEACH.value,
+      restaurantType: getRestaurantType(),
       totalIncome: Math.round(totalIncome * 100) / 100,
       walkInIncome: Math.round(walkInIncome * 100) / 100,
       checkInIncome: Math.round(checkInIncome * 100) / 100,
@@ -1984,15 +1891,7 @@ export const getDailyRestaurantTotals = async (req, res) => {
 
 export const exportRestaurantSummaryExcel = async (req, res) => {
   try {
-    const { startDate, endDate, restaurantType } = req.query;
-    const { userId } = req.user;
-
-    const defaultRestaurantType = await getRestaurantTypeByUserRole(userId);
-
-     const finalRestaurantType =
-      restaurantType && restaurantType.trim() !== ""
-        ? restaurantType
-        : defaultRestaurantType;
+    const { startDate, endDate } = req.query;
 
     if (!startDate || !endDate) {
       return sendErrorResponse(res, 400, "startDate and endDate are required");
@@ -2005,7 +1904,6 @@ export const exportRestaurantSummaryExcel = async (req, res) => {
     const summaryData = await Order.aggregate([
       {
         $match: {
-          restaurantType: finalRestaurantType,
           createdAt: { $gte: start, $lte: end },
           orderStatus: OrderStatuses.COMPLETED.value,
         },
@@ -2072,10 +1970,7 @@ export const exportRestaurantSummaryExcel = async (req, res) => {
     });
 
     // ===== Restaurant Long Title =====
-    const restaurantTitle =
-      restaurantType === "Beach"
-        ? "GANESH GARDEN BEACH CABANA - MAHI MAHI SEA FOOD RESTAURANT"
-        : "MARAKOLLIYA BEACH RESORT - SUNSET POOL BAR & RESTAURANT";
+    const restaurantTitle = `${RESTAURANT_INFO.hotelName} - ${RESTAURANT_INFO.restaurantName}`;
 
     // CREATE EXCEL
     const workbook = new ExcelJS.Workbook();

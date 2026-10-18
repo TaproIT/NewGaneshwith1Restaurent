@@ -111,28 +111,17 @@ import { DailyOrdersList } from "./DailyOrdersList";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "react-toastify";
 import { formatToYMD } from "@/lib/order-util";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RestaurantTypes } from "@/lib/enums/order-related-enums";
 
 export const DailyOrderSummaryFilterAndCount: React.FC = () => {
   // Local state for date range
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
 
-  // NEW: Restaurant type state
-  const [restaurantType, setRestaurantType] = useState<string>(RestaurantTypes.BEACH.value);
-
   const dispatch = useDispatch<AppDispatch>();
 
   const { summary, orders, fetchDailyOrderSummaryStatus } = useSelector(
     (state: RootState) => state.dailyOrderSummary
   );
-
-   const { role } = useSelector(
-    (state: RootState) => state.user
-  );
-
-  const isAdmin = (role === 'Super-Admin')  || (role === 'Admin') || (role === 'Reception');
 
   const { loading, error } = fetchDailyOrderSummaryStatus;
 
@@ -151,7 +140,7 @@ export const DailyOrderSummaryFilterAndCount: React.FC = () => {
     if (startDate && endDate) {
       dispatch(fetchDailyOrderSummary({ startDate, endDate }));
     }
-  }, [startDate, endDate, restaurantType, dispatch]);
+  }, [startDate, endDate, dispatch]);
 
   // Error popup
   useEffect(() => {
@@ -168,17 +157,9 @@ export const DailyOrderSummaryFilterAndCount: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <div
-        className={`w-full grid ${
-          isAdmin ? "grid-cols-10" : "grid-cols-5"
-        } gap-2`}
-      >
+      <div className="w-full grid grid-cols-5 gap-2">
         {/* Start Date */}
-        <div
-          className={`${
-            isAdmin ? "col-span-2" : "col-span-1"
-          } pt-5 py-2 px-2 flex flex-col items-center justify-center gap-2 bg-[#FEFEFE] rounded-md`}
-        >
+        <div className="col-span-1 pt-5 py-2 px-2 flex flex-col items-center justify-center gap-2 bg-[#FEFEFE] rounded-md">
           {loading ? (
             <>
               <Skeleton className="h-4 w-24" />
@@ -198,11 +179,7 @@ export const DailyOrderSummaryFilterAndCount: React.FC = () => {
         </div>
 
         {/* End Date */}
-        <div
-          className={`${
-            isAdmin ? "col-span-2" : "col-span-1"
-          } pt-5 py-2 px-2 flex flex-col items-center justify-center gap-2 bg-[#FEFEFE] rounded-md`}
-        >
+        <div className="col-span-1 pt-5 py-2 px-2 flex flex-col items-center justify-center gap-2 bg-[#FEFEFE] rounded-md">
           {loading ? (
             <>
               <Skeleton className="h-4 w-24" />
@@ -221,37 +198,8 @@ export const DailyOrderSummaryFilterAndCount: React.FC = () => {
           )}
         </div>
 
-        {/* NEW: Restaurant Type Dropdown - Only for Admin */}
-        {isAdmin && (
-          <div
-            className={`${
-              isAdmin ? "col-span-2" : "col-span-1"
-            } pt-5 py-2 px-2 flex flex-col items-center justify-center gap-2 bg-[#FEFEFE] rounded-md`}
-          >
-            <p className="text-[0.875rem] text-[#444444]">Restaurant Type</p>
-
-            <Select
-              value={restaurantType}
-              onValueChange={(value) => setRestaurantType(value)}
-            >
-              <SelectTrigger className="w-full bg-[#F4F4F4] rounded-md text-sm">
-                <SelectValue placeholder="Select type" />
-              </SelectTrigger>
-
-              <SelectContent>
-                  <SelectItem value={RestaurantTypes.BEACH.value}>{RestaurantTypes.BEACH.label}</SelectItem>
-                <SelectItem value={RestaurantTypes.POOL.value}>{RestaurantTypes.POOL.value}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
         {/* Summary Counter Boxes */}
-        <div
-          className={`${
-            isAdmin ? "col-span-4" : "col-span-3"
-          } grid grid-cols-3 gap-2`}
-        >
+        <div className="col-span-3 grid grid-cols-3 gap-2">
           {summaryCounts.map((item, index) => (
             <div
               key={index}

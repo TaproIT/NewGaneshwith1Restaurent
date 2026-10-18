@@ -1,24 +1,6 @@
-import User from "../models/user/user-model.js";
-import { RestaurantTypes } from "./enums/order-related-enums.js";
-import { userRoles } from "./enums/user-role.js";
+import { DEFAULT_RESTAURANT_TYPE } from "./enums/order-related-enums.js";
 
-export const getRestaurantTypeByUserRole = async (id) => {
-  try {
-    if (!id) {
-      throw new Error("User ID is required");
-    }
-
-    const user = await User.findById(id).lean();
-
-    if (user.userRole === userRoles.BEACH_RESTAURANT_STAFF.value || user.userRole === userRoles.BEACH_RESTAURANT_ADMIN.value) {
-      return RestaurantTypes.BEACH.value;
-    }
-
-    if (user.userRole === userRoles.POOL_RESTAURANT_STAFF.value || user.userRole === userRoles.POOL_RESTAURANT_ADMIN.value) {
-      return RestaurantTypes.POOL.value;
-    }
-  } catch (error) {
-    console.error("Error in getRestaurantTypeByUserRole:", error.message);
-    return null; // return null explicitly on error
-  }
-};
+// The hotel runs a single restaurant, so every order, table and menu item
+// belongs to it whoever is logged in. Kept as one function so the rule
+// lives in one place.
+export const getRestaurantType = () => DEFAULT_RESTAURANT_TYPE;

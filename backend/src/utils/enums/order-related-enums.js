@@ -36,10 +36,13 @@ export const TableStatuses = Object.freeze({
    RESERVED: { value: "Reserved", label: "Reserved" }
 });
 
+// The hotel runs a single restaurant. Every order, table and menu item
+// belongs to it, so there is only one restaurant type.
 export const RestaurantTypes = Object.freeze({
-   BEACH: { value: "Beach", label: "Beach" },
-   POOL : { value: "Pool", label: "Pool"}
+   RESTAURANT: { value: "Restaurant", label: "Restaurant" },
 });
+
+export const DEFAULT_RESTAURANT_TYPE = RestaurantTypes.RESTAURANT.value;
 
 export const BeverageCategories = Object.freeze({
   HARD_LIQUOR: { value: "hard liquor", label: "Hard Liquor"},

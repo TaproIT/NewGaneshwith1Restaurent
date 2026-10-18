@@ -44,7 +44,7 @@ export default function PrintButton() {
             ESC + "a" + "\x01" + // Align center
             "============================\n" +
             " GANESH GARDEN BEACH HOTEL\n" +
-            "      POOL RESTAURANT BILL\n" +
+            "        RESTAURANT BILL\n" +
             "============================\n" +
             ESC + "a" + "\x00" + // Align left
             "Order Token: 165\n" +

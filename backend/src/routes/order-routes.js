@@ -32,12 +32,10 @@ router.post(
   verifyTokenNotBlacklisted,
   authenticateToken,
   authorizeRoles([
-    userRoles.BEACH_RESTAURANT_STAFF.value,
-    userRoles.POOL_RESTAURANT_STAFF.value,
+    userRoles.RESTAURANT_STAFF.value,
     userRoles.ADMIN.value,
     userRoles.SUPER_ADMIN.value,
-    userRoles.BEACH_RESTAURANT_ADMIN.value,
-    userRoles.POOL_RESTAURANT_ADMIN.value,
+    userRoles.RESTAURANT_ADMIN.value,
   ]),
   setInitialOrderDetails
 );
@@ -47,12 +45,10 @@ router.post(
   verifyTokenNotBlacklisted,
   authenticateToken,
   authorizeRoles([
-    userRoles.BEACH_RESTAURANT_STAFF.value,
-    userRoles.POOL_RESTAURANT_STAFF.value,
+    userRoles.RESTAURANT_STAFF.value,
     userRoles.ADMIN.value,
     userRoles.SUPER_ADMIN.value,
-    userRoles.BEACH_RESTAURANT_ADMIN.value,
-    userRoles.POOL_RESTAURANT_ADMIN.value,
+    userRoles.RESTAURANT_ADMIN.value,
   ]),
   addTable
 );
@@ -62,12 +58,10 @@ router.get(
   verifyTokenNotBlacklisted,
   authenticateToken,
   authorizeRoles([
-    userRoles.BEACH_RESTAURANT_STAFF.value,
-    userRoles.POOL_RESTAURANT_STAFF.value,
+    userRoles.RESTAURANT_STAFF.value,
     userRoles.ADMIN.value,
     userRoles.SUPER_ADMIN.value,
-    userRoles.BEACH_RESTAURANT_ADMIN.value,
-    userRoles.POOL_RESTAURANT_ADMIN.value,
+    userRoles.RESTAURANT_ADMIN.value,
   ]),
   getAllTables
 );
@@ -77,12 +71,10 @@ router.get(
   verifyTokenNotBlacklisted,
   authenticateToken,
   authorizeRoles([
-    userRoles.BEACH_RESTAURANT_STAFF.value,
-    userRoles.POOL_RESTAURANT_STAFF.value,
+    userRoles.RESTAURANT_STAFF.value,
     userRoles.ADMIN.value,
     userRoles.SUPER_ADMIN.value,
-    userRoles.BEACH_RESTAURANT_ADMIN.value,
-    userRoles.POOL_RESTAURANT_ADMIN.value,
+    userRoles.RESTAURANT_ADMIN.value,
   ]),
   getTableById
 );
@@ -92,12 +84,10 @@ router.patch(
   verifyTokenNotBlacklisted,
   authenticateToken,
   authorizeRoles([
-    userRoles.BEACH_RESTAURANT_STAFF.value,
-    userRoles.POOL_RESTAURANT_STAFF.value,
+    userRoles.RESTAURANT_STAFF.value,
     userRoles.ADMIN.value,
     userRoles.SUPER_ADMIN.value,
-    userRoles.BEACH_RESTAURANT_ADMIN.value,
-    userRoles.POOL_RESTAURANT_ADMIN.value,
+    userRoles.RESTAURANT_ADMIN.value,
   ]),
   updateTable
 );
@@ -107,12 +97,10 @@ router.patch(
   verifyTokenNotBlacklisted,
   authenticateToken,
   authorizeRoles([
-    userRoles.BEACH_RESTAURANT_STAFF.value,
-    userRoles.POOL_RESTAURANT_STAFF.value,
+    userRoles.RESTAURANT_STAFF.value,
     userRoles.ADMIN.value,
     userRoles.SUPER_ADMIN.value,
-    userRoles.BEACH_RESTAURANT_ADMIN.value,
-    userRoles.POOL_RESTAURANT_ADMIN.value,
+    userRoles.RESTAURANT_ADMIN.value,
   ]),
   selectTableForOrder
 );
@@ -124,10 +112,8 @@ router.patch(
   authorizeRoles([
     userRoles.ADMIN.value,
     userRoles.SUPER_ADMIN.value,
-    userRoles.POOL_RESTAURANT_STAFF.value,
-    userRoles.BEACH_RESTAURANT_STAFF.value,
-    userRoles.BEACH_RESTAURANT_ADMIN.value,
-    userRoles.POOL_RESTAURANT_ADMIN.value,
+    userRoles.RESTAURANT_STAFF.value,
+    userRoles.RESTAURANT_ADMIN.value,
   ]),
   addOrderToken
 );
@@ -139,10 +125,8 @@ router.patch(
   authorizeRoles([
     userRoles.ADMIN.value,
     userRoles.SUPER_ADMIN.value,
-    userRoles.POOL_RESTAURANT_STAFF.value,
-    userRoles.BEACH_RESTAURANT_STAFF.value,
-    userRoles.BEACH_RESTAURANT_ADMIN.value,
-    userRoles.POOL_RESTAURANT_ADMIN.value,
+    userRoles.RESTAURANT_STAFF.value,
+    userRoles.RESTAURANT_ADMIN.value,
   ]),
   updateOrderBillDetails
 );
@@ -153,12 +137,10 @@ router.get(
   verifyTokenNotBlacklisted,
   authenticateToken,
   authorizeRoles([
-    userRoles.BEACH_RESTAURANT_STAFF.value,
-    userRoles.POOL_RESTAURANT_STAFF.value,
+    userRoles.RESTAURANT_STAFF.value,
     userRoles.ADMIN.value,
     userRoles.SUPER_ADMIN.value,
-    userRoles.BEACH_RESTAURANT_ADMIN.value,
-    userRoles.POOL_RESTAURANT_ADMIN.value,
+    userRoles.RESTAURANT_ADMIN.value,
   ]),
   getHoldOrders
 );
@@ -168,12 +150,10 @@ router.get(
   verifyTokenNotBlacklisted,
   authenticateToken,
   authorizeRoles([
-    userRoles.BEACH_RESTAURANT_STAFF.value,
-    userRoles.POOL_RESTAURANT_STAFF.value,
+    userRoles.RESTAURANT_STAFF.value,
     userRoles.ADMIN.value,
     userRoles.SUPER_ADMIN.value,
-    userRoles.BEACH_RESTAURANT_ADMIN.value,
-    userRoles.POOL_RESTAURANT_ADMIN.value,
+    userRoles.RESTAURANT_ADMIN.value,
   ]),
   getDailyOrdersSummary
 );
@@ -219,12 +199,10 @@ router.get(
   verifyTokenNotBlacklisted,
   authenticateToken,
   authorizeRoles([
-    userRoles.BEACH_RESTAURANT_STAFF.value,
-    userRoles.POOL_RESTAURANT_STAFF.value,
+    userRoles.RESTAURANT_STAFF.value,
     userRoles.ADMIN.value,
     userRoles.SUPER_ADMIN.value,
-    userRoles.BEACH_RESTAURANT_ADMIN.value,
-    userRoles.POOL_RESTAURANT_ADMIN.value,
+    userRoles.RESTAURANT_ADMIN.value,
   ]),
   getOrderDetails
 );
@@ -234,12 +212,10 @@ router.patch(
   verifyTokenNotBlacklisted,
   authenticateToken,
   authorizeRoles([
-    userRoles.BEACH_RESTAURANT_STAFF.value,
-    userRoles.POOL_RESTAURANT_STAFF.value,
+    userRoles.RESTAURANT_STAFF.value,
     userRoles.ADMIN.value,
     userRoles.SUPER_ADMIN.value,
-    userRoles.BEACH_RESTAURANT_ADMIN.value,
-    userRoles.POOL_RESTAURANT_ADMIN.value,
+    userRoles.RESTAURANT_ADMIN.value,
   ]),
   cancelOrder
 );
@@ -249,12 +225,10 @@ router.get(
   verifyTokenNotBlacklisted,
   authenticateToken,
   authorizeRoles([
-    userRoles.BEACH_RESTAURANT_STAFF.value,
-    userRoles.POOL_RESTAURANT_STAFF.value,
+    userRoles.RESTAURANT_STAFF.value,
     userRoles.ADMIN.value,
     userRoles.SUPER_ADMIN.value,
-    userRoles.BEACH_RESTAURANT_ADMIN.value,
-    userRoles.POOL_RESTAURANT_ADMIN.value,
+    userRoles.RESTAURANT_ADMIN.value,
   ]),
   getDailyRestaurantTotals
 );
@@ -265,12 +239,10 @@ router.get(
   verifyTokenNotBlacklisted,
   authenticateToken,
   authorizeRoles([
-    userRoles.BEACH_RESTAURANT_STAFF.value,
-    userRoles.POOL_RESTAURANT_STAFF.value,
+    userRoles.RESTAURANT_STAFF.value,
     userRoles.ADMIN.value,
     userRoles.SUPER_ADMIN.value,
-    userRoles.BEACH_RESTAURANT_ADMIN.value,
-    userRoles.POOL_RESTAURANT_ADMIN.value,
+    userRoles.RESTAURANT_ADMIN.value,
   ]),
   exportRestaurantSummaryExcel
 );
@@ -284,8 +256,7 @@ router.get(
     userRoles.RECEPTION.value,
     userRoles.ADMIN.value,
     userRoles.SUPER_ADMIN.value,
-    userRoles.BEACH_RESTAURANT_ADMIN.value,
-    userRoles.POOL_RESTAURANT_ADMIN.value,
+    userRoles.RESTAURANT_ADMIN.value,
   ]),
   checkPendingOrdersForBooking
 );

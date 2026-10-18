@@ -35,7 +35,7 @@ export const BeverageCategories = Object.freeze({
   SOFT_DRINKS: { value: "soft drinks", label: "Soft Drinks"},
 });
 
+// The hotel runs a single restaurant, so there is only one restaurant type.
 export const RestaurantTypes = Object.freeze({
-   BEACH: { value: "Beach", label: "Beach" },
-   POOL : { value: "Pool", label: "Pool"}
+   RESTAURANT: { value: "Restaurant", label: "Restaurant" },
 });

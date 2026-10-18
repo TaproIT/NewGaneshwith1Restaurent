@@ -6,13 +6,12 @@ import { toast } from "react-toastify";
 interface DownloadExcelButtonProps {
     startDate: string;
     endDate: string;
-    restaurantType?: string;
 }
-export const DownloadExcelButton:React.FC <DownloadExcelButtonProps> = ({startDate, endDate, restaurantType}) => {
+export const DownloadExcelButton:React.FC <DownloadExcelButtonProps> = ({startDate, endDate}) => {
   const handleDownload = async () => {
     try {
       const response = await api.get(
-        `/order/restaurant/excel-report?startDate=${startDate}&endDate=${endDate}&restaurantType=${restaurantType ? restaurantType : ""}`,
+        `/order/restaurant/excel-report?startDate=${startDate}&endDate=${endDate}`,
         {
           responseType: "blob",
         }

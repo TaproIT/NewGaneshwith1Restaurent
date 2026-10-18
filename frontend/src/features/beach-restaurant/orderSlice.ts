@@ -21,7 +21,7 @@ const initialState: Order = {
   orderStatus: 0,
   customerType: CustomerTypes.CHECKED_IN.value,  
   serviceType: ServiceTypes.DINE_IN.value,
-  restaurantType: RestaurantTypes.BEACH.value, 
+  restaurantType: RestaurantTypes.RESTAURANT.value,
   rooms: [],     
   roomNumber: "",            
   guestName: "",

@@ -34,7 +34,7 @@ const FoodCategorySelector: React.FC<{id:string}> = ({id}) => {
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
 
-  const isAdminRole = (role === "Beach-Restaurant-Admin") || (role === "Pool-Restaurant-Admin") ;
+  const isAdminRole = role === "Restaurant-Admin";
 
   const selectedIndex = categories.findIndex(
     (cat) => cat._id === selectedCategoryId

@@ -6,7 +6,7 @@ const extraBeverageCategorySchema = new mongoose.Schema(
     {
         name: { type: String, required: true, trim: true },
         isVisible: { type: Boolean, default: true },
-        restaurantType: { type: String, required: true, enums: [RestaurantTypes.BEACH.value, RestaurantTypes.POOL.value] },
+        restaurantType: { type: String, required: true, enum: [RestaurantTypes.RESTAURANT.value], default: RestaurantTypes.RESTAURANT.value },
     },
     { timestamps: true, collection: "extrabeveragecategories" }
 );

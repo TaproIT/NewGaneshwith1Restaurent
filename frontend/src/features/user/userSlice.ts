@@ -6,7 +6,7 @@ import { RestaurantTypes } from "@/lib/enums/order-related-enums";
 
 const initialState: RoleState = {
     role: null,
-    restaurantType: RestaurantTypes.BEACH.value
+    restaurantType: RestaurantTypes.RESTAURANT.value
 };
 
 export const fetchUserRole = createAsyncThunk<UserRole>(
@@ -33,11 +33,6 @@ const roleSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(fetchUserRole.fulfilled, (state, action) => {
       state.role = action.payload;
-      if (action.payload === "Beach-Restaurant-Staff"){
-        state.restaurantType = RestaurantTypes.BEACH.value;
-      }else if (action.payload === "Pool-Restaurant-Staff"){
-        state.restaurantType = RestaurantTypes.BEACH.value;
-      }
     });
   },
 });
