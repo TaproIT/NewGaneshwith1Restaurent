@@ -241,6 +241,7 @@ export const DailyOrderSummaryFilterAndCount: React.FC = () => {
               <SelectContent>
                   <SelectItem value={RestaurantTypes.BEACH.value}>{RestaurantTypes.BEACH.label}</SelectItem>
                 <SelectItem value={RestaurantTypes.POOL.value}>{RestaurantTypes.POOL.value}</SelectItem>
+                <SelectItem value={RestaurantTypes.NEW.value}>{RestaurantTypes.NEW.label}</SelectItem>
               </SelectContent>
             </Select>
           </div>

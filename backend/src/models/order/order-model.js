@@ -19,7 +19,7 @@ const orderSchema = new mongoose.Schema({
   restaurantType: {
     type: String,
     required: true,
-    enum: [RestaurantTypes.BEACH.value, RestaurantTypes.POOL.value]
+    enum: [RestaurantTypes.BEACH.value, RestaurantTypes.POOL.value, RestaurantTypes.NEW.value]
   },
   roomNumber: {
     type: String,

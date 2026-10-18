@@ -2,6 +2,7 @@ import React from "react";
 import ReceptionDashboard from "@/component/reception/ReceptionDashboard";
 import PoolResturantDashboard from "@/component/beach-&-pool-restaurant/pool-&-beach-resturant-dashboard/PoolResturantDashboard";
 import BeachResturantDashboard from "@/component/beach-&-pool-restaurant/pool-&-beach-resturant-dashboard/BeachResturantDashboard";
+import NewResturantDashboard from "@/component/beach-&-pool-restaurant/pool-&-beach-resturant-dashboard/NewResturantDashboard";
 
 const AdminDashboard: React.FC = () => {
   return (
@@ -12,6 +13,8 @@ const AdminDashboard: React.FC = () => {
       <PoolResturantDashboard />
       <div className="text-sm font-medium text-gray ml-2">Beach Restaurant</div>
       <BeachResturantDashboard />
+      <div className="text-sm font-medium text-gray ml-2">New Restaurant</div>
+      <NewResturantDashboard />
       {/* <div className="text-sm font-medium text-gray ml-2">Beverage Inventory</div>
       <Dashboard /> */}
     </div>

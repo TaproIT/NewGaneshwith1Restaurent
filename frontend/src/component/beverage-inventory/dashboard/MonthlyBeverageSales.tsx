@@ -27,7 +27,7 @@ const MonthlyBeverageSales: React.FC = () => {
   const [endDate, setEndDate] = useState<string>(
     format(new Date(), "yyyy-MM-dd")
   );
-  const [location, setLocation] = useState<"Pool" | "Beach">("Pool"); // toggle
+  const [location, setLocation] = useState<"Pool" | "Beach" | "New">("Pool"); // toggle
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState<BeverageSummary | null>(null);
 
@@ -92,6 +92,12 @@ const MonthlyBeverageSales: React.FC = () => {
             onClick={() => setLocation("Beach")}
           >
             Beach
+          </Button>
+          <Button
+            variant={location === "New" ? "default" : "outline"}
+            onClick={() => setLocation("New")}
+          >
+            New Restaurant
           </Button>
         </div>
 

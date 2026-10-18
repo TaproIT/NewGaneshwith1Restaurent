@@ -159,6 +159,9 @@ export const RestaurantSummaryFilterAndCount: React.FC = () => {
                   <SelectItem value={RestaurantTypes.POOL.value}>
                     {RestaurantTypes.POOL.value}
                   </SelectItem>
+                  <SelectItem value={RestaurantTypes.NEW.value}>
+                    {RestaurantTypes.NEW.label}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </>
@@ -197,7 +200,7 @@ export const RestaurantSummaryFilterAndCount: React.FC = () => {
               isAdmin ? "col-span-1" : "col-span-1"
             } flex items-center justify-end`}
           >
-            <DownloadExcelButton startDate={startDate} endDate={endDate} restaurantType={restaurantType}  />
+            <DownloadExcelButton startDate={startDate} endDate={endDate} restaurantType={isAdmin ? restaurantType : ""}  />
           </div>
         </div>
       </div>

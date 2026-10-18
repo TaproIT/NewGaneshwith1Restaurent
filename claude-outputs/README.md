@@ -15,6 +15,7 @@ values are reproduced anywhere in these files).
 | [06-remediation-roadmap.md](./06-remediation-roadmap.md) | Phased plan (Phase 0 this week → Phase 4 product work) and the business decisions needed | whoever plans the work |
 | [07-theme-switching.md](./07-theme-switching.md) | Theme switching feature (built 2026-10-16): what changed, files, how it was checked, rules for new code | developers and reviewers |
 | [08-printers-page.md](./08-printers-page.md) | Printers page (built 2026-10-16): printer list, live status, test printouts; QZ certificate options | developers and reviewers |
+| [09-new-restaurant.md](./09-new-restaurant.md) | Third restaurant "New Restaurant" (built 2026-10-17): what works, reports, the Excel fix, setup (tables, users, menu), how to rename it | developers, reviewers and whoever sets it up |
 
 The project-level guide for Claude is [`../CLAUDE.md`](../CLAUDE.md).
 

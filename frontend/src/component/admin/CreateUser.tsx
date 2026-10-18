@@ -128,6 +128,8 @@ const CreateUser: React.FC<CreateUserProps> = ({ onClose }) => {
               <SelectItem value="Pool-Restaurant-Staff">Pool Staff</SelectItem>
               <SelectItem value="Pool-Restaurant-Admin">Pool Admin</SelectItem>
               <SelectItem value="Beach-Restaurant-Admin">Beach Admin</SelectItem>
+              <SelectItem value="New-Restaurant-Staff">New Staff</SelectItem>
+              <SelectItem value="New-Restaurant-Admin">New Admin</SelectItem>
             </SelectContent>
           </Select>
         </div>

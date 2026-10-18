@@ -17,6 +17,10 @@ export const getRestaurantTypeByUserRole = async (id) => {
     if (user.userRole === userRoles.POOL_RESTAURANT_STAFF.value || user.userRole === userRoles.POOL_RESTAURANT_ADMIN.value) {
       return RestaurantTypes.POOL.value;
     }
+
+    if (user.userRole === userRoles.NEW_RESTAURANT_STAFF.value || user.userRole === userRoles.NEW_RESTAURANT_ADMIN.value) {
+      return RestaurantTypes.NEW.value;
+    }
   } catch (error) {
     console.error("Error in getRestaurantTypeByUserRole:", error.message);
     return null; // return null explicitly on error

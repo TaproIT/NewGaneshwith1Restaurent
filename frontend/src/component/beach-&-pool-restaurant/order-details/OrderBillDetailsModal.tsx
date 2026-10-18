@@ -19,6 +19,7 @@ import { useNavigate } from "react-router-dom";
 import { updateBookingDetailsWithOrderId } from "@/api/order/update-booking-details-with-order-id-api";
 import { Loader2 } from "lucide-react";
 import { getPrinter } from "@/util/printerConfig";
+import { getReceiptHeader } from "@/util/receiptHeader";
 
 interface OrderTokenDialogProps {
   id: string;
@@ -129,8 +130,8 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
         ESC + "@" + // init
         ESC + "a" + "\x01" + // center
         "==========================================\n" +
-       `${order.restaurantType === "Beach"? "GANESH GARDEN BEACH CABANA" : "MARAKOLLIYA BEACH RESORT"}\n` +
-        `${order.restaurantType === "Beach"? "MAHI MAHI SEA FOOD RESTAURANT" : "SUNSET POOL BAR & RESTAURANT"}\n` +
+       `${getReceiptHeader(order.restaurantType).hotel}\n` +
+        `${getReceiptHeader(order.restaurantType).restaurant}\n` +
         "Tangalle \n"+
         "==========================================\n" +
         ESC + "a" + "\x00" + // left align
@@ -141,7 +142,7 @@ export default function OrderBillDetailsModal({ id }: OrderTokenDialogProps) {
         `${order.roomNumber  !== "0" ? `Room No       : ${order.roomNumber}\n`:""}` +
         `Payment Method: ${selectedPayment}\n` +
         `Date          : ${new Date().toLocaleString()}\n` +
-        `TP            : ${order.restaurantType === "Beach"? "+94 472242529 / +94 705505705" : "+94 472244822 / +94 705505705"}\n` +
+        `TP            : ${getReceiptHeader(order.restaurantType).phone}\n` +
         "-".repeat(totalWidth) + "\n";
       
       receiptData += itemHeader + "\n";

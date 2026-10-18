@@ -15,6 +15,7 @@ An internal hotel operations app for two properties on Marakolliya Beach, Tangal
 |---|---|---|
 | `Ganesh Garden Beach Cabana` / `Beach` | Ganesh Garden Beach Cabana | Mahi Mahi Sea Food Restaurant |
 | `Marakolliya Beach Resort` / `Pool` | Marakolliya Beach Resort | Sunset Pool Bar & Restaurant |
+| (no `hotel` value) / `New` | receipts print Ganesh Garden Beach Cabana | New Restaurant (placeholder name; see `claude-outputs/09-new-restaurant.md`) |
 
 Modules: **Reception** (check-in/onboarding, room availability, room switching, booking updates, checkout & final bill,
 proforma invoices, room reports), **Pool & Beach restaurants** (POS-style orders with tokens, tables, hold orders,
@@ -22,8 +23,10 @@ bills, daily summaries, Excel export), **Beverage inventory** (stock, liquor usa
 currency rates, reports). Receipts/invoices print through **QZ Tray** (thermal ESC/POS + A4 HTML).
 
 Staff roles (`backend/src/utils/enums/user-role.js`): `Super-Admin`, `Admin`, `Reception`,
-`Beach-Restaurant-Staff`, `Pool-Restaurant-Staff`, `Beach-Restaurant-Admin`, `Pool-Restaurant-Admin`.
-A user's restaurant (`Beach`/`Pool`) is derived from their role (`utils/user-util.js`); Admin/Super-Admin have none.
+`Beach-Restaurant-Staff`, `Pool-Restaurant-Staff`, `Beach-Restaurant-Admin`, `Pool-Restaurant-Admin`,
+`New-Restaurant-Staff`, `New-Restaurant-Admin`.
+A user's restaurant (`Beach`/`Pool`/`New`) is derived from their role (`utils/user-util.js`); Admin/Super-Admin have none.
+Restaurant receipt headers live in `frontend/src/util/receiptHeader.ts`.
 
 ## 2. Stack
 

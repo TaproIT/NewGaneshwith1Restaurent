@@ -2073,8 +2073,10 @@ export const exportRestaurantSummaryExcel = async (req, res) => {
 
     // ===== Restaurant Long Title =====
     const restaurantTitle =
-      restaurantType === "Beach"
+      finalRestaurantType === RestaurantTypes.BEACH.value
         ? "GANESH GARDEN BEACH CABANA - MAHI MAHI SEA FOOD RESTAURANT"
+        : finalRestaurantType === RestaurantTypes.NEW.value
+        ? "GANESH GARDEN BEACH CABANA - NEW RESTAURANT"
         : "MARAKOLLIYA BEACH RESORT - SUNSET POOL BAR & RESTAURANT";
 
     // CREATE EXCEL

@@ -26,7 +26,7 @@ const BeachRestaurantMenuPage: React.FC = () => {
   const param = useParams();
   const id = param?.id as string;
 
-  const isAdminRole = (role === "Beach-Restaurant-Admin") || (role === "Pool-Restaurant-Admin") ;
+  const isAdminRole = (role === "Beach-Restaurant-Admin") || (role === "Pool-Restaurant-Admin") || (role === "New-Restaurant-Admin") ;
 
   useEffect(() => {
     if (id === "0") return;

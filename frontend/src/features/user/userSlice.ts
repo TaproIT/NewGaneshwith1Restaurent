@@ -37,6 +37,8 @@ const roleSlice = createSlice({
         state.restaurantType = RestaurantTypes.BEACH.value;
       }else if (action.payload === "Pool-Restaurant-Staff"){
         state.restaurantType = RestaurantTypes.BEACH.value;
+      }else if (action.payload === "New-Restaurant-Staff"){
+        state.restaurantType = RestaurantTypes.NEW.value;
       }
     });
   },

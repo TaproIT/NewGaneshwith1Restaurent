@@ -26,6 +26,7 @@ import { fetchOrderById } from "@/api/order/get-order-data-api";
 import { toast } from "react-toastify";
 import { Loader2 } from "lucide-react";
 import { getPrinter } from "@/util/printerConfig";
+import { getReceiptHeader } from "@/util/receiptHeader";
 
 interface OrderTokenDialogProps {
   id: string;
@@ -144,8 +145,8 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
         "a" +
         "\x01" + // center
         "==========================================\n" +
-        `${order.restaurantType === "Beach"? "GANESH GARDEN BEACH CABANA" : "MARAKOLLIYA BEACH RESORT"}\n` +
-        `${order.restaurantType === "Beach"? "MAHI MAHI SEA FOOD RESTAURANT" : "SUNSET POOL BAR & RESTAURANT"}\n` +
+        `${getReceiptHeader(order.restaurantType).hotel}\n` +
+        `${getReceiptHeader(order.restaurantType).restaurant}\n` +
         "Tangalle \n"+
         "==========================================\n" +
         ESC +
@@ -156,7 +157,7 @@ export default function OrderTokenDialog({ id }: OrderTokenDialogProps) {
         `Customer Type: ${order.customerType}\n` +
         `${order.roomNumber  !== "0" ? `Room No       : ${order.roomNumber}\n`:""}` + 
         `Date         : ${new Date().toLocaleString()}\n` +
-        `TP           : ${order.restaurantType === "Beach"? "+94 472242529 / +94 705505705" : "+94 472244822 / +94 705505705"}\n` +
+        `TP           : ${getReceiptHeader(order.restaurantType).phone}\n` +
         "-".repeat(totalWidth) +
         "\n" +
         headerLine +

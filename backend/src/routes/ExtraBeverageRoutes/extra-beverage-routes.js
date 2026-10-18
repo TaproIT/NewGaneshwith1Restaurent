@@ -27,6 +27,7 @@ router.post(
     userRoles.ADMIN.value,
     userRoles.BEACH_RESTAURANT_ADMIN.value,
     userRoles.POOL_RESTAURANT_ADMIN.value,
+    userRoles.NEW_RESTAURANT_ADMIN.value,
   ]),
   createExtraBeverageCategory
 );
@@ -37,9 +38,11 @@ router.get(
   authorizeRoles([
     userRoles.BEACH_RESTAURANT_STAFF.value,
     userRoles.POOL_RESTAURANT_STAFF.value,
+    userRoles.NEW_RESTAURANT_STAFF.value,
     userRoles.ADMIN.value,
     userRoles.BEACH_RESTAURANT_ADMIN.value,
     userRoles.POOL_RESTAURANT_ADMIN.value,
+    userRoles.NEW_RESTAURANT_ADMIN.value,
   ]),
   getAvailableExtraBeverageCategories
 );

@@ -37,5 +37,6 @@ export const BeverageCategories = Object.freeze({
 
 export const RestaurantTypes = Object.freeze({
    BEACH: { value: "Beach", label: "Beach" },
-   POOL : { value: "Pool", label: "Pool"}
+   POOL : { value: "Pool", label: "Pool"},
+   NEW : { value: "New", label: "New Restaurant" }
 });

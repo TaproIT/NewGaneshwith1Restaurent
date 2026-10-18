@@ -13,7 +13,7 @@ const restaurantTableSchema = new mongoose.Schema({
     restaurantType: {
         type: String,
         required: true,
-        enums: [RestaurantTypes.BEACH.value, RestaurantTypes.POOL.value]
+        enums: [RestaurantTypes.BEACH.value, RestaurantTypes.POOL.value, RestaurantTypes.NEW.value]
     },
     isSelected: {
         type: Boolean,
